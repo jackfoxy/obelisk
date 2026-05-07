@@ -113,9 +113,9 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
         %.n
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
+            [%ordered-column name='col3' ascending=%.y]
             ==
         ~
         ==
@@ -123,9 +123,9 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db' namespace='dbo' name='table' ~]
         %.y
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
+            [%ordered-column name='col3' ascending=%.y]
             ==
         ~
         ==
@@ -144,9 +144,9 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db1' namespace='ns' name='table' ~]
         %.n
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
+            [%ordered-column name='col3' ascending=%.y]
             ==
         ~
         ==
@@ -162,9 +162,9 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         %.n
-        :~  [%ordered-column name='col1' is-ascending=%.n]
-            [%ordered-column name='col2' is-ascending=%.y]
-            [%ordered-column name='col3' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.n]
+            [%ordered-column name='col2' ascending=%.y]
+            [%ordered-column name='col3' ascending=%.y]
             ==
         ~
         ==
@@ -180,7 +180,7 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         %.y
-        ~[[%ordered-column name='col1' is-ascending=%.n]]
+        ~[[%ordered-column name='col1' ascending=%.n]]
         ~
         ==
   %+  expect-eq
@@ -194,7 +194,7 @@
     :*  %create-index  name='my-index'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         %.y
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
+        ~[[%ordered-column name='col1' ascending=%.y]]
         ~
         ==
   %+  expect-eq
@@ -453,17 +453,17 @@
 :: tests 1, 2, 3, 5, and extra whitespace characters, db.ns.table on delete cascade on update cascade; db..table on update cascade on delete cascade
 ++  test-create-table-00
   =/  cols
-    :~  [%column name='col1' column-type=%t addr=0]
-        [%column name='col2' column-type=%p addr=0]
-        [%column name='col3' column-type=%ud addr=0]
+    :~  [%column name='col1' type=%t addr=0]
+        [%column name='col2' type=%p addr=0]
+        [%column name='col3' type=%ud addr=0]
         ==
   =/  pidx
-    :~  [%ordered-column name='col1' is-ascending=%.y]
-        [%ordered-column name='col2' is-ascending=%.y]
+    :~  [%ordered-column name='col1' ascending=%.y]
+        [%ordered-column name='col2' ascending=%.y]
         ==
   =/  fk-cols
-    :~  [%ordered-column name='col1' is-ascending=%.y]
-        [%ordered-column name='col2' is-ascending=%.n]
+    :~  [%ordered-column name='col1' ascending=%.y]
+        [%ordered-column name='col2' ascending=%.n]
         ==
   =/  fk1
     :*  %foreign-key  name='fk'
@@ -534,8 +534,8 @@
   =/  fk
     :*  %foreign-key  name='fk'
         my-table
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~
             database='db1'  namespace='ns'
@@ -547,12 +547,12 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~[fk]
         ~
@@ -563,8 +563,8 @@
     "primary key (col1, col2) ".
     "foreign key fk (col1,col2 desc) ".
     "reFerences ns.fk-table ".
-    "(col19, col20) on update no action ".
-    "on delete no action; "
+    "(col19, col20) on update restrict ".
+    "on delete restrict; "
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -579,8 +579,8 @@
   =/  fk
     :*  %foreign-key  name='fk'
         my-table
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~
             database='db1'  namespace='ns'
@@ -592,12 +592,12 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~[fk]
         ~
@@ -608,7 +608,7 @@
     "primary key (col1, col2) ".
     "foreign key fk (col1,col2 desc) ".
     "reFerences ns.fk-table ".
-    "(col19, col20) on update no action ".
+    "(col19, col20) on update restrict ".
     "on delete cascade"
   %+  expect-eq
     !>  ~[expected]
@@ -624,8 +624,8 @@
   =/  fk
     :*  %foreign-key  name='fk'
         my-table
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
@@ -637,12 +637,12 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~[fk]
         ~
@@ -650,7 +650,7 @@
   =/  urql
     "create table my-table (col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1, col2) foreign key fk (col1,col2 desc) ".
-    "reFerences fk-table (col19, col20) on update cascade on delete no action"
+    "reFerences fk-table (col19, col20) on update cascade on delete restrict"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -665,7 +665,7 @@
   =/  fk
     :*  %foreign-key  name='fk'
         my-table
-        ~[[%ordered-column name='col2' is-ascending=%.n]]
+        ~[[%ordered-column name='col2' ascending=%.n]]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
@@ -676,11 +676,11 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
+        ~[[%ordered-column name='col1' ascending=%.y]]
         ~[fk]
         ~
         ==
@@ -705,7 +705,7 @@
   =/  fk
     :*  %foreign-key  name='fk'
         my-table
-        ~[[%ordered-column name='col2' is-ascending=%.n]]
+        ~[[%ordered-column name='col2' ascending=%.n]]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
@@ -716,11 +716,11 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
+        ~[[%ordered-column name='col1' ascending=%.y]]
         ~[fk]
         ~
         ==
@@ -742,12 +742,12 @@
             database='db1'  namespace='dbo'
             name='my-table'  ~
             ==
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~
         ~
@@ -768,7 +768,7 @@
   =/  fk1
     :*  %foreign-key  name='fk'
         my-table
-        ~[[%ordered-column name='col2' is-ascending=%.n]]
+        ~[[%ordered-column name='col2' ascending=%.n]]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
@@ -779,8 +779,8 @@
   =/  fk2
     :*  %foreign-key  name='fk2'
         my-table
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
@@ -792,11 +792,11 @@
   =/  expected
     :*  %create-table
         my-table
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
+        ~[[%ordered-column name='col1' ascending=%.y]]
         ~[fk1 fk2]
         ~
         ==
@@ -822,12 +822,12 @@
             database='db1'  namespace='dbo'
             name='my-table'  ~
             ==
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~
         ~
@@ -848,12 +848,12 @@
             database='db1'  namespace='ns1'
             name='my-table'  ~
             ==
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
@@ -875,12 +875,12 @@
             database='db2'  namespace='dbo'
             name='my-table'  ~
             ==
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~
         [~ [%as-of-offset 5 %seconds]]
@@ -902,12 +902,12 @@
             database='db2'  namespace='ns1'
             name='my-table'  ~
             ==
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.y]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
             ==
         ~
         [~ [%as-of-offset 15 %minutes]]
@@ -940,6 +940,133 @@
     "reFerences db..fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
+::
+:: foreign key on delete set default
+++  test-create-table-14
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~[%delete-set-default]
+        ==
+  =/  expected
+    :*  %create-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            ==
+        ~[[%ordered-column name='col1' ascending=%.y]]
+        ~[fk]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create table my-table (col1 @t, col2 @p) ".
+        "primary key (col1) foreign key fk (col2 desc) ".
+        "references fk-table (col20) on delete set default"
+::
+:: foreign key on update set default
+++  test-create-table-15
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~[%update-set-default]
+        ==
+  =/  expected
+    :*  %create-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            ==
+        ~[[%ordered-column name='col1' ascending=%.y]]
+        ~[fk]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create table my-table (col1 @t, col2 @p) ".
+        "primary key (col1) foreign key fk (col2 desc) ".
+        "references fk-table (col20) on update set default"
+::
+:: foreign key on delete set default on update cascade
+++  test-create-table-16
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~[%delete-set-default %update-cascade]
+        ==
+  =/  expected
+    :*  %create-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            ==
+        ~[[%ordered-column name='col1' ascending=%.y]]
+        ~[fk]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create table my-table (col1 @t, col2 @p) ".
+        "primary key (col1) foreign key fk (col2 desc) ".
+        "references fk-table (col20) ".
+        "on delete set default on update cascade"
+::
+:: foreign key on delete restrict on update restrict produces empty integrity list
+++  test-create-table-17
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~
+        ==
+  =/  expected
+    :*  %create-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            ==
+        ~[[%ordered-column name='col1' ascending=%.y]]
+        ~[fk]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create table my-table (col1 @t, col2 @p) ".
+        "primary key (col1) foreign key fk (col2 desc) ".
+        "references fk-table (col20) ".
+        "on delete restrict on update restrict"
+::
+:: fail when no action keyword used (retired)
+++  test-fail-create-table-18
+  =/  urql
+    "create table my-table (col1 @t, col2 @p) ".
+    "primary key (col1) foreign key fk (col2 desc) ".
+    "references fk-table (col20) on delete no action"
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') urql)
 ::
 :: delete
 ::
@@ -3315,10 +3442,10 @@
         ==
   =/  qc  [%qualified-column qualifier=qt column='col' alias=~]
   =/  uc  [%unqualified-column name='foo' alias=[~ 'T1']]
-  :~  [%ordering-column qc is-ascending=%.y]
-      [%ordering-column uc is-ascending=%.n]
-      [%ordering-column 3 is-ascending=%.y]
-      [%ordering-column 4 is-ascending=%.n]
+  :~  [%ordering-column qc ascending=%.y]
+      [%ordering-column uc ascending=%.n]
+      [%ordering-column 3 ascending=%.y]
+      [%ordering-column 4 ascending=%.n]
       ==
 ::
 ::  group by

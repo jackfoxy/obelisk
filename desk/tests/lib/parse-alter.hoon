@@ -247,31 +247,36 @@
 ::
 :: alter table
 ::
-:: tests 1, 2, 3, 5, and extra whitespace characters
-:: alter column db.ns.table 3 columns ; alter column db..table 1 column
+::  alter-table fixture slot order:
+::  qualified-table  new-name  columns  pri-indx  add-columns
+::  drop-columns  rename-columns  alter-columns  add-foreign-keys
+::  drop-foreign-keys  as-of
+::
+:: add column db.ns.table 3 columns ; add column db..table 1 column
 ++  test-alter-table-00
   =/  expected1
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        ~
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~                                                       :: new-name
+        ~                                                       :: columns
+        ~                                                       :: pri-indx
+        :~  [%column name='col1' type=%t addr=0]                :: add-columns
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
-        ~
+        ~                                                       :: drop-columns
+        ~                                                       :: rename-columns
+        ~                                                       :: alter-columns
+        ~                                                       :: add-foreign-keys
+        ~                                                       :: drop-foreign-keys
+        ~                                                       :: as-of
         ==
   =/  expected2
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='dbo' name='table' ~]
-        ~
-        ~[[%column name='col1' column-type=%t addr=0]]
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~
+        ~[[%column name='col1' type=%t addr=0]]
+        ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -281,20 +286,17 @@
         "\0a;\0a ALTER TABLE db..table ADD COLUMN ".
         "(col1 @t) "
 ::
-:: alter column table 3 columns
+:: alter column 3 columns
 ++  test-alter-table-01
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~  ~  ~  ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -302,51 +304,42 @@
         "ALTER TABLE table ALTER COLUMN ".
         "(col1 @t, col2 @p, col3 @ud)"
 ::
-:: alter column table 1 column
+:: alter column 1 column
 ++  test-alter-table-02
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%column name='col1' column-type=%t addr=0]]
-        ~
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~
+        ~[[%column name='col1' type=%t addr=0]]
+        ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ALTER COLUMN (col1 @t)"
 ::
-:: drop column table 3 columns
+:: drop column 3 columns
 ++  test-alter-table-03
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         ['col1' 'col2' 'col3' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table DROP COLUMN (col1, col2, col3)"
 ::
-:: drop column table 1 column
+:: drop column 1 column
 ++  test-alter-table-04
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         ['col1' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -358,8 +351,8 @@
   =/  fk1
     :*  %foreign-key  name='fk'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
@@ -370,8 +363,8 @@
   =/  fk2
     :*  %foreign-key  name='fk2'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
@@ -382,12 +375,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~
         ~[fk1 fk2]
-        ~
-        ~
+        ~  ~
         ==
   =/  urql
     "ALTER TABLE table ADD FOREIGN KEY ".
@@ -409,10 +399,7 @@
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='mytable'  ~
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' 'fk2' ~]
         ~
         ==
@@ -426,10 +413,7 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='dbo' name='mytable' ~]
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' 'fk2' ~]
         ~
         ==
@@ -443,10 +427,7 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='ns' name='mytable' ~]
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' ~]
         ~
         ==
@@ -460,15 +441,12 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        ~
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -477,19 +455,17 @@
         " ( col1  @t ,  col2  @p ,  col3  @ud )".
         " as of now"
 ::
-::  add column as of now
+::  add column as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-10
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        ~
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -504,14 +480,12 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        ~
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~
         [~ [%as-of-offset 1 %weeks]]
         ==
   %+  expect-eq
@@ -526,14 +500,11 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
+        ~  ~  ~  ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
             ==
-        ~
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -545,14 +516,12 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%column name='col1' column-type=%t addr=0]
-            [%column name='col2' column-type=%p addr=0]
-            [%column name='col3' column-type=%ud addr=0]
+        ~  ~  ~  ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -567,11 +536,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%column name='col1' column-type=%t addr=0]]
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~
+        ~[[%column name='col1' type=%t addr=0]]
+        ~  ~
         [~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -585,12 +552,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         ['col1' 'col2' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -602,11 +566,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         ['col1' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -620,11 +582,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         ['col1' 'col2' 'col3' ~]
-        ~
-        ~
+        ~  ~  ~  ~
         [~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -637,8 +597,8 @@
   =/  fk1
     :*  %foreign-key  name='fk'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
@@ -649,8 +609,8 @@
   =/  fk2
     :*  %foreign-key  name='fk2'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
@@ -661,12 +621,9 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~
         ~[fk1 fk2]
-        ~
-        ~
+        ~  ~
         ==
   =/  urql
     "alter table table add foreign key ".
@@ -687,8 +644,8 @@
   =/  fk1
     :*  %foreign-key  name='fk'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
@@ -699,8 +656,8 @@
   =/  fk2
     :*  %foreign-key  name='fk2'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
@@ -711,9 +668,7 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~
         ~[fk1 fk2]
         ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
@@ -737,8 +692,8 @@
   =/  fk1
     :*  %foreign-key  name='fk'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
@@ -749,8 +704,8 @@
   =/  fk2
     :*  %foreign-key  name='fk2'
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
             ==
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
@@ -761,9 +716,7 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~
         ~[fk1 fk2]
         ~
         [~ %as-of-offset 5 %days]
@@ -789,10 +742,7 @@
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='mytable'  ~
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' 'fk2' ~]
         ~
         ==
@@ -808,10 +758,7 @@
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='mytable'  ~
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' 'fk2' ~]
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
@@ -829,10 +776,7 @@
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='mytable'  ~
             ==
-        ~
-        ~
-        ~
-        ~
+        ~  ~  ~  ~  ~  ~  ~  ~
         ['fk1' 'fk2' ~]
         [~ %as-of-offset 5 %days]
         ==
@@ -842,9 +786,314 @@
         "alter  table  mytable  drop  foreign ".
         " key  ( fk1,  fk2 ) as of 5 days ago"
 ::
+:: rename to
+++  test-alter-table-25
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        [~ 'new-table']
+        ~  ~  ~  ~  ~  ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table RENAME TO new-table"
+::
+:: columns clause sets canonical ordering
+++  test-alter-table-26
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~
+        ['col1' 'col2' 'col3' ~]
+        ~  ~  ~  ~  ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table COLUMNS (col1, col2, col3)"
+::
+:: primary key without ASC/DESC
+++  test-alter-table-27
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
+            ==
+        ~  ~  ~  ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table PRIMARY KEY (col1, col2)"
+::
+:: primary key with ASC/DESC
+++  test-alter-table-28
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.n]
+            ==
+        ~  ~  ~  ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table PRIMARY KEY (col1 ASC, col2 DESC)"
+::
+:: rename columns single
+++  test-alter-table-29
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~
+        ~[['col1' 'col1a']]
+        ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table RENAME COLUMNS (col1 TO col1a)"
+::
+:: rename columns multi
+++  test-alter-table-30
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~
+        ~[['col1' 'col1a'] ['col2' 'col2a']]
+        ~  ~  ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table RENAME COLUMNS (col1 TO col1a, col2 TO col2a)"
+::
+:: add foreign key on delete set default on update set default
+++  test-alter-table-31
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~[%delete-set-default %update-set-default]
+        ==
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~  ~  ~
+        ~[fk]
+        ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table ADD FOREIGN KEY ".
+        "fk (col2 desc) references fk-table (col20) ".
+        "on delete set default on update set default"
+::
+:: add foreign key on delete restrict on update restrict produces empty integrity list
+++  test-alter-table-32
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~
+        ==
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~  ~  ~
+        ~[fk]
+        ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table ADD FOREIGN KEY ".
+        "fk (col2 desc) references fk-table (col20) ".
+        "on delete restrict on update restrict"
+::
+:: add foreign key on delete set default on update cascade
+++  test-alter-table-33
+  =/  fk
+    :*  %foreign-key  name='fk'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~[[%ordered-column name='col2' ascending=%.n]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col20' ~]
+        ~[%delete-set-default %update-cascade]
+        ==
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~  ~  ~
+        ~[fk]
+        ~  ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table ADD FOREIGN KEY ".
+        "fk (col2 desc) references fk-table (col20) ".
+        "on delete set default on update cascade"
+::
+:: mixed ADD FOREIGN KEY and DROP FOREIGN KEY in single statement
+++  test-alter-table-34
+  =/  fk
+    :*  %foreign-key  name='fk-new'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~[[%ordered-column name='col1' ascending=%.y]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['col9' ~]
+        ~
+        ==
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~  ~  ~  ~  ~
+        ~[fk]
+        ['fk-old' ~]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table ADD FOREIGN KEY ".
+        "fk-new (col1) references fk-table (col9), ".
+        "DROP FOREIGN KEY (fk-old)"
+::
+:: combined many-clause statement covering all clause kinds with trailing AS OF
+++  test-alter-table-35
+  =/  fk
+    :*  %foreign-key  name='fk-new'
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~[[%ordered-column name='a' ascending=%.y]]
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='fk-table'  ~
+            ==
+        ['a' ~]
+        ~
+        ==
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        [~ 'new-table']
+        ['a' 'b' 'c' ~]
+        ~[[%ordered-column name='a' ascending=%.y]]
+        ~[[%column name='x' type=%t addr=0]]
+        ['y' ~]
+        ~[['z' 'w']]
+        ~[[%column name='a' type=%ud addr=0]]
+        ~[fk]
+        ['fk-old' ~]
+        [~ %as-of-offset 1 %days]
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table RENAME TO new-table, ".
+        "COLUMNS (a, b, c), ".
+        "PRIMARY KEY (a), ".
+        "ADD COLUMN (x @t), ".
+        "DROP COLUMN (y), ".
+        "RENAME COLUMNS (z TO w), ".
+        "ALTER COLUMN (a @ud), ".
+        "ADD FOREIGN KEY fk-new (a) references fk-table (a), ".
+        "DROP FOREIGN KEY (fk-old) ".
+        "AS OF 1 days ago"
+::
 :: fail when table name not a term
 ++  test-fail-alter-table-24
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
       "ALTER TABLE ns.myTable DROP FOREIGN KEY (fk1)"
+::
+:: fail when no clauses given
+++  test-fail-alter-table-36
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table"
+::
+:: fail when no clauses given but as-of present
+++  test-fail-alter-table-37
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table AS OF now"
+::
+:: fail on duplicate RENAME TO
+++  test-fail-alter-table-38
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table RENAME TO foo, RENAME TO bar"
+::
+:: fail on duplicate COLUMNS
+++  test-fail-alter-table-39
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table COLUMNS (a, b), COLUMNS (c, d)"
+::
+:: fail on duplicate PRIMARY KEY
+++  test-fail-alter-table-40
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table PRIMARY KEY (a), PRIMARY KEY (b)"
+::
+:: fail on duplicate ALTER COLUMN
+++  test-fail-alter-table-41
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table ALTER COLUMN (a @t), ALTER COLUMN (b @t)"
+::
+:: fail on duplicate ADD COLUMN
+++  test-fail-alter-table-42
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table ADD COLUMN (a @t), ADD COLUMN (b @t)"
+::
+:: fail on duplicate DROP COLUMN
+++  test-fail-alter-table-43
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table DROP COLUMN (a), DROP COLUMN (b)"
+::
+:: fail on duplicate RENAME COLUMNS
+++  test-fail-alter-table-44
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table RENAME COLUMNS (a TO b), RENAME COLUMNS (c TO d)"
+::
+:: fail on malformed RENAME COLUMNS missing TO
+++  test-fail-alter-table-45
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table RENAME COLUMNS (a b)"
+::
+:: fail on retired NO ACTION keyword
+++  test-fail-alter-table-46
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table ADD FOREIGN KEY ".
+      "fk (a) references fk-table (a) on delete no action"
+::
+:: fail when clause appears after AS OF
+++  test-fail-alter-table-47
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table ADD COLUMN (a @t) AS OF now, DROP COLUMN (b)"
 --
