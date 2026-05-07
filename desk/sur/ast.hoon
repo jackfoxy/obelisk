@@ -77,7 +77,12 @@
 ::
 ::  simple union types
 ::
-+$  referential-integrity-action  ?(%delete-cascade %update-cascade)
++$  referential-integrity-action
+  $?  %delete-cascade
+      %delete-set-default
+      %update-cascade
+      %update-set-default
+      ==
 +$  index-action                  ?(%rebuild %disable %resume)
 +$  all-or-any                    ?(%all %any)
 +$  bool-conjunction              ?(%and %or)
@@ -314,8 +319,12 @@
     tail=(list [op=set-op =query])
     ==
 +$  set-op
-    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder
-    ==
+    $?  %union
+        %except
+        %intersect
+        %divided-by
+        %divide-with-remainder
+        ==
 ::
 ::  $cte-body: body of a CTE (queries only; no DML to avoid circular type)
 +$  cte-body
@@ -538,9 +547,13 @@
   $+  alter-table
   $:  %alter-table
     =qualified-table
-    alter-columns=(list column)
+    new-name=(unit @tas)
+    columns=(list @tas)
+    pri-indx=(list ordered-column)
     add-columns=(list column)
     drop-columns=(list @tas)
+    rename-columns=(list [@tas @tas])
+    alter-columns=(list column)
     add-foreign-keys=(list foreign-key)
     drop-foreign-keys=(list @tas)
     as-of=(unit as-of)

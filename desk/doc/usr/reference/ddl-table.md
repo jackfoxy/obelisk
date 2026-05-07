@@ -15,8 +15,8 @@ Creates a new table within the specified or default database.
     PRIMARY KEY ( <column> [ ,... n ] )
     [ { FOREIGN KEY <foreign-key> ( <column> [ ASC | DESC ] [ ,... n ] )
       REFERENCES [ <namespace>. ] <table> ( <column> [ ,... n ] )
-        [ ON DELETE { NO ACTION | CASCADE | SET DEFAULT } ]
-        [ ON UPDATE { NO ACTION | CASCADE | SET DEFAULT } ] }
+        [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
+        [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ] }
       [ ,... n ] ]
     [ <as-of> ]
 ```
@@ -62,10 +62,10 @@ Note: The Obelisk engine does not yet implement foreign keys.
 **`<table> ( <column> [ ,... n ]`**
 Referenced foreign `<table>` and columns. Count and associated column auras must match the specified columns from the new `<table>` and comprise a `UNIQUE` index on the referenced foreign `<table>`.
 
-**`ON DELETE { NO ACTION | CASCADE | SET DEFAULT }`**
+**`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
 
-* `NO ACTION` (default)
+* `RESTRICT` (default)
 The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
 
 * `CASCADE`
@@ -76,10 +76,10 @@ All the values that make up the foreign key in the referencing row(s) are set to
 
 The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
 
-**`ON UPDATE { NO ACTION | CASCADE | SET DEFAULT }`**
+**`ON UPDATE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
 
-* `NO ACTION` (default)
+* `RESTRICT` (default)
 The Database Engine raises an error and the update action on the row in the parent table is aborted.
 
 * `CASCADE`
@@ -101,10 +101,10 @@ WARNING: Future `<as-of>` is possible, but this sets the database content timest
   $:
     %create-table
     =qualified-table
-    as-of=(unit as-of)
     columns=(list column)
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
+    as-of=(unit as-of)
   ==
 ```
 
@@ -148,21 +148,22 @@ Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
 <alter-table> ::=
   ALTER TABLE [ <db-qualifier> ]<table>
     [ RENAME TO <table> ]
-    [ COLUMNS ( <column> [ ,... n ] ] )
+    [ COLUMNS ( <column> [ ,... n ] ) ]
     [ PRIMARY KEY ( <column> [ ,... n ] ) ]
-    [ ADD COLUMN ( { <column>  <aura> } [ ,... n ] )
-      | DROP COLUMN <column> [ ,... n ]
-      | RENAME COLUMN <column> TO <column>
-      | ALTER COLUMN ( { <column>  <aura> } [ ,... n ] )
-      | ADD FOREIGN KEY <foreign-key> ( <column> [ ,... n ] )
+    [ ADD COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
+    [ DROP COLUMN <column> [ ,... n ]
+    [ RENAME COLUMNS ( { <column> TO <column> } [ ,... n ] ) ]
+    [ ALTER COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
+    [ ADD FOREIGN KEY <foreign-key> ( <column> [ ,... n ] )
         REFERENCES <namespace>.]<table> ( <column> [ ,... n ] )
-        [ ON DELETE { RESTRICT | CASCADE } ]
-        [ ON UPDATE { RESTRICT | CASCADE } ]
-        [ ,... n ]
+        [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
+        [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ]
       | DROP FOREIGN KEY <foreign-key>
     ] [ ,... n ]
     [ <as-of> ]
 ```
+
+At least one clause is required.
 
 Example:
 ```
@@ -189,8 +190,8 @@ Denotes a list of user-defined column names and associated auras. If `COLUMNS` i
 **`DROP COLUMN ( <column> [ ,... n ] )`**
 Denotes a list of existing column names to delete from the `<table>` structure.
 
-**`RENAME COLUMN`**
-Renames an existing column. If `COLUMNS` is not specified the existing canonical ordering remains in effect.
+**`RENAME COLUMNs`**
+Renames existing columns. If `COLUMNS` is not specified the existing canonical ordering remains in effect.
 
 **`ALTER COLUMN ( <column> <aura> [ ,... n ] )`**
 Denotes a list of user-defined column names and associated auras. `ALTER` is used to change the aura of an existing column.
@@ -231,9 +232,13 @@ WARNING: It is possible to future date a `CREATE TABLE`. This will lock all sche
   $:
     %alter-table
     =qualified-table
-    alter-columns=(list column)
+    new-name=(unit @tas)
+    columns=(list @tas)
+    pri-indx=(list ordered-column)
     add-columns=(list column)
     drop-columns=(list @tas)
+    rename-columns=(list [@tas @tas])
+    alter-columns=(list column)
     add-foreign-keys=(list foreign-key)
     drop-foreign-keys=(list @tas)
     as-of=(unit as-of)
