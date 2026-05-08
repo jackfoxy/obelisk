@@ -1234,10 +1234,9 @@
 ++  parse-alter-table-clause
   ::  one ALTER TABLE clause
   ;~  pose
-    rename-to
+    rename-clause
     columns-clause
     primary-key-clause
-    rename-columns
     alter-columns
     add-columns
     drop-columns
@@ -4004,14 +4003,6 @@
               ==
     face-list
   ==
-++  rename-to
-  ::  RENAME TO <new-name>
-  ;~  plug
-    %:  cold  %rename-to
-              ;~(plug whitespace (jester 'rename') whitespace (jester 'to'))
-              ==
-    parse-face
-  ==
 ++  columns-clause
   ::  COLUMNS ( c1, c2, ... )    canonical reorder
   ;~  plug
@@ -4028,27 +4019,31 @@
   ==
 ++  rename-pair
   ::  c1 TO c2
-  ;~  pose
-    ;~  plug
-      ;~(pfix whitespace sym)
-      ;~(pfix whitespace ;~(pfix (jester 'to') ;~(pfix whitespace sym)))
-      ==
-    ;~  plug
-      sym
-      ;~(pfix whitespace ;~(pfix (jester 'to') ;~(pfix whitespace sym)))
-      ==
-  ==
-++  rename-columns
-  ::  RENAME COLUMNS ( c1 TO c1a [, c2 TO c2a]... )
   ;~  plug
-    %:  cold  %rename-columns
-              ;~(plug whitespace (jester 'rename') whitespace (jester 'columns'))
-              ==
+    parse-face
     ;~  pfix
-      whitespace
-      %:  ifix  [pal par]
-                (more com rename-pair)
-                ==
+      ;~(plug whitespace (jester 'to'))
+      parse-face
+    ==
+  ==
+++  rename-clause
+  ::  RENAME TO <new-name> | RENAME COLUMN ( c1 TO c1a [, c2 TO c2a]... )
+  ;~  pfix
+    ;~(plug whitespace (jester 'rename') whitespace)
+    ;~  pose
+      ;~  plug
+        (cold %rename-to (jester 'to'))
+        parse-face
+        ==
+      ;~  plug
+        (cold %rename-columns (jester 'column'))
+        ;~  pfix
+          whitespace
+          %:  ifix  [pal par]
+                    (more com rename-pair)
+                    ==
+        ==
+      ==
     ==
   ==
 ::

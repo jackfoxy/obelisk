@@ -845,7 +845,7 @@
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table PRIMARY KEY (col1 ASC, col2 DESC)"
 ::
-:: rename columns single
+:: rename column single
 ++  test-alter-table-29
   =/  expected
     :*  %alter-table
@@ -857,9 +857,9 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "ALTER TABLE table RENAME COLUMNS (col1 TO col1a)"
+        "ALTER TABLE table RENAME COLUMN (col1 TO col1a)"
 ::
-:: rename columns multi
+:: rename column multi
 ++  test-alter-table-30
   =/  expected
     :*  %alter-table
@@ -871,7 +871,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "ALTER TABLE table RENAME COLUMNS (col1 TO col1a, col2 TO col2a)"
+        "ALTER TABLE table RENAME COLUMN (col1 TO col1a, col2 TO col2a)"
 ::
 :: add foreign key on delete set default on update set default
 ++  test-alter-table-31
@@ -1012,7 +1012,7 @@
         "PRIMARY KEY (a), ".
         "ADD COLUMN (x @t), ".
         "DROP COLUMN (y), ".
-        "RENAME COLUMNS (z TO w), ".
+        "RENAME COLUMN (z TO w), ".
         "ALTER COLUMN (a @ud), ".
         "ADD FOREIGN KEY fk-new (a) references fk-table (a), ".
         "DROP FOREIGN KEY (fk-old) ".
@@ -1072,17 +1072,23 @@
   |.  %-  parse:parse(default-database 'db1')
       "ALTER TABLE table DROP COLUMN (a), DROP COLUMN (b)"
 ::
-:: fail on duplicate RENAME COLUMNS
+:: fail on duplicate RENAME COLUMN
 ++  test-fail-alter-table-44
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
-      "ALTER TABLE table RENAME COLUMNS (a TO b), RENAME COLUMNS (c TO d)"
+      "ALTER TABLE table RENAME COLUMN (a TO b), RENAME COLUMN (c TO d)"
 ::
-:: fail on malformed RENAME COLUMNS missing TO
+:: fail on malformed RENAME COLUMN missing TO
 ++  test-fail-alter-table-45
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
-      "ALTER TABLE table RENAME COLUMNS (a b)"
+      "ALTER TABLE table RENAME COLUMN (a b)"
+::
+:: fail on retired plural RENAME COLUMNS
+++  test-fail-alter-table-45-rename-columns
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "ALTER TABLE table RENAME COLUMNS (a TO b)"
 ::
 :: fail on retired NO ACTION keyword
 ++  test-fail-alter-table-46

@@ -139,14 +139,15 @@ Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
     [ PRIMARY KEY ( <column> [ ,... n ] ) ]
     [ ADD COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
     [ DROP COLUMN <column> [ ,... n ]
-    [ RENAME COLUMNS ( { <column> TO <column> } [ ,... n ] ) ]
+    [ RENAME COLUMN ( { <column> TO <column> } [ ,... n ] ) ]
     [ ALTER COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
     [ ADD FOREIGN KEY <foreign-key> ( <column> [ ,... n ] )
         REFERENCES <namespace>.]<table> ( <column> [ ,... n ] )
         [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
         [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ]
-      | DROP FOREIGN KEY <foreign-key>
-    ] [ ,... n ]
+    ]
+    [ DROP FOREIGN KEY <foreign-key> ]
+    [ ,... n ]
     [ <as-of> ]
 ```
 
@@ -177,7 +178,7 @@ Denotes a list of user-defined column names and associated auras. If `COLUMNS` i
 **`DROP COLUMN ( <column> [ ,... n ] )`**
 Denotes a list of existing column names to delete from the `<table>` structure.
 
-**`RENAME COLUMNs`**
+**`RENAME COLUMN`**
 Renames existing columns. If `COLUMNS` is not specified the existing canonical ordering remains in effect.
 
 **`ALTER COLUMN ( <column> <aura> [ ,... n ] )`**
