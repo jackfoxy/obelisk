@@ -368,6 +368,201 @@
       (~(put by next-data) database.qualified-table.create-table sys-time)
       (~(put by state) name.db db)
 ::
+++  alter-tbl
+  |=  $:  a=alter-table:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  =(database.qualified-table.a %sys)
+        ~|("cannot alter table in %sys database" !!)
+  ?.  ?&  =(add-foreign-keys.a ~)
+           =(drop-foreign-keys.a ~)
+       ==
+    ~|("ALTER TABLE: FOREIGN KEY not implemented" !!)
+  =/  db  ~|  "ALTER TABLE: database ".
+              "{<database.qualified-table.a>} does not exist"
+              (~(got by state) database.qualified-table.a)
+  =/  sys-time  (set-tmsp as-of.a now.bowl)
+  =/  nxt-schema=schema
+        ~|  "ALTER TABLE: {<name.qualified-table.a>} as-of schema ".
+            "time out of order"
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 database.qualified-table.a
+                                 ==
+  =/  nxt-data=data
+        ~|  "ALTER TABLE: {<name.qualified-table.a>} as-of data ".
+            "time out of order"
+            %:  get-next-data  content.db
+                                next-data
+                                sys-time
+                                database.qualified-table.a
+                                ==
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.a)
+    ~|  "ALTER TABLE: namespace {<namespace.qualified-table.a>} ".
+        "does not exist"
+        !!
+  =/  src-key  [namespace.qualified-table.a name.qualified-table.a]
+  =/  tbl=table
+        ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
+            "{<namespace.qualified-table.a>}"
+        (~(got by tables.nxt-schema) src-key)
+  =/  fil=file
+        ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
+            "{<namespace.qualified-table.a>}"
+        (~(got by files.nxt-data) src-key)
+  =/  target-name=@tas  ?~  new-name.a  name.qualified-table.a  u.new-name.a
+  =/  target-key  [namespace.qualified-table.a target-name]
+  ?:  ?&(?=(^ new-name.a) (~(has by tables.nxt-schema) target-key))
+    ~|  "ALTER TABLE: {<target-name>} exists in ".
+        "{<namespace.qualified-table.a>}"
+        !!
+  ::
+  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names in COLUMNS" columns.a)
+  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names in key" (col-names pri-indx.a))
+  =/  dummy  %-  assert-no-dups
+              :-  "ALTER TABLE: duplicate column names"
+              (turn add-columns.a |=(c=column:ast name.c))
+  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names" drop-columns.a)
+  =/  dummy  %-  assert-no-dups
+              :-  "ALTER TABLE: duplicate column names"
+              (turn alter-columns.a |=(c=column:ast name.c))
+  =/  dummy  %-  assert-no-dups
+              :-  "ALTER TABLE: duplicate column names"
+              (turn rename-columns.a |=(p=[@tas @tas] -.p))
+  =/  dummy  %-  assert-no-dups
+              :-  "ALTER TABLE: duplicate column names"
+              (turn rename-columns.a |=(p=[@tas @tas] +.p))
+  ::
+  =/  old-cols=(list column:ast)  columns.tbl
+  =/  old-col-map  (column-map old-cols)
+  =/  work=[cols=(list column:ast) cmap=(map @tas column:ast)]
+        [old-cols old-col-map]
+  =.  work  %:  apply-add-columns  name.qualified-table.a
+                                      cols.work
+                                      cmap.work
+                                      add-columns.a
+                                      ==
+  =.  work  %:  apply-drop-columns  name.qualified-table.a
+                                       cols.work
+                                       cmap.work
+                                       drop-columns.a
+                                       ==
+  =.  work  %:  apply-rename-columns  name.qualified-table.a
+                                         cols.work
+                                         cmap.work
+                                         rename-columns.a
+                                         ==
+  =.  work  %:  apply-alter-columns  name.qualified-table.a
+                                        cols.work
+                                        cmap.work
+                                        alter-columns.a
+                                        ==
+  ::
+  =/  final-cols=(list column:ast)
+    ?~  columns.a
+      cols.work
+    (order-columns name.qualified-table.a cmap.work old-cols columns.a)
+  =/  shape-change=?
+        ?|  !=(add-columns.a ~)
+            !=(drop-columns.a ~)
+            !=(rename-columns.a ~)
+            ==
+  =/  type-change=?  !=(alter-columns.a ~)
+  =/  cols-changed=?  ?|(shape-change type-change !=(columns.a ~))
+  =/  rebuilt-cols=(list column:ast)  ?:  shape-change
+                                      (addr-columns final-cols)
+                                    final-cols
+  =/  final-lookup=column-lookup
+        ?:  shape-change
+          (malt (spun rebuilt-cols mk-col-lu-data))
+        ?:  type-change
+          (update-column-lookup-types column-lookup.tbl alter-columns.a)
+        column-lookup.tbl
+  =/  final-typ-addr=(map @tas typ-addr)
+        ?:  shape-change
+          (mk-unqualified-typ-addr-lookup rebuilt-cols)
+        ?:  type-change
+          (update-typ-addr-types typ-addr-lookup.tbl alter-columns.a)
+        typ-addr-lookup.tbl
+  ::
+  =/  old-key-names=(list ordered-column:ast)
+        (turn key.pri-indx.tbl |=(k=key-column [%ordered-column name.k ascending.k]))
+  =/  kept-key=(list ordered-column:ast)
+        (rename-ordered-columns old-key-names rename-columns.a)
+  =/  req-key=?  !=(pri-indx.a ~)
+  =/  final-key-ast=(list ordered-column:ast)  ?:  req-key  pri-indx.a  kept-key
+  =/  dummy  (assert-key-columns final-lookup (col-names final-key-ast))
+  =/  final-key=(list key-column)  (mk-key-column final-lookup final-key-ast)
+  ?:  ?&(req-key =(final-key key.pri-indx.tbl))
+    ~|  "ALTER TABLE: {<name.qualified-table.a>} PRIMARY KEY does not alter ".
+        "existing key"
+        !!
+  ::
+  =/  row-shape-change=?  shape-change
+  =/  key-change=?        !=(final-key key.pri-indx.tbl)
+  =/  file-change=?       ?|(?=(^ new-name.a) row-shape-change key-change)
+  =/  final-file=file
+        ?:  file-change
+          %:  alter-file  fil
+                          add-columns.a
+                          drop-columns.a
+                          rename-columns.a
+                          final-key
+                          name.qualified-table.a
+                          ==
+        fil
+  ::
+  =.  tmsp.tbl        sys-time
+  =.  provenance.tbl  sap.bowl
+  =.  column-lookup.tbl     final-lookup
+  =.  typ-addr-lookup.tbl   final-typ-addr
+  =.  columns.tbl           rebuilt-cols
+  =.  pri-indx.tbl          [%index %.y final-key]
+  =.  tables.nxt-schema
+        %+  ~(put by ?~(new-name.a tables.nxt-schema (map-delete tables.nxt-schema src-key)))
+            target-key
+        tbl
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  ::
+  =.  files.nxt-data
+        %+  ~(put by ?~(new-name.a files.nxt-data (map-delete files.nxt-data src-key)))
+            target-key
+        final-file
+  =.  ship.nxt-data        src.bowl
+  =.  provenance.nxt-data  sap.bowl
+  =.  tmsp.nxt-data        sys-time
+  =.  sys.db               (put:schema-key sys.db sys-time nxt-schema)
+  =.  content.db           (put:data-key content.db sys-time nxt-data)
+  =/  msg=(unit @t)  (alter-table-message a)
+  =.  event-log.db  :-  :*  %sys-log-event
+                            sys-time
+                            sap.bowl
+                            %alter-table
+                            %table
+                            database.qualified-table.a
+                            `namespace.qualified-table.a
+                            `name.qualified-table.a
+                            ?~(new-name.a ~ `database.qualified-table.a)
+                            ?~(new-name.a ~ `namespace.qualified-table.a)
+                            ?~(new-name.a ~ `target-name)
+                            msg
+                            ==
+                        event-log.db
+  =.  view-cache.db  (upd-view-caches state db sys-time ~ %alter-table)
+  =.  state          (update-sys state sys-time)
+  :^  :-  %results
+          :~  [%action (crip "ALTER TABLE {<name.qualified-table.a>}")]
+              [%server-time now.bowl]
+              [%schema-time sys-time]
+              ==
+      (~(put by next-schemas) database.qualified-table.a sys-time)
+      (~(put by next-data) database.qualified-table.a sys-time)
+      (~(put by state) name.db db)
+::
 ++  drop-tbl
   |=  $:  d=drop-table:ast
           next-schemas=(map @tas @da)
@@ -495,4 +690,287 @@
   ^-  (set @tas)
   ~|  "CREATE TABLE: error in column names {<a>}"
   (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
+::
+++  alter-file
+  |=  $:  fil=file
+          add-cols=(list column:ast)
+          drop-cols=(list @tas)
+          renames=(list [@tas @tas])
+          key=(list key-column)
+          table-name=@tas
+          ==
+  ^-  file
+  =.  indexed-rows.fil
+        %+  turn  indexed-rows.fil
+        |=  row=indexed-row
+        =/  dat=(map @tas @)  (alter-row data.row add-cols drop-cols renames)
+        [%indexed-row (row-key dat key) dat]
+  =/  primary-key  (pri-key key)
+  =/  comparator   ~(order idx-comp `(list [@ta ?])`(reduce-key key))
+  =.  pri-idx.fil
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+          (turn indexed-rows.fil |=(r=indexed-row [key.r data.r]))
+  ?.  =(~(wyt by pri-idx.fil) rowcount.fil)
+    ~|  "ALTER TABLE: {<table-name>} PRIMARY KEY is not unique over ".
+        "existing data"
+        !!
+  =.  indexed-rows.fil
+        %+  turn  (tap:primary-key pri-idx.fil)
+        |=  r=[(list @) (map @tas @)]
+        [%indexed-row -.r +.r]
+  fil
+::
+++  alter-row
+  |=  $:  row=(map @tas @)
+          add-cols=(list column:ast)
+          drop-cols=(list @tas)
+          renames=(list [@tas @tas])
+          ==
+  ^-  (map @tas @)
+  =/  out=(map @tas @)  row
+  =.  out  (add-row-columns out add-cols)
+  =.  out  (drop-row-columns out drop-cols)
+  (rename-row-columns out renames)
+::
+++  add-row-columns
+  |=  [row=(map @tas @) cols=(list column:ast)]
+  ^-  (map @tas @)
+  ?~  cols  row
+  $(cols t.cols, row (~(put by row) name.i.cols (default-column-value i.cols)))
+::
+++  drop-row-columns
+  |=  [row=(map @tas @) cols=(list @tas)]
+  ^-  (map @tas @)
+  ?~  cols  row
+  $(cols t.cols, row (~(del by row) i.cols))
+::
+++  rename-row-columns
+  |=  [row=(map @tas @) renames=(list [@tas @tas])]
+  ^-  (map @tas @)
+  ?~  renames  row
+  =/  val=@  (~(got by row) -.i.renames)
+  %=  $
+    renames  t.renames
+    row      (~(put by (~(del by row) -.i.renames)) +.i.renames val)
+  ==
+::
+++  default-column-value
+  |=  col=column:ast
+  ^-  @
+  ?:  =(%da type.col)  *@da
+  0
+::
+++  row-key
+  |=  [row=(map @tas @) key=(list key-column)]
+  ^-  (list @)
+  (turn key |=(k=key-column (~(got by row) name.k)))
+::
+++  column-map
+  |=  cols=(list column:ast)
+  ^-  (map @tas column:ast)
+  (malt (turn cols |=(c=column:ast [name.c c])))
+::
+++  apply-add-columns
+  |=  $:  table-name=@tas
+          cols=(list column:ast)
+          cmap=(map @tas column:ast)
+          adds=(list column:ast)
+          ==
+  ^-  [cols=(list column:ast) cmap=(map @tas column:ast)]
+  ?~  adds  [cols cmap]
+  ?:  (~(has by cmap) name.i.adds)
+    ~|("ALTER TABLE: {<table-name>} column {<name.i.adds>} already exists" !!)
+  %=  $
+    cols  (weld cols ~[i.adds])
+    cmap  (~(put by cmap) name.i.adds i.adds)
+    adds  t.adds
+  ==
+::
+++  apply-drop-columns
+  |=  $:  table-name=@tas
+          cols=(list column:ast)
+          cmap=(map @tas column:ast)
+          drops=(list @tas)
+          ==
+  ^-  [cols=(list column:ast) cmap=(map @tas column:ast)]
+  ?~  drops  [cols cmap]
+  ?.  (~(has by cmap) i.drops)
+    ~|("ALTER TABLE: {<table-name>} column {<i.drops>} does not exist" !!)
+  %=  $
+    cols   (drop-column cols i.drops)
+    cmap   (~(del by cmap) i.drops)
+    drops  t.drops
+  ==
+::
+++  apply-rename-columns
+  |=  $:  table-name=@tas
+          cols=(list column:ast)
+          cmap=(map @tas column:ast)
+          renames=(list [@tas @tas])
+          ==
+  ^-  [cols=(list column:ast) cmap=(map @tas column:ast)]
+  ?~  renames  [cols cmap]
+  ?.  (~(has by cmap) -.i.renames)
+    ~|  "ALTER TABLE: {<table-name>} column {<-.i.renames>} does not exist"
+        !!
+  ?:  (~(has by cmap) +.i.renames)
+    ~|  "ALTER TABLE: {<table-name>} column {<+.i.renames>} already exists"
+        !!
+  =/  old=column:ast  (~(got by cmap) -.i.renames)
+  =/  new=column:ast  old(name +.i.renames)
+  %=  $
+    cols     (rename-column cols -.i.renames +.i.renames)
+    cmap     (~(put by (~(del by cmap) -.i.renames)) +.i.renames new)
+    renames  t.renames
+  ==
+::
+++  apply-alter-columns
+  |=  $:  table-name=@tas
+          cols=(list column:ast)
+          cmap=(map @tas column:ast)
+          alters=(list column:ast)
+          ==
+  ^-  [cols=(list column:ast) cmap=(map @tas column:ast)]
+  ?~  alters  [cols cmap]
+  ?.  (~(has by cmap) name.i.alters)
+    ~|  "ALTER TABLE: {<table-name>} column {<name.i.alters>} does not exist"
+        !!
+  =/  old=column:ast  (~(got by cmap) name.i.alters)
+  =/  new=column:ast  old(type type.i.alters)
+  %=  $
+    cols    (alter-column cols name.i.alters type.i.alters)
+    cmap    (~(put by cmap) name.i.alters new)
+    alters  t.alters
+  ==
+::
+++  drop-column
+  |=  [cols=(list column:ast) col=@tas]
+  ^-  (list column:ast)
+  (skim cols |=(c=column:ast !=(name.c col)))
+::
+++  rename-column
+  |=  [cols=(list column:ast) old=@tas new=@tas]
+  ^-  (list column:ast)
+  %+  turn  cols
+  |=  c=column:ast
+  ?:  =(name.c old)  c(name new)
+  c
+::
+++  alter-column
+  |=  [cols=(list column:ast) col=@tas typ=@ta]
+  ^-  (list column:ast)
+  %+  turn  cols
+  |=  c=column:ast
+  ?:  =(name.c col)  c(type typ)
+  c
+::
+++  order-columns
+  |=  $:  table-name=@tas
+          cols=(map @tas column:ast)
+          old-cols=(list column:ast)
+          names=(list @tas)
+          ==
+  ^-  (list column:ast)
+  =/  ordered  *(list column:ast)
+  =/  ns       names
+  |-
+  ?~  ns
+    =/  out  (flop ordered)
+    ?.  =((lent out) ~(wyt by cols))
+      ~|("ALTER TABLE: {<table-name>} COLUMNS does not include every column" !!)
+    ?:  =(out old-cols)
+      ~|  "ALTER TABLE: {<table-name>} COLUMNS does not alter existing ".
+          "canonical order"
+          !!
+    out
+  ?.  (~(has by cols) i.ns)
+    ~|("ALTER TABLE: {<table-name>} column {<i.ns>} does not exist" !!)
+  $(ns t.ns, ordered [(~(got by cols) i.ns) ordered])
+::
+++  col-names
+  |=  cols=(list ordered-column:ast)
+  ^-  (list @tas)
+  (turn cols |=(c=ordered-column:ast name.c))
+::
+++  missing-names
+  |=  [lookup=column-lookup names=(list @tas)]
+  ^-  (list @tas)
+  (skim names |=(n=@tas !(~(has by lookup) n)))
+::
+++  assert-key-columns
+  |=  [lookup=column-lookup names=(list @tas)]
+  ^-  ~
+  =/  missing=(list @tas)  (missing-names lookup names)
+  ?~  missing  ~
+  ~|  "ALTER TABLE: key column not in column definitions ".
+      "{<i.missing>}"
+      !!
+::
+++  rename-ordered-columns
+  |=  [cols=(list ordered-column:ast) renames=(list [@tas @tas])]
+  ^-  (list ordered-column:ast)
+  %+  turn  cols
+  |=  c=ordered-column:ast
+  c(name (renamed-name name.c renames))
+::
+++  renamed-name
+  |=  [name=@tas renames=(list [@tas @tas])]
+  ^-  @tas
+  ?~  renames  name
+  ?:  =(name -.i.renames)  +.i.renames
+  $(renames t.renames)
+::
+++  update-column-lookup-types
+  |=  [lookup=column-lookup alters=(list column:ast)]
+  ^-  column-lookup
+  =/  out=column-lookup  lookup
+  |-
+  ?~  alters  out
+  =/  old=[aura @]  (~(got by out) name.i.alters)
+  =.  out  (~(put by out) name.i.alters [type.i.alters +.old])
+  $(alters t.alters)
+::
+++  update-typ-addr-types
+  |=  [lookup=(map @tas typ-addr) alters=(list column:ast)]
+  ^-  (map @tas typ-addr)
+  =/  out=(map @tas typ-addr)  lookup
+  |-
+  ?~  alters  out
+  =/  old=typ-addr  (~(got by out) name.i.alters)
+  =.  out  (~(put by out) name.i.alters old(type type.i.alters))
+  $(alters t.alters)
+::
+++  alter-table-message
+  |=  a=alter-table:ast
+  ^-  (unit @t)
+  =/  clauses=(list @t)  ~
+  =.  clauses  ?:  !=(columns.a ~)  ['COLUMNS' clauses]  clauses
+  =.  clauses  ?:  !=(pri-indx.a ~)  ['PRIMARY KEY' clauses]  clauses
+  =.  clauses  ?:  !=(add-columns.a ~)  ['ADD COLUMN' clauses]  clauses
+  =.  clauses  ?:  !=(drop-columns.a ~)  ['DROP COLUMN' clauses]  clauses
+  =.  clauses  ?:  !=(rename-columns.a ~)  ['RENAME COLUMN' clauses]  clauses
+  =.  clauses  ?:  !=(alter-columns.a ~)  ['ALTER COLUMN' clauses]  clauses
+  ?~  clauses  ~
+  [~ (join-text (flop clauses) '; ')]
+::
+++  join-text
+  |=  [items=(list @t) sep=@t]
+  ^-  @t
+  ?~  items  ''
+  =/  out=tape  (trip i.items)
+  =/  rest=(list @t)  t.items
+  |-
+  ?~  rest  (crip out)
+  =.  out  (weld out (weld (trip sep) (trip i.rest)))
+  $(rest t.rest)
+::
+++  assert-no-dups
+  |=  [msg=tape names=(list @tas)]
+  ^-  ~
+  =/  seen=(set @tas)  *(set @tas)
+  |-
+  ?~  names  ~
+  ?:  (~(has in seen) i.names)
+    ~|((weld msg (weld " %" (trip `@t`i.names))) !!)
+  $(names t.names, seen (~(put in seen) i.names))
 --

@@ -2496,6 +2496,101 @@
               ==
       ==
 ::
+++  test-sys-log-04    ::  ALTER TABLE RENAME
+  =|  run=@ud
+  %-  exec-2-1-ordered
+  :*  run
+      [~2100.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2100.1.2
+          %db1
+          "CREATE TABLE db1..my-table (id @ud, name @t) PRIMARY KEY (id)"
+      ::
+      [~2100.1.3 %db1 "ALTER TABLE my-table RENAME TO renamed-table"]
+      ::
+      :+  ~2100.1.4
+          %db1
+          "FROM sys.sys-log WHERE tmsp = ~2100.1.3 ".
+          "SELECT tmsp, action, component, database, namespace, relation, ".
+          "target-database, target-namespace, target-relation, message"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2100.1.3]]
+                              [%action [~.tas %alter-table]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas %db1]]
+                              [%target-namespace [~.tas %dbo]]
+                              [%target-relation [~.tas %renamed-table]]
+                              [%message [~.t ~]]
+                              ==
+                      ==
+              [%server-time ~2100.1.4]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2100.1.3]
+              [%data-time ~2100.1.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-sys-log-05    ::  ALTER TABLE clause message
+  =|  run=@ud
+  %-  exec-2-1-ordered
+  :*  run
+      [~2100.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2100.2.2
+          %db1
+          "CREATE TABLE db1..my-table ".
+          "(id @ud, name @t, born @da, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2100.2.3
+          %db1
+          "ALTER TABLE my-table ".
+          "COLUMNS (title, id, born, status), ".
+          "PRIMARY KEY (title), ".
+          "ADD COLUMN (status @t), ".
+          "DROP COLUMN (score), ".
+          "RENAME COLUMN (name TO title), ".
+          "ALTER COLUMN (born @t)"
+      ::
+      :+  ~2100.2.4
+          %db1
+          "FROM sys.sys-log WHERE tmsp = ~2100.2.3 ".
+          "SELECT tmsp, action, component, database, namespace, relation, ".
+          "target-database, target-namespace, target-relation, message"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2100.2.3]]
+                              [%action [~.tas %alter-table]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              :-  %message
+                                  [~.t 'COLUMNS; PRIMARY KEY; ADD COLUMN; DROP COLUMN; RENAME COLUMN; ALTER COLUMN']
+                              ==
+                      ==
+              [%server-time ~2100.2.4]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2100.2.3]
+              [%data-time ~2100.2.3]
+              [%vector-count 1]
+              ==
+      ==
+::
 ++  test-sys-data-log-01   ::  INSERT
   =|  run=@ud
   %-  exec-9-2-ordered

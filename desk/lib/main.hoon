@@ -102,7 +102,15 @@
             ~|("ALTER TABLE: schema changes must be by local agent" !!)
       ?:  query-has-run
             ~|("ALTER TABLE: state change after query in script" !!)
-      ~|("%alter-table not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %create-database
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)

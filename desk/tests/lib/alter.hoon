@@ -879,7 +879,7 @@
                       :-  %vector
                           :~  [%id [~.ud 3]]
                               [%title [~.t 'gamma']]
-                              [%status [~.t 'Default']]
+                              [%status [~.t '']]
                               [%score [~.ud 30]]
                               ==
                       :-  %vector
@@ -1036,14 +1036,14 @@
                               [%name [~.t 'alpha']]
                               [%born [~.da ~2001.1.1]]
                               [%score [~.ud 10]]
-                              [%asof-col [~.t 'Default']]
+                              [%asof-col [~.t '']]
                               ==
                       :-  %vector
                           :~  [%id [~.ud 2]]
                               [%name [~.t 'beta']]
                               [%born [~.da ~2002.2.2]]
                               [%score [~.ud 20]]
-                              [%asof-col [~.t 'Default']]
+                              [%asof-col [~.t '']]
                               ==
                       ==
               [%server-time ~2070.1.6]

@@ -621,7 +621,14 @@
                                     [%sys %data-log]
                                     ==
     %alter-table
-      ~|("%alter-table not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %drop-table
       %^  next-view-cache-keys  db
                                 sys-time
