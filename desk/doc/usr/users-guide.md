@@ -18,9 +18,10 @@ DDL commands define databases, their data tables and other components, data mani
 ### DDL
 | | |
 |:------------ |:-------------------- |
+|ALTER DATABASE    | |
 |ALTER INDEX       |*not implemented*|
-|ALTER NAMESPACE   |*not implemented*|
-|ALTER TABLE       |*not implemented*|
+|ALTER NAMESPACE   | |
+|ALTER TABLE       | |
 |CREATE DATABASE   | |
 |CREATE INDEX      |*not implemented*|
 |CREATE NAMESPACE  | |
@@ -384,7 +385,7 @@ Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` c
 ```
 According to the %vector-count there are nearly 22,000 rows in this table, but the print utility only prints the first 9 and the last one.
 
-`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release `ALTER TABLE` can add or remove columns, in effect altering saved scripts using `SELECT *`.
+`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. `ALTER TABLE` can add, remove, and/or re-order columns, in effect altering saved scripts using `SELECT *`.
 ```
 FROM reference.calendar
 SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week;
@@ -1036,6 +1037,152 @@ CREATE TABLE db3..my-table-1
     [ %server-time ~2024.12.10..20.18.34..3c25 ]
     [ %schema-time ~2024.12.10..20.18.34..3c25 ]
 ```
+
+# Altering the Schema
+
+Schema changes are ordinary Obelisk commands. They are recorded in the same
+history model as `CREATE TABLE` and `DROP TABLE`, so current queries see the new
+shape of the database while `AS OF` queries can still read older schema states.
+
+The most common schema changes are renaming a database, moving a table to a
+different namespace, and changing the columns or name of a table.
+
+## ALTER DATABASE
+
+`ALTER DATABASE` renames a user database.
+
+```
+CREATE DATABASE schema-lab;
+ALTER DATABASE schema-lab RENAME TO schema-work;
+```
+
+After the rename, use the new database name in later commands:
+
+```
+FROM sys.sys.databases
+SELECT database, sys-tmsp, data-tmsp;
+```
+
+The `sys` database cannot be renamed, and a database cannot be renamed over an
+existing database. Database renames are visible in `sys.sys.databases` and are
+also recorded in `sys.sys-log` with the target database populated.
+
+## ALTER NAMESPACE
+
+`ALTER NAMESPACE` moves a table into another namespace. It does not rename the
+table. Use `ALTER TABLE ... RENAME TO ...` when you want to change the table
+name.
+
+First create the target namespace:
+
+```
+CREATE NAMESPACE schema-work.archive;
+```
+
+Then transfer a table:
+
+```
+ALTER NAMESPACE schema-work.archive
+TRANSFER TABLE schema-work..tasks;
+```
+
+The table is now addressed through its new namespace:
+
+```
+FROM schema-work.archive.tasks
+SELECT *;
+```
+
+Transfers can also cross user databases when both databases and namespaces
+exist. Tables cannot be moved into or out of the `sys` database or `sys`
+namespace.
+
+## ALTER TABLE
+
+`ALTER TABLE` changes one table. It can rename the table, reorder columns,
+change the primary key, add columns, drop columns, rename columns, and change a
+column aura. Foreign key alterations are not covered here.
+
+Start with a small table:
+
+```
+CREATE TABLE schema-work..tasks
+  (id @ud, title @t, status-code @t)
+PRIMARY KEY (id);
+
+INSERT INTO schema-work..tasks
+VALUES
+  (1, 'water plants', 'open')
+  (2, 'file receipts', 'done');
+```
+
+Add columns, rename a column, and set the canonical column order:
+
+```
+ALTER TABLE schema-work..tasks
+  ADD COLUMN (status @t, priority @ud),
+  RENAME COLUMN (title TO task),
+  COLUMNS (id, task, status-code, status, priority);
+```
+
+Existing rows receive the aura's default value for newly added columns. New
+inserts must use the current table shape:
+
+```
+INSERT INTO schema-work..tasks
+VALUES (3, 'write notes', 'open', 'started', 1);
+```
+
+Querying the current table shows the altered schema:
+
+```
+FROM schema-work..tasks
+SELECT *;
+```
+
+An `AS OF` query can still read the old table definition:
+
+```
+FROM schema-work..tasks AS OF <timestamp-before-the-alter>
+SELECT *;
+```
+
+Use the concrete schema or data timestamp returned by the earlier command in
+place of `<timestamp-before-the-alter>`.
+
+Change the primary key only when the proposed key is unique over the existing
+rows:
+
+```
+ALTER TABLE schema-work..tasks
+PRIMARY KEY (status-code, id);
+```
+
+Rename the table with `RENAME TO`:
+
+```
+ALTER TABLE schema-work..tasks
+RENAME TO active-tasks;
+```
+
+The old name is no longer valid for current queries, but remains available for
+historical `AS OF` reads before the rename.
+
+Multiple table clauses can be combined in one statement:
+
+```
+ALTER TABLE schema-work..active-tasks
+  ADD COLUMN (owner @t),
+  DROP COLUMN (priority),
+  RENAME COLUMN (task TO description),
+  COLUMNS (status-code, id, description, status, owner);
+```
+
+`sys.sys-log` records `ALTER TABLE` events with action `alter-table`. Rename
+events populate `target-database`, `target-namespace`, and `target-relation`.
+Other table alterations populate `message` with the clause names, such as
+`ADD COLUMN; RENAME COLUMN; COLUMNS`.
+
 
 # Parsing urQL
 
