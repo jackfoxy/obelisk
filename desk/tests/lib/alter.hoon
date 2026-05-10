@@ -353,7 +353,7 @@
       ==
 ::
 ::  renames a table and preserves prior-schema AS OF reads
-++  test-alter-table-rename-run-00
+++  test-alter-table-00
   =|  run=@ud
   %-  exec-3-2
   :*  run
@@ -390,39 +390,8 @@
               ==
       ==
 ::
-::  accepts a one-item COLUMNS clause
-++  test-alter-table-columns-single-run-00
-  =|  run=@ud
-  %-  exec-3-1
-  :*  run
-      [~2010.1.1 %sys "CREATE DATABASE db1"]
-      ::
-      :+  ~2010.1.2
-          %db1
-          "CREATE TABLE my-table (id @ud) PRIMARY KEY (id)"
-      ::
-      [~2010.1.3 %db1 "INSERT INTO my-table VALUES (1) (2)"]
-      ::
-      [~2010.1.4 %db1 "ALTER TABLE my-table COLUMNS (id)"]
-      ::
-      [~2010.1.5 %db1 "FROM my-table SELECT *"]
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector  :~  [%id [~.ud 1]]  ==
-                      :-  %vector  :~  [%id [~.ud 2]]  ==
-                      ==
-              [%server-time ~2010.1.5]
-              [%relation 'db1.dbo.my-table']
-              [%schema-time ~2010.1.4]
-              [%data-time ~2010.1.3]
-              [%vector-count 2]
-              ==
-      ==
-::
 ::  COLUMNS changes canonical order for later implicit INSERT and SELECT *
-++  test-alter-table-columns-multi-run-00
+++  test-alter-table-01
   =|  run=@ud
   %-  exec-3-1
   :*  run
@@ -474,7 +443,7 @@
       ==
 ::
 ::  changes to a one-column PRIMARY KEY apply to later inserts
-++  test-alter-table-primary-key-single-run-00
+++  test-alter-table-02
   =|  run=@ud
   %-  exec-3-1
   :*  run
@@ -525,7 +494,7 @@
       ==
 ::
 ::  changes to a multi-column PRIMARY KEY apply to later inserts
-++  test-alter-table-primary-key-multi-run-00
+++  test-alter-table-03
   =|  run=@ud
   %-  exec-3-1
   :*  run
@@ -574,7 +543,7 @@
       ==
 ::
 ::  ADD COLUMN one item populates prior rows with the @ud bunt value
-++  test-alter-table-add-column-single-run-00
+++  test-alter-table-04
   =|  run=@ud
   %-  exec-4-2
   :*  run
@@ -640,7 +609,7 @@
       ==
 ::
 ::  ADD COLUMN multi item populates prior rows with @da, @sd, and @rd bunts
-++  test-alter-table-add-column-multi-bunts-run-00
+++  test-alter-table-05
   =|  run=@ud
   %-  exec-4-2
   :*  run
@@ -715,7 +684,7 @@
       ==
 ::
 ::  one-item DROP COLUMN, RENAME COLUMN, and ALTER COLUMN affect later writes
-++  test-alter-table-drop-rename-alter-single-run-00
+++  test-alter-table-06
   =|  run=@ud
   %-  exec-4-2
   :*  run
@@ -796,9 +765,9 @@
       ==
 ::
 ::  multi-item DROP COLUMN, RENAME COLUMN, and ALTER COLUMN affect later writes
-++  test-alter-table-drop-rename-alter-multi-run-00
+++  test-alter-table-07
   =|  run=@ud
-  %-  exec-3-1
+  %-  exec-5-1
   :*  run
       [~2040.2.1 %sys "CREATE DATABASE db1"]
       ::
@@ -807,22 +776,29 @@
           "CREATE TABLE my-table ".
           "(id @ud, old-a @t, old-b @t, ".
           "note-a @t, note-b @t, metric @ud, measure @ud) ".
-          "PRIMARY KEY (id); ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2040.2.3
+          %db1
           "INSERT INTO my-table VALUES ".
           "(1, 'a1', 'b1', 'drop-a', 'drop-b', 0, 0)"
       ::
-      :+  ~2040.2.3
+      :+  ~2040.2.4
           %db1
           "ALTER TABLE my-table ".
           "DROP COLUMN (note-a, note-b), ".
           "RENAME COLUMN (old-a TO a, old-b TO b), ".
           "ALTER COLUMN (metric @sd, measure @rd)"
       ::
-      :+  ~2040.2.4
+      :+  ~2040.2.5
           %db1
           "UPDATE my-table SET metric=--5, measure=.~2.5 WHERE id = 1"
       ::
-      [~2040.2.5 %db1 "FROM my-table SELECT *"]
+      :+  ~2040.2.6
+          %db1
+          "INSERT INTO my-table VALUES (2, 'a2', 'b2', --7, .~3.5)"
+      ::
+      [~2040.2.7 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -834,17 +810,24 @@
                               [%metric [~.sd --5]]
                               [%measure [~.rd .~2.5]]
                               ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%a [~.t 'a2']]
+                              [%b [~.t 'b2']]
+                              [%metric [~.sd --7]]
+                              [%measure [~.rd .~3.5]]
+                              ==
                       ==
-              [%server-time ~2040.2.5]
+              [%server-time ~2040.2.7]
               [%relation 'db1.dbo.my-table']
-              [%schema-time ~2040.2.3]
-              [%data-time ~2040.2.4]
-              [%vector-count 1]
+              [%schema-time ~2040.2.4]
+              [%data-time ~2040.2.6]
+              [%vector-count 2]
               ==
       ==
 ::
 ::  UPDATE, DELETE, and INSERT operate on the altered schema while AS OF sees old data
-++  test-alter-table-dml-after-schema-change-run-00
+++  test-alter-table-08
   =|  run=@ud
   %-  exec-6-2
   :*  run
@@ -941,7 +924,7 @@
       ==
 ::
 ::  all in-scope ALTER TABLE clauses in one statement
-++  test-alter-table-full-clause-run-00
+++  test-alter-table-09
   =|  run=@ud
   %-  exec-5-2
   :*  run
@@ -1029,7 +1012,7 @@
       ==
 ::
 ::  accepts ALTER TABLE AS OF greater than latest schema and data timestamps
-++  test-alter-table-as-of-run-00
+++  test-alter-table-10
   =|  run=@ud
   %-  exec-3-1
   :*  run
@@ -1071,8 +1054,113 @@
               ==
       ==
 ::
+::  rejects current reads through a table's old name after RENAME
+++  test-fail-alter-table-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.2.2
+          %db1
+          %-  zing
+          :~  create-base-table
+              insert-base-rows
+              ==
+      ::
+      [~2000.2.3 %db1 "ALTER TABLE my-table RENAME TO renamed-table"]
+      ::
+      [~2000.2.4 %db1 "FROM my-table SELECT *"]
+      ::
+      'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2000.2.3'
+      ==
+::
+::  rejects one-item COLUMNS when it does not change canonical order
+++  test-fail-alter-table-01
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2010.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2010.1.2
+          %db1
+          "CREATE TABLE my-table (id @ud) PRIMARY KEY (id)"
+      ::
+      [~2010.1.3 %db1 "ALTER TABLE my-table COLUMNS (id)"]
+      ::
+      'ALTER TABLE: %my-table COLUMNS does not alter existing canonical order'
+      ==
+::
+::  rejects multi-item COLUMNS when it does not change canonical order
+++  test-fail-alter-table-02
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2010.1.4 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2010.1.5
+          %db1
+          "CREATE TABLE my-table ".
+          "(id @ud, name @t) ".
+          "PRIMARY KEY (id)"
+      ::
+      [~2010.1.6 %db1 "ALTER TABLE my-table COLUMNS (id, name)"]
+      ::
+      'ALTER TABLE: %my-table COLUMNS does not alter existing canonical order'
+      ==
+::
+::  rejects COLUMNS when it omits a previously defined still-existing column
+++  test-fail-alter-table-03
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2010.1.7 %sys "CREATE DATABASE db1"]
+      ::
+      [~2010.1.8 %db1 create-base-table]
+      ::
+      [~2010.1.9 %db1 "ALTER TABLE my-table COLUMNS (id, name, born)"]
+      ::
+      'ALTER TABLE: %my-table COLUMNS does not include every column'
+      ==
+::
+::  rejects COLUMNS when it omits a newly added column
+++  test-fail-alter-table-04
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2010.1.10 %sys "CREATE DATABASE db1"]
+      ::
+      [~2010.1.11 %db1 create-base-table]
+      ::
+      :+  ~2010.1.12
+          %db1
+          "ALTER TABLE my-table ".
+          "ADD COLUMN (extra @t), ".
+          "COLUMNS (id, name, born, score)"
+      ::
+      'ALTER TABLE: %my-table COLUMNS does not include every column'
+      ==
+::
+::  rejects COLUMNS when it includes a column dropped by the same alteration
+++  test-fail-alter-table-05
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2010.1.13 %sys "CREATE DATABASE db1"]
+      ::
+      [~2010.1.14 %db1 create-base-table]
+      ::
+      :+  ~2010.1.15
+          %db1
+          "ALTER TABLE my-table ".
+          "DROP COLUMN (score), ".
+          "COLUMNS (id, name, born, score)"
+      ::
+      'ALTER TABLE: %my-table column %score does not exist'
+      ==
+::
 ::  rejects ALTER TABLE AS OF equal to latest schema timestamp
-++  test-fail-alter-table-as-of-schema-00
+++  test-fail-alter-table-06
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1088,7 +1176,7 @@
       ==
 ::
 ::  rejects ALTER TABLE AS OF equal to latest data timestamp
-++  test-fail-alter-table-as-of-data-00
+++  test-fail-alter-table-07
   =|  run=@ud
   %-  failon-3
   :*  run
@@ -1106,7 +1194,7 @@
       ==
 ::
 ::  rejects ALTER TABLE after a query in the same script
-++  test-fail-alter-table-state-change-after-query-00
+++  test-fail-alter-table-08
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1123,7 +1211,7 @@
       ==
 ::
 ::  rejects altering a table that does not exist
-++  test-fail-alter-table-missing-table-00
+++  test-fail-alter-table-09
   =|  run=@ud
   %-  failon-1
   :*  run
@@ -1135,7 +1223,7 @@
       ==
 ::
 ::  rejects renaming a table over an existing table
-++  test-fail-alter-table-rename-target-exists-00
+++  test-fail-alter-table-10
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1152,7 +1240,7 @@
       ==
 ::
 ::  rejects adding a column that already exists
-++  test-fail-alter-table-add-existing-column-00
+++  test-fail-alter-table-11
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1166,7 +1254,7 @@
       ==
 ::
 ::  rejects dropping a column that does not exist
-++  test-fail-alter-table-drop-missing-column-00
+++  test-fail-alter-table-12
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1180,7 +1268,7 @@
       ==
 ::
 ::  rejects renaming a column that does not exist
-++  test-fail-alter-table-rename-missing-column-00
+++  test-fail-alter-table-13
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1194,7 +1282,7 @@
       ==
 ::
 ::  rejects renaming a column over an existing column
-++  test-fail-alter-table-rename-column-target-exists-00
+++  test-fail-alter-table-14
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1208,7 +1296,7 @@
       ==
 ::
 ::  rejects altering a column that does not exist
-++  test-fail-alter-table-alter-missing-column-00
+++  test-fail-alter-table-15
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1222,7 +1310,7 @@
       ==
 ::
 ::  rejects PRIMARY KEY columns that are not in the post-alter schema
-++  test-fail-alter-table-primary-key-missing-column-00
+++  test-fail-alter-table-16
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1236,7 +1324,7 @@
       ==
 ::
 ::  rejects duplicate column names in COLUMNS
-++  test-fail-alter-table-columns-duplicate-00
+++  test-fail-alter-table-17
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1250,7 +1338,7 @@
       ==
 ::
 ::  rejects duplicate column names in PRIMARY KEY
-++  test-fail-alter-table-primary-key-duplicate-00
+++  test-fail-alter-table-18
   =|  run=@ud
   %-  failon-2
   :*  run
@@ -1261,5 +1349,43 @@
       [~2080.10.3 %db1 "ALTER TABLE my-table PRIMARY KEY (id, id)"]
       ::
       'ALTER TABLE: duplicate column names in key %id'
+      ==
+::
+::  rejects PRIMARY KEY when existing data is not unique over the proposed key
+++  test-fail-alter-table-19
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2080.11.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2080.11.2
+          %db1
+          "CREATE TABLE my-table ".
+          "(id @ud, code @t) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2080.11.3
+          %db1
+          "INSERT INTO my-table VALUES ".
+          "(1, 'dup') ".
+          "(2, 'dup')"
+      ::
+      [~2080.11.4 %db1 "ALTER TABLE my-table PRIMARY KEY (code)"]
+      ::
+      'ALTER TABLE: %my-table PRIMARY KEY is not unique over existing data'
+      ==
+::
+::  rejects PRIMARY KEY when it does not change the existing key
+++  test-fail-alter-table-20
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2080.12.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2080.12.2 %db1 create-base-table]
+      ::
+      [~2080.12.3 %db1 "ALTER TABLE my-table PRIMARY KEY (id)"]
+      ::
+      'ALTER TABLE: %my-table PRIMARY KEY does not alter existing key'
       ==
 --

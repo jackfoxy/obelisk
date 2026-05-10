@@ -12,7 +12,7 @@ Creates a new table within the specified or default database.
     [ <db-qualifier> ]<table>
     ( <column> <aura>
       [ ,... n ] )
-    PRIMARY KEY ( <column> [ ,... n ] )
+    PRIMARY KEY ( <column> [ ASC | DESC ] [ ,... n ] )
     [ { FOREIGN KEY <foreign-key> ( <column> [ ASC | DESC ] [ ,... n ] )
       REFERENCES [ <namespace>. ] <table> ( <column> [ ,... n ] )
         [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
@@ -51,6 +51,10 @@ The list of user-defined column names and associated auras.
 For more details on auras, refer to [01-preliminaries](01-preliminaries.md)
 
 *foreign keys supported in urQL parser, not yet supported in Obelisk runtime*
+
+**`<PRIMARY KEY`**
+
+A constraint that enforces data integrity via a specified column or columns through a unique index. The index contains the columns listed, and sorts the data in either ascending or descending order, defaulting to ascending. Only one PRIMARY KEY constraint can be created per table. 
 
 **`<foreign-key> ( <column> [ ASC | DESC ] [ ,... n ]`**
 This is a user-defined name for `<foreign-key>`.
@@ -98,8 +102,6 @@ WARNING: It is possible to future date a `CREATE TABLE`. This will lock all sche
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
-
-`PRIMARY KEY` must be unique.
 
 `FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference columns that are subject to a `PRIMARY KEY` or `UNIQUE INDEX` constraint in the referenced table.
 
@@ -171,6 +173,10 @@ Renames `<table>` within the current namespace. Use `ALTER NAMESPACE` to transfe
 
 **`COLUMNS`**
 Sets the cannonical ordering of columns after all `ADD`, `DROP`, and `RENAME` column operations have been performed.
+
+**`<PRIMARY KEY`**
+
+Changes the constraint that enforces data integrity via a specified column or columns through a unique index.The index contains the columns listed, and sorts the data in either ascending or descending order, defaulting to ascending. Only one PRIMARY KEY constraint can be created per table. 
 
 **`ADD ( <column> <aura> [ ,... n ] )`**
 Denotes a list of user-defined column names and associated auras. If `COLUMNS` is not specified the columns are appended to the existing canonical ordering.
@@ -257,6 +263,10 @@ aura mis-match in `FOREIGN KEY`
 alter table `<table>` as-of schema time out of order
 alter table `<table>`as-of data time out of order
 alter table state change after query in script
+alter table COLUMNS does not alter existing canonical order
+alter table COLUMNS does include every column
+alter table PRIMARY KEY is not unique over existing data
+alter table PRIMARY KEY does not alter existing key
 
 
 ## DROP TABLE
