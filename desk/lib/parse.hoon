@@ -4260,44 +4260,31 @@
   ~|("cook-as-of unexpected shape {<a>}" !!)
 ++  build-foreign-keys
   |=  a=*  ::a=[table=qualified-table:ast f-keys=*]
+  =/  table  ;;(qualified-table:ast -.a)
   =/  f-keys  +.a
   =/  foreign-keys  `(list foreign-key:ast)`~
   |-
   ?:  =(~ f-keys)
     (flop foreign-keys)
-  ?@  -<.f-keys
-    %=  $                       :: foreign key table must be in same DB as table
-      foreign-keys
-        :-  %:  foreign-key:ast  %foreign-key
-                                  -<.f-keys
-                                  -.a
-                                  ->-.f-keys
-                                  :*  %qualified-table
-                                      ~
-                                      ->+<.a
-                                      ->+<+>+<.f-keys
-                                      ->+<+>+>.f-keys
-                                      ==
-                                  ->+>.f-keys
-                                  ~
-                                  ==
-            foreign-keys
-      f-keys        +.f-keys
-    ==
+  =/  item  -.f-keys
+  =/  spec  -.item
+  =/  parsed-ref  ;;(qualified-table:ast +<.spec)
+  =/  reference-table
+    :*  %qualified-table
+        ~
+        database.table
+        namespace.parsed-ref
+        name.parsed-ref
+        ~
+        ==
   %=  $                         :: foreign key table must be in same DB as table
     foreign-keys
       :-  %:  foreign-key:ast  %foreign-key
-                                -<-.f-keys
-                                -.a
-                                -<+<.f-keys
-                                :*  %qualified-table
-                                    ~
-                                    ->+<.a
-                                    -<+>->+>-.f-keys
-                                    -<+>->+>+.f-keys
-                                    ==
-                                -<+>+.f-keys
-                                ->.f-keys
+                                table
+                                ;;((list @tas) -.spec)
+                                reference-table
+                                ;;((list @tas) +>.spec)
+                                ;;((list referential-integrity-action:ast) +.item)
                                 ==
           foreign-keys
     f-keys        +.f-keys
@@ -4306,8 +4293,7 @@
   ;~(plug whitespace (jester 'foreign') whitespace (jester 'key'))
 ++  foreign-key
   ;~  plug
-    parse-face
-    ordered-column-list
+    face-list
     ;~  pfix
       ;~(plug whitespace (jester 'references'))
       ;~(plug (cook cook-qualified-2object parse-qualified-2-name) face-list)
@@ -4321,13 +4307,9 @@
                         ==
               ==
     ;~  plug  foreign-key
-              %:  cook  cook-referential-integrity
-                        ;~(plug referential-integrity referential-integrity)
-                        ==
+              (cook cook-referential-integrity referential-integrity)
               ==
-    ;~(plug foreign-key (cook cook-referential-integrity referential-integrity))
-    ;~(plug foreign-key (cook cook-referential-integrity referential-integrity))
-    foreign-key
+    ;~(plug foreign-key (easy ~))
   ==
 ++  add-foreign-key
   ;~  plug

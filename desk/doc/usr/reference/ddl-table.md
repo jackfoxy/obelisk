@@ -13,10 +13,10 @@ Creates a new table within the specified or default database.
     ( <column> <aura>
       [ ,... n ] )
     PRIMARY KEY ( <column> [ ASC | DESC ] [ ,... n ] )
-    [ { FOREIGN KEY <foreign-key> ( <column> [ ASC | DESC ] [ ,... n ] )
+    [ FOREIGN KEY ( <column> [ ,... n ] )
       REFERENCES [ <namespace>. ] <table> ( <column> [ ,... n ] )
         [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
-        [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ] }
+        [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ]
       [ ,... n ] ]
     [ <as-of> ]
 ```
@@ -56,15 +56,15 @@ For more details on auras, refer to [01-preliminaries](01-preliminaries.md)
 
 A constraint that enforces data integrity via a specified column or columns through a unique index. The index contains the columns listed, and sorts the data in either ascending or descending order, defaulting to ascending. Only one PRIMARY KEY constraint can be created per table. 
 
-**`<foreign-key> ( <column> [ ASC | DESC ] [ ,... n ]`**
+**`FOREIGN KEY  ( <column> [ ,... n ]`**
 This is a user-defined name for `<foreign-key>`.
 
-This list comprises column names in the table for association with a foreign table along with sort ordering. Default is `ASC` (ascending).
+This list comprises column names in the table for association with a foreign table.
 
 Note: The Obelisk engine does not yet implement foreign keys.
 
 **`<table> ( <column> [ ,... n ]`**
-Referenced foreign `<table>` and columns. Count and associated column auras must match the specified columns from the new `<table>` and comprise a `UNIQUE` index on the referenced foreign `<table>`.
+Referenced foreign `<table>` and columns. Associated columns and auras must match the specified columns from the new `<table>` and be the entire primary key of the referenced foreign `<table>`.
 
 **`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
@@ -140,15 +140,15 @@ Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
     [ COLUMNS ( <column> [ ,... n ] ) ]
     [ PRIMARY KEY ( <column> [ ,... n ] ) ]
     [ ADD COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
-    [ DROP COLUMN <column> [ ,... n ]
+    [ DROP COLUMN ( <column> [ ,... n ] ) ]
     [ RENAME COLUMN ( { <column> TO <column> } [ ,... n ] ) ]
     [ ALTER COLUMN ( { <column>  <aura> } [ ,... n ] ) ]
-    [ ADD FOREIGN KEY <foreign-key> ( <column> [ ,... n ] )
-        REFERENCES <namespace>.]<table> ( <column> [ ,... n ] )
+    [ ADD FOREIGN KEY ( <column> [ ,... n ] )
+        REFERENCES [ <namespace>.] <table> ( <column> [ ,... n ] )
         [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
         [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ]
     ]
-    [ DROP FOREIGN KEY <foreign-key> ]
+    [ DROP FOREIGN KEY ( <column> [ ,... n ] ) [ <namespace>.] <table> ]
     [ ,... n ]
     [ <as-of> ]
 ```
@@ -193,12 +193,11 @@ Denotes a list of user-defined column names and associated auras. `ALTER` is use
 **`ADD | DROP`**
 The action is to add or drop a foreign key.
 
-**`<foreign-key> ( <column> [ ASC | DESC ] [ ,... n ]`**
-This is a user-defined name for `<foreign-key>`.
-This list comprises column names in the table for association with a foreign table along with sort ordering. Default is `ASC` (ascending).
+**`ADD FOREIGN KEY ( <column> [ ,... n ] )`**
+This list comprises column names in the table for association with a foreign table.
 
 **`<table> ( <column> [ ,... n ]`**
-Referenced foreign `<table>` and columns. Count and associated column auras must match the specified columns from the new `<table>` and comprise a `UNIQUE` index on the referenced foreign `<table>`.
+Referenced foreign `<table>` and columns. Associated columns and auras must match the specified columns from the new `<table>` and be the entire primary key of the referenced foreign `<table>`.
 
 **`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
@@ -214,6 +213,9 @@ Corresponding rows are deleted/update from the referencing table when that row i
 
 * `SET DEFAULT`
 All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted. This operation is successful only if the foreign table contains the bunt key, otherwise the action on the parent foreign table is aborted.
+
+**`DROP FOREIGN KEY`**
+Column names in the table associated with a foreign table.
 
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.

@@ -349,27 +349,23 @@
 :: add 2 foreign keys, extra spaces and mixed case key words
 ++  test-alter-table-05
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  fk2
-    :*  %foreign-key  name='fk2'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  expected
@@ -381,11 +377,11 @@
         ==
   =/  urql
     "ALTER TABLE table ADD FOREIGN KEY ".
-    "fk  ( col1 , col2  desc )  reFerences ".
+    "( col1 , col2 )  reFerences ".
     " fk-table  ( col19 ,  col20 )  On ".
     " dELETE  CAsCADE  oN  UPdATE ".
-    " CAScADE, fk2  ( col1 ,  col2 ".
-    " desc )  reFerences  fk-table2 ".
+    " CAScADE, ( col1 ,  col2 ) ".
+    " reFerences  fk-table2 ".
     " ( col19 ,  col20 )  On  dELETE ".
     " CAsCADE  oN  UPdATE  CAScADE "
   %+  expect-eq
@@ -595,27 +591,23 @@
 :: add 2 foreign keys as of now
 ++  test-alter-table-18
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  fk2
-    :*  %foreign-key  name='fk2'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  expected
@@ -627,11 +619,11 @@
         ==
   =/  urql
     "alter table table add foreign key ".
-    "fk  ( col1 , col2  desc )  references".
+    "( col1 , col2 )  references".
     "  fk-table  ( col19 ,  col20 )  on".
     "  delete  cascade  on  update ".
-    " cascade, fk2  ( col1 ,  col2 ".
-    " desc )  references  fk-table2 ".
+    " cascade, ( col1 ,  col2 ) ".
+    " references  fk-table2 ".
     " ( col19 ,  col20 )  on  delete ".
     " cascade  on  update  cascade ".
     "as of now"
@@ -642,27 +634,23 @@
 :: add 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-19
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  fk2
-    :*  %foreign-key  name='fk2'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  expected
@@ -675,11 +663,11 @@
         ==
   =/  urql
     "alter table table add foreign key ".
-    "fk  ( col1 , col2  desc )  references".
+    "( col1 , col2 )  references".
     "  fk-table  ( col19 ,  col20 )  on".
     "  delete  cascade  on  update ".
-    " cascade, fk2  ( col1 ,  col2 ".
-    " desc )  references  fk-table2 ".
+    " cascade, ( col1 ,  col2 ) ".
+    " references  fk-table2 ".
     " ( col19 ,  col20 )  on  delete ".
     " cascade  on  update  cascade ".
     "as of ~2023.12.25..7.15.0..1ef5"
@@ -690,27 +678,23 @@
 :: add 2 foreign keys as of 5 days ago
 ++  test-alter-table-20
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  fk2
-    :*  %foreign-key  name='fk2'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table2'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  expected
@@ -723,11 +707,11 @@
         ==
   =/  urql
     "alter table table add foreign key ".
-    "fk  ( col1 , col2  desc )  references".
+    "( col1 , col2 )  references".
     "  fk-table  ( col19 ,  col20 )  on".
     "  delete  cascade  on  update ".
-    " cascade, fk2  ( col1 ,  col2 ".
-    " desc )  references  fk-table2 ".
+    " cascade, ( col1 ,  col2 ) ".
+    " references  fk-table2 ".
     " ( col19 ,  col20 )  on  delete ".
     " cascade  on  update  cascade ".
     "as of 5 days ago"
@@ -876,13 +860,13 @@
 :: add foreign key on delete set default on update set default
 ++  test-alter-table-31
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~[%delete-set-default %update-set-default]
         ==
   =/  expected
@@ -896,19 +880,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
-        "fk (col2 desc) references fk-table (col20) ".
+        "(col2) references fk-table (col20) ".
         "on delete set default on update set default"
 ::
 :: add foreign key on delete restrict on update restrict produces empty integrity list
 ++  test-alter-table-32
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~
         ==
   =/  expected
@@ -922,19 +906,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
-        "fk (col2 desc) references fk-table (col20) ".
+        "(col2) references fk-table (col20) ".
         "on delete restrict on update restrict"
 ::
 :: add foreign key on delete set default on update cascade
 ++  test-alter-table-33
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~[%delete-set-default %update-cascade]
         ==
   =/  expected
@@ -948,19 +932,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
-        "fk (col2 desc) references fk-table (col20) ".
+        "(col2) references fk-table (col20) ".
         "on delete set default on update cascade"
 ::
 :: mixed ADD FOREIGN KEY and DROP FOREIGN KEY in single statement
 ++  test-alter-table-34
   =/  fk
-    :*  %foreign-key  name='fk-new'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%ordered-column name='col1' ascending=%.y]]
+        ~[%col1]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col9' ~]
+        ~[%col9]
         ~
         ==
   =/  expected
@@ -975,19 +959,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
-        "fk-new (col1) references fk-table (col9), ".
+        "(col1) references fk-table (col9), ".
         "DROP FOREIGN KEY (fk-old)"
 ::
 :: combined many-clause statement covering all clause kinds with trailing AS OF
 ++  test-alter-table-35
   =/  fk
-    :*  %foreign-key  name='fk-new'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        ~[[%ordered-column name='a' ascending=%.y]]
+        ~[%a]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['a' ~]
+        ~[%a]
         ~
         ==
   =/  expected
@@ -1014,7 +998,7 @@
         "DROP COLUMN (y), ".
         "RENAME COLUMN (z TO w), ".
         "ALTER COLUMN (a @ud), ".
-        "ADD FOREIGN KEY fk-new (a) references fk-table (a), ".
+        "ADD FOREIGN KEY (a) references fk-table (a), ".
         "DROP FOREIGN KEY (fk-old) ".
         "AS OF 1 days ago"
 ::
@@ -1095,7 +1079,7 @@
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
       "ALTER TABLE table ADD FOREIGN KEY ".
-      "fk (a) references fk-table (a) on delete no action"
+      "(a) references fk-table (a) on delete no action"
 ::
 :: fail when clause appears after AS OF
 ++  test-fail-alter-table-47

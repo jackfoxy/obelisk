@@ -462,11 +462,9 @@
         [%ordered-column name='col2' ascending=%.y]
         ==
   =/  fk-cols
-    :~  [%ordered-column name='col1' ascending=%.y]
-        [%ordered-column name='col2' ascending=%.n]
-        ==
+    ~[%col1 %col2]
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         :*  %qualified-table  ship=~
             database='db'  namespace='ns'
             name='my-table'  ~
@@ -476,11 +474,11 @@
             database='db'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ~['col19' 'col20']
+        ~[%col19 %col20]
         ~[%delete-cascade %update-cascade]
         ==
   =/  fk2
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         :*  %qualified-table  ship=~
             database='db'  namespace='dbo'
             name='my-table'  ~
@@ -490,7 +488,7 @@
             database='db'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ~['col19' 'col20']
+        ~[%col19 %col20]
         ~[%update-cascade %delete-cascade]
         ==
   =/  expected1
@@ -512,12 +510,12 @@
   =/  urql1
     "crEate  taBle  db.ns.my-table  ( col1  @t ,  col2  @p ,  ".
     "col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  ".
-    "fk  ( col1 ,  col2  desc )  reFerences  fk-table  ".
+    "( col1 ,  col2 )  reFerences  fk-table  ".
     "( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   =/  urql2
     "crEate  taBle  db..my-table  ( col1  @t ,  col2  @p ,  ".
     "col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  ".
-    "fk  ( col1 ,  col2  desc )  reFerences  fk-table  ".
+    "( col1 ,  col2 )  reFerences  fk-table  ".
     "( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -532,16 +530,14 @@
         name='my-table'  ~
         ==
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='ns'
             name='fk-table'  ~
             ==
-        ~['col19' 'col20']
+        ~[%col19 %col20]
         ~
         ==
   =/  expected
@@ -561,7 +557,7 @@
     "  \0acreate table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1, col2) ".
-    "foreign key fk (col1,col2 desc) ".
+    "foreign key (col1,col2) ".
     "reFerences ns.fk-table ".
     "(col19, col20) on update restrict ".
     "on delete restrict; "
@@ -577,16 +573,14 @@
         name='my-table'  ~
         ==
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='ns'
             name='fk-table'  ~
             ==
-        ~['col19' 'col20']
+        ~[%col19 %col20]
         ~[%delete-cascade]
         ==
   =/  expected
@@ -606,7 +600,7 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1, col2) ".
-    "foreign key fk (col1,col2 desc) ".
+    "foreign key (col1,col2) ".
     "reFerences ns.fk-table ".
     "(col19, col20) on update restrict ".
     "on delete cascade"
@@ -622,16 +616,14 @@
         name='my-table'  ~
         ==
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ~['col19' 'col20']
+        ~[%col19 %col20]
         ~[%update-cascade]
         ==
   =/  expected
@@ -649,7 +641,7 @@
         ==
   =/  urql
     "create table my-table (col1 @t,col2 @p,col3 @ud) ".
-    "primary key (col1, col2) foreign key fk (col1,col2 desc) ".
+    "primary key (col1, col2) foreign key (col1,col2) ".
     "reFerences fk-table (col19, col20) on update cascade on delete restrict"
   %+  expect-eq
     !>  ~[expected]
@@ -663,14 +655,14 @@
         name='my-table'  ~
         ==
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ~['col20']
+        ~[%col20]
         ~[%update-cascade]
         ==
   =/  expected
@@ -688,7 +680,7 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1) ".
-    "foreign key fk (col2 desc) ".
+    "foreign key (col2) ".
     "reFerences fk-table (col20) ".
     "on update cascade"
   %+  expect-eq
@@ -703,14 +695,14 @@
         name='my-table'  ~
         ==
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ~['col20']
+        ~[%col20]
         ~
         ==
   =/  expected
@@ -728,7 +720,7 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1) ".
-    "foreign key fk (col2 desc) ".
+    "foreign key (col2) ".
     "reFerences fk-table (col20) "
   %+  expect-eq
     !>  ~[expected]
@@ -766,27 +758,25 @@
         name='my-table'  ~
         ==
   =/  fk1
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         my-table
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~
         ==
   =/  fk2
-    :*  %foreign-key  name='fk2'
+    :*  %foreign-key
         my-table
-        :~  [%ordered-column name='col1' ascending=%.y]
-            [%ordered-column name='col2' ascending=%.n]
-            ==
+        ~[%col1 %col2]
         :*  %qualified-table  ship=~
             database='db1'  namespace='dbo'
             name='fk-table2'  ~
             ==
-        ['col19' 'col20' ~]
+        ~[%col19 %col20]
         ~
         ==
   =/  expected
@@ -804,9 +794,9 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1) ".
-    "foreign key fk (col2 desc) ".
+    "foreign key (col2) ".
     "reFerences fk-table (col20), ".
-    "fk2 (col1, col2 desc) ".
+    "(col1, col2) ".
     "reFerences fk-table2 (col19, col20)"
   %+  expect-eq
     !>  ~[expected]
@@ -925,7 +915,7 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1) ".
-    "foreign key fk (col2 desc) ".
+    "foreign key (col2) ".
     "reFerences db.ns.fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
@@ -936,7 +926,7 @@
     "create table my-table ".
     "(col1 @t,col2 @p,col3 @ud) ".
     "primary key (col1) ".
-    "foreign key fk (col2 desc) ".
+    "foreign key (col2) ".
     "reFerences db..fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
@@ -944,13 +934,13 @@
 :: foreign key on delete set default
 ++  test-create-table-14
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~[%delete-set-default]
         ==
   =/  expected
@@ -967,19 +957,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create table my-table (col1 @t, col2 @p) ".
-        "primary key (col1) foreign key fk (col2 desc) ".
+        "primary key (col1) foreign key (col2) ".
         "references fk-table (col20) on delete set default"
 ::
 :: foreign key on update set default
 ++  test-create-table-15
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~[%update-set-default]
         ==
   =/  expected
@@ -996,19 +986,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create table my-table (col1 @t, col2 @p) ".
-        "primary key (col1) foreign key fk (col2 desc) ".
+        "primary key (col1) foreign key (col2) ".
         "references fk-table (col20) on update set default"
 ::
 :: foreign key on delete set default on update cascade
 ++  test-create-table-16
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~[%delete-set-default %update-cascade]
         ==
   =/  expected
@@ -1025,20 +1015,20 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create table my-table (col1 @t, col2 @p) ".
-        "primary key (col1) foreign key fk (col2 desc) ".
+        "primary key (col1) foreign key (col2) ".
         "references fk-table (col20) ".
         "on delete set default on update cascade"
 ::
 :: foreign key on delete restrict on update restrict produces empty integrity list
 ++  test-create-table-17
   =/  fk
-    :*  %foreign-key  name='fk'
+    :*  %foreign-key
         [%qualified-table ship=~ database='db1' namespace='dbo' name='my-table' ~]
-        ~[[%ordered-column name='col2' ascending=%.n]]
+        ~[%col2]
         :*  %qualified-table  ship=~  database='db1'
             namespace='dbo'  name='fk-table'  ~
             ==
-        ['col20' ~]
+        ~[%col20]
         ~
         ==
   =/  expected
@@ -1055,7 +1045,7 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create table my-table (col1 @t, col2 @p) ".
-        "primary key (col1) foreign key fk (col2 desc) ".
+        "primary key (col1) foreign key (col2) ".
         "references fk-table (col20) ".
         "on delete restrict on update restrict"
 ::
@@ -1063,7 +1053,7 @@
 ++  test-fail-create-table-18
   =/  urql
     "create table my-table (col1 @t, col2 @p) ".
-    "primary key (col1) foreign key fk (col2 desc) ".
+    "primary key (col1) foreign key (col2) ".
     "references fk-table (col20) on delete no action"
   %-  expect-fail
   |.  (parse:parse(default-database 'db1') urql)

@@ -129,11 +129,10 @@
 +$  foreign-key
   $+  foreign-key
   $:  %foreign-key
-    name=@tas
     =qualified-table
-    columns=(list ordered-column)                    :: the source columns
-    reference-table=qualified-table                 :: reference (target) table
-    reference-columns=(list @t)                      :: and columns
+    columns=(list @tas)                :: the source columns
+    reference-table=qualified-table    :: reference (target) table
+    reference-columns=(list @tas)      :: and columns
                   :: what to do when referenced item deletes or updates
     referential-integrity=(list referential-integrity-action)
     ==
