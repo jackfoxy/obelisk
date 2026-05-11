@@ -13,9 +13,62 @@ CREATE NAMESPACE ns1 AS OF ~2023.7.9..22.35.35..7e90
 ```
 
 ```urQL
+ALTER DATABASE db1 RENAME TO db2;
+```
+
+```urQL
+CREATE NAMESPACE ns2;
+ALTER NAMESPACE ns2 TRANSFER TABLE my-table;
+```
+
+```urQL
+CREATE DATABASE db2;
+CREATE NAMESPACE db2.ns2;
+ALTER NAMESPACE db2.ns2 TRANSFER TABLE db1..my-table AS OF ~2026.5.1;
+```
+
+```urQL
 CREATE TABLE db1..my-table
   (col1 @t, col2 @da, col3 @ud)
   PRIMARY KEY (col1);
+```
+
+```urQL
+ALTER TABLE my-table RENAME TO renamed-table;
+```
+
+```urQL
+ALTER TABLE my-table COLUMNS (col3, col1, col2);
+```
+
+```urQL
+ALTER TABLE my-table PRIMARY KEY (col1, col3);
+```
+
+```urQL
+ALTER TABLE my-table
+  ADD COLUMN (created @da, balance @sd, ratio @rd),
+  COLUMNS (col1, col2, col3, created, balance, ratio);
+```
+
+```urQL
+ALTER TABLE my-table
+  DROP COLUMN (old-note),
+  RENAME COLUMN (col1 TO name),
+  ALTER COLUMN (col3 @sd),
+  COLUMNS (name, col2, col3);
+```
+
+```urQL
+ALTER TABLE my-table
+  RENAME TO full-table,
+  ADD COLUMN (created @da),
+  DROP COLUMN (col2),
+  RENAME COLUMN (col1 TO name),
+  ALTER COLUMN (col3 @sd),
+  COLUMNS (name, col3, created),
+  PRIMARY KEY (name, col3)
+  AS OF ~2026.5.1;
 ```
 
 ```urQL
@@ -83,6 +136,16 @@ SELECT ~2024.10.20, tmsp AS Time, ~sampel-palnet AS Home;
 
 ```urQL
 FROM my-table AS OF ~2000.1.3
+SELECT *;
+```
+
+```urQL
+FROM renamed-table
+SELECT *;
+```
+
+```urQL
+FROM my-table AS OF ~2026.4.30
 SELECT *;
 ```
 

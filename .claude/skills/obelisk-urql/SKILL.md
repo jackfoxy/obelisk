@@ -110,9 +110,25 @@ CREATE DATABASE <database> [ <as-of-time> ]
 
 CREATE NAMESPACE [ <database>. ] <namespace> [ <as-of-time> ]
 
+ALTER DATABASE <database> RENAME TO <new-database>
+
+ALTER NAMESPACE [ <database>. ] <namespace>
+  TRANSFER TABLE [ <db-qualifier> ] <table>
+  [ <as-of-time> ]
+
 CREATE TABLE [ <db-qualifier> ] <table>
   ( <column> <aura> [ ,...n ] )
   PRIMARY KEY ( <column> [ ,...n ] )
+  [ <as-of-time> ]
+
+ALTER TABLE [ <db-qualifier> ] <table>
+  [ RENAME TO <table> ]
+  [ COLUMNS ( <column> [ ,...n ] ) ]
+  [ PRIMARY KEY ( <column> [ ,...n ] ) ]
+  [ ADD COLUMN ( { <column> <aura> } [ ,...n ] ) ]
+  [ DROP COLUMN ( <column> [ ,...n ] ) ]
+  [ RENAME COLUMN ( { <column> TO <column> } [ ,...n ] ) ]
+  [ ALTER COLUMN ( { <column> <aura> } [ ,...n ] ) ]
   [ <as-of-time> ]
 
 DROP TABLE [ FORCE ] [ <db-qualifier> ] <table> [ <as-of-time> ]
@@ -122,9 +138,66 @@ DROP DATABASE [ FORCE ] <database>
 
 FORCE is required to drop populated tables or databases with populated tables. DROP DATABASE is permanent and leaves no trace for time travel.
 
+### ALTER DATABASE
+
+Renames an existing user database:
+
+```
+ALTER DATABASE db1 RENAME TO db2;
+```
+
+- `sys` cannot be renamed
+- the target database name must not already exist
+- the rename updates `sys.sys.databases` and records a schema change in the `sys` log
+- once a query appears in a script, ALTER DATABASE cannot appear later in that same script
+
+### ALTER NAMESPACE
+
+Transfers an existing user table into another namespace:
+
+```
+ALTER NAMESPACE ns2 TRANSFER TABLE my-table;
+ALTER NAMESPACE db2.ns2 TRANSFER TABLE db1..my-table AS OF ~2026.5.1;
+```
+
+- the target namespace may be in another database
+- transfers in or out of database `sys` or namespace `sys` are invalid
+- `AS OF` must be greater than both the latest schema timestamp and latest content timestamp
+- historical reads through `AS OF` should still resolve the prior namespace/table state
+- once a query appears in a script, ALTER NAMESPACE cannot appear later in that same script
+
+### ALTER TABLE
+
+Alters a table's name, canonical column order, primary key, and columns:
+
+```
+ALTER TABLE my-table
+  RENAME TO renamed-table,
+  COLUMNS (score, name, id, born),
+  PRIMARY KEY (name, id),
+  ADD COLUMN (created @da, balance @sd),
+  DROP COLUMN (old-note),
+  RENAME COLUMN (old-name TO name),
+  ALTER COLUMN (score @sd)
+  AS OF ~2026.5.1;
+```
+
+- at least one clause is required
+- clauses are applied to produce a new schema version; `AS OF` queries can still read prior schema and contents
+- `RENAME TO` changes the current table name within the namespace; use ALTER NAMESPACE to move a table
+- `COLUMNS` sets canonical order after ADD, DROP, and RENAME have been applied
+- `COLUMNS` must include every still-existing column, including newly added columns
+- `COLUMNS` must change the existing canonical order; no-op reorderings fail
+- if `COLUMNS` is omitted, added columns are appended and renamed columns retain their canonical positions
+- added columns populate existing rows with each aura's bunt value
+- `PRIMARY KEY` must reference existing columns, must change the existing key, and must be unique over existing data
+- duplicate names in COLUMNS, PRIMARY KEY, ADD COLUMN, DROP COLUMN, RENAME COLUMN, or ALTER COLUMN fail
+- `AS OF` must be greater than both latest schema and latest data timestamps
+- FOREIGN KEY clauses are parsed in the AST/docs but are not current runtime-scope behavior for ALTER TABLE tests
+
 ### not yet implemented
 
-ALTER INDEX, ALTER NAMESPACE, ALTER TABLE, CREATE INDEX, CREATE VIEW, DROP INDEX, DROP NAMESPACE, DROP VIEW
+ALTER INDEX, CREATE INDEX, CREATE VIEW, DROP INDEX, DROP NAMESPACE, DROP VIEW
 
 ## data manipulation commands
 

@@ -376,9 +376,7 @@
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(database.qualified-table.a %sys)
         ~|("cannot alter table in %sys database" !!)
-  ?.  ?&  =(add-foreign-keys.a ~)
-           =(drop-foreign-keys.a ~)
-       ==
+  ?.  ?&(=(add-foreign-keys.a ~) =(drop-foreign-keys.a ~))
     ~|("ALTER TABLE: FOREIGN KEY not implemented" !!)
   =/  db  ~|  "ALTER TABLE: database ".
               "{<database.qualified-table.a>} does not exist"
@@ -420,61 +418,60 @@
         "{<namespace.qualified-table.a>}"
         !!
   ::
-  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names in COLUMNS" columns.a)
-  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names in key" (col-names pri-indx.a))
-  =/  dummy  %-  assert-no-dups
-              :-  "ALTER TABLE: duplicate column names"
-              (turn add-columns.a |=(c=column:ast name.c))
-  =/  dummy  (assert-no-dups "ALTER TABLE: duplicate column names" drop-columns.a)
-  =/  dummy  %-  assert-no-dups
-              :-  "ALTER TABLE: duplicate column names"
-              (turn alter-columns.a |=(c=column:ast name.c))
-  =/  dummy  %-  assert-no-dups
-              :-  "ALTER TABLE: duplicate column names"
-              (turn rename-columns.a |=(p=[@tas @tas] -.p))
-  =/  dummy  %-  assert-no-dups
-              :-  "ALTER TABLE: duplicate column names"
-              (turn rename-columns.a |=(p=[@tas @tas] +.p))
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names ".
+                                 "in COLUMNS"
+                                 columns.a
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names in key"
+                                 (col-names pri-indx.a)
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
+                                 (turn add-columns.a |=(c=column:ast name.c))
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
+                                 drop-columns.a
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
+                                 (turn alter-columns.a |=(c=column:ast name.c))
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
+                                 (turn rename-columns.a |=(p=[@tas @tas] -.p))
+  =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
+                                 (turn rename-columns.a |=(p=[@tas @tas] +.p))
   ::
   =/  old-cols=(list column:ast)  columns.tbl
   =/  old-col-map  (column-map old-cols)
   =/  work=[cols=(list column:ast) cmap=(map @tas column:ast)]
         [old-cols old-col-map]
-  =.  work  %:  apply-add-columns  name.qualified-table.a
+  =.  work  %:  apply-add-columns     name.qualified-table.a
                                       cols.work
                                       cmap.work
                                       add-columns.a
                                       ==
-  =.  work  %:  apply-drop-columns  name.qualified-table.a
-                                       cols.work
-                                       cmap.work
-                                       drop-columns.a
-                                       ==
+  =.  work  %:  apply-drop-columns    name.qualified-table.a
+                                      cols.work
+                                      cmap.work
+                                      drop-columns.a
+                                      ==
   =.  work  %:  apply-rename-columns  name.qualified-table.a
-                                         cols.work
-                                         cmap.work
-                                         rename-columns.a
-                                         ==
-  =.  work  %:  apply-alter-columns  name.qualified-table.a
-                                        cols.work
-                                        cmap.work
-                                        alter-columns.a
-                                        ==
+                                      cols.work
+                                      cmap.work
+                                      rename-columns.a
+                                      ==
+  =.  work  %:  apply-alter-columns   name.qualified-table.a
+                                      cols.work
+                                      cmap.work
+                                      alter-columns.a
+                                      ==
   ::
   =/  final-cols=(list column:ast)
     ?~  columns.a
       cols.work
     (order-columns name.qualified-table.a cmap.work old-cols columns.a)
-  =/  shape-change=?
-        ?|  !=(add-columns.a ~)
-            !=(drop-columns.a ~)
-            !=(rename-columns.a ~)
-            ==
-  =/  type-change=?  !=(alter-columns.a ~)
+  =/  shape-change=?  ?|  !=(add-columns.a ~)
+                          !=(drop-columns.a ~)
+                          !=(rename-columns.a ~)
+                          ==
+  =/  type-change=?   !=(alter-columns.a ~)
   =/  cols-changed=?  ?|(shape-change type-change !=(columns.a ~))
   =/  rebuilt-cols=(list column:ast)  ?:  shape-change
-                                      (addr-columns final-cols)
-                                    final-cols
+                                        (addr-columns final-cols)
+                                      final-cols
   =/  final-lookup=column-lookup
         ?:  shape-change
           (malt (spun rebuilt-cols mk-col-lu-data))
@@ -489,7 +486,8 @@
         typ-addr-lookup.tbl
   ::
   =/  old-key-names=(list ordered-column:ast)
-        (turn key.pri-indx.tbl |=(k=key-column [%ordered-column name.k ascending.k]))
+        %+  turn  key.pri-indx.tbl
+                  |=(k=key-column [%ordered-column name.k ascending.k])
   =/  kept-key=(list ordered-column:ast)
         (rename-ordered-columns old-key-names rename-columns.a)
   =/  req-key=?  !=(pri-indx.a ~)
@@ -501,43 +499,41 @@
         "existing key"
         !!
   ::
-  =/  row-shape-change=?  shape-change
-  =/  key-change=?        !=(final-key key.pri-indx.tbl)
-  =/  file-change=?       ?|(?=(^ new-name.a) row-shape-change key-change)
-  =/  final-file=file
-        ?:  file-change
-          %:  alter-file  fil
-                          add-columns.a
-                          drop-columns.a
-                          rename-columns.a
-                          final-key
-                          name.qualified-table.a
-                          ==
-        fil
+  =/  key-change=?     !=(final-key key.pri-indx.tbl)
+  =/  file-change=?    ?|(?=(^ new-name.a) shape-change key-change)
+  =/  final-file=file  ?:  file-change  %:  alter-file  fil
+                                                        add-columns.a
+                                                        drop-columns.a
+                                                        rename-columns.a
+                                                        final-key
+                                                        name.qualified-table.a
+                                                        ==
+                       fil
   ::
-  =.  tmsp.tbl        sys-time
-  =.  provenance.tbl  sap.bowl
-  =.  column-lookup.tbl     final-lookup
-  =.  typ-addr-lookup.tbl   final-typ-addr
-  =.  columns.tbl           rebuilt-cols
-  =.  pri-indx.tbl          [%index %.y final-key]
+  =.  tmsp.tbl             sys-time
+  =.  provenance.tbl       sap.bowl
+  =.  column-lookup.tbl    final-lookup
+  =.  typ-addr-lookup.tbl  final-typ-addr
+  =.  columns.tbl          rebuilt-cols
+  =.  pri-indx.tbl         [%index %.y final-key]
   =.  tables.nxt-schema
-        %+  ~(put by ?~(new-name.a tables.nxt-schema (map-delete tables.nxt-schema src-key)))
+        %+  %~  put  by  ?~  new-name.a  tables.nxt-schema
+                         (remove-key tables.nxt-schema src-key)
             target-key
-        tbl
+            tbl
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
   =.  files.nxt-data
-        %+  ~(put by ?~(new-name.a files.nxt-data (map-delete files.nxt-data src-key)))
+        %+  %~  put  by  ?~  new-name.a  files.nxt-data
+                         (remove-key files.nxt-data src-key)
             target-key
-        final-file
+            final-file
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
   =.  sys.db               (put:schema-key sys.db sys-time nxt-schema)
   =.  content.db           (put:data-key content.db sys-time nxt-data)
-  =/  msg=(unit @t)  (alter-table-message a)
   =.  event-log.db  :-  :*  %sys-log-event
                             sys-time
                             sap.bowl
@@ -549,7 +545,7 @@
                             ?~(new-name.a ~ `database.qualified-table.a)
                             ?~(new-name.a ~ `namespace.qualified-table.a)
                             ?~(new-name.a ~ `target-name)
-                            msg
+                            (alter-table-message a)
                             ==
                         event-log.db
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %alter-table)
@@ -598,7 +594,7 @@
   =/  tables
     ~|  "DROP TABLE: {<name.qualified-table.d>} ".
         "does not exist in {<namespace.qualified-table.d>}"
-    %+  map-delete
+    %+  remove-key
         tables.nxt-schema
         [namespace.qualified-table.d name.qualified-table.d]
   =.  tables.nxt-schema      tables
@@ -613,7 +609,7 @@
   ?:  ?&((gth rowcount.file 0) =(force.d %.n))
     ~|("DROP TABLE: {<name.qualified-table.d>} has data, use FORCE to DROP" !!)
   =/  files
-    %+  map-delete
+    %+  remove-key
         files.nxt-data
         [namespace.qualified-table.d name.qualified-table.d]
   =.  files.nxt-data       files
@@ -663,7 +659,7 @@
   ?:  (~(has by m) key)  ~|("duplicate key: {<key>}" !!)
   (~(put by m) key value)
 ::
-++  map-delete
+++  remove-key
   |*  [m=(map) key=*]
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
@@ -944,12 +940,12 @@
   |=  a=alter-table:ast
   ^-  (unit @t)
   =/  clauses=(list @t)  ~
-  =.  clauses  ?:  !=(columns.a ~)  ['COLUMNS' clauses]  clauses
-  =.  clauses  ?:  !=(pri-indx.a ~)  ['PRIMARY KEY' clauses]  clauses
-  =.  clauses  ?:  !=(add-columns.a ~)  ['ADD COLUMN' clauses]  clauses
-  =.  clauses  ?:  !=(drop-columns.a ~)  ['DROP COLUMN' clauses]  clauses
+  =.  clauses  ?:  !=(columns.a ~)         ['COLUMNS' clauses]        clauses
+  =.  clauses  ?:  !=(pri-indx.a ~)        ['PRIMARY KEY' clauses]    clauses
+  =.  clauses  ?:  !=(add-columns.a ~)     ['ADD COLUMN' clauses]     clauses
+  =.  clauses  ?:  !=(drop-columns.a ~)    ['DROP COLUMN' clauses]    clauses
   =.  clauses  ?:  !=(rename-columns.a ~)  ['RENAME COLUMN' clauses]  clauses
-  =.  clauses  ?:  !=(alter-columns.a ~)  ['ALTER COLUMN' clauses]  clauses
+  =.  clauses  ?:  !=(alter-columns.a ~)   ['ALTER COLUMN' clauses]   clauses
   ?~  clauses  ~
   [~ (join-text (flop clauses) '; ')]
 ::

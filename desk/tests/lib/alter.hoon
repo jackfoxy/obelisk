@@ -1388,4 +1388,32 @@
       ::
       'ALTER TABLE: %my-table PRIMARY KEY does not alter existing key'
       ==
+::
+::  rejects adding the same column twice in one ADD COLUMN clause
+++  test-fail-alter-table-21
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2081.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2081.1.2 %db1 create-base-table]
+      ::
+      [~2081.1.3 %db1 "ALTER TABLE my-table ADD COLUMN (dupe @t, dupe @ud)"]
+      ::
+      'ALTER TABLE: duplicate column names %dupe'
+      ==
+::
+::  rejects dropping the same existing column twice in one DROP COLUMN clause
+++  test-fail-alter-table-22
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2081.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2081.2.2 %db1 create-base-table]
+      ::
+      [~2081.2.3 %db1 "ALTER TABLE my-table DROP COLUMN (score, score)"]
+      ::
+      'ALTER TABLE: duplicate column names %score'
+      ==
 --
