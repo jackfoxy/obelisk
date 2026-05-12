@@ -50,36 +50,36 @@ The list of user-defined column names and associated auras.
 
 For more details on auras, refer to [01-preliminaries](01-preliminaries.md)
 
-*foreign keys supported in urQL parser, not yet supported in Obelisk runtime*
-
 **`<PRIMARY KEY`**
 
 A constraint that enforces data integrity via a specified column or columns through a unique index. The index contains the columns listed, and sorts the data in either ascending or descending order, defaulting to ascending. Only one PRIMARY KEY constraint can be created per table. 
 
-**`FOREIGN KEY  ( <column> [ ,... n ]`**
-This is a user-defined name for `<foreign-key>`.
+**`FOREIGN KEY ( <column> [ ,... n ] )`**
+The ordered source column list in the table being created or altered.
 
-This list comprises column names in the table for association with a foreign table.
+Foreign keys are unnamed. A foreign key is identified by its ordered source columns and referenced table.
 
-Note: The Obelisk engine does not yet implement foreign keys.
+**`REFERENCES [ <namespace>. ] <table> ( <column> [ ,... n ] )`**
+The referenced table and ordered referenced column list.
 
-**`<table> ( <column> [ ,... n ]`**
-Referenced foreign `<table>` and columns. Associated columns and auras must match the specified columns from the new `<table>` and be the entire primary key of the referenced foreign `<table>`.
+The referenced table must be in the same database as the source table.
+
+The referenced columns must exactly match the referenced table's complete `PRIMARY KEY`, including order. The associated source and referenced column auras must match pairwise.
 
 **`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
 
-**`ON UPDATE { NO ACTION | CASCADE | SET DEFAULT }`**
+**`ON UPDATE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
 
-**`RESTRICT` (default)
-The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
+**`RESTRICT` (default)**
+The Obelisk agent raises an error and aborts the parent row delete/update if referencing child rows exist.
 
 * `CASCADE`
 Corresponding rows are deleted/update from the referencing table when that row is deleted/updated from the parent foreign table.
 
 * `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted. This operation is successful only if the foreign table contains the bunt key, otherwise the action on the parent foreign table is aborted.
+All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values. This operation is successful only if the foreign table contains the resulting bunt key, otherwise the action on the parent foreign table is aborted.
 
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
@@ -103,7 +103,9 @@ WARNING: It is possible to future date a `CREATE TABLE`. This will lock all sche
 
 This command mutates the state of the Obelisk agent.
 
-`FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference columns that are subject to a `PRIMARY KEY` or `UNIQUE INDEX` constraint in the referenced table.
+`FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference the complete `PRIMARY KEY` of the referenced table, in primary key order.
+
+`INSERT`, `UPDATE`, and `DELETE` enforce foreign keys at the mutation's effective content time, including when `AS OF` is supplied.
 
 ### Produced Metadata
 
@@ -122,14 +124,16 @@ duplicate column names `<columns>`
 duplicate column names in key `<columns>`
 key column not in column definitions `<pri-indx>`
 `<table>` exists in `<namespace>`
+foreign key references another database
+foreign key source column does not exist
 `<table>` referenced by `FOREIGN KEY` does not exist
 `<table-column>` column referenced by `FOREIGN KEY` does not exist
 aura mis-match in `FOREIGN KEY`
+foreign key reference columns do not match referenced `PRIMARY KEY`
+foreign key already exists
 state change after query in script
 
 ## ALTER TABLE
-
-*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
 
@@ -158,7 +162,7 @@ At least one clause is required.
 Example:
 ```
 ALTER TABLE my-table
-DROP FOREIGN KEY fk-1, fk-2
+DROP FOREIGN KEY (customer-id) customer
 ```
 
 ### Arguments
@@ -194,28 +198,34 @@ Denotes a list of user-defined column names and associated auras. `ALTER` is use
 The action is to add or drop a foreign key.
 
 **`ADD FOREIGN KEY ( <column> [ ,... n ] )`**
-This list comprises column names in the table for association with a foreign table.
+The ordered source column list in the table being altered.
 
-**`<table> ( <column> [ ,... n ]`**
-Referenced foreign `<table>` and columns. Associated columns and auras must match the specified columns from the new `<table>` and be the entire primary key of the referenced foreign `<table>`.
+Foreign keys are unnamed. A foreign key is identified by its ordered source columns and referenced table.
+
+**`REFERENCES [ <namespace>. ] <table> ( <column> [ ,... n ] )`**
+The referenced table and ordered referenced column list.
+
+The referenced table must be in the same database as the source table. Cross-database foreign keys are rejected.
+
+The referenced columns must exactly match the referenced table's complete `PRIMARY KEY`, including order. The associated source and referenced column auras must match pairwise.
 
 **`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
 
-**`ON UPDATE { NO ACTION | CASCADE | SET DEFAULT }`**
+**`ON UPDATE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
 
-**`RESTRICT` (default)
-The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
+**`RESTRICT` (default)**
+The Obelisk agent raises an error and aborts the parent row delete/update if referencing child rows exist.
 
 * `CASCADE`
 Corresponding rows are deleted/update from the referencing table when that row is deleted/updated from the parent foreign table.
 
 * `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted. This operation is successful only if the foreign table contains the bunt key, otherwise the action on the parent foreign table is aborted.
+All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values. This operation is successful only if the foreign table contains the resulting bunt key, otherwise the action on the parent foreign table is aborted.
 
-**`DROP FOREIGN KEY`**
-Column names in the table associated with a foreign table.
+**`DROP FOREIGN KEY ( <column> [ ,... n ] ) [ <namespace>. ] <table>`**
+Drops the foreign key from the altered table whose ordered source columns and referenced table match the clause.
 
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
@@ -236,7 +246,7 @@ WARNING: It is possible to future date a `ALTER TABLE`. This will lock all schem
     rename-columns=(list [@tas @tas])
     alter-columns=(list column)
     add-foreign-keys=(list foreign-key)
-    drop-foreign-keys=(list @tas)
+    drop-foreign-keys=(unit [(list @tas) =qualified-table])
     as-of=(unit as-of)
     ==
 ```
@@ -245,7 +255,9 @@ WARNING: It is possible to future date a `ALTER TABLE`. This will lock all schem
 
 This command mutates the state of the Obelisk agent.
 
-`FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference columns that are subject to a `PRIMARY KEY` or `UNIQUE INDEX` constraint in the referenced table.
+`FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference the complete `PRIMARY KEY` of the referenced table, in primary key order.
+
+`INSERT`, `UPDATE`, and `DELETE` enforce foreign keys at the mutation's effective content time, including when `AS OF` is supplied.
 
 ### Produced Metadata
 
@@ -259,9 +271,14 @@ database `<database>` does not exist
 alter a column that does not exist
 add a column that does exist
 drop a column that does not exist
+foreign key references another database
+foreign key source column does not exist
 `<table>` referenced by `FOREIGN KEY` does not exist
 `<table-column>` column referenced by `FOREIGN KEY` does not exist
 aura mis-match in `FOREIGN KEY`
+foreign key reference columns do not match referenced `PRIMARY KEY`
+foreign key already exists
+foreign key to drop does not exist
 alter table `<table>` as-of schema time out of order
 alter table `<table>`as-of data time out of order
 alter table state change after query in script

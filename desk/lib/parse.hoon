@@ -1229,7 +1229,7 @@
       [%rename-columns (list [@tas @tas])]
       [%alter-column (list column:ast)]
       [%add-fk *]
-      [%drop-fk (list @tas)]
+      [%drop-fk [(list @tas) qualified-table:ast]]
       ==
 ++  parse-alter-table-clause
   ::  one ALTER TABLE clause
@@ -1255,7 +1255,7 @@
   |-
   ?~  loop  clauses
   =/  tag=@tas  -.-.loop
-  ?:  ?|(=(tag %add-fk) =(tag %drop-fk))
+  ?:  =(tag %add-fk)
     $(loop +.loop)
   ?:  (~(has in seen) tag)
     ~|("ALTER TABLE: duplicate {<tag>} clause" !!)
@@ -4206,7 +4206,7 @@
   =/  rename-columns=(list [@tas @tas])  ~
   =/  alter-columns=(list column:ast)  ~
   =/  add-fks=(list foreign-key:ast)  ~
-  =/  drop-fks=(list @tas)  ~
+  =/  drop-fks=(unit [(list @tas) qualified-table:ast])  ~
   =/  loop  ;;((list alter-table-clause) clauses)
   |-
   ?~  loop
@@ -4219,7 +4219,7 @@
         rename-columns
         alter-columns
         (flop add-fks)
-        (flop drop-fks)
+        drop-fks
         cooked-as-of
         ==
   =/  clause=alter-table-clause  -.loop
@@ -4242,7 +4242,17 @@
       =/  fks=(list foreign-key:ast)  (build-foreign-keys [table +.clause])
       $(loop +.loop, add-fks (weld (flop fks) add-fks))
     %drop-fk
-      $(loop +.loop, drop-fks (weld (flop +.clause) drop-fks))
+      =/  drop=[(list @tas) qualified-table:ast]  +.clause
+      =/  parsed-ref=qualified-table:ast  +.drop
+      =/  reference-table
+        :*  %qualified-table
+            ~
+            database.table
+            namespace.parsed-ref
+            name.parsed-ref
+            ~
+            ==
+      $(loop +.loop, drop-fks [~ [-.drop reference-table]])
   ==
 ++  cook-as-of
   ::  convert parse-as-of payload to (unit as-of); accepts ~ if no as-of given
@@ -4316,11 +4326,6 @@
     (cold %add-fk ;~(plug whitespace (jester 'add')))
     ;~(pfix foreign-key-literal (more com full-foreign-key))
   ==
-++  foreign-key-name-list
-  ;~  pose
-    face-list
-    ;~(pfix whitespace (more com parse-face))
-  ==
 ++  drop-foreign-key
   ;~  plug
     %:  cold  %drop-fk
@@ -4332,7 +4337,10 @@
                         (jester 'key')
                         ==
               ==
-    foreign-key-name-list
+    ;~  plug
+      face-list
+      (cook cook-qualified-2object parse-qualified-2-name)
+      ==
   ==
 ++  primary-key
    %:  cook

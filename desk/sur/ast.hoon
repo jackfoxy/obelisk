@@ -554,7 +554,7 @@
     rename-columns=(list [@tas @tas])
     alter-columns=(list column)
     add-foreign-keys=(list foreign-key)
-    drop-foreign-keys=(list @tas)
+    drop-foreign-keys=(unit [(list @tas) =qualified-table])
     as-of=(unit as-of)
     ==
 ::

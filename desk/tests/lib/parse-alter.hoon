@@ -47,7 +47,7 @@
         as-of=~
         ==
   %+  expect-eq
-    !>  ~[expected1 expected2]
+    !>  ;;((list command:ast) ~[expected1 expected2])
     !>  %-  parse:parse(default-database 'db1')
         " ALtER NAmESPACE   db.ns   TRANsFER ".
         "  TaBLE  db.ns2.table \0a;\0a ALTER ".
@@ -64,7 +64,7 @@
         as-of=~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER NAMESPACE ns TRANSFER TABLE table "
 ::
@@ -79,7 +79,7 @@
         as-of=~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace db.ns transfer table db.ns2.table as of now"
 ::
@@ -94,7 +94,7 @@
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace db.ns transfer table ".
         "db.ns2.table as of ~2023.12.25..7.15.0..1ef5"
@@ -110,7 +110,7 @@
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace db.ns transfer table ".
         "db.ns2.table as of 5 days ago"
@@ -126,7 +126,7 @@
         as-of=~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table as of now"
 ::
@@ -141,7 +141,7 @@
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of ~2023.12.25..7.15.0..1ef5"
@@ -157,7 +157,7 @@
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of 5 days ago"
@@ -173,7 +173,7 @@
         as-of=[~ [%dr ~d3.h5.m30.s12]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of ~d3.h5.m30.s12"
@@ -189,7 +189,7 @@
         as-of=[~ [%dr ~h5.m30.s12]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of ~h5.m30.s12"
@@ -205,7 +205,7 @@
         as-of=[~ [%dr ~m30.s12]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of ~m30.s12"
@@ -221,7 +221,7 @@
         as-of=[~ [%dr ~s12]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter namespace ns transfer table table ".
         "as of ~s12"
@@ -268,7 +268,8 @@
         ~                                                       :: rename-columns
         ~                                                       :: alter-columns
         ~                                                       :: add-foreign-keys
-        ~                                                       :: drop-foreign-keys
+        ~
+                                                                :: drop-foreign-keys
         ~                                                       :: as-of
         ==
   =/  expected2
@@ -276,10 +277,12 @@
         [%qualified-table ship=~ database='db' namespace='dbo' name='table' ~]
         ~  ~  ~
         ~[[%column name='col1' type=%t addr=0]]
-        ~  ~  ~  ~  ~  ~
+        ~  ~  ~  ~
+        ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected1 expected2]
+    !>  ;;((list command:ast) ~[expected1 expected2])
     !>  %-  parse:parse(default-database 'db1')
         " ALtER  TaBLE  db.ns.table  AdD  COlUMN  ".
         "( col1  @t ,  col2  @p ,  col3  @ud ) ".
@@ -296,10 +299,12 @@
             [%column name='col2' type=%p addr=0]
             [%column name='col3' type=%ud addr=0]
             ==
-        ~  ~  ~
+        ~
+        ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ALTER COLUMN ".
         "(col1 @t, col2 @p, col3 @ud)"
@@ -311,10 +316,12 @@
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~  ~
         ~[[%column name='col1' type=%t addr=0]]
-        ~  ~  ~
+        ~
+        ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ALTER COLUMN (col1 @t)"
 ::
@@ -324,11 +331,12 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~
-        ['col1' 'col2' 'col3' ~]
-        ~  ~  ~  ~  ~
+        ~[%col1 %col2 %col3]
+        ~  ~  ~  ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table DROP COLUMN (col1, col2, col3)"
 ::
@@ -338,11 +346,12 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~
-        ['col1' ~]
-        ~  ~  ~  ~  ~
+        ~[%col1]
+        ~  ~  ~  ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table DROP COLUMN (col1)"
 ::
@@ -373,7 +382,8 @@
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~  ~  ~
         ~[fk1 fk2]
-        ~  ~
+        ~
+        ~
         ==
   =/  urql
     "ALTER TABLE table ADD FOREIGN KEY ".
@@ -385,10 +395,10 @@
     " ( col19 ,  col20 )  On  dELETE ".
     " CAsCADE  oN  UPdATE  CAScADE "
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  (parse:parse(default-database 'db1') urql)
 ::
-:: drop 2 foreign keys, extra spaces
+:: drop multi-column foreign key, extra spaces
 ++  test-alter-table-06
   =/  expected
     :*  %alter-table
@@ -396,27 +406,27 @@
             namespace='dbo'  name='mytable'  ~
             ==
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db1' namespace='dbo' name='parent' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
-        " ALTER  TABLE  mytable  DROP  FOREIGN  KEY  ( fk1,  fk2 )"
+        " ALTER  TABLE  mytable  DROP  FOREIGN  KEY  ( fk1,  fk2 )  parent"
 ::
-:: drop 2 foreign keys, no extra spaces
+:: drop multi-column foreign key, no extra spaces
 ++  test-alter-table-07
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db' namespace='dbo' name='mytable' ~]
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db' namespace='dbo' name='parent' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
-        "ALTER TABLE db..mytable DROP FOREIGN KEY (fk1,fk2)"
+        "ALTER TABLE db..mytable DROP FOREIGN KEY (fk1,fk2) parent"
 ::
 :: drop 1 foreign key
 ++  test-alter-table-08
@@ -424,13 +434,13 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='ns' name='mytable' ~]
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' ~]
+        [~ [~[%fk1] [%qualified-table ship=~ database='db1' namespace='dbo' name='parent' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
-        "ALTER TABLE ns.mytable DROP FOREIGN KEY (fk1)"
+        "ALTER TABLE ns.mytable DROP FOREIGN KEY (fk1) parent"
 ::
 ::  add column as of now
 ++  test-alter-table-09
@@ -442,10 +452,12 @@
             [%column name='col2' type=%p addr=0]
             [%column name='col3' type=%ud addr=0]
             ==
-        ~  ~  ~  ~  ~  ~
+        ~  ~  ~  ~
+        ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table  db.ns.table  add  column ".
         " ( col1  @t ,  col2  @p ,  col3  @ud )".
@@ -461,11 +473,12 @@
             [%column name='col2' type=%p addr=0]
             [%column name='col3' type=%ud addr=0]
             ==
-        ~  ~  ~  ~  ~
+        ~  ~  ~  ~
+        ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table  db.ns.table  add  column ".
         " ( col1  @t ,  col2  @p ,  col3  @ud )".
@@ -481,11 +494,12 @@
             [%column name='col2' type=%p addr=0]
             [%column name='col3' type=%ud addr=0]
             ==
-        ~  ~  ~  ~  ~
+        ~  ~  ~  ~
+        ~
         [~ [%as-of-offset 1 %weeks]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table  db.ns.table  add  column ".
         " ( col1  @t ,  col2  @p ,  col3  @ud )".
@@ -500,10 +514,12 @@
         :~  [%column name='col1' type=%t addr=0]
             [%column name='col2' type=%p addr=0]
             ==
-        ~  ~  ~
+        ~
+        ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table alter column (col1 @t, col2 @p) as of now"
 ::
@@ -517,11 +533,12 @@
             [%column name='col2' type=%p addr=0]
             [%column name='col3' type=%ud addr=0]
             ==
-        ~  ~
+        ~
+        ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table alter column ".
         "(col1 @t, col2 @p, col3 @ud) ".
@@ -534,11 +551,12 @@
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~  ~
         ~[[%column name='col1' type=%t addr=0]]
-        ~  ~
+        ~
+        ~
         [~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table alter column ".
         "(col1 @t) as of 5 days ago"
@@ -549,11 +567,12 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~
-        ['col1' 'col2' ~]
-        ~  ~  ~  ~  ~
+        ~[%col1 %col2]
+        ~  ~  ~  ~
+        ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table drop column (col1, col2) as of now"
 ::
@@ -563,12 +582,13 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~
-        ['col1' ~]
-        ~  ~  ~  ~
+        ~[%col1]
+        ~  ~  ~
+        ~
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table drop column (col1) ".
         "as of ~2023.12.25..7.15.0..1ef5"
@@ -579,12 +599,13 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~
-        ['col1' 'col2' 'col3' ~]
-        ~  ~  ~  ~
+        ~[%col1 %col2 %col3]
+        ~  ~  ~
+        ~
         [~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter table table drop column (col1, col2, col3) as of 5 days ago"
 ::
@@ -628,7 +649,7 @@
     " cascade  on  update  cascade ".
     "as of now"
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: add 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
@@ -672,7 +693,7 @@
     " cascade  on  update  cascade ".
     "as of ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: add 2 foreign keys as of 5 days ago
@@ -716,10 +737,10 @@
     " cascade  on  update  cascade ".
     "as of 5 days ago"
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  (parse:parse(default-database 'db1') urql)
 ::
-:: drop 2 foreign keys as of now
+:: drop multi-column foreign key as of now
 ++  test-alter-table-21
   =/  expected
     :*  %alter-table
@@ -727,15 +748,15 @@
             namespace='dbo'  name='mytable'  ~
             ==
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db1' namespace='dbo' name='parent' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
-        "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of now"
+        "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) parent as of now"
 ::
-:: drop 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
+:: drop multi-column foreign key as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-22
   =/  expected
     :*  %alter-table
@@ -743,17 +764,17 @@
             namespace='dbo'  name='mytable'  ~
             ==
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db1' namespace='dbo' name='parent' ~]]]
         [~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter  table  mytable  drop  foreign ".
-        " key  ( fk1,  fk2 ) ".
+        " key  ( fk1,  fk2 ) parent ".
         "as of ~2023.12.25..7.15.0..1ef5"
 ::
-:: drop 2 foreign keys as of 5 days ago
+:: drop multi-column foreign key as of 5 days ago
 ++  test-alter-table-23
   =/  expected
     :*  %alter-table
@@ -761,25 +782,25 @@
             namespace='dbo'  name='mytable'  ~
             ==
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db1' namespace='dbo' name='parent' ~]]]
         [~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "alter  table  mytable  drop  foreign ".
-        " key  ( fk1,  fk2 ) as of 5 days ago"
+        " key  ( fk1,  fk2 ) parent as of 5 days ago"
 ::
 :: rename to
 ++  test-alter-table-25
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        [~ 'new-table']
+        [~ %new-table]
         ~  ~  ~  ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table RENAME TO new-table"
 ::
@@ -789,11 +810,11 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~
-        ['col1' 'col2' 'col3' ~]
+        ~[%col1 %col2 %col3]
         ~  ~  ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table COLUMNS (col1, col2, col3)"
 ::
@@ -809,7 +830,7 @@
         ~  ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table PRIMARY KEY (col1, col2)"
 ::
@@ -825,7 +846,7 @@
         ~  ~  ~  ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table PRIMARY KEY (col1 ASC, col2 DESC)"
 ::
@@ -835,11 +856,11 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~
-        ~[['col1' 'col1a']]
+        ~[[%col1 %col1a]]
         ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table RENAME COLUMN (col1 TO col1a)"
 ::
@@ -849,11 +870,11 @@
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~
-        ~[['col1' 'col1a'] ['col2' 'col2a']]
+        ~[[%col1 %col1a] [%col2 %col2a]]
         ~  ~  ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table RENAME COLUMN (col1 TO col1a, col2 TO col2a)"
 ::
@@ -877,7 +898,7 @@
         ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
         "(col2) references fk-table (col20) ".
@@ -903,7 +924,7 @@
         ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
         "(col2) references fk-table (col20) ".
@@ -929,7 +950,7 @@
         ~  ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
         "(col2) references fk-table (col20) ".
@@ -952,15 +973,15 @@
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         ~  ~  ~  ~  ~  ~  ~
         ~[fk]
-        ['fk-old' ~]
+        [~ [~[%fk-old] [%qualified-table ship=~ database='db1' namespace='dbo' name='fk-table' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD FOREIGN KEY ".
         "(col1) references fk-table (col9), ".
-        "DROP FOREIGN KEY (fk-old)"
+        "DROP FOREIGN KEY (fk-old) fk-table"
 ::
 :: combined many-clause statement covering all clause kinds with trailing AS OF
 ++  test-alter-table-35
@@ -977,19 +998,19 @@
   =/  expected
     :*  %alter-table
         [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
-        [~ 'new-table']
-        ['a' 'b' 'c' ~]
+        [~ %new-table]
+        ~[%a %b %c]
         ~[[%ordered-column name='a' ascending=%.y]]
         ~[[%column name='x' type=%t addr=0]]
-        ['y' ~]
-        ~[['z' 'w']]
+        ~[%y]
+        ~[[%z %w]]
         ~[[%column name='a' type=%ud addr=0]]
         ~[fk]
-        ['fk-old' ~]
+        [~ [~[%fk-old] [%qualified-table ship=~ database='db1' namespace='dbo' name='fk-table' ~]]]
         [~ %as-of-offset 1 %days]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table RENAME TO new-table, ".
         "COLUMNS (a, b, c), ".
@@ -999,7 +1020,7 @@
         "RENAME COLUMN (z TO w), ".
         "ALTER COLUMN (a @ud), ".
         "ADD FOREIGN KEY (a) references fk-table (a), ".
-        "DROP FOREIGN KEY (fk-old) ".
+        "DROP FOREIGN KEY (fk-old) fk-table ".
         "AS OF 1 days ago"
 ::
 :: fail when table name not a term
@@ -1087,7 +1108,7 @@
   |.  %-  parse:parse(default-database 'db1')
       "ALTER TABLE table ADD COLUMN (a @t) AS OF now, DROP COLUMN (b)"
 ::
-:: drop foreign keys without parentheses
+:: drop foreign key with namespace-qualified reference table
 ++  test-alter-table-48
   =/  expected
     :*  %alter-table
@@ -1095,13 +1116,13 @@
             namespace='dbo'  name='mytable'  ~
             ==
         ~  ~  ~  ~  ~  ~  ~  ~
-        ['fk1' 'fk2' ~]
+        [~ [~[%fk1 %fk2] [%qualified-table ship=~ database='db1' namespace='ns' name='parent' ~]]]
         ~
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
-        "ALTER TABLE mytable DROP FOREIGN KEY fk1, fk2"
+        "ALTER TABLE mytable DROP FOREIGN KEY (fk1, fk2) ns.parent"
 ::
 :: add column with duration as-of
 ++  test-alter-table-49
@@ -1114,7 +1135,7 @@
         [~ [%dr ~h5.m30.s12]]
         ==
   %+  expect-eq
-    !>  ~[expected]
+    !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD COLUMN (col1 @t) AS OF ~h5.m30.s12"
 --
