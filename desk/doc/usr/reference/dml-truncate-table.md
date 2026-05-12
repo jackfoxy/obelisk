@@ -40,6 +40,8 @@ The command potentially mutates `<table>`, resulting in a state change of the Ob
 
 Tables in the *sys* namespace cannot be truncated.
 
+`TRUNCATE TABLE` behaves as `DELETE FROM <table>` without a `WHERE` clause for referential-integrity purposes. Foreign-key `ON DELETE` actions are enforced at the truncate operation's effective content time.
+
 ### Produced Metadata
 
 message: TRUNCATE TABLE <namespace name>.<table name>

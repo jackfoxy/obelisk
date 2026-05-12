@@ -102,7 +102,7 @@ Timestamp of namespace update. Defaults to NOW (current time). When specified, t
 ### Remarks
 This command mutates the state of the Obelisk agent.
 
-Tables can be transferred across databases.
+When a transferred table participates in foreign keys, `ALTER NAMESPACE ... TRANSFER TABLE` may move it only between namespaces in the same database. The source table's database and target namespace's database must match. Cross-database table transfer is rejected. Foreign-key references involving the transferred table remain valid and are updated to the table's new namespace-qualified identity.
 
 Objects cannot be transferred in or out of database *sys*.
 
