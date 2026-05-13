@@ -155,6 +155,12 @@
         ~|  "ALTER NAMESPACE: data for table {<namespace.src>}.{<name.src>} ".
             "does not exist"
         (~(got by files.src-data) src-key)
+  ?:  ?&  !same-db
+          ?|  (fk-outbound-index-has-entries outbound-fk-index.tbl)
+              !=(~ foreign-constraints.fil)
+              ==
+          ==
+    ~|("ALTER NAMESPACE: FOREIGN KEY cross-database transfer not allowed" !!)
   =/  event=sys-log-event
         :*  %sys-log-event
             sys-time
@@ -187,6 +193,22 @@
                           tgt-key
                           fil
                           ==
+    =/  transfer-work
+          %:  rewrite-table-rename-fks
+                src-key
+                tgt-key
+                tbl
+                tables.src-schema
+                files.src-data
+                ==
+    =.  tables.src-schema  -.transfer-work
+    =.  files.src-data     +.transfer-work
+    =/  old-src-tbl=table  (~(got by tables.src-schema) src-key)
+    =.  outbound-fk-index.old-src-tbl  ~
+    =.  tables.src-schema  (~(put by tables.src-schema) src-key old-src-tbl)
+    =/  old-src-fil=file  (~(got by files.src-data) src-key)
+    =.  foreign-constraints.old-src-fil  ~
+    =.  files.src-data  (~(put by files.src-data) src-key old-src-fil)
     =.  tmsp.src-data        sys-time
     =.  provenance.src-data  sap.bowl
     =.  ship.src-data        src.bowl
@@ -434,6 +456,8 @@
         ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
             "{<namespace.qualified-table.a>}"
         (~(got by files.nxt-data) src-key)
+  =/  old-outgoing-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.tbl)
   =/  target-name=@tas  ?~  new-name.a  name.qualified-table.a  u.new-name.a
   =/  target-key  [namespace.qualified-table.a target-name]
   ?:  ?&(?=(^ new-name.a) (~(has by tables.nxt-schema) target-key))
@@ -456,6 +480,13 @@
                                  (turn rename-columns.a |=(p=[@tas @tas] -.p))
   =/  dummy  %+  assert-no-dups  "ALTER TABLE: duplicate column names"
                                  (turn rename-columns.a |=(p=[@tas @tas] +.p))
+  =/  dummy
+        %:  assert-fk-column-change-allowed
+              tbl
+              fil
+              drop-columns.a
+              alter-columns.a
+              ==
   ::
   =/  old-cols=(list column:ast)  columns.tbl
   =/  old-col-map  (column-map old-cols)
@@ -523,6 +554,8 @@
         !!
   ::
   =/  key-change=?     !=(final-key key.pri-indx.tbl)
+  ?:  ?&(req-key key-change !=(~ foreign-constraints.fil))
+    ~|("ALTER TABLE: PRIMARY KEY is referenced by FOREIGN KEY" !!)
   =/  file-change=?    ?|(?=(^ new-name.a) shape-change key-change)
   =/  final-file=file  ?:  file-change  %:  alter-file  fil
                                                         add-columns.a
@@ -539,6 +572,10 @@
   =.  typ-addr-lookup.tbl  final-typ-addr
   =.  columns.tbl          rebuilt-cols
   =.  pri-indx.tbl         [%index %.y final-key]
+  =.  outbound-fk-index.tbl
+        ?:  !=(rename-columns.a ~)
+          (rename-outbound-fk-index outbound-fk-index.tbl rename-columns.a)
+        outbound-fk-index.tbl
   =.  tables.nxt-schema
         %+  %~  put  by  ?~  new-name.a  tables.nxt-schema
                          (remove-key tables.nxt-schema src-key)
@@ -552,6 +589,32 @@
                          (remove-key files.nxt-data src-key)
             target-key
             final-file
+  =/  rename-work
+        ?~  new-name.a
+          [tables.nxt-schema files.nxt-data]
+        %:  rewrite-table-rename-fks
+              src-key
+              target-key
+              tbl
+              tables.nxt-schema
+              files.nxt-data
+              ==
+  =.  tables.nxt-schema  -.rename-work
+  =.  files.nxt-data     +.rename-work
+  =/  column-rename-work
+        ?:  =(rename-columns.a ~)
+          [tables.nxt-schema files.nxt-data]
+        %:  rewrite-column-rename-fks
+              src-key
+              target-key
+              old-outgoing-fks
+              foreign-constraints.final-file
+              rename-columns.a
+              tables.nxt-schema
+              files.nxt-data
+              ==
+  =.  tables.nxt-schema  -.column-rename-work
+  =.  files.nxt-data     +.column-rename-work
   =/  drop-work
         ?~  drop-foreign-keys.a
           [tables.nxt-schema files.nxt-data]
@@ -653,28 +716,49 @@
         "{<namespace.qualified-table.d>} does not exist"
         !!
   ::
-  =/  tables
+  =/  tbl-key=[@tas @tas]  [namespace.qualified-table.d name.qualified-table.d]
+  =/  dropped-tbl=table
     ~|  "DROP TABLE: {<name.qualified-table.d>} ".
         "does not exist in {<namespace.qualified-table.d>}"
-    %+  remove-key
-        tables.nxt-schema
-        [namespace.qualified-table.d name.qualified-table.d]
-  =.  tables.nxt-schema      tables
-  =.  tmsp.nxt-schema        sys-time
-  =.  provenance.nxt-schema  sap.bowl
+    %-  ~(got by tables.nxt-schema)
+        tbl-key
   ::
-  =/  file
+  =/  dropped-file=file
         ~|  "DROP TABLE: {<namespace.qualified-table.d>}".
             ".{<name.qualified-table.d>} does not exist"
         %-  ~(got by files.nxt-data)
-        [namespace.qualified-table.d name.qualified-table.d]
-  ?:  ?&((gth rowcount.file 0) =(force.d %.n))
+        tbl-key
+  ?:  ?&((gth rowcount.dropped-file 0) =(force.d %.n))
     ~|("DROP TABLE: {<name.qualified-table.d>} has data, use FORCE to DROP" !!)
-  =/  files
+  =/  dummy
+        ?.  force.d
+          (assert-drop-table-no-fks tbl-key dropped-tbl dropped-file)
+        ~
+  =/  cleaned=[(map [@tas @tas] table) (map [@tas @tas] file)]
+        ?:  force.d
+          %:  remove-drop-table-fks
+                tbl-key
+                dropped-tbl
+                dropped-file
+                tables.nxt-schema
+                files.nxt-data
+                ==
+        [tables.nxt-schema files.nxt-data]
+  =.  tables.nxt-schema      -.cleaned
+  =.  files.nxt-data         +.cleaned
+  =/  table-map
+    %+  remove-key
+        tables.nxt-schema
+        tbl-key
+  =.  tables.nxt-schema      table-map
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  ::
+  =/  file-map
     %+  remove-key
         files.nxt-data
-        [namespace.qualified-table.d name.qualified-table.d]
-  =.  files.nxt-data       files
+        tbl-key
+  =.  files.nxt-data       file-map
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
@@ -698,13 +782,13 @@
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-table)
   =.  state          (update-sys state sys-time)
   ::
-  :^  ?:  (gth rowcount.file 0)
+  :^  ?:  (gth rowcount.dropped-file 0)
         :-  %results
             :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
                 [%server-time now.bowl]
                 [%schema-time sys-time]
                 [%data-time sys-time]
-                [%vector-count rowcount.file]
+                [%vector-count rowcount.dropped-file]
                 ==
       :-  %results
           :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
@@ -726,6 +810,417 @@
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
+::
+++  assert-drop-table-no-fks
+  |=  [tbl-key=[@tas @tas] dropped-tbl=table dropped-file=file]
+  ^-  ~
+  ?:  ?|  (fk-outbound-index-has-entries outbound-fk-index.dropped-tbl)
+          !=(~ foreign-constraints.dropped-file)
+      ==
+    ~|("DROP TABLE: {<+.tbl-key>} used in FOREIGN KEY, use FORCE to DROP" !!)
+  ~
+::
+++  fk-outbound-index-has-entries
+  |=  idx=outbound-fk-index
+  ^-  ?
+  (gth ~(wyt by idx) 0)
+::
+++  remove-drop-table-fks
+  |=  $:  tbl-key=[@tas @tas]
+          dropped-tbl=table
+          dropped-file=file
+          tbls=(map [@tas @tas] table)
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
+  =/  clean-files=(map [@tas @tas] file)
+        (remove-dropped-table-outgoing-fks tbl-key dropped-tbl fils)
+  =/  clean-tables=(map [@tas @tas] table)
+        (remove-dropped-table-incoming-fks tbl-key foreign-constraints.dropped-file tbls)
+  [clean-tables clean-files]
+::
+++  remove-dropped-table-outgoing-fks
+  |=  $:  tbl-key=[@tas @tas]
+          dropped-tbl=table
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  (map [@tas @tas] file)
+  =/  fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.dropped-tbl)
+  =/  cur-files=(map [@tas @tas] file)  fils
+  |-
+  ?~  fks  cur-files
+  =/  parent-key=[@tas @tas]  reference-table.i.fks
+  =/  parent-fil=file  (~(got by cur-files) parent-key)
+  =.  foreign-constraints.parent-fil
+        (remove-incoming-fk foreign-constraints.parent-fil tbl-key constrained-columns.i.fks)
+  =.  cur-files  (~(put by cur-files) parent-key parent-fil)
+  $(fks t.fks)
+::
+++  remove-dropped-table-incoming-fks
+  |=  $:  tbl-key=[@tas @tas]
+          constraints=(list foreign-constraint)
+          tbls=(map [@tas @tas] table)
+          ==
+  ^-  (map [@tas @tas] table)
+  =/  cur-tables=(map [@tas @tas] table)  tbls
+  |-
+  ?~  constraints  cur-tables
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  =/  child-tbl=table  (~(got by cur-tables) child-key)
+  =.  outbound-fk-index.child-tbl
+        (remove-outbound-fk outbound-fk-index.child-tbl constrained-columns.i.constraints tbl-key)
+  =.  cur-tables  (~(put by cur-tables) child-key child-tbl)
+  $(constraints t.constraints)
+::
+++  collect-outbound-fks
+  |=  idx=outbound-fk-index
+  ^-  (list outbound-fk-entry)
+  =/  pairs=(list [@tas (list outbound-fk-entry)])  ~(tap by idx)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  pairs  (flop out)
+  =.  out  (add-unique-outbound-entries +.i.pairs out)
+  $(pairs t.pairs)
+::
+++  add-unique-outbound-entries
+  |=  [entries=(list outbound-fk-entry) out=(list outbound-fk-entry)]
+  ^-  (list outbound-fk-entry)
+  |-
+  ?~  entries  out
+  %=  $
+    entries  t.entries
+    out      ?:  (outbound-entry-exists out i.entries)  out
+              [i.entries out]
+  ==
+::
+++  outbound-entry-exists
+  |=  [entries=(list outbound-fk-entry) entry=outbound-fk-entry]
+  ^-  ?
+  ?~  entries  %.n
+  ?:  ?&  =(reference-table.i.entries reference-table.entry)
+          =(constrained-columns.i.entries constrained-columns.entry)
+          =(reference-columns.i.entries reference-columns.entry)
+          ==
+    %.y
+  $(entries t.entries)
+::
+++  rewrite-table-rename-fks
+  |=  $:  old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          renamed-tbl=table
+          tbls=(map [@tas @tas] table)
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
+  =/  outgoing=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.renamed-tbl)
+  =/  clean-files=(map [@tas @tas] file)
+        (rewrite-renamed-child-in-parent-files old-key new-key outgoing fils)
+  =/  parent-file=file  (~(got by clean-files) new-key)
+  =/  clean-tables=(map [@tas @tas] table)
+        (rewrite-renamed-parent-in-child-tables old-key new-key foreign-constraints.parent-file tbls)
+  [clean-tables clean-files]
+::
+++  rewrite-renamed-child-in-parent-files
+  |=  $:  old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          fks=(list outbound-fk-entry)
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  (map [@tas @tas] file)
+  =/  cur-files=(map [@tas @tas] file)  fils
+  |-
+  ?~  fks  cur-files
+  =/  parent-key=[@tas @tas]
+        ?:  =(reference-table.i.fks old-key)
+          new-key
+        reference-table.i.fks
+  =/  parent-fil=file  (~(got by cur-files) parent-key)
+  =.  foreign-constraints.parent-fil
+        %:  rewrite-incoming-child-key
+              foreign-constraints.parent-fil
+              old-key
+              new-key
+              constrained-columns.i.fks
+              ==
+  =.  cur-files  (~(put by cur-files) parent-key parent-fil)
+  $(fks t.fks)
+::
+++  rewrite-renamed-parent-in-child-tables
+  |=  $:  old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          constraints=(list foreign-constraint)
+          tbls=(map [@tas @tas] table)
+          ==
+  ^-  (map [@tas @tas] table)
+  =/  cur-tables=(map [@tas @tas] table)  tbls
+  |-
+  ?~  constraints  cur-tables
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  =/  child-tbl=table  (~(got by cur-tables) child-key)
+  =.  outbound-fk-index.child-tbl
+        %:  rewrite-outbound-reference
+              outbound-fk-index.child-tbl
+              constrained-columns.i.constraints
+              old-key
+              new-key
+              ==
+  =.  cur-tables  (~(put by cur-tables) child-key child-tbl)
+  $(constraints t.constraints)
+::
+++  rewrite-incoming-child-key
+  |=  $:  constraints=(list foreign-constraint)
+          old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          source-cols=(list @tas)
+          ==
+  ^-  (list foreign-constraint)
+  =/  out=(list foreign-constraint)  ~
+  |-
+  ?~  constraints  (flop out)
+  =/  item=foreign-constraint  i.constraints
+  =.  item
+        ?:  ?&  =(constrained-table.item old-key)
+                =(constrained-columns.item source-cols)
+                ==
+          item(constrained-table new-key)
+        item
+  %=  $
+    constraints  t.constraints
+    out          [item out]
+  ==
+::
+++  rewrite-outbound-reference
+  |=  $:  idx=outbound-fk-index
+          source-cols=(list @tas)
+          old-parent=[@tas @tas]
+          new-parent=[@tas @tas]
+          ==
+  ^-  outbound-fk-index
+  =/  cols=(list @tas)  source-cols
+  |-
+  ?~  cols  idx
+  =/  entries=(list outbound-fk-entry)  (~(got by idx) i.cols)
+  =/  rewritten=(list outbound-fk-entry)
+        (rewrite-outbound-entry-list entries source-cols old-parent new-parent)
+  %=  $
+    cols  t.cols
+    idx   (~(put by idx) i.cols rewritten)
+  ==
+::
+++  rewrite-outbound-entry-list
+  |=  $:  entries=(list outbound-fk-entry)
+          source-cols=(list @tas)
+          old-parent=[@tas @tas]
+          new-parent=[@tas @tas]
+          ==
+  ^-  (list outbound-fk-entry)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  entries  (flop out)
+  =/  entry=outbound-fk-entry  i.entries
+  =.  entry
+        ?:  ?&  =(reference-table.entry old-parent)
+                =(constrained-columns.entry source-cols)
+                ==
+          entry(reference-table new-parent)
+        entry
+  %=  $
+    entries  t.entries
+    out      [entry out]
+  ==
+::
+++  assert-fk-column-change-allowed
+  |=  $:  tbl=table
+          fil=file
+          drop-cols=(list @tas)
+          alter-cols=(list column:ast)
+          ==
+  ^-  ~
+  =/  cols=(list @tas)  (weld drop-cols (turn alter-cols |=(c=column:ast name.c)))
+  |-
+  ?~  cols  ~
+  ?:  (fk-column-protected tbl fil i.cols)
+    ~|("ALTER TABLE: column {<i.cols>} is referenced by FOREIGN KEY" !!)
+  $(cols t.cols)
+::
+++  fk-column-protected
+  |=  [tbl=table fil=file col=@tas]
+  ^-  ?
+  ?|  (~(has by outbound-fk-index.tbl) col)
+      ?&  !=(~ foreign-constraints.fil)
+          (name-in-list col (key-names key.pri-indx.tbl))
+          ==
+      ==
+::
+++  name-in-list
+  |=  [needle=@tas names=(list @tas)]
+  ^-  ?
+  ?~  names  %.n
+  ?:  =(needle i.names)  %.y
+  $(names t.names)
+::
+++  rename-names
+  |=  [names=(list @tas) renames=(list [@tas @tas])]
+  ^-  (list @tas)
+  (turn names |=(name=@tas (renamed-name name renames)))
+::
+++  rename-outbound-fk-index
+  |=  [idx=outbound-fk-index renames=(list [@tas @tas])]
+  ^-  outbound-fk-index
+  =/  fks=(list outbound-fk-entry)  (collect-outbound-fks idx)
+  =/  out=outbound-fk-index  ~
+  |-
+  ?~  fks  out
+  =/  entry=outbound-fk-entry
+        i.fks(constrained-columns (rename-names constrained-columns.i.fks renames))
+  %=  $
+    fks  t.fks
+    out  (add-outbound-fk out constrained-columns.entry entry)
+  ==
+::
+++  rewrite-column-rename-fks
+  |=  $:  old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          old-outgoing=(list outbound-fk-entry)
+          incoming=(list foreign-constraint)
+          renames=(list [@tas @tas])
+          tbls=(map [@tas @tas] table)
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
+  =/  clean-files=(map [@tas @tas] file)
+        %:  rewrite-source-column-in-parent-files
+              old-key
+              new-key
+              old-outgoing
+              renames
+              fils
+              ==
+  =/  clean-tables=(map [@tas @tas] table)
+        %:  rewrite-reference-column-in-child-tables
+              new-key
+              incoming
+              renames
+              tbls
+              ==
+  [clean-tables clean-files]
+::
+++  rewrite-source-column-in-parent-files
+  |=  $:  old-key=[@tas @tas]
+          new-key=[@tas @tas]
+          old-outgoing=(list outbound-fk-entry)
+          renames=(list [@tas @tas])
+          fils=(map [@tas @tas] file)
+          ==
+  ^-  (map [@tas @tas] file)
+  =/  cur-files=(map [@tas @tas] file)  fils
+  |-
+  ?~  old-outgoing  cur-files
+  =/  parent-key=[@tas @tas]
+        ?:  =(reference-table.i.old-outgoing old-key)
+          new-key
+        reference-table.i.old-outgoing
+  =/  parent-fil=file  (~(got by cur-files) parent-key)
+  =.  foreign-constraints.parent-fil
+        %:  rewrite-incoming-source-cols
+              foreign-constraints.parent-fil
+              new-key
+              constrained-columns.i.old-outgoing
+              (rename-names constrained-columns.i.old-outgoing renames)
+              ==
+  =.  cur-files  (~(put by cur-files) parent-key parent-fil)
+  $(old-outgoing t.old-outgoing)
+::
+++  rewrite-reference-column-in-child-tables
+  |=  $:  parent-key=[@tas @tas]
+          incoming=(list foreign-constraint)
+          renames=(list [@tas @tas])
+          tbls=(map [@tas @tas] table)
+          ==
+  ^-  (map [@tas @tas] table)
+  =/  cur-tables=(map [@tas @tas] table)  tbls
+  |-
+  ?~  incoming  cur-tables
+  =/  child-key=[@tas @tas]  constrained-table.i.incoming
+  =/  child-tbl=table  (~(got by cur-tables) child-key)
+  =.  outbound-fk-index.child-tbl
+        %:  rewrite-outbound-reference-columns
+              outbound-fk-index.child-tbl
+              constrained-columns.i.incoming
+              parent-key
+              renames
+              ==
+  =.  cur-tables  (~(put by cur-tables) child-key child-tbl)
+  $(incoming t.incoming)
+::
+++  rewrite-incoming-source-cols
+  |=  $:  constraints=(list foreign-constraint)
+          child-key=[@tas @tas]
+          old-cols=(list @tas)
+          new-cols=(list @tas)
+          ==
+  ^-  (list foreign-constraint)
+  =/  out=(list foreign-constraint)  ~
+  |-
+  ?~  constraints  (flop out)
+  =/  item=foreign-constraint  i.constraints
+  =.  item
+        ?:  ?&  =(constrained-table.item child-key)
+                =(constrained-columns.item old-cols)
+                ==
+          item(constrained-columns new-cols)
+        item
+  %=  $
+    constraints  t.constraints
+    out          [item out]
+  ==
+::
+++  rewrite-outbound-reference-columns
+  |=  $:  idx=outbound-fk-index
+          source-cols=(list @tas)
+          parent-key=[@tas @tas]
+          renames=(list [@tas @tas])
+          ==
+  ^-  outbound-fk-index
+  =/  cols=(list @tas)  source-cols
+  |-
+  ?~  cols  idx
+  =/  entries=(list outbound-fk-entry)  (~(got by idx) i.cols)
+  =/  rewritten=(list outbound-fk-entry)
+        %:  rewrite-outbound-reference-column-list
+              entries
+              source-cols
+              parent-key
+              renames
+              ==
+  %=  $
+    cols  t.cols
+    idx   (~(put by idx) i.cols rewritten)
+  ==
+::
+++  rewrite-outbound-reference-column-list
+  |=  $:  entries=(list outbound-fk-entry)
+          source-cols=(list @tas)
+          parent-key=[@tas @tas]
+          renames=(list [@tas @tas])
+          ==
+  ^-  (list outbound-fk-entry)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  entries  (flop out)
+  =/  entry=outbound-fk-entry  i.entries
+  =.  entry
+        ?:  ?&  =(reference-table.entry parent-key)
+                =(constrained-columns.entry source-cols)
+                ==
+          entry(reference-columns (rename-names reference-columns.entry renames))
+        entry
+  %=  $
+    entries  t.entries
+    out      [entry out]
+  ==
 ::
 ++  validate-create-fk
   |=  $:  source-key=[@tas @tas]

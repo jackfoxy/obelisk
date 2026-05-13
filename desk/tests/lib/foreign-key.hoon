@@ -257,8 +257,7 @@
       ==
 ::
 ::  ON UPDATE SET DEFAULT sets child key columns to bunt values
-::  Skipped: parent-side DML RI enforcement is outside the current child-side DML slice.
-++  skip-foreign-key-06
+++  test-foreign-key-06
   =|  run=@ud
   %-  exec-0-1
   :*  run
@@ -328,8 +327,7 @@
       ==
 ::
 ::  DROP TABLE FORCE removes dependent foreign keys
-::  Skipped: DROP TABLE FK lifecycle is outside the current child-side DML slice.
-++  skip-foreign-key-08
+++  test-foreign-key-08
   =|  run=@ud
   %-  exec-0-1
   :*  run
@@ -362,6 +360,41 @@
               [%relation 'db1.dbo.child']
               [%schema-time ~2030.9.1]
               [%data-time ~2030.9.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP TABLE FORCE handles a self-referential FK
+++  test-foreign-key-drop-self-force
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2030.9.3
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        "DROP TABLE FORCE node; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id); "
+                        "INSERT INTO node (id, parent-id) VALUES (1, 99); "
+                        ==
+      ::
+      [~2030.9.4 %db1 "FROM node SELECT id, parent-id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%parent-id [~.ud 99]]
+                              ==
+                      ==
+              [%server-time ~2030.9.4]
+              [%relation 'db1.dbo.node']
+              [%schema-time ~2030.9.3]
+              [%data-time ~2030.9.3]
               [%vector-count 1]
               ==
       ==
@@ -410,8 +443,7 @@
       ==
 ::
 ::  TRUNCATE TABLE enforces ON DELETE CASCADE
-::  Skipped: TRUNCATE RI enforcement is outside the current child-side DML slice.
-++  skip-foreign-key-10
+++  test-foreign-key-10
   =|  run=@ud
   %-  exec-0-1
   :*  run
@@ -439,8 +471,7 @@
       ==
 ::
 ::  TRUNCATE TABLE succeeds when declared FKs have no referencing rows
-::  Skipped: TRUNCATE RI enforcement is outside the current child-side DML slice.
-++  skip-foreign-key-11
+++  test-foreign-key-11
   =|  run=@ud
   %-  exec-0-1
   :*  run
@@ -467,10 +498,9 @@
       ==
 ::
 ::  same-database namespace transfer preserves incoming FK metadata
-::  Skipped: namespace transfer FK lifecycle is outside the current child-side DML slice.
-++  skip-foreign-key-12
+++  test-foreign-key-12
   =|  run=@ud
-  %-  exec-0-1
+  %-  exec-2-1
   :*  run
       :+  ~2031.1.1
           %db1
@@ -480,11 +510,13 @@
                         create-child-cascade
                         insert-parents
                         insert-children
-                        "ALTER NAMESPACE ns1 TRANSFER TABLE parent; "
-                        "DELETE FROM ns1.parent WHERE id = 1; "
                         ==
       ::
-      [~2031.1.2 %db1 "FROM child SELECT id, parent-id, note"]
+      [~2031.1.2 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE parent; "]
+      ::
+      [~2031.1.3 %db1 "DELETE FROM ns1.parent WHERE id = 1; "]
+      ::
+      [~2031.1.4 %db1 "FROM child SELECT id, parent-id, note"]
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -495,10 +527,138 @@
                               [%note [~.t 'bravo']]
                               ==
                       ==
-              [%server-time ~2031.1.2]
+              [%server-time ~2031.1.4]
               [%relation 'db1.dbo.child']
               [%schema-time ~2031.1.1]
-              [%data-time ~2031.1.1]
+              [%data-time ~2031.1.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  same-database namespace transfer preserves outgoing FK metadata
+++  test-foreign-key-transfer-child
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      :+  ~2031.1.11
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2031.1.12 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE child; "]
+      ::
+      [~2031.1.13 %db1 "INSERT INTO ns1.child (id, parent-id, note) VALUES (12, 99, 'orphan')"]
+      ::
+      'INSERT: FOREIGN KEY parent key not found'
+      ==
+::
+::  ALTER TABLE RENAME TO preserves incoming FK metadata
+++  test-foreign-key-rename-parent
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2031.1.3
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child-cascade
+                        insert-parents
+                        insert-children
+                        "ALTER TABLE parent RENAME TO parent-2; "
+                        "DELETE FROM parent-2 WHERE id = 1; "
+                        ==
+      ::
+      [~2031.1.4 %db1 "FROM child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2031.1.4]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2031.1.3]
+              [%data-time ~2031.1.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  ALTER TABLE RENAME TO preserves outgoing FK metadata
+++  test-foreign-key-rename-child
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2031.1.5
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        "ALTER TABLE child RENAME TO child-2; "
+                        ==
+      ::
+      [~2031.1.6 %db1 "INSERT INTO child-2 (id, parent-id, note) VALUES (12, 99, 'orphan')"]
+      ::
+      'INSERT: FOREIGN KEY parent key not found'
+      ==
+::
+::  RENAME COLUMN preserves a child-side FK source column
+++  test-foreign-key-rename-source-column
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2031.1.7
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        insert-parents
+                        insert-children
+                        "ALTER TABLE child RENAME COLUMN (parent-id TO parent-key); "
+                        ==
+      ::
+      [~2031.1.8 %db1 "DELETE FROM parent WHERE id = 1"]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  RENAME COLUMN preserves a referenced parent primary-key column
+++  test-foreign-key-rename-parent-column
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2031.1.9
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child-cascade
+                        insert-parents
+                        insert-children
+                        "ALTER TABLE parent RENAME COLUMN (id TO pk-id); "
+                        "DELETE FROM parent WHERE pk-id = 1; "
+                        ==
+      ::
+      [~2031.1.10 %db1 "FROM child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2031.1.10]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2031.1.9]
+              [%data-time ~2031.1.9]
               [%vector-count 1]
               ==
       ==
@@ -772,8 +932,7 @@
       ==
 ::
 ::  rejects TRUNCATE of referenced parent rows under RESTRICT
-::  Skipped: TRUNCATE RI enforcement is outside the current child-side DML slice.
-++  skip-fail-foreign-key-14
+++  test-fail-foreign-key-14
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -791,8 +950,7 @@
       ==
 ::
 ::  rejects DROP TABLE of a referenced table without FORCE
-::  Skipped: DROP TABLE FK lifecycle is outside the current child-side DML slice.
-++  skip-fail-foreign-key-15
+++  test-fail-foreign-key-15
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -805,6 +963,23 @@
                         ==
       ::
       'DROP TABLE: %parent used in FOREIGN KEY, use FORCE to DROP'
+      ==
+::
+::  rejects DROP TABLE of a self-referential FK without FORCE
+++  test-fail-foreign-key-drop-self
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2032.4.2
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        "DROP TABLE node; "
+                        ==
+      ::
+      'DROP TABLE: %node used in FOREIGN KEY, use FORCE to DROP'
       ==
 ::
 ::  rejects AS OF INSERT when parent key did not exist at the AS OF content time
@@ -830,10 +1005,9 @@
       ==
 ::
 ::  rejects cross-database namespace transfers that would split a foreign key
-::  Skipped: namespace transfer FK lifecycle is outside the current child-side DML slice.
-++  skip-fail-foreign-key-17
+++  test-fail-foreign-key-17
   =|  run=@ud
-  %-  failon-0
+  %-  failon-1
   :*  run
       :+  ~2032.6.1
           %db1
@@ -842,15 +1016,15 @@
                         "CREATE NAMESPACE db2.ns2; "
                         create-parent
                         create-child
-                        "ALTER NAMESPACE db2.ns2 TRANSFER TABLE child; "
                         ==
+      ::
+      [~2032.6.2 %db1 "ALTER NAMESPACE db2.ns2 TRANSFER TABLE child; "]
       ::
       'ALTER NAMESPACE: FOREIGN KEY cross-database transfer not allowed'
       ==
 ::
 ::  rejects dropping a referenced primary-key column
-::  Skipped: ALTER TABLE column/FK lifecycle is outside the current child-side DML slice.
-++  skip-fail-foreign-key-18
+++  test-fail-foreign-key-18
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -863,6 +1037,70 @@
                         ==
       ::
       'ALTER TABLE: column %id is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects dropping a child-side FK source column
+++  test-fail-foreign-key-drop-source-column
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2032.7.2
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        "ALTER TABLE child DROP COLUMN (parent-id); "
+                        ==
+      ::
+      'ALTER TABLE: column %parent-id is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects altering a referenced primary-key column
+++  test-fail-foreign-key-alter-parent-column
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2032.7.3
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        "ALTER TABLE parent ALTER COLUMN (id @t); "
+                        ==
+      ::
+      'ALTER TABLE: column %id is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects altering a child-side FK source column
+++  test-fail-foreign-key-alter-source-column
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2032.7.4
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        "ALTER TABLE child ALTER COLUMN (parent-id @t); "
+                        ==
+      ::
+      'ALTER TABLE: column %parent-id is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects changing the primary key of a referenced table
+++  test-fail-foreign-key-alter-parent-primary-key
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2032.7.5
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        "ALTER TABLE parent PRIMARY KEY (label); "
+                        ==
+      ::
+      'ALTER TABLE: PRIMARY KEY is referenced by FOREIGN KEY'
       ==
 ::
 ::  rejects duplicate ADD FOREIGN KEY definitions
@@ -913,8 +1151,7 @@
       ==
 ::
 ::  DROP FOREIGN KEY identifies constraints by source columns and table
-::  Skipped: ALTER TABLE FK and parent-side DML RI enforcement are outside the current child-side DML slice.
-++  skip-fail-foreign-key-21
+++  test-fail-foreign-key-21
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -941,8 +1178,7 @@
       ==
 ::
 ::  rejects DROP TABLE of a child table containing an outgoing FK
-::  Skipped: DROP TABLE FK lifecycle is outside the current child-side DML slice.
-++  skip-fail-foreign-key-22
+++  test-fail-foreign-key-22
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -975,8 +1211,7 @@
       ==
 ::
 ::  rejects TRUNCATE SET DEFAULT when the bunt parent row would be removed
-::  Skipped: TRUNCATE RI enforcement is outside the current child-side DML slice.
-++  skip-fail-foreign-key-24
+++  test-fail-foreign-key-24
   =|  run=@ud
   %-  failon-0
   :*  run
@@ -997,9 +1232,6 @@
 ::  this checkout. They are documented in ddl-table.md / ddl-namespace.md but
 ::  currently do not have stable behavior to assert without implementing RI:
 ::
-::    * ALTER TABLE PRIMARY KEY rejected when the table is referenced by any FK
-::    * RENAME COLUMN / ALTER COLUMN involving FK source or referenced PK cols
-::    * RENAME TO and table transfer preserving both FK metadata indexes
 ::    * self-referential FKs and RESTRICT-only cycles allowed
 ::    * cascading actions in FK cycles rejected
 ::    * parent non-primary-key UPDATE does not trigger referential actions

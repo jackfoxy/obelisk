@@ -18,9 +18,9 @@ State migration is out of scope for this slice.
 1. Make FK metadata real, add metadata construction helpers, and implement `CREATE TABLE` FK validation/registration. Complete.
 2. Implement `ALTER TABLE ADD FOREIGN KEY` and `ALTER TABLE DROP FOREIGN KEY`. Complete.
 3. Enforce child-side DML checks for `INSERT` and child FK-column `UPDATE`. Complete.
-4. Enforce parent-side `DELETE` and primary-key `UPDATE` actions: `RESTRICT`, `CASCADE`, and `SET DEFAULT`. Current.
-5. Apply RI semantics to `TRUNCATE TABLE`.
-6. Apply FK lifecycle behavior for `DROP TABLE`, `ALTER TABLE RENAME TO`, column rename/drop/alter guards, primary-key alteration guards, and namespace table transfer.
+4. Enforce parent-side `DELETE` and primary-key `UPDATE` actions: `RESTRICT`, `CASCADE`, and `SET DEFAULT`. Complete.
+5. Apply RI semantics to `TRUNCATE TABLE`. Complete.
+6. Apply FK lifecycle behavior for `DROP TABLE`, `ALTER TABLE RENAME TO`, column rename/drop/alter guards, primary-key alteration guards, and namespace table transfer. Current.
 
 ## Status
 
@@ -35,28 +35,43 @@ Completed:
 - Parent `DELETE SET DEFAULT`.
 - Parent primary-key `UPDATE RESTRICT`.
 - Parent primary-key `UPDATE CASCADE`.
+- Parent primary-key `UPDATE SET DEFAULT`.
+- `TRUNCATE TABLE` `ON DELETE RESTRICT`, `CASCADE`, and `SET DEFAULT`.
+- `DROP TABLE` FK guards and `DROP TABLE FORCE` FK metadata cleanup.
+- `ALTER TABLE RENAME TO` FK metadata rewrite.
+- Column lifecycle FK handling: `RENAME COLUMN` rewrites metadata; `DROP COLUMN` and `ALTER COLUMN` reject FK columns.
+- Primary-key alteration rejects referenced tables.
+- Namespace table transfer preserves FK metadata within the same database and rejects cross-database transfer involving FKs.
+- `DROP FOREIGN KEY` regression coverage distinguishes the same source columns referencing different parent tables.
 
 Current milestone:
 
-- Enforce parent-side `DELETE` and primary-key `UPDATE` actions: `RESTRICT`, `CASCADE`, and `SET DEFAULT`.
+- Milestone 6 residual FK drop coverage slice complete, pending user build/test confirmation.
 
-Remaining milestones:
+Remaining work:
 
-- Apply RI semantics to `TRUNCATE TABLE`.
-- Apply FK lifecycle behavior for `DROP TABLE`, `ALTER TABLE RENAME TO`, column rename/drop/alter guards, primary-key alteration guards, and namespace table transfer.
+- Review remaining skipped FK tests/TODO coverage and close any residual lifecycle gaps.
 
 ## Current Slice Plan
 
-Implement parent-side `DELETE` and primary-key `UPDATE` in small testable slices:
+Continue Milestone 6: FK lifecycle behavior.
 
-1. Parent primary-key `UPDATE SET DEFAULT`
-   - Set constrained child columns to bunt/default values.
-   - Verify the default FK value references an existing parent key.
-   - Rebuild child primary indexes when child primary-key columns are affected.
+Completed lifecycle slices:
 
-## Milestone 4 Test Activation
+- `DROP TABLE` without `FORCE` rejects outgoing FKs.
+- `DROP TABLE` without `FORCE` rejects incoming FKs even with zero child rows.
+- `DROP TABLE FORCE` removes incoming and outgoing FK metadata.
+- Self-referential table drop behavior.
+- `ALTER TABLE RENAME TO` preserves FK metadata by rewriting incoming and outbound structures.
+- `RENAME COLUMN` rewrites FK metadata for source columns and referenced primary-key columns.
+- `DROP COLUMN` and `ALTER COLUMN` reject FK source columns and referenced primary-key columns.
+- Primary-key alteration rejects referenced tables.
+- Namespace table transfer preserves FK metadata within the same database and rejects cross-database transfer involving FKs.
 
-Unskip tests only as their slice lands:
+Next slices:
 
-- `test-foreign-key-06` for parent PK `UPDATE SET DEFAULT`.
-- Keep parent non-PK update coverage as a low-cost regression once parent update logic exists.
+- Clean up remaining FK test skips/TODOs and confirm milestone closure.
+
+## Milestone 5 Test Activation
+
+Enabled the TRUNCATE FK tests for `RESTRICT`, `CASCADE`, `SET DEFAULT`, and the no-referencing-rows success case.

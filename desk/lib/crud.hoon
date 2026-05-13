@@ -71,18 +71,18 @@
         "{<namespace.qualified-table.d>} does not exist"
         !!
   ::
-  =/  tables
+  =/  tbl=table
     ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
         "does not exists in {<namespace.qualified-table.d>}"
     %-  ~(got by tables:nxt-schema)
         [namespace.qualified-table.d name.qualified-table.d]
   ::
-  =/  file
+  =/  parent-file=file
     ~|  "TRUNCATE TABLE: {<namespace.qualified-table.d>}".
         ".{<name.qualified-table.d>} does not exist"
     %-  ~(got by files.nxt-data)
     [namespace.qualified-table.d name.qualified-table.d]
-  ?.  (gth rowcount.file 0)  :: don't bother if table is empty
+  ?.  (gth rowcount.parent-file 0)  :: don't bother if table is empty
     :^  :-  %results
             :~  :-  %action
                     %-  crip
@@ -95,14 +95,56 @@
         state
 
   ::
-  =/  dropped-rows  rowcount.file
-  =.  pri-idx.file         ~
-  =.  indexed-rows.file    ~
-  =.  rowcount.file        0
-  =.  tmsp.file            sys-time
+  =/  tbl-key=[@tas @tas]  [namespace.qualified-table.d name.qualified-table.d]
+  =/  deleted-parent-rows=(list indexed-row)  indexed-rows.parent-file
+  =/  dummy
+        %:  assert-delete-restrict
+              "TRUNCATE TABLE"
+              content.db
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              deleted-parent-rows
+              ==
+  =/  cascaded=[data file]
+        %:  apply-delete-cascades
+              tables.nxt-schema
+              content.db
+              sys-time
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              deleted-parent-rows
+              nxt-data
+              ==
+  =.  nxt-data  -.cascaded
+  =.  parent-file  +.cascaded
+  =/  defaulted=[data file]
+        %:  apply-delete-set-defaults
+              "TRUNCATE TABLE"
+              tables.nxt-schema
+              content.db
+              sys-time
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              deleted-parent-rows
+              nxt-data
+              ==
+  =.  nxt-data  -.defaulted
+  =.  parent-file  +.defaulted
+  ::
+  =/  dropped-rows  rowcount.parent-file
+  =.  pri-idx.parent-file         ~
+  =.  indexed-rows.parent-file    ~
+  =.  rowcount.parent-file        0
+  =.  tmsp.parent-file            sys-time
   =/  files  %+  ~(put by files.nxt-data)
                  [namespace.qualified-table.d name.qualified-table.d]
-             file
+             parent-file
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
@@ -352,6 +394,7 @@
                   |=(a=indexed-row ((need filter) a))
   =/  dummy
         %:  assert-delete-restrict
+              "DELETE"
               content.db.txn
               effective-time
               tbl-key.txn
@@ -375,6 +418,7 @@
   =.  file.txn      +.cascaded
   =/  defaulted=[data file]
         %:  apply-delete-set-defaults
+              "DELETE"
               tables.cur-schema
               content.db.txn
               effective-time
@@ -597,6 +641,21 @@
               ==
   =.  nxt-data.txn  -.cascaded
   =.  file.txn      +.cascaded
+  ::
+  =/  defaulted=[data file]
+        %:  apply-update-set-defaults
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              now.bowl
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              changed-parent-pairs
+              nxt-data.txn
+              ==
+  =.  nxt-data.txn  -.defaulted
+  =.  file.txn      +.defaulted
   ::
   =/  fks=(list outbound-fk-entry)
         (outbound-fks-for-columns outbound-fk-index.table.txn updated-cols)
@@ -1990,7 +2049,8 @@
   ==
 ::
 ++  assert-delete-restrict
-  |=  $:  content=((mop @da data) gth)
+  |=  $:  op=tape
+          content=((mop @da data) gth)
           effective-time=@da
           parent-key=[@tas @tas]
           parent-file=file
@@ -2010,6 +2070,7 @@
         (get-content content effective-time child-key)
   =/  dummy
         %:  assert-delete-restrict-constraint
+              op
               child-file
               constrained-columns.i.constraints
               deleted-rows
@@ -2017,14 +2078,16 @@
   $(constraints t.constraints)
 ::
 ++  assert-delete-restrict-constraint
-  |=  $:  child-file=file
+  |=  $:  op=tape
+          child-file=file
           source-cols=(list @tas)
           deleted-rows=(list indexed-row)
           ==
   ^-  ~
   ?~  deleted-rows  ~
   ?:  (child-has-fk-reference indexed-rows.child-file source-cols key.i.deleted-rows)
-    ~|("DELETE: FOREIGN KEY restrict violation" !!)
+    ~|  %+  weld  op  ": FOREIGN KEY restrict violation"
+        !!
   $(deleted-rows t.deleted-rows)
 ::
 ++  assert-update-restrict
@@ -2211,6 +2274,102 @@
     out     [[i.cols i.values] out]
   ==
 ::
+++  apply-update-set-defaults
+  |=  $:  tbls=(map [@tas @tas] table)
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  ?~  changed-pairs  [cur-data parent-file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-update.actions.i.constraints %set-default)
+    $(constraints t.constraints)
+  =/  defaulted=[data file]
+        %:  apply-update-set-default-constraint
+              tbls
+              content
+              effective-time
+              now
+              parent-key
+              parent-file
+              i.constraints
+              changed-pairs
+              cur-data
+              ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.defaulted
+    parent-file  +.defaulted
+  ==
+::
+++  apply-update-set-default-constraint
+  |=  $:  tbls=(map [@tas @tas] table)
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        ?:  (~(has by files.cur-data) child-key)
+          (~(got by files.cur-data) child-key)
+        (get-content content effective-time child-key)
+  =/  updates=(list [@tas @])
+        (default-updates constrained-columns.constraint columns.child-table)
+  =/  default-key=(list @)  (turn updates |=(u=[@tas @] +.u))
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  dummy  (assert-update-set-default-parent parent-table parent-file default-key)
+  =.  indexed-rows.child-file
+        %+  turn  indexed-rows.child-file
+        |=  row=indexed-row
+        =/  matches=?
+              (child-row-matches-changed row constrained-columns.constraint changed-pairs)
+        ?:  matches
+          (update-key row updates key.pri-indx.child-table columns.child-table)
+        row
+  =.  tmsp.child-file  now
+  =.  child-file       (rebuild-primary-index child-table child-file)
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  child-row-matches-changed
+  |=  $:  child-row=indexed-row
+          source-cols=(list @tas)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          ==
+  ^-  ?
+  =/  child-fk-key=(list @)  (fk-row-values data.child-row source-cols)
+  |-
+  ?~  changed-pairs  %.n
+  =/  pair=[old=indexed-row new=indexed-row]  i.changed-pairs
+  ?:  =(child-fk-key key.old.pair)  %.y
+  $(changed-pairs t.changed-pairs)
+::
+++  assert-update-set-default-parent
+  |=  [parent-table=table parent-file=file default-key=(list @)]
+  ^-  ~
+  =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
+  ?.  (has:parent-primary-key pri-idx.parent-file default-key)
+    ~|("UPDATE: FOREIGN KEY SET DEFAULT parent bunt key not found" !!)
+  ~
+::
 ++  apply-delete-cascades
   |=  $:  tbls=(map [@tas @tas] table)
           content=((mop @da data) gth)
@@ -2288,7 +2447,8 @@
   [cur-data parent-file]
 ::
 ++  apply-delete-set-defaults
-  |=  $:  tbls=(map [@tas @tas] table)
+  |=  $:  op=tape
+          tbls=(map [@tas @tas] table)
           content=((mop @da data) gth)
           effective-time=@da
           now=@da
@@ -2306,6 +2466,7 @@
     $(constraints t.constraints)
   =/  defaulted=[data file]
         %:  apply-delete-set-default-constraint
+              op
               tbls
               content
               effective-time
@@ -2323,7 +2484,8 @@
   ==
 ::
 ++  apply-delete-set-default-constraint
-  |=  $:  tbls=(map [@tas @tas] table)
+  |=  $:  op=tape
+          tbls=(map [@tas @tas] table)
           content=((mop @da data) gth)
           effective-time=@da
           now=@da
@@ -2355,7 +2517,14 @@
         (default-updates constrained-columns.constraint columns.child-table)
   =/  default-key=(list @)  (turn updates |=(u=[@tas @] +.u))
   =/  parent-table=table  (~(got by tbls) parent-key)
-  =/  dummy  (assert-delete-set-default-parent parent-table parent-file default-key deleted-rows)
+  =/  dummy
+        %:  assert-delete-set-default-parent
+              op
+              parent-table
+              parent-file
+              default-key
+              deleted-rows
+              ==
   =.  indexed-rows.child-file
         %+  turn  indexed-rows.child-file
         |=  row=indexed-row
@@ -2395,13 +2564,20 @@
   0
 ::
 ++  assert-delete-set-default-parent
-  |=  [parent-table=table parent-file=file default-key=(list @) deleted-rows=(list indexed-row)]
+  |=  $:  op=tape
+          parent-table=table
+          parent-file=file
+          default-key=(list @)
+          deleted-rows=(list indexed-row)
+          ==
   ^-  ~
   =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
   ?.  (has:parent-primary-key pri-idx.parent-file default-key)
-    ~|("DELETE: FOREIGN KEY SET DEFAULT parent bunt key not found" !!)
+    ~|  %+  weld  op  ": FOREIGN KEY SET DEFAULT parent bunt key not found"
+        !!
   ?:  (deleted-row-key-exists deleted-rows default-key)
-    ~|("DELETE: FOREIGN KEY SET DEFAULT parent bunt key not found" !!)
+    ~|  %+  weld  op  ": FOREIGN KEY SET DEFAULT parent bunt key not found"
+        !!
   ~
 ::
 ++  deleted-row-key-exists
