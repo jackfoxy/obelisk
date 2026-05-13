@@ -1260,8 +1260,15 @@
               ==
   ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
     ~|("CREATE TABLE: foreign key already exists" !!)
-  =/  actions=constraints  (fk-constraints referential-integrity.fk)
-  ?:  ?&(=(source-key parent-key) ?|(!=(on-delete.actions %restrict) !=(on-update.actions %restrict)))
+  =/  candidate=fk-graph-edge
+        %:  make-fk-graph-edge
+              source-key
+              parent-key
+              referential-integrity.fk
+              ==
+  =/  graph=(list fk-graph-edge)
+        (fk-graph-with-candidate fils candidate)
+  ?:  (fk-graph-candidate-has-cascading-cycle graph candidate)
     ~|("CREATE TABLE: cascading foreign-key cycle not allowed" !!)
   ~
 ::
@@ -1304,8 +1311,15 @@
               ==
   ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
     ~|("ALTER TABLE: foreign key already exists" !!)
-  =/  actions=constraints  (fk-constraints referential-integrity.fk)
-  ?:  ?&(=(source-key parent-key) ?|(!=(on-delete.actions %restrict) !=(on-update.actions %restrict)))
+  =/  candidate=fk-graph-edge
+        %:  make-fk-graph-edge
+              source-key
+              parent-key
+              referential-integrity.fk
+              ==
+  =/  graph=(list fk-graph-edge)
+        (fk-graph-with-candidate fils candidate)
+  ?:  (fk-graph-candidate-has-cascading-cycle graph candidate)
     ~|("ALTER TABLE: cascading foreign-key cycle not allowed" !!)
   (assert-fk-existing-rows child-file parent-table parent-file columns.fk)
 ::

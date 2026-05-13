@@ -81,6 +81,41 @@
 ::  currently reference this table. In that case the constrained-values map
 ::  is empty.
 ::
+::  `constrained-values` is a maintained reverse index for one complete
+::  foreign-key constraint:
+::
+::    map key:    referenced parent primary-key value tuple
+::                == constrained child foreign-key value tuple
+::
+::    set value:  constrained child row primary-key value tuples currently
+::                referencing that parent key
+::
+::  For child INSERT, each outbound FK from the inserted table adds the
+::  inserted row's primary-key tuple to the parent file's matching
+::  foreign-constraint.constrained-values at the inserted row's FK value tuple.
+::
+::  For child UPDATE, each affected outbound FK must move or rewrite the child
+::  row reference atomically:
+::
+::    * if FK source columns changed, remove the old child primary-key tuple
+::      from the old FK value tuple and add the new child primary-key tuple at
+::      the new FK value tuple.
+::
+::    * if only child primary-key columns changed, replace the old child
+::      primary-key tuple with the new child primary-key tuple at the same FK
+::      value tuple.
+::
+::    * if both changed, remove old PK from old FK tuple and add new PK to new
+::      FK tuple.
+::
+::  For child DELETE, each outbound FK removes the deleted row's primary-key
+::  tuple from the parent file's matching constrained-values entry at the
+::  deleted row's FK value tuple. Empty child-key sets should be removed from
+::  constrained-values.
+::
+::  Self-referential FKs update the same file as both child and parent, but the
+::  same invariant applies.
+::
 ::  `outbound-fk-index` on `table` is a derived child-side lookup index. It
 ::  exists to find outgoing foreign keys involving a source column of this
 ::  table. It is not the canonical constraint definition and intentionally
