@@ -424,6 +424,7 @@
                     rowcount=0
                     pri-idx=~
                     indexed-rows=~
+                    foreign-constraints=~
                 ==
             ~
             ~
@@ -468,6 +469,7 @@
           0
           ~
           ~
+          ~
       ==
 ++  file-2col-1-2
   :-  [%dbo %my-table-2]
@@ -476,6 +478,7 @@
           `path`/test-agent
           ~2000.1.2
           0
+          ~
           ~
           ~
       ==
@@ -488,6 +491,7 @@
           0
           ~
           ~
+          ~
       ==
 ++  file-time-3
   :-  [%dbo %my-table-2]
@@ -498,6 +502,7 @@
           0
           ~
           ~
+          ~
       ==
 ++  file-2col-1-3
   :-  [%dbo %my-table-2]
@@ -506,6 +511,7 @@
           `path`/test-agent
           ~2000.1.3
           0
+          ~
           ~
           ~
       ==
@@ -524,6 +530,7 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
+              foreign-constraints=~
               ==
       l=~
       r=~
@@ -536,6 +543,7 @@
               rowcount=0
               pri-idx=~
               indexed-rows=~
+              foreign-constraints=~
           ==
       l=~
       r=~
@@ -554,6 +562,7 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
+              foreign-constraints=~
               ==
       l=~
       r=~
@@ -573,6 +582,7 @@
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
           ~[[%column name=%col1 column-type=%t addr=2]]
           ~
+          ~
       ==
 ++  time-one-col-tbl
   :-  [%dbo %my-table]
@@ -585,6 +595,7 @@
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
           ~[[%column name=%col1 column-type=%t addr=2]]
+          ~
           ~
       ==
 ++  two-col-tbl
@@ -599,6 +610,7 @@
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t 14] [%column %col2 %p 2]]
           ~
+          ~
       ==
 ++  two-comb-col-tbl
   :-  [%dbo %my-table-2]
@@ -612,6 +624,7 @@
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t 14] [%column %col2 %p 2]]
           ~
+          ~
       ==
 ++  time-3-tbl
   :-  [%dbo %my-table-2]
@@ -624,6 +637,7 @@
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t 14] [%column %col2 %p 2]]
+          ~
           ~
       ==
 ::

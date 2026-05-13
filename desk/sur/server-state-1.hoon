@@ -71,6 +71,27 @@
     tmsp=@da
     files=(map [@tas @tas] file)
     ==
+::  Foreign-key metadata invariant
+::
+::  `foreign-constraints` on `file` is the authoritative incoming
+::  constraint/dependency structure. It records declared foreign-key
+::  constraints where this table is the referenced/parent table.
+::
+::  Entries must exist for declared constraints even when no child rows
+::  currently reference this table. In that case the constrained-values map
+::  is empty.
+::
+::  `outbound-fk-index` on `table` is a derived child-side lookup index. It
+::  exists to find outgoing foreign keys involving a source column of this
+::  table. It is not the canonical constraint definition and intentionally
+::  does not store ON DELETE / ON UPDATE actions.
+::
+::  Invariant: every `outbound-fk-index` entry must correspond to exactly one
+::  `foreign-constraints` entry on the referenced file, and every canonical
+::  `foreign-constraints` entry must be represented in `outbound-fk-index` for
+::  each constrained source column included in that foreign key. Schema/data
+::  mutation code must update both sides atomically at the same effective
+::  timestamp.
 +$  table
   $+  table
   $:  %table
@@ -81,7 +102,19 @@
     pri-indx=index
     columns=(list column)      ::  canonical column list
     indices=(list index)
+    ::  outbound-fk-index
+    ::    map @tas  := column of this table
+    ::        list  :+  [@tas @tas]  := reference namespace table
+    ::                  (list @tas)  := key column names in this table
+    ::                  (list @tas)  := primary key column name in reference table
+    outbound-fk-index=outbound-fk-index
     ==
++$  key-constraint  ?(%cascade %restrict %set-default)
++$  constraints
+  $:  %constraints
+      on-delete=key-constraint
+      on-update=key-constraint
+      ==
 +$  column-lookup  (map @tas [aura @])
 +$  typ-addr
   $:  type=@ta
@@ -95,8 +128,31 @@
     rowcount=@
     pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
     indexed-rows=(list indexed-row)
+    ::  foreign-constraints, tables constrained by this table's primary key
+    ::    list
+    ::      :-  [@tas @tas]  := constrained namespace table
+    ::          :^  constraints
+    ::              (list @tas)    := constrained table's primary key columns
+    ::              (list @tas)    := constrained table's constrained columns
+    ::              map (list @)   := constrained values
+    ::                  (set (list @))   := constrained table's key values thus constrained
+    foreign-constraints=(list foreign-constraint)
     ::    =indices
     ==
++$  outbound-fk-entry
+  $:  reference-table=[@tas @tas]
+      constrained-columns=(list @tas)
+      reference-columns=(list @tas)
+      ==
++$  outbound-fk-index  (map @tas (list outbound-fk-entry))
++$  constrained-values  (map (list @) (set (list @)))
++$  foreign-constraint
+  $:  constrained-table=[@tas @tas]
+      actions=constraints
+      constrained-primary-key=(list @tas)
+      constrained-columns=(list @tas)
+      constrained-values=constrained-values
+      ==
 +$  indexed-row
   $:  %indexed-row
     key=(list @)

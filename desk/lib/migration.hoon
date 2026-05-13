@@ -2,6 +2,9 @@
 /+  *utils
 /=  oldstate  /sur/server-state-0
 |%
+++  old-schema-key  ((on @da schema:oldstate) gth)
+++  old-data-key    ((on @da data:oldstate) gth)
+::
 ++  migrate-server-0-to-1
   |=  old-server=server:oldstate
   ^-  server
@@ -19,15 +22,87 @@
 ++  migrate-database-0-to-1
   |=  old-db=database:oldstate
   ^-  database
-  =/  sys-1=((mop @da schema) gth)  `((mop @da schema) gth)`sys.old-db
+  =/  sys-1=((mop @da schema) gth)  (migrate-sys-0-to-1 sys.old-db)
   :*  %database
       name.old-db
       created-provenance.old-db
       created-tmsp.old-db
       sys-1
-      `((mop @da data) gth)`content.old-db
+      (migrate-content-0-to-1 content.old-db)
       `view-cache`view-cache.old-db
       (build-event-log name.old-db sys-1)
+      ==
+::
+++  migrate-sys-0-to-1
+  |=  old-sys=((mop @da schema:oldstate) gth)
+  ^-  ((mop @da schema) gth)
+  %+  gas:schema-key
+      *((mop @da schema) gth)
+      %+  turn  (tap:old-schema-key old-sys)
+      |=  [kv=[@da schema:oldstate]]
+      [-.kv (migrate-schema-0-to-1 +.kv)]
+::
+++  migrate-content-0-to-1
+  |=  old-content=((mop @da data:oldstate) gth)
+  ^-  ((mop @da data) gth)
+  %+  gas:data-key
+      *((mop @da data) gth)
+      %+  turn  (tap:old-data-key old-content)
+      |=  [kv=[@da data:oldstate]]
+      [-.kv (migrate-data-0-to-1 +.kv)]
+::
+++  migrate-schema-0-to-1
+  |=  old-schema=schema:oldstate
+  ^-  schema
+  :*  %schema
+      provenance.old-schema
+      tmsp.old-schema
+      namespaces.old-schema
+      %-  malt
+      %+  turn  ~(tap by tables.old-schema)
+      |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
+      [-.kv (migrate-table-0-to-1 +.kv)]
+      views.old-schema
+      ==
+::
+++  migrate-data-0-to-1
+  |=  old-data=data:oldstate
+  ^-  data
+  :*  %data
+      ship.old-data
+      provenance.old-data
+      tmsp.old-data
+      %-  malt
+      %+  turn  ~(tap by files.old-data)
+      |=  [kv=[[ns=@tas name=@tas] file:oldstate]]
+      [-.kv (migrate-file-0-to-1 +.kv)]
+      ==
+::
+++  migrate-table-0-to-1
+  |=  old-table=table:oldstate
+  ^-  table
+  :*  %table
+      provenance.old-table
+      tmsp.old-table
+      column-lookup.old-table
+      typ-addr-lookup.old-table
+      pri-indx.old-table
+      columns.old-table
+      indices.old-table
+      ~
+      ==
+::
+++  migrate-file-0-to-1
+  |=  old-file=file:oldstate
+  ^-  file
+  :*  %file
+      ship.old-file
+      provenance.old-file
+      tmsp.old-file
+      rowcount.old-file
+      pri-idx.old-file
+      indexed-rows.old-file
+      ~
       ==
 ::
 ++  database-create-events

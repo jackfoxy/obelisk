@@ -302,6 +302,7 @@
             [%index %.y (mk-key-column column-look-up pri-indx.create-table)]
             (addr-columns columns.create-table)
             ~
+            ~
             ==
   =/  tables
     ~|  "CREATE TABLE: {<name.qualified-table.create-table>} ".
@@ -323,6 +324,7 @@
                 0
                 ~
                 ~
+                ~
                 ==
   =/  files
     ~|  "CREATE TABLE: {<name.qualified-table.create-table>} ".
@@ -337,6 +339,29 @@
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
+  ::
+  =/  fk-work
+        =/  source-key  [namespace.qualified-table.create-table name.qualified-table.create-table]
+        =/  out-tables  tables.nxt-schema
+        =/  out-files   files.nxt-data
+        =/  fks=(list foreign-key:ast)  foreign-keys.create-table
+        |-
+        ?~  fks  [out-tables out-files]
+        =/  fk=foreign-key:ast  i.fks
+        =/  dummy  (validate-create-fk source-key namespaces.nxt-schema out-tables out-files fk)
+        =/  parent-key=[@tas @tas]
+              [namespace.reference-table.fk name.reference-table.fk]
+        =/  child-table  (~(got by out-tables) source-key)
+        =/  parent-file  (~(got by out-files) parent-key)
+        =/  registered
+              (register-fk fk child-table parent-file)
+        %=  $
+          fks         t.fks
+          out-tables  (~(put by out-tables) source-key child.registered)
+          out-files   (~(put by out-files) parent-key parent.registered)
+        ==
+  =.  tables.nxt-schema  -.fk-work
+  =.  files.nxt-data     +.fk-work
   ::
   =.  sys.db        (put:schema-key sys.db sys-time nxt-schema)
   =.  content.db    (put:data-key content.db sys-time nxt-data)
@@ -376,8 +401,6 @@
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(database.qualified-table.a %sys)
         ~|("cannot alter table in %sys database" !!)
-  ?.  ?&(=(add-foreign-keys.a ~) =(drop-foreign-keys.a ~))
-    ~|("ALTER TABLE: FOREIGN KEY not implemented" !!)
   =/  db  ~|  "ALTER TABLE: database ".
               "{<database.qualified-table.a>} does not exist"
               (~(got by state) database.qualified-table.a)
@@ -529,6 +552,45 @@
                          (remove-key files.nxt-data src-key)
             target-key
             final-file
+  =/  drop-work
+        ?~  drop-foreign-keys.a
+          [tables.nxt-schema files.nxt-data]
+        =/  drop=[(list @tas) qualified-table:ast]  u.drop-foreign-keys.a
+        =/  source-key  target-key
+        =/  ref=qualified-table:ast  +.drop
+        =/  parent-key=[@tas @tas]  [namespace.ref name.ref]
+        ?.  (~(has by files.nxt-data) parent-key)
+          ~|("ALTER TABLE: foreign key to drop does not exist" !!)
+        =/  child-table=table  (~(got by tables.nxt-schema) source-key)
+        =/  parent-file=file   (~(got by files.nxt-data) parent-key)
+        =/  removed
+              (unregister-fk source-key -.drop parent-key child-table parent-file)
+        :-  (~(put by tables.nxt-schema) source-key child.removed)
+            (~(put by files.nxt-data) parent-key parent.removed)
+  =.  tables.nxt-schema  -.drop-work
+  =.  files.nxt-data     +.drop-work
+  =/  fk-work
+        =/  source-key  target-key
+        =/  out-tables  tables.nxt-schema
+        =/  out-files   files.nxt-data
+        =/  fks=(list foreign-key:ast)  add-foreign-keys.a
+        |-
+        ?~  fks  [out-tables out-files]
+        =/  fk=foreign-key:ast  i.fks
+        =/  dummy  (validate-add-fk source-key namespaces.nxt-schema out-tables out-files fk)
+        =/  parent-key=[@tas @tas]
+              [namespace.reference-table.fk name.reference-table.fk]
+        =/  child-table  (~(got by out-tables) source-key)
+        =/  parent-file  (~(got by out-files) parent-key)
+        =/  registered
+              (register-fk fk child-table parent-file)
+        %=  $
+          fks         t.fks
+          out-tables  (~(put by out-tables) source-key child.registered)
+          out-files   (~(put by out-files) parent-key parent.registered)
+        ==
+  =.  tables.nxt-schema  -.fk-work
+  =.  files.nxt-data     +.fk-work
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
@@ -664,6 +726,292 @@
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
+::
+++  validate-create-fk
+  |=  $:  source-key=[@tas @tas]
+          =namespaces
+          tbls=(map [@tas @tas] table)
+          fils=(map [@tas @tas] file)
+          fk=foreign-key:ast
+          ==
+  ^-  ~
+  ?:  !=(database.qualified-table.fk database.reference-table.fk)
+    ~|("CREATE TABLE: foreign key references another database" !!)
+  ?.  (~(has by namespaces) namespace.reference-table.fk)
+    ~|  "CREATE TABLE: namespace {<namespace.reference-table.fk>} ".
+        "referenced by FOREIGN KEY does not exist"
+        !!
+  =/  child-table=table  (~(got by tbls) source-key)
+  =/  parent-key=[@tas @tas]
+        [namespace.reference-table.fk name.reference-table.fk]
+  ?.  (~(has by tbls) parent-key)
+    ~|  "CREATE TABLE: table {<name.reference-table.fk>} referenced by ".
+        "FOREIGN KEY does not exist"
+        !!
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  parent-file=file    (~(got by fils) parent-key)
+  =/  dummy  (assert-fk-source-cols column-lookup.child-table columns.fk)
+  =/  dummy
+        (assert-fk-reference-cols column-lookup.parent-table reference-columns.fk)
+  =/  parent-pk=(list @tas)  (key-names key.pri-indx.parent-table)
+  ?.  =(reference-columns.fk parent-pk)
+    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+  =/  dummy
+        %:  assert-fk-aura-match
+              column-lookup.child-table
+              column-lookup.parent-table
+              columns.fk
+              reference-columns.fk
+              ==
+  ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
+    ~|("CREATE TABLE: foreign key already exists" !!)
+  =/  actions=constraints  (fk-constraints referential-integrity.fk)
+  ?:  ?&(=(source-key parent-key) ?|(!=(on-delete.actions %restrict) !=(on-update.actions %restrict)))
+    ~|("CREATE TABLE: cascading foreign-key cycle not allowed" !!)
+  ~
+::
+++  validate-add-fk
+  |=  $:  source-key=[@tas @tas]
+          =namespaces
+          tbls=(map [@tas @tas] table)
+          fils=(map [@tas @tas] file)
+          fk=foreign-key:ast
+          ==
+  ^-  ~
+  ?:  !=(database.qualified-table.fk database.reference-table.fk)
+    ~|("ALTER TABLE: foreign key references another database" !!)
+  ?.  (~(has by namespaces) namespace.reference-table.fk)
+    ~|  "ALTER TABLE: namespace {<namespace.reference-table.fk>} ".
+        "referenced by FOREIGN KEY does not exist"
+        !!
+  =/  child-table=table  (~(got by tbls) source-key)
+  =/  child-file=file    (~(got by fils) source-key)
+  =/  parent-key=[@tas @tas]
+        [namespace.reference-table.fk name.reference-table.fk]
+  ?.  (~(has by tbls) parent-key)
+    ~|  "ALTER TABLE: table {<name.reference-table.fk>} referenced by ".
+        "FOREIGN KEY does not exist"
+        !!
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  parent-file=file    (~(got by fils) parent-key)
+  =/  dummy  (assert-fk-source-cols column-lookup.child-table columns.fk)
+  =/  dummy
+        (assert-fk-reference-cols column-lookup.parent-table reference-columns.fk)
+  =/  parent-pk=(list @tas)  (key-names key.pri-indx.parent-table)
+  ?.  =(reference-columns.fk parent-pk)
+    ~|("ALTER TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+  =/  dummy
+        %:  assert-fk-aura-match
+              column-lookup.child-table
+              column-lookup.parent-table
+              columns.fk
+              reference-columns.fk
+              ==
+  ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
+    ~|("ALTER TABLE: foreign key already exists" !!)
+  =/  actions=constraints  (fk-constraints referential-integrity.fk)
+  ?:  ?&(=(source-key parent-key) ?|(!=(on-delete.actions %restrict) !=(on-update.actions %restrict)))
+    ~|("ALTER TABLE: cascading foreign-key cycle not allowed" !!)
+  (assert-fk-existing-rows child-file parent-table parent-file columns.fk)
+::
+++  register-fk
+  |=  [fk=foreign-key:ast child-table=table parent-file=file]
+  ^-  [child=table parent=file]
+  =/  child-key=[@tas @tas]
+        [namespace.qualified-table.fk name.qualified-table.fk]
+  =/  parent-key=[@tas @tas]
+        [namespace.reference-table.fk name.reference-table.fk]
+  =/  incoming=foreign-constraint
+        :*  child-key
+            (fk-constraints referential-integrity.fk)
+            (key-names key.pri-indx.child-table)
+            columns.fk
+            *constrained-values
+            ==
+  =.  foreign-constraints.parent-file
+        [incoming foreign-constraints.parent-file]
+  =/  outbound=outbound-fk-entry
+        :*  parent-key
+            columns.fk
+            reference-columns.fk
+            ==
+  =.  outbound-fk-index.child-table
+        (add-outbound-fk outbound-fk-index.child-table columns.fk outbound)
+  [child-table parent-file]
+::
+++  unregister-fk
+  |=  $:  child-key=[@tas @tas]
+          source-cols=(list @tas)
+          parent-key=[@tas @tas]
+          child-table=table
+          parent-file=file
+          ==
+  ^-  [child=table parent=file]
+  ?.  (fk-canonical-exists foreign-constraints.parent-file child-key source-cols)
+    ~|("ALTER TABLE: foreign key to drop does not exist" !!)
+  =.  foreign-constraints.parent-file
+        (remove-incoming-fk foreign-constraints.parent-file child-key source-cols)
+  =.  outbound-fk-index.child-table
+        (remove-outbound-fk outbound-fk-index.child-table source-cols parent-key)
+  [child-table parent-file]
+::
+++  fk-constraints
+  |=  ri=(list referential-integrity-action:ast)
+  ^-  constraints
+  =/  on-delete=key-constraint  %restrict
+  =/  on-update=key-constraint  %restrict
+  |-
+  ?~  ri  [%constraints on-delete on-update]
+  ?-  i.ri
+    %delete-cascade      $(ri t.ri, on-delete %cascade)
+    %delete-set-default  $(ri t.ri, on-delete %set-default)
+    %update-cascade      $(ri t.ri, on-update %cascade)
+    %update-set-default  $(ri t.ri, on-update %set-default)
+  ==
+::
+++  add-outbound-fk
+  |=  $:  idx=outbound-fk-index
+          source-cols=(list @tas)
+          entry=outbound-fk-entry
+          ==
+  ^-  outbound-fk-index
+  ?~  source-cols  idx
+  =/  current=(unit (list outbound-fk-entry))
+        (~(get by idx) i.source-cols)
+  %=  $
+    source-cols  t.source-cols
+    idx          (~(put by idx) i.source-cols ?~(current ~[entry] [entry u.current]))
+  ==
+::
+++  remove-incoming-fk
+  |=  $:  constraints=(list foreign-constraint)
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          ==
+  ^-  (list foreign-constraint)
+  =/  out=(list foreign-constraint)  ~
+  |-
+  ?~  constraints  (flop out)
+  ?:  ?&  =(constrained-table.i.constraints child-key)
+          =(constrained-columns.i.constraints source-cols)
+          ==
+    $(constraints t.constraints)
+  %=  $
+    constraints  t.constraints
+    out          [i.constraints out]
+  ==
+::
+++  remove-outbound-fk
+  |=  $:  idx=outbound-fk-index
+          source-cols=(list @tas)
+          parent-key=[@tas @tas]
+          ==
+  ^-  outbound-fk-index
+  =/  cols=(list @tas)  source-cols
+  |-
+  ?~  cols  idx
+  =/  entries=(list outbound-fk-entry)  (~(got by idx) i.cols)
+  =/  kept=(list outbound-fk-entry)
+        (remove-outbound-entry entries parent-key)
+  %=  $
+    cols  t.cols
+    idx   ?:  =(kept ~)  (~(del by idx) i.cols)
+          (~(put by idx) i.cols kept)
+  ==
+::
+++  remove-outbound-entry
+  |=  [entries=(list outbound-fk-entry) parent-key=[@tas @tas]]
+  ^-  (list outbound-fk-entry)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  entries  (flop out)
+  ?:  =(reference-table.i.entries parent-key)
+    $(entries t.entries)
+  %=  $
+    entries  t.entries
+    out      [i.entries out]
+  ==
+::
+++  assert-fk-existing-rows
+  |=  $:  child-file=file
+          parent-table=table
+          parent-file=file
+          source-cols=(list @tas)
+          ==
+  ^-  ~
+  =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
+  =/  rows=(list indexed-row)  indexed-rows.child-file
+  |-
+  ?~  rows  ~
+  =/  parent-key=(list @)  (fk-row-values data.i.rows source-cols)
+  ?.  (has:parent-primary-key pri-idx.parent-file parent-key)
+    ~|("ALTER TABLE: FOREIGN KEY parent key not found" !!)
+  $(rows t.rows)
+::
+++  fk-row-values
+  |=  [row=(map @tas @) cols=(list @tas)]
+  ^-  (list @)
+  =/  values=(list @)  ~
+  |-
+  ?~  cols  (flop values)
+  %=  $
+    cols    t.cols
+    values  [(~(got by row) i.cols) values]
+  ==
+::
+++  assert-fk-source-cols
+  |=  [lookup=column-lookup cols=(list @tas)]
+  ^-  ~
+  ?~  cols  ~
+  ?.  (~(has by lookup) i.cols)
+    ~|("CREATE TABLE: foreign key source column {<i.cols>} does not exist" !!)
+  $(cols t.cols)
+::
+++  assert-fk-reference-cols
+  |=  [lookup=column-lookup cols=(list @tas)]
+  ^-  ~
+  ?~  cols  ~
+  ?.  (~(has by lookup) i.cols)
+    ~|  "CREATE TABLE: column {<i.cols>} referenced by FOREIGN KEY ".
+        "does not exist"
+        !!
+  $(cols t.cols)
+::
+++  assert-fk-aura-match
+  |=  $:  child-lookup=column-lookup
+          parent-lookup=column-lookup
+          source-cols=(list @tas)
+          reference-cols=(list @tas)
+          ==
+  ^-  ~
+  ?~  source-cols
+    ?~  reference-cols  ~
+    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+  ?~  reference-cols
+    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+  ?.  =(-:(~(got by child-lookup) i.source-cols) -:(~(got by parent-lookup) i.reference-cols))
+    ~|  "CREATE TABLE: aura mis-match in FOREIGN KEY ".
+        "{<i.source-cols>} {<i.reference-cols>}"
+        !!
+  $(source-cols t.source-cols, reference-cols t.reference-cols)
+::
+++  fk-canonical-exists
+  |=  $:  constraints=(list foreign-constraint)
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          ==
+  ^-  ?
+  ?~  constraints  %.n
+  ?:  ?&  =(constrained-table.i.constraints child-key)
+          =(constrained-columns.i.constraints source-cols)
+          ==
+    %.y
+  $(constraints t.constraints)
+::
+++  key-names
+  |=  key=(list key-column)
+  ^-  (list @tas)
+  (turn key |=(k=key-column name.k))
 ::
 ++  mk-key-column
   |=  [=column-lookup pri-indx=(list ordered-column:ast)]
@@ -946,6 +1294,8 @@
   =.  clauses  ?:  !=(drop-columns.a ~)    ['DROP COLUMN' clauses]    clauses
   =.  clauses  ?:  !=(rename-columns.a ~)  ['RENAME COLUMN' clauses]  clauses
   =.  clauses  ?:  !=(alter-columns.a ~)   ['ALTER COLUMN' clauses]   clauses
+  =.  clauses  ?:  !=(add-foreign-keys.a ~)  ['ADD FOREIGN KEY' clauses]  clauses
+  =.  clauses  ?:  ?=(^ drop-foreign-keys.a)  ['DROP FOREIGN KEY' clauses]  clauses
   ?~  clauses  ~
   [~ (join-text (flop clauses) '; ')]
 ::

@@ -107,6 +107,8 @@ This command mutates the state of the Obelisk agent.
 
 `INSERT`, `UPDATE`, and `DELETE` enforce foreign keys at the mutation's effective content time, including when `AS OF` is supplied.
 
+For a multi-row `INSERT` into a table with a self-referential foreign key, rows inserted by the same statement are visible to the statement's foreign-key checks. A row may therefore reference another row inserted earlier or later in the same statement, provided the complete resulting table contents satisfy the constraint.
+
 Self-referential foreign keys are allowed. Cyclic foreign-key dependencies are allowed only when all actions in the cycle are `RESTRICT`; cascading actions in cycles are rejected.
 
 ### Produced Metadata
@@ -195,8 +197,12 @@ Denotes a list of existing column names to delete from the `<table>` structure.
 **`RENAME COLUMN`**
 Renames existing columns. If `COLUMNS` is not specified the existing canonical ordering remains in effect.
 
+When a renamed column participates in a foreign key, Obelisk preserves the constraint by rewriting the affected foreign-key metadata to the new column name. This applies to source columns and referenced primary-key columns.
+
 **`ALTER COLUMN ( <column> <aura> [ ,... n ] )`**
 Denotes a list of user-defined column names and associated auras. `ALTER` is used to change the aura of an existing column.
+
+`DROP COLUMN` and `ALTER COLUMN` are rejected for columns that participate in a foreign key, including source columns and referenced primary-key columns.
 
 **`ADD | DROP`**
 The action is to add or drop a foreign key.
@@ -264,6 +270,8 @@ This command mutates the state of the Obelisk agent.
 `FOREIGN KEY` constraints ensure data integrity for the data contained in the column or columns. They necessitate that each value in the column exists in the corresponding referenced column or columns in the referenced table. `FOREIGN KEY` constraints can only reference the complete `PRIMARY KEY` of the referenced table, in primary key order.
 
 `INSERT`, `UPDATE`, and `DELETE` enforce foreign keys at the mutation's effective content time, including when `AS OF` is supplied.
+
+For a multi-row `INSERT` into a table with a self-referential foreign key, rows inserted by the same statement are visible to the statement's foreign-key checks. A row may therefore reference another row inserted earlier or later in the same statement, provided the complete resulting table contents satisfy the constraint.
 
 Self-referential foreign keys are allowed. Cyclic foreign-key dependencies are allowed only when all actions in the cycle are `RESTRICT`; cascading actions in cycles are rejected.
 
