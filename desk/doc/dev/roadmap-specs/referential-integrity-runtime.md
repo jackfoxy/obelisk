@@ -48,9 +48,12 @@ Completed:
 
 Known gaps:
 
-- `constrained-values` maintenance is not yet complete for `ALTER TABLE ADD FOREIGN KEY` seeding. `seed-constrained-values-from-rows` in `desk/lib/utils.hoon` is not called from `alter-tbl` in `desk/lib/ddl.hoon`.
-- `ALTER TABLE ADD FOREIGN KEY` validates existing child rows but does not seed `constrained-values` for those existing references; pre-existing child references are not RESTRICT-enforced until new DML re-populates the index.
-- `test-fail-foreign-key-35` in `desk/tests/lib/foreign-key.hoon` documents this gap and is expected to fail until seeding is implemented.
+- `constrained-values` is maintained by child-side DML (`INSERT`, `UPDATE`, `DELETE`) but is not seeded when `ALTER TABLE ADD FOREIGN KEY` is applied to tables with existing rows. `seed-constrained-values-from-rows` in `desk/lib/utils.hoon` is not wired into `alter-tbl` in `desk/lib/ddl.hoon`.
+- This inconsistency has no current behavioral consequence: all enforcement (`RESTRICT`, `CASCADE`, `SET DEFAULT`) uses direct child-row scanning (`child-has-fk-reference`), not `constrained-values`. Seeding must be wired in before any enforcement path is changed to use the reverse index.
+
+- assert-delete-restrict-constraint calls child-has-fk-reference indexed-rows.child-file — it scans the child table's rows directly. constrained-values is never read by any enforcement path; it's purely a maintained reverse index that isn't yet used for lookups.
+
+Current state: test-35 is a correct, passing test. The seeding gap is a state inconsistency (the index is incomplete after retroactive FK addition) but has zero behavioral impact until enforcement is switched to use the index.
 
 ## Implementation Milestones
 
