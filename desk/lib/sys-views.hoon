@@ -1236,7 +1236,7 @@
       ==
 ::
 ++  sys-view-tables
-  |_  tables=(map [@tas @tas] table)
+  |_  =tables
   ++  foo
     |=  [k=[@tas @tas] =file]
     ^-  (list (list @))
@@ -1245,7 +1245,7 @@
   --
 ::
 ++  sys-view-table-keys
-  |_  tables=(map [@tas @tas] table)
+  |_  =tables
   ++  foo
     |=  [k=[@tas @tas] =file]
     ^-  (list (list @))
@@ -1261,7 +1261,7 @@
   --
 ::
 ++  sys-view-columns
-  |_  tables=(map [@tas @tas] table)
+  |_  =tables
   ++  foo
     |=  [k=[@tas @tas] =file]
     ^-  (list (list @))

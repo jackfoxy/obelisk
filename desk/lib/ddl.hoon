@@ -156,7 +156,7 @@
             "does not exist"
         (~(got by files.src-data) src-key)
   ?:  ?&  !same-db
-          ?|  (fk-outbound-index-has-entries outbound-fk-index.tbl)
+          ?|  (gth ~(wyt by outbound-fk-index.tbl) 0)
               !=(~ foreign-constraints.fil)
               ==
           ==
@@ -275,31 +275,19 @@
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(database.qualified-table.create-table %sys)
         ~|("cannot create table in %sys database" !!)
-  =/  db  ~|  "CREATE TABLE: database ".
-              "{<database.qualified-table.create-table>} does not exist"
-              (~(got by state) database.qualified-table.create-table)
-  =/  sys-time  (set-tmsp as-of.create-table now.bowl)
-  =/  nxt-schema=schema
-        ~|  "CREATE TABLE: {<name.qualified-table.create-table>} as-of schema ".
-            "time out of order"
-            %:  get-next-schema  sys.db
-                                 next-schemas
-                                 sys-time
-                                 database.qualified-table.create-table
-                                 ==
-  =/  nxt-data=data
-        ~|  "CREATE TABLE: {<name.qualified-table.create-table>} as-of data ".
-            "time out of order"
-            %:  get-next-data  content.db
-                               next-data
-                               sys-time
-                               database.qualified-table.create-table
-                               ==
+  =/  work-state  %:  mk-work-state  bowl
+                                     state
+                                     qualified-table.create-table
+                                     next-schemas
+                                     next-data
+                                     as-of.create-table
+                                     "CREATE"
+                                     ==
+  =/  db=database        -.work-state
+  =/  sys-time=@da       +<.work-state
+  =/  nxt-schema=schema  +>-.work-state
+  =/  nxt-data=data      +>+.work-state
   ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.create-table)
-    ~|  "CREATE TABLE: namespace {<namespace.qualified-table.create-table>} ".
-        "does not exist"
-        !!
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
     ~|("CREATE TABLE: duplicate column names {<columns.create-table>}" !!)
@@ -363,26 +351,14 @@
   =.  tmsp.nxt-data        sys-time
   ::
   =/  fk-work
-        =/  source-key  [namespace.qualified-table.create-table name.qualified-table.create-table]
-        =/  out-tables  tables.nxt-schema
-        =/  out-files   files.nxt-data
-        =/  fks=(list foreign-key:ast)  foreign-keys.create-table
-        |-
-        ?~  fks  [out-tables out-files]
-        =/  fk=foreign-key:ast  i.fks
-        =/  dummy  (validate-create-fk source-key namespaces.nxt-schema out-tables out-files fk)
-        =/  parent-key=[@tas @tas]
-              [namespace.reference-table.fk name.reference-table.fk]
-        =/  child-table  (~(got by out-tables) source-key)
-        =/  child-file   (~(got by out-files) source-key)
-        =/  parent-file  (~(got by out-files) parent-key)
-        =/  registered
-              (register-fk fk child-table child-file parent-file sys-time)
-        %=  $
-          fks         t.fks
-          out-tables  (~(put by out-tables) source-key child.registered)
-          out-files   (~(put by out-files) parent-key parent.registered)
-        ==
+        %:  mk-foreign-key-work  :-  namespace.qualified-table.create-table 
+                                     name.qualified-table.create-table
+                                 nxt-schema
+                                 files.nxt-data
+                                 foreign-keys.create-table
+                                 sys-time
+                                 "CREATE"
+                                 ==
   =.  tables.nxt-schema  -.fk-work
   =.  files.nxt-data     +.fk-work
   ::
@@ -424,30 +400,19 @@
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(database.qualified-table.a %sys)
         ~|("cannot alter table in %sys database" !!)
-  =/  db  ~|  "ALTER TABLE: database ".
-              "{<database.qualified-table.a>} does not exist"
-              (~(got by state) database.qualified-table.a)
-  =/  sys-time  (set-tmsp as-of.a now.bowl)
-  =/  nxt-schema=schema
-        ~|  "ALTER TABLE: {<name.qualified-table.a>} as-of schema ".
-            "time out of order"
-            %:  get-next-schema  sys.db
-                                 next-schemas
-                                 sys-time
-                                 database.qualified-table.a
-                                 ==
-  =/  nxt-data=data
-        ~|  "ALTER TABLE: {<name.qualified-table.a>} as-of data ".
-            "time out of order"
-            %:  get-next-data  content.db
-                                next-data
-                                sys-time
-                                database.qualified-table.a
-                                ==
-  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.a)
-    ~|  "ALTER TABLE: namespace {<namespace.qualified-table.a>} ".
-        "does not exist"
-        !!
+  =/  work-state  %:  mk-work-state  bowl
+                                     state
+                                     qualified-table.a
+                                     next-schemas
+                                     next-data
+                                     as-of.a
+                                     "ALTER"
+                                     ==
+  =/  db=database        -.work-state
+  =/  sys-time=@da       +<.work-state
+  =/  nxt-schema=schema  +>-.work-state
+  =/  nxt-data=data      +>+.work-state
+  ::
   =/  src-key  [namespace.qualified-table.a name.qualified-table.a]
   =/  tbl=table
         ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
@@ -605,15 +570,18 @@
   =/  column-rename-work
         ?:  =(rename-columns.a ~)
           [tables.nxt-schema files.nxt-data]
-        %:  rewrite-column-rename-fks
-              src-key
-              target-key
-              old-outgoing-fks
-              foreign-constraints.final-file
-              rename-columns.a
-              tables.nxt-schema
-              files.nxt-data
-              ==
+        :-  %:  rewrite-reference-column-in-child-tables
+                  target-key
+                  foreign-constraints.final-file
+                  rename-columns.a
+                  tables.nxt-schema
+                  ==
+            %:  rewrite-source-column-in-parent-files  src-key
+                                                       target-key
+                                                       old-outgoing-fks
+                                                       rename-columns.a
+                                                       files.nxt-data
+                                                       ==
   =.  tables.nxt-schema  -.column-rename-work
   =.  files.nxt-data     +.column-rename-work
   =/  drop-work
@@ -627,33 +595,24 @@
           ~|("ALTER TABLE: foreign key to drop does not exist" !!)
         =/  child-table=table  (~(got by tables.nxt-schema) source-key)
         =/  parent-file=file   (~(got by files.nxt-data) parent-key)
-        =/  removed
-              (unregister-fk source-key -.drop parent-key child-table parent-file sys-time)
+        =/  removed  %:  unregister-fk  source-key
+                                        -.drop
+                                        parent-key
+                                        child-table
+                                        parent-file
+                                        sys-time
+                                        ==
         :-  (~(put by tables.nxt-schema) source-key child.removed)
             (~(put by files.nxt-data) parent-key parent.removed)
   =.  tables.nxt-schema  -.drop-work
   =.  files.nxt-data     +.drop-work
-  =/  fk-work
-        =/  source-key  target-key
-        =/  out-tables  tables.nxt-schema
-        =/  out-files   files.nxt-data
-        =/  fks=(list foreign-key:ast)  add-foreign-keys.a
-        |-
-        ?~  fks  [out-tables out-files]
-        =/  fk=foreign-key:ast  i.fks
-        =/  dummy  (validate-add-fk source-key namespaces.nxt-schema out-tables out-files fk)
-        =/  parent-key=[@tas @tas]
-              [namespace.reference-table.fk name.reference-table.fk]
-        =/  child-table  (~(got by out-tables) source-key)
-        =/  child-file   (~(got by out-files) source-key)
-        =/  parent-file  (~(got by out-files) parent-key)
-        =/  registered
-              (register-fk fk child-table child-file parent-file sys-time)
-        %=  $
-          fks         t.fks
-          out-tables  (~(put by out-tables) source-key child.registered)
-          out-files   (~(put by out-files) parent-key parent.registered)
-        ==
+  =/  fk-work  %:  mk-foreign-key-work  target-key
+                                        nxt-schema
+                                        files.nxt-data
+                                        add-foreign-keys.a
+                                        sys-time
+                                        "ALTER"
+                                        ==
   =.  tables.nxt-schema  -.fk-work
   =.  files.nxt-data     +.fk-work
   =.  ship.nxt-data        src.bowl
@@ -692,31 +651,18 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  =/  db  ~|  "DROP TABLE: database ".
-              "{<database.qualified-table.d>} does not exist"
-             (~(got by state) database.qualified-table.d)
-  =/  sys-time  (set-tmsp as-of.d now.bowl)
-  =/  nxt-schema=schema
-        ~|  "DROP TABLE: {<name.qualified-table.d>} ".
-            "as-of schema time out of order"
-          %:  get-next-schema  sys.db
-                              next-schemas
-                              sys-time
-                              database.qualified-table.d
-                              ==
-  =/  nxt-data=data
-        ~|  "DROP TABLE: {<name.qualified-table.d>} ".
-            "as-of data time out of order"
-          %:  get-next-data  content.db
-                              next-data
-                              sys-time
-                              database.qualified-table.d
-                              ==
-  ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.d)
-    ~|  "DROP TABLE: namespace ".
-        "{<namespace.qualified-table.d>} does not exist"
-        !!
+  =/  work-state  %:  mk-work-state  bowl
+                                     state
+                                     qualified-table.d
+                                     next-schemas
+                                     next-data
+                                     as-of.d
+                                     "DROP"
+                                     ==
+  =/  db=database        -.work-state
+  =/  sys-time=@da       +<.work-state
+  =/  nxt-schema=schema  +>-.work-state
+  =/  nxt-data=data      +>+.work-state
   ::
   =/  tbl-key=[@tas @tas]  [namespace.qualified-table.d name.qualified-table.d]
   =/  dropped-tbl=table
@@ -732,19 +678,22 @@
         tbl-key
   ?:  ?&((gth rowcount.dropped-file 0) =(force.d %.n))
     ~|("DROP TABLE: {<name.qualified-table.d>} has data, use FORCE to DROP" !!)
-  =/  dummy
-        ?.  force.d
-          (assert-drop-table-no-fks tbl-key dropped-tbl dropped-file)
-        ~
-  =/  cleaned=[(map [@tas @tas] table) (map [@tas @tas] file)]
+  ?:  ?&  !force.d
+          ?|  (gth ~(wyt by outbound-fk-index.dropped-tbl) 0)
+              !=(~ foreign-constraints.dropped-file)
+              ==
+          ==
+    ~|("DROP TABLE: {<+.tbl-key>} used in FOREIGN KEY, use FORCE to DROP" !!)
+  ::
+  =/  cleaned=[tables files]
         ?:  force.d
-          %:  remove-drop-table-fks
-                tbl-key
-                dropped-tbl
-                dropped-file
-                tables.nxt-schema
-                files.nxt-data
-                ==
+          :-  %^  remove-dropped-table-incoming-fks
+                    tbl-key
+                    foreign-constraints.dropped-file
+                    tables.nxt-schema
+              %^  remove-dropped-table-outgoing-fks  tbl-key
+                                                     dropped-tbl
+                                                     files.nxt-data
         [tables.nxt-schema files.nxt-data]
   =.  tables.nxt-schema      -.cleaned
   =.  files.nxt-data         +.cleaned
@@ -813,65 +762,73 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
 ::
-++  assert-drop-table-no-fks
-  |=  [tbl-key=[@tas @tas] dropped-tbl=table dropped-file=file]
-  ^-  ~
-  ?:  ?|  (fk-outbound-index-has-entries outbound-fk-index.dropped-tbl)
-          !=(~ foreign-constraints.dropped-file)
-      ==
-    ~|("DROP TABLE: {<+.tbl-key>} used in FOREIGN KEY, use FORCE to DROP" !!)
-  ~
-::
-++  fk-outbound-index-has-entries
-  |=  idx=outbound-fk-index
-  ^-  ?
-  (gth ~(wyt by idx) 0)
-::
-++  remove-drop-table-fks
-  |=  $:  tbl-key=[@tas @tas]
-          dropped-tbl=table
-          dropped-file=file
-          tbls=(map [@tas @tas] table)
-          fils=(map [@tas @tas] file)
+++  mk-foreign-key-work
+  |=  $:  child-key=[@tas @tas]
+          =schema
+          out-files=files
+          fks=(list foreign-key:ast)
+          sys-time=@da
+          action=tape
           ==
-  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
-  =/  clean-files=(map [@tas @tas] file)
-        (remove-dropped-table-outgoing-fks tbl-key dropped-tbl fils)
-  =/  clean-tables=(map [@tas @tas] table)
-        (remove-dropped-table-incoming-fks tbl-key foreign-constraints.dropped-file tbls)
-  [clean-tables clean-files]
+  ^-  [tables files]
+  =/  out-tables  tables.schema
+  |-
+  ?~  fks  [out-tables out-files]
+  =/  fk=foreign-key:ast  i.fks
+  =/  dummy  %:  validate-fk  child-key
+                              namespaces.schema
+                              out-tables
+                              out-files
+                              fk
+                              action
+                              ==
+  =/  parent-key=[@tas @tas]
+        [namespace.reference-table.fk name.reference-table.fk]
+  =/  child-table  (~(got by out-tables) child-key)
+  =/  child-file   (~(got by out-files) child-key)
+  =/  parent-file  (~(got by out-files) parent-key)
+  =/  registered   (register-fk fk child-table child-file parent-file sys-time)
+  %=  $
+    fks         t.fks
+    out-tables  (~(put by out-tables) child-key child.registered)
+    out-files   (~(put by out-files) parent-key parent.registered)
+  ==
 ::
 ++  remove-dropped-table-outgoing-fks
   |=  $:  tbl-key=[@tas @tas]
           dropped-tbl=table
-          fils=(map [@tas @tas] file)
+          fils=files
           ==
-  ^-  (map [@tas @tas] file)
+  ^-  files
   =/  fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.dropped-tbl)
-  =/  cur-files=(map [@tas @tas] file)  fils
+  =/  cur-files=files  fils
   |-
   ?~  fks  cur-files
   =/  parent-key=[@tas @tas]  reference-table.i.fks
   =/  parent-fil=file  (~(got by cur-files) parent-key)
   =.  foreign-constraints.parent-fil
-        (remove-incoming-fk foreign-constraints.parent-fil tbl-key constrained-columns.i.fks)
+        %^  remove-incoming-fk  foreign-constraints.parent-fil
+                                tbl-key
+                                constrained-columns.i.fks
   =.  cur-files  (~(put by cur-files) parent-key parent-fil)
   $(fks t.fks)
 ::
 ++  remove-dropped-table-incoming-fks
   |=  $:  tbl-key=[@tas @tas]
           constraints=(list foreign-constraint)
-          tbls=(map [@tas @tas] table)
+          tbls=tables
           ==
-  ^-  (map [@tas @tas] table)
-  =/  cur-tables=(map [@tas @tas] table)  tbls
+  ^-  tables
+  =/  cur-tables  tbls
   |-
   ?~  constraints  cur-tables
   =/  child-key=[@tas @tas]  constrained-table.i.constraints
   =/  child-tbl=table  (~(got by cur-tables) child-key)
   =.  outbound-fk-index.child-tbl
-        (remove-outbound-fk outbound-fk-index.child-tbl constrained-columns.i.constraints tbl-key)
+        %^  remove-outbound-fk  outbound-fk-index.child-tbl
+                                constrained-columns.i.constraints
+                                tbl-key
   =.  cur-tables  (~(put by cur-tables) child-key child-tbl)
   $(constraints t.constraints)
 ::
@@ -911,27 +868,31 @@
   |=  $:  old-key=[@tas @tas]
           new-key=[@tas @tas]
           renamed-tbl=table
-          tbls=(map [@tas @tas] table)
-          fils=(map [@tas @tas] file)
+          tbls=tables
+          fils=files
           ==
-  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
+  ^-  [tables files]
   =/  outgoing=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.renamed-tbl)
-  =/  clean-files=(map [@tas @tas] file)
-        (rewrite-renamed-child-in-parent-files old-key new-key outgoing fils)
+  =/  clean-files=files
+        (rewrite-child-in-parent-files old-key new-key outgoing fils)
   =/  parent-file=file  (~(got by clean-files) new-key)
-  =/  clean-tables=(map [@tas @tas] table)
-        (rewrite-renamed-parent-in-child-tables old-key new-key foreign-constraints.parent-file tbls)
+  =/  clean-tables=tables
+        %:  rewrite-parent-in-child-tables  old-key
+                                            new-key
+                                            foreign-constraints.parent-file
+                                            tbls
+                                            ==
   [clean-tables clean-files]
 ::
-++  rewrite-renamed-child-in-parent-files
+++  rewrite-child-in-parent-files
   |=  $:  old-key=[@tas @tas]
           new-key=[@tas @tas]
           fks=(list outbound-fk-entry)
-          fils=(map [@tas @tas] file)
+          fils=files
           ==
-  ^-  (map [@tas @tas] file)
-  =/  cur-files=(map [@tas @tas] file)  fils
+  ^-  files
+  =/  cur-files=files  fils
   |-
   ?~  fks  cur-files
   =/  parent-key=[@tas @tas]
@@ -949,14 +910,14 @@
   =.  cur-files  (~(put by cur-files) parent-key parent-fil)
   $(fks t.fks)
 ::
-++  rewrite-renamed-parent-in-child-tables
+++  rewrite-parent-in-child-tables
   |=  $:  old-key=[@tas @tas]
           new-key=[@tas @tas]
           constraints=(list foreign-constraint)
-          tbls=(map [@tas @tas] table)
+          tbls=tables
           ==
-  ^-  (map [@tas @tas] table)
-  =/  cur-tables=(map [@tas @tas] table)  tbls
+  ^-  tables
+  =/  cur-tables  tbls
   |-
   ?~  constraints  cur-tables
   =/  child-key=[@tas @tas]  constrained-table.i.constraints
@@ -1040,21 +1001,16 @@
           alter-cols=(list column:ast)
           ==
   ^-  ~
-  =/  cols=(list @tas)  (weld drop-cols (turn alter-cols |=(c=column:ast name.c)))
+  =/  cols  (weld drop-cols (turn alter-cols |=(c=column:ast name.c)))
   |-
   ?~  cols  ~
-  ?:  (fk-column-protected tbl fil i.cols)
+  ?:  ?|  (~(has by outbound-fk-index.tbl) i.cols)
+          ?&  !=(~ foreign-constraints.fil)
+              (name-in-list i.cols (key-names key.pri-indx.tbl))
+              ==
+          ==
     ~|("ALTER TABLE: column {<i.cols>} is referenced by FOREIGN KEY" !!)
   $(cols t.cols)
-::
-++  fk-column-protected
-  |=  [tbl=table fil=file col=@tas]
-  ^-  ?
-  ?|  (~(has by outbound-fk-index.tbl) col)
-      ?&  !=(~ foreign-constraints.fil)
-          (name-in-list col (key-names key.pri-indx.tbl))
-          ==
-      ==
 ::
 ++  name-in-list
   |=  [needle=@tas names=(list @tas)]
@@ -1076,48 +1032,21 @@
   |-
   ?~  fks  out
   =/  entry=outbound-fk-entry
-        i.fks(constrained-columns (rename-names constrained-columns.i.fks renames))
+    i.fks(constrained-columns (rename-names constrained-columns.i.fks renames))
   %=  $
     fks  t.fks
     out  (add-outbound-fk out constrained-columns.entry entry)
   ==
-::
-++  rewrite-column-rename-fks
-  |=  $:  old-key=[@tas @tas]
-          new-key=[@tas @tas]
-          old-outgoing=(list outbound-fk-entry)
-          incoming=(list foreign-constraint)
-          renames=(list [@tas @tas])
-          tbls=(map [@tas @tas] table)
-          fils=(map [@tas @tas] file)
-          ==
-  ^-  [(map [@tas @tas] table) (map [@tas @tas] file)]
-  =/  clean-files=(map [@tas @tas] file)
-        %:  rewrite-source-column-in-parent-files
-              old-key
-              new-key
-              old-outgoing
-              renames
-              fils
-              ==
-  =/  clean-tables=(map [@tas @tas] table)
-        %:  rewrite-reference-column-in-child-tables
-              new-key
-              incoming
-              renames
-              tbls
-              ==
-  [clean-tables clean-files]
 ::
 ++  rewrite-source-column-in-parent-files
   |=  $:  old-key=[@tas @tas]
           new-key=[@tas @tas]
           old-outgoing=(list outbound-fk-entry)
           renames=(list [@tas @tas])
-          fils=(map [@tas @tas] file)
+          fils=files
           ==
-  ^-  (map [@tas @tas] file)
-  =/  cur-files=(map [@tas @tas] file)  fils
+  ^-  files
+  =/  cur-files=files  fils
   |-
   ?~  old-outgoing  cur-files
   =/  parent-key=[@tas @tas]
@@ -1139,10 +1068,10 @@
   |=  $:  parent-key=[@tas @tas]
           incoming=(list foreign-constraint)
           renames=(list [@tas @tas])
-          tbls=(map [@tas @tas] table)
+          tbls=tables
           ==
-  ^-  (map [@tas @tas] table)
-  =/  cur-tables=(map [@tas @tas] table)  tbls
+  ^-  tables
+  =/  cur-tables  tbls
   |-
   ?~  incoming  cur-tables
   =/  child-key=[@tas @tas]  constrained-table.i.incoming
@@ -1224,35 +1153,38 @@
     out      [entry out]
   ==
 ::
-++  validate-create-fk
+++  validate-fk
   |=  $:  source-key=[@tas @tas]
           =namespaces
-          tbls=(map [@tas @tas] table)
-          fils=(map [@tas @tas] file)
+          =tables
+          =files
           fk=foreign-key:ast
+          action=tape
           ==
   ^-  ~
   ?:  !=(database.qualified-table.fk database.reference-table.fk)
-    ~|("CREATE TABLE: foreign key references another database" !!)
+    ~|((weld action " TABLE: foreign key references another database") !!)
   ?.  (~(has by namespaces) namespace.reference-table.fk)
-    ~|  "CREATE TABLE: namespace {<namespace.reference-table.fk>} ".
-        "referenced by FOREIGN KEY does not exist"
-        !!
-  =/  child-table=table  (~(got by tbls) source-key)
+    =/  msg  " TABLE: namespace {<namespace.reference-table.fk>} referenced ".
+             "by FOREIGN KEY does not exist"
+    ~|((weld action msg) !!)
+  =/  child-table=table  (~(got by tables) source-key)
   =/  parent-key=[@tas @tas]
         [namespace.reference-table.fk name.reference-table.fk]
-  ?.  (~(has by tbls) parent-key)
-    ~|  "CREATE TABLE: table {<name.reference-table.fk>} referenced by ".
-        "FOREIGN KEY does not exist"
-        !!
-  =/  parent-table=table  (~(got by tbls) parent-key)
-  =/  parent-file=file    (~(got by fils) parent-key)
+  ?.  (~(has by tables) parent-key)
+    =/  msg  " TABLE: table {<name.reference-table.fk>} referenced by ".
+             "FOREIGN KEY does not exist"
+    ~|((weld action msg) !!)
+  =/  parent-table=table  (~(got by tables) parent-key)
+  =/  parent-file=file    (~(got by files) parent-key)
   =/  dummy  (assert-fk-source-cols column-lookup.child-table columns.fk)
   =/  dummy
         (assert-fk-reference-cols column-lookup.parent-table reference-columns.fk)
   =/  parent-pk=(list @tas)  (key-names key.pri-indx.parent-table)
   ?.  =(reference-columns.fk parent-pk)
-    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+    =/  msg  " TABLE: foreign key reference columns do not match referenced ".
+             "PRIMARY KEY"
+    ~|((weld action msg) !!)
   =/  dummy
         %:  assert-fk-aura-match
               column-lookup.child-table
@@ -1260,8 +1192,10 @@
               columns.fk
               reference-columns.fk
               ==
-  ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
-    ~|("CREATE TABLE: foreign key already exists" !!)
+  ?:  %^  fk-canonical-exists  foreign-constraints.parent-file
+                               source-key
+                               columns.fk
+    ~|((weld action " TABLE: foreign key already exists") !!)
   =/  candidate=fk-graph-edge
         %:  make-fk-graph-edge
               source-key
@@ -1269,61 +1203,15 @@
               referential-integrity.fk
               ==
   =/  graph=(list fk-graph-edge)
-        (fk-graph-with-candidate fils candidate)
+        (fk-graph-with-candidate files candidate)
   ?:  (fk-graph-candidate-has-cascading-cycle graph candidate)
-    ~|("CREATE TABLE: cascading foreign-key cycle not allowed" !!)
-  ~
-::
-++  validate-add-fk
-  |=  $:  source-key=[@tas @tas]
-          =namespaces
-          tbls=(map [@tas @tas] table)
-          fils=(map [@tas @tas] file)
-          fk=foreign-key:ast
-          ==
-  ^-  ~
-  ?:  !=(database.qualified-table.fk database.reference-table.fk)
-    ~|("ALTER TABLE: foreign key references another database" !!)
-  ?.  (~(has by namespaces) namespace.reference-table.fk)
-    ~|  "ALTER TABLE: namespace {<namespace.reference-table.fk>} ".
-        "referenced by FOREIGN KEY does not exist"
-        !!
-  =/  child-table=table  (~(got by tbls) source-key)
-  =/  child-file=file    (~(got by fils) source-key)
-  =/  parent-key=[@tas @tas]
-        [namespace.reference-table.fk name.reference-table.fk]
-  ?.  (~(has by tbls) parent-key)
-    ~|  "ALTER TABLE: table {<name.reference-table.fk>} referenced by ".
-        "FOREIGN KEY does not exist"
-        !!
-  =/  parent-table=table  (~(got by tbls) parent-key)
-  =/  parent-file=file    (~(got by fils) parent-key)
-  =/  dummy  (assert-fk-source-cols column-lookup.child-table columns.fk)
-  =/  dummy
-        (assert-fk-reference-cols column-lookup.parent-table reference-columns.fk)
-  =/  parent-pk=(list @tas)  (key-names key.pri-indx.parent-table)
-  ?.  =(reference-columns.fk parent-pk)
-    ~|("ALTER TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
-  =/  dummy
-        %:  assert-fk-aura-match
-              column-lookup.child-table
-              column-lookup.parent-table
-              columns.fk
-              reference-columns.fk
-              ==
-  ?:  (fk-canonical-exists foreign-constraints.parent-file source-key columns.fk)
-    ~|("ALTER TABLE: foreign key already exists" !!)
-  =/  candidate=fk-graph-edge
-        %:  make-fk-graph-edge
-              source-key
-              parent-key
-              referential-integrity.fk
-              ==
-  =/  graph=(list fk-graph-edge)
-        (fk-graph-with-candidate fils candidate)
-  ?:  (fk-graph-candidate-has-cascading-cycle graph candidate)
-    ~|("ALTER TABLE: cascading foreign-key cycle not allowed" !!)
-  (assert-fk-existing-rows child-file parent-table parent-file columns.fk)
+    ~|((weld action " TABLE: cascading foreign-key cycle not allowed") !!)
+  ?:  =('CREATE' action)  ~
+  %:  assert-fk-existing-rows  (~(got by files) source-key)
+                               parent-table
+                               parent-file
+                               columns.fk
+                               ==
 ::
 ++  register-fk
   |=  $:  fk=foreign-key:ast
@@ -1369,13 +1257,19 @@
           unregistered-time=@da
           ==
   ^-  [child=table parent=file]
-  ?.  (fk-canonical-exists foreign-constraints.parent-file child-key source-cols)
+  ?.  %^  fk-canonical-exists  foreign-constraints.parent-file
+                               child-key
+                               source-cols
     ~|("ALTER TABLE: foreign key to drop does not exist" !!)
   =.  foreign-constraints.parent-file
-        (remove-incoming-fk foreign-constraints.parent-file child-key source-cols)
+        %^  remove-incoming-fk  foreign-constraints.parent-file
+                                child-key
+                                source-cols
   =.  tmsp.parent-file  unregistered-time
   =.  outbound-fk-index.child-table
-        (remove-outbound-fk outbound-fk-index.child-table source-cols parent-key)
+        %^  remove-outbound-fk  outbound-fk-index.child-table
+                                source-cols
+                                parent-key
   [child-table parent-file]
 ::
 ++  fk-constraints
@@ -1403,7 +1297,7 @@
         (~(get by idx) i.source-cols)
   %=  $
     source-cols  t.source-cols
-    idx          (~(put by idx) i.source-cols ?~(current ~[entry] [entry u.current]))
+    idx     (~(put by idx) i.source-cols ?~(current ~[entry] [entry u.current]))
   ==
 ::
 ++  remove-incoming-fk
@@ -1509,10 +1403,15 @@
   ^-  ~
   ?~  source-cols
     ?~  reference-cols  ~
-    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
+    ~|  "CREATE TABLE: foreign key reference columns do not match ".
+        "referenced PRIMARY KEY"
+        !!
   ?~  reference-cols
-    ~|("CREATE TABLE: foreign key reference columns do not match referenced PRIMARY KEY" !!)
-  ?.  =(-:(~(got by child-lookup) i.source-cols) -:(~(got by parent-lookup) i.reference-cols))
+    ~|  "CREATE TABLE: foreign key reference columns do not match ".
+        "referenced PRIMARY KEY"
+        !!
+  ?.  .=  -:(~(got by child-lookup) i.source-cols)
+          -:(~(got by parent-lookup) i.reference-cols)
     ~|  "CREATE TABLE: aura mis-match in FOREIGN KEY ".
         "{<i.source-cols>} {<i.reference-cols>}"
         !!
@@ -1817,8 +1716,10 @@
   =.  clauses  ?:  !=(drop-columns.a ~)    ['DROP COLUMN' clauses]    clauses
   =.  clauses  ?:  !=(rename-columns.a ~)  ['RENAME COLUMN' clauses]  clauses
   =.  clauses  ?:  !=(alter-columns.a ~)   ['ALTER COLUMN' clauses]   clauses
-  =.  clauses  ?:  !=(add-foreign-keys.a ~)  ['ADD FOREIGN KEY' clauses]  clauses
-  =.  clauses  ?:  ?=(^ drop-foreign-keys.a)  ['DROP FOREIGN KEY' clauses]  clauses
+  =.  clauses  ?:  !=(add-foreign-keys.a ~)  ['ADD FOREIGN KEY' clauses]
+               clauses
+  =.  clauses  ?:  ?=(^ drop-foreign-keys.a)  ['DROP FOREIGN KEY' clauses]
+               clauses
   ?~  clauses  ~
   [~ (join-text (flop clauses) '; ')]
 ::

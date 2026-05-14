@@ -226,7 +226,7 @@
           provenance=`path`/test-agent
           tmsp=sys-time2
           namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
-          tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
+          tables=`tables`[one-col-tbl ~ ~]
           views=(ns-sys-views %db1 sys-time1)
       ==
 :: ~> tbl ~> drop
@@ -446,7 +446,7 @@
           ~zod
           provenance=`path`/test-agent
           tmsp=~2000.1.3
-          ;;((map [@tas @tas] file) file-4)
+          ;;(files file-4)
           ==
 ++  content-1c
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 file-5]]
@@ -516,7 +516,7 @@
           ~
       ==
 ++  file-4
-  ^-  (map [@tas @tas] file)
+  ^-  files
   :+  :-  [%dbo %my-table]
           :*  %file
               ship=~zod
@@ -548,7 +548,7 @@
       l=~
       r=~
 ++  file-insert
-  ^-  (map [@tas @tas] file)
+  ^-  files
   :+  :-  p=[%dbo %my-table]
           :*  %file
               ship=~zod

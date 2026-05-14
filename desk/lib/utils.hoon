@@ -35,23 +35,6 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-+$  constrained-value-edit
-  $%  [%add parent-key=(list @) child-pk=(list @)]
-      [%remove parent-key=(list @) child-pk=(list @)]
-      [%move old-parent-key=(list @) new-parent-key=(list @) old-child-pk=(list @) new-child-pk=(list @)]
-      ==
-+$  constrained-value-row-tuples
-  $:  old-parent-key=(list @)
-      new-parent-key=(list @)
-      old-child-pk=(list @)
-      new-child-pk=(list @)
-      ==
-+$  fk-graph-edge
-  $:  child-key=[@tas @tas]
-      parent-key=[@tas @tas]
-      actions=constraints
-      ==
-::
 ++  reduce-key
   |=  key=(list key-column)
   ^-  (list [@ta ?])
@@ -732,6 +715,47 @@
       tmsp.f
       ==
 ::
+++  mk-work-state
+  |=  $:  =bowl:gall
+          state=server
+          =qualified-table:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          as-of=(unit as-of:ast)
+          action=tape
+          ==
+  ^-  [=database @da =schema =data]
+  =/  db  ~|  %+  weld  action
+                        " TABLE: database {<database.qualified-table>} ".
+                        "does not exist"
+             (~(got by state) database.qualified-table)
+  =/  sys-time  (set-tmsp as-of now.bowl)
+  =/  nxt-schema=schema
+        ~|  %+  weld  action
+                      " TABLE: {<name.qualified-table>} as-of schema time ".
+                      "out of order"
+            %:  get-next-schema  sys.db
+                                next-schemas
+                                sys-time
+                                database.qualified-table
+                                ==
+  =/  nxt-data=data
+        ~|  %+  weld  action
+                      " TABLE: {<name.qualified-table>} as-of data time ".
+                      "out of order"
+            %:  get-next-data  content.db
+                                next-data
+                                sys-time
+                                database.qualified-table
+                                ==
+  ::
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table)
+    ~|  %+  weld  action
+                  " TABLE: namespace {<namespace.qualified-table>} ".
+                  "does not exist"
+        !!
+  [db sys-time nxt-schema nxt-data]
+::
 ++  content-key  ((on @da data) gth)
 ::
 ++  get-content
@@ -767,25 +791,24 @@
       ==
 ::
 ++  fk-graph-with-candidate
-  |=  [fils=(map [@tas @tas] file) candidate=fk-graph-edge]
+  |=  [=files candidate=fk-graph-edge]
   ^-  (list fk-graph-edge)
-  [candidate (fk-graph-from-files fils)]
+  [candidate (fk-graph-from-files files)]
 ::
 ++  fk-graph-from-files
-  |=  fils=(map [@tas @tas] file)
+  |=  =files
   ^-  (list fk-graph-edge)
-  =/  pairs=(list [[@tas @tas] file])  ~(tap by fils)
+  =/  pairs=(list [[@tas @tas] file])  ~(tap by files)
   =/  edges=(list fk-graph-edge)  ~
   |-
   ?~  pairs  (flop edges)
   =/  parent-key=[@tas @tas]  -.i.pairs
   =/  parent-file=file        +.i.pairs
-  =.  edges
-        %:  fk-graph-edges-from-parent
-              parent-key
-              foreign-constraints.parent-file
-              edges
-              ==
+  =.  edges  %:  fk-graph-edges-from-parent
+                 parent-key
+                 foreign-constraints.parent-file
+                 edges
+                 ==
   $(pairs t.pairs)
 ::
 ++  fk-graph-edges-from-parent
@@ -797,33 +820,30 @@
   |-
   ?~  constraints  edges
   =/  incoming=foreign-constraint  i.constraints
-  =/  edge=fk-graph-edge
-        :*  constrained-table.incoming
-            parent-key
-            actions.incoming
-            ==
+  =/  edge=fk-graph-edge  :*  constrained-table.incoming
+                              parent-key
+                              actions.incoming
+                              ==
   $(constraints t.constraints, edges [edge edges])
 ::
 ++  fk-graph-candidate-has-cycle
   |=  [graph=(list fk-graph-edge) candidate=fk-graph-edge]
   ^-  ?
-  %:  fk-graph-path-has-cycle
-        graph
-        parent-key.candidate
-        child-key.candidate
-        ~
-        ==
+  %:  fk-graph-path-has-cycle  graph
+                               parent-key.candidate
+                               child-key.candidate
+                               ~
+                               ==
 ::
 ++  fk-graph-candidate-has-cascading-cycle
   |=  [graph=(list fk-graph-edge) candidate=fk-graph-edge]
   ^-  ?
-  %:  fk-graph-path-has-cascading-cycle
-        graph
-        parent-key.candidate
-        child-key.candidate
-        ~
-        (fk-edge-cascading candidate)
-        ==
+  %:  fk-graph-path-has-cascading-cycle  graph
+                                         parent-key.candidate
+                                         child-key.candidate
+                                         ~
+                                         (fk-edge-cascading candidate)
+                                         ==
 ::
 ++  fk-graph-path-has-cycle
   |=  $:  graph=(list fk-graph-edge)
@@ -837,12 +857,11 @@
   =/  edges=(list fk-graph-edge)  (fk-graph-outgoing-edges graph current)
   |-
   ?~  edges  %.n
-  ?:  %:  fk-graph-path-has-cycle
-          graph
-          parent-key.i.edges
-          target
-          [current visited]
-          ==
+  ?:  %:  fk-graph-path-has-cycle  graph
+                                   parent-key.i.edges
+                                   target
+                                   [current visited]
+                                   ==
     %.y
   $(edges t.edges)
 ::
@@ -860,13 +879,13 @@
   |-
   ?~  edges  %.n
   =/  edge=fk-graph-edge  i.edges
-  ?:  %:  fk-graph-path-has-cascading-cycle
-          graph
-          parent-key.edge
-          target
-          [current visited]
-          ?|(cascading (fk-edge-cascading edge))
-          ==
+    ?:  %:  fk-graph-path-has-cascading-cycle
+              graph
+              parent-key.edge
+              target
+              [current visited]
+              ?|(cascading (fk-edge-cascading edge))
+              ==
     %.y
   $(edges t.edges)
 ::
@@ -966,7 +985,9 @@
           ==
   ^-  foreign-constraint
   =/  removed=foreign-constraint
-        (remove-constrained-value-reference incoming old-parent-key old-child-pk)
+        %^  remove-constrained-value-reference  incoming
+                                                old-parent-key
+                                                old-child-pk
   (add-constrained-value-reference removed new-parent-key new-child-pk)
 ::
 ++  apply-constrained-value-edit
@@ -976,7 +997,9 @@
     %add
       (add-constrained-value-reference incoming parent-key.edit child-pk.edit)
     %remove
-      (remove-constrained-value-reference incoming parent-key.edit child-pk.edit)
+      %^  remove-constrained-value-reference  incoming
+                                              parent-key.edit
+                                              child-pk.edit
     %move
       %:  move-constrained-value-reference
             incoming
@@ -1019,7 +1042,9 @@
           ==
   ^-  file
   =/  incoming=foreign-constraint
-        (find-canonical-incoming-fk foreign-constraints.parent-file child-key source-cols)
+        %^  find-canonical-incoming-fk  foreign-constraints.parent-file
+                                        child-key
+                                        source-cols
   =/  edited=foreign-constraint
         (apply-constrained-value-edit incoming edit)
   =.  foreign-constraints.parent-file
@@ -1054,7 +1079,8 @@
           fk=outbound-fk-entry
           ==
   ^-  [parent-key=(list @) child-pk=(list @)]
-  [(row-column-values row constrained-columns.fk) (row-key-values row child-key-cols)]
+  :-  (row-column-values row constrained-columns.fk)
+      (row-key-values row child-key-cols)
 ::
 ++  outbound-fk-row-move-tuples
   |=  $:  old-row=(map @tas @)

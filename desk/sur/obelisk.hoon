@@ -183,4 +183,26 @@
       changed-data=(map @tas @da)
       state=server
       ==
+::
++$  constrained-value-edit
+  $%  [%add parent-key=(list @) child-pk=(list @)]
+      [%remove parent-key=(list @) child-pk=(list @)]
+      $:  %move
+          old-parent-key=(list @)
+          new-parent-key=(list @)
+          old-child-pk=(list @)
+          new-child-pk=(list @)
+          ==
+      ==
++$  constrained-value-row-tuples
+  $:  old-parent-key=(list @)
+      new-parent-key=(list @)
+      old-child-pk=(list @)
+      new-child-pk=(list @)
+      ==
++$  fk-graph-edge
+  $:  child-key=[@tas @tas]
+      parent-key=[@tas @tas]
+      actions=constraints
+      ==
 --

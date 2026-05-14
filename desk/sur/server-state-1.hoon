@@ -69,7 +69,7 @@
     ship=@p
     provenance=path
     tmsp=@da
-    files=(map [@tas @tas] file)
+    =files
     ==
 ::  Foreign-key metadata invariant
 ::
@@ -141,7 +141,7 @@
     ::    map @tas  := column of this table
     ::        list  :+  [@tas @tas]  := reference namespace table
     ::                  (list @tas)  := key column names in this table
-    ::                  (list @tas)  := primary key column name in reference table
+    ::                  (list @tas)  := reference table primary key column names
     outbound-fk-index=outbound-fk-index
     ==
 +$  key-constraint  ?(%cascade %restrict %set-default)
@@ -170,9 +170,8 @@
     ::              (list @tas)    := constrained table's primary key columns
     ::              (list @tas)    := constrained table's constrained columns
     ::              map (list @)   := constrained values
-    ::                  (set (list @))   := constrained table's key values thus constrained
+    ::                  (set (list @))   := table's key values thus constrained
     foreign-constraints=(list foreign-constraint)
-    ::    =indices
     ==
 +$  outbound-fk-entry
   $:  reference-table=[@tas @tas]
@@ -202,8 +201,9 @@
       time=@da
       ==
 +$  namespaces  (map @tas @da)
-+$  tables  (map [@tas @tas] table)
-+$  views  ((mop ns-rel-key view) ns-rel-comp)
++$  tables      (map [@tas @tas] table)
++$  files       (map [@tas @tas] file)
++$  views       ((mop ns-rel-key view) ns-rel-comp)
 +$  view
   $+  view
   $:  %view
