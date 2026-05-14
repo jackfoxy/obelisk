@@ -23,12 +23,42 @@
   "PRIMARY KEY (id) ".
   "FOREIGN KEY (parent-id) REFERENCES parent (id) ".
   "ON DELETE SET DEFAULT ON UPDATE SET DEFAULT; "
+++  create-composite-parent
+  "CREATE TABLE parent ".
+  "(tenant-id @ud, code @ud, label @t) ".
+  "PRIMARY KEY (tenant-id, code); "
+++  create-composite-child
+  "CREATE TABLE child ".
+  "(id @ud, parent-tenant @ud, parent-code @ud, note @t) ".
+  "PRIMARY KEY (id) ".
+  "FOREIGN KEY (parent-tenant, parent-code) ".
+  "REFERENCES parent (tenant-id, code); "
+++  create-composite-child-cascade
+  "CREATE TABLE child ".
+  "(id @ud, parent-tenant @ud, parent-code @ud, note @t) ".
+  "PRIMARY KEY (id) ".
+  "FOREIGN KEY (parent-tenant, parent-code) ".
+  "REFERENCES parent (tenant-id, code) ".
+  "ON DELETE CASCADE ON UPDATE CASCADE; "
+++  create-composite-child-set-default
+  "CREATE TABLE child ".
+  "(id @ud, parent-tenant @ud, parent-code @ud, note @t) ".
+  "PRIMARY KEY (id) ".
+  "FOREIGN KEY (parent-tenant, parent-code) ".
+  "REFERENCES parent (tenant-id, code) ".
+  "ON DELETE SET DEFAULT ON UPDATE SET DEFAULT; "
 ++  insert-parents
   "INSERT INTO parent (id, label) ".
   "VALUES (0, 'bunt') (1, 'one') (2, 'two'); "
 ++  insert-children
   "INSERT INTO child (id, parent-id, note) ".
   "VALUES (10, 1, 'alpha') (11, 2, 'bravo'); "
+++  insert-composite-parents
+  "INSERT INTO parent (tenant-id, code, label) ".
+  "VALUES (0, 0, 'bunt') (1, 7, 'one-seven') (2, 8, 'two-eight'); "
+++  insert-composite-child-10
+  "INSERT INTO child (id, parent-tenant, parent-code, note) ".
+  "VALUES (10, 1, 7, 'alpha'); "
 ++  child-10-11
   :~  :-  %vector
           :~  [%id [~.ud 10]]
@@ -53,6 +83,51 @@
           :~  [%id [~.ud 10]]
               [%parent-tenant [~.ud 3]]
               [%parent-code [~.ud 9]]
+              [%note [~.t 'alpha']]
+              ==
+      ==
+++  composite-parent-0-1-2
+  :~  :-  %vector
+          :~  [%tenant-id [~.ud 0]]
+              [%code [~.ud 0]]
+              [%label [~.t 'bunt']]
+              ==
+      :-  %vector
+          :~  [%tenant-id [~.ud 1]]
+              [%code [~.ud 7]]
+              [%label [~.t 'one-seven']]
+              ==
+      :-  %vector
+          :~  [%tenant-id [~.ud 2]]
+              [%code [~.ud 8]]
+              [%label [~.t 'two-eight']]
+              ==
+      ==
+++  composite-parent-0-2
+  :~  :-  %vector
+          :~  [%tenant-id [~.ud 0]]
+              [%code [~.ud 0]]
+              [%label [~.t 'bunt']]
+              ==
+      :-  %vector
+          :~  [%tenant-id [~.ud 2]]
+              [%code [~.ud 8]]
+              [%label [~.t 'two-eight']]
+              ==
+      ==
+++  composite-child-10
+  :~  :-  %vector
+          :~  [%id [~.ud 10]]
+              [%parent-tenant [~.ud 1]]
+              [%parent-code [~.ud 7]]
+              [%note [~.t 'alpha']]
+              ==
+      ==
+++  composite-child-10-parent-0
+  :~  :-  %vector
+          :~  [%id [~.ud 10]]
+              [%parent-tenant [~.ud 0]]
+              [%parent-code [~.ud 0]]
               [%note [~.t 'alpha']]
               ==
       ==
@@ -1266,6 +1341,1168 @@
               ==
       ==
 ::
+::  self-referential ALTER ADD FOREIGN KEY seeds existing same-file rows
+++  test-foreign-key-33
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2035.1.2 %db1 "INSERT INTO node (id, parent-id) VALUES (0, 0) (1, 0) (2, 1); "]
+      ::
+      :+  ~2035.1.3
+          %db1
+          "ALTER TABLE node ADD FOREIGN KEY ".
+          "(parent-id) REFERENCES node (id); "
+      ::
+      [~2035.1.4 %db1 "UPDATE node SET id = 3 WHERE id = 2; "]
+      ::
+      [~2035.1.5 %db1 "FROM node WHERE id = 3 SELECT id, parent-id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%parent-id [~.ud 1]]
+                              ==
+                      ==
+              [%server-time ~2035.1.5]
+              [%relation 'db1.dbo.node']
+              [%schema-time ~2035.1.3]
+              [%data-time ~2035.1.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  self-referential FK-column UPDATE moves references off the old parent
+++  test-foreign-key-34
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        ==
+      ::
+      [~2035.2.2 %db1 "INSERT INTO node (id, parent-id) VALUES (0, 0) (1, 0) (2, 1); "]
+      ::
+      [~2035.2.3 %db1 "UPDATE node SET parent-id = 0 WHERE id = 2; "]
+      ::
+      [~2035.2.4 %db1 "DELETE FROM node WHERE id = 1; "]
+      ::
+      [~2035.2.5 %db1 "FROM node WHERE id = 1 SELECT id, parent-id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2035.2.5]
+              [%relation 'db1.dbo.node']
+              [%schema-time ~2035.2.1]
+              [%data-time ~2035.2.4]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  self-referential child PK UPDATE moves references to the new child key
+++  test-foreign-key-35
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2035.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        ==
+      ::
+      [~2035.3.2 %db1 "INSERT INTO node (id, parent-id) VALUES (0, 0) (1, 0) (2, 1); "]
+      ::
+      [~2035.3.3 %db1 "UPDATE node SET id = 3 WHERE id = 2; "]
+      ::
+      [~2035.3.4 %db1 "DELETE FROM node WHERE id = 3; "]
+      ::
+      [~2035.3.5 %db1 "DELETE FROM node WHERE id = 1; "]
+      ::
+      [~2035.3.6 %db1 "FROM node WHERE id = 1 SELECT id, parent-id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2035.3.6]
+              [%relation 'db1.dbo.node']
+              [%schema-time ~2035.3.1]
+              [%data-time ~2035.3.5]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  composite child INSERT advances referenced parent data time
+++  test-foreign-key-36
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      :+  ~2035.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.6.2 %db1 insert-composite-parents]
+      ::
+      [~2035.6.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.6.4 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2035.6.4]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.6.1]
+              [%data-time ~2035.6.3]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  composite child FK-column UPDATE advances referenced parent data time
+++  test-foreign-key-37
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.7.2 %db1 insert-composite-parents]
+      ::
+      [~2035.7.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.7.4 %db1 "UPDATE child SET parent-tenant = 2, parent-code = 8 WHERE id = 10; "]
+      ::
+      [~2035.7.5 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2035.7.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.7.1]
+              [%data-time ~2035.7.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  composite child FK-column UPDATE moves constrained-values off the old parent
+++  test-foreign-key-38
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2035.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.8.2 %db1 insert-composite-parents]
+      ::
+      [~2035.8.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.8.4 %db1 "UPDATE child SET parent-tenant = 2, parent-code = 8 WHERE id = 10; "]
+      ::
+      [~2035.8.5 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      [~2035.8.6 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-2]
+              [%server-time ~2035.8.6]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.8.1]
+              [%data-time ~2035.8.5]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  composite child primary-key UPDATE advances referenced parent data time
+++  test-foreign-key-39
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.9.2 %db1 insert-composite-parents]
+      ::
+      [~2035.9.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.9.4 %db1 "UPDATE child SET id = 20 WHERE id = 10; "]
+      ::
+      [~2035.9.5 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2035.9.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.9.1]
+              [%data-time ~2035.9.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  composite child primary-key UPDATE moves references to the new child key
+++  test-foreign-key-40
+  =|  run=@ud
+  %-  exec-5-1
+  :*  run
+      :+  ~2035.10.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.10.2 %db1 insert-composite-parents]
+      ::
+      [~2035.10.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.10.4 %db1 "UPDATE child SET id = 20 WHERE id = 10; "]
+      ::
+      [~2035.10.5 %db1 "DELETE FROM child WHERE id = 20; "]
+      ::
+      [~2035.10.6 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      [~2035.10.7 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-2]
+              [%server-time ~2035.10.7]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.10.1]
+              [%data-time ~2035.10.6]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  composite child DELETE advances referenced parent data time
+++  test-foreign-key-41
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.11.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.11.2 %db1 insert-composite-parents]
+      ::
+      [~2035.11.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.11.4 %db1 "DELETE FROM child WHERE id = 10; "]
+      ::
+      [~2035.11.5 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2035.11.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.11.1]
+              [%data-time ~2035.11.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  composite TRUNCATE child clears outbound references and advances parent data time
+++  test-foreign-key-42
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2035.12.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2035.12.2 %db1 insert-composite-parents]
+      ::
+      [~2035.12.3 %db1 insert-composite-child-10]
+      ::
+      [~2035.12.4 %db1 "TRUNCATE TABLE child; "]
+      ::
+      [~2035.12.5 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2035.12.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2035.12.1]
+              [%data-time ~2035.12.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  composite ON DELETE CASCADE removes child rows
+++  test-foreign-key-43
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2036.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child-cascade
+                        ==
+      ::
+      [~2036.1.2 %db1 insert-composite-parents]
+      ::
+      [~2036.1.3 %db1 insert-composite-child-10]
+      ::
+      [~2036.1.4 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      [~2036.1.5 %db1 "FROM child WHERE id = 10 SELECT id, parent-tenant, parent-code, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2036.1.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2036.1.1]
+              [%data-time ~2036.1.4]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  composite ON DELETE SET DEFAULT sets child key columns to bunt values
+++  test-foreign-key-44
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2036.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child-set-default
+                        ==
+      ::
+      [~2036.2.2 %db1 insert-composite-parents]
+      ::
+      [~2036.2.3 %db1 insert-composite-child-10]
+      ::
+      [~2036.2.4 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      [~2036.2.5 %db1 "FROM child WHERE id = 10 SELECT id, parent-tenant, parent-code, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-child-10-parent-0]
+              [%server-time ~2036.2.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2036.2.1]
+              [%data-time ~2036.2.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  composite ON UPDATE SET DEFAULT sets child key columns to bunt values
+++  test-foreign-key-45
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2036.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child-set-default
+                        ==
+      ::
+      [~2036.3.2 %db1 insert-composite-parents]
+      ::
+      [~2036.3.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2036.3.4
+          %db1
+          "UPDATE parent SET tenant-id = 3, code = 9 ".
+          "WHERE tenant-id = 1 AND code = 7; "
+      ::
+      [~2036.3.5 %db1 "FROM child WHERE id = 10 SELECT id, parent-tenant, parent-code, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-child-10-parent-0]
+              [%server-time ~2036.3.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2036.3.1]
+              [%data-time ~2036.3.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  composite ALTER TABLE ADD FOREIGN KEY advances referenced parent data time
+++  test-foreign-key-46
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2036.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-tenant @ud, parent-code @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2036.4.2 %db1 insert-composite-parents]
+      ::
+      [~2036.4.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2036.4.4
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-tenant, parent-code) ".
+          "REFERENCES parent (tenant-id, code); "
+      ::
+      [~2036.4.5 %db1 "FROM parent SELECT tenant-id, code, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set composite-parent-0-1-2]
+              [%server-time ~2036.4.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2036.4.1]
+              [%data-time ~2036.4.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  ALTER TABLE ADD FOREIGN KEY AS OF sets schema time and advances parent data time
+++  test-foreign-key-47
+  =|  run=@ud
+  %-  exec-3-2
+  :*  run
+      :+  ~2036.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-id @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2036.9.2 %db1 insert-parents]
+      ::
+      [~2036.9.3 %db1 insert-children]
+      ::
+      :+  ~2036.9.4
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-id) REFERENCES parent (id) ".
+          "AS OF ~2036.9.4; "
+      ::
+      [~2036.9.5 %db1 "FROM child SELECT id, parent-id, note"]
+      ::
+      [~2036.9.6 %db1 "FROM parent SELECT id, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set child-10-11]
+              [%server-time ~2036.9.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2036.9.4]
+              [%data-time ~2036.9.3]
+              [%vector-count 2]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 0]]
+                              [%label [~.t 'bunt']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%label [~.t 'one']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%label [~.t 'two']]
+                              ==
+                      ==
+              [%server-time ~2036.9.6]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2036.9.1]
+              [%data-time ~2036.9.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  ALTER TABLE DROP FOREIGN KEY AS OF sets schema time and removes enforcement
+++  test-foreign-key-48
+  =|  run=@ud
+  %-  exec-4-2
+  :*  run
+      :+  ~2036.10.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2036.10.2 %db1 insert-parents]
+      ::
+      [~2036.10.3 %db1 insert-children]
+      ::
+      :+  ~2036.10.4
+          %db1
+          "ALTER TABLE child DROP FOREIGN KEY ".
+          "(parent-id) parent AS OF ~2036.10.4; "
+      ::
+      :+  ~2036.10.5
+          %db1
+          "INSERT INTO child (id, parent-id, note) ".
+          "VALUES (12, 99, 'orphan'); "
+      ::
+      [~2036.10.6 %db1 "FROM child WHERE id = 12 SELECT id, parent-id, note"]
+      ::
+      [~2036.10.7 %db1 "FROM parent SELECT id, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 12]]
+                              [%parent-id [~.ud 99]]
+                              [%note [~.t 'orphan']]
+                              ==
+                      ==
+              [%server-time ~2036.10.6]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2036.10.4]
+              [%data-time ~2036.10.5]
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 0]]
+                              [%label [~.t 'bunt']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%label [~.t 'one']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%label [~.t 'two']]
+                              ==
+                      ==
+              [%server-time ~2036.10.7]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2036.10.1]
+              [%data-time ~2036.10.4]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  RESTRICT-only two-table cycle with existing rows seeds constrained-values
+++  test-foreign-key-49
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2037.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.1.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.1.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.1.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.1.5 %db1 "FROM b WHERE id = 1 SELECT id, a-ref"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%a-ref [~.ud 1]]
+                              ==
+                      ==
+              [%server-time ~2037.1.5]
+              [%relation 'db1.dbo.b']
+              [%schema-time ~2037.1.1]
+              [%data-time ~2037.1.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  RESTRICT-only three-table cycle with existing rows is accepted
+++  test-foreign-key-50
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2037.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, c-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        "CREATE TABLE c (id @ud, b-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (b-ref) REFERENCES b (id); "
+                        ==
+      ::
+      [~2037.2.2 %db1 "INSERT INTO a (id, c-ref) VALUES (1, 1); "]
+      ::
+      [~2037.2.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.2.4 %db1 "INSERT INTO c (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.2.5 %db1 "ALTER TABLE a ADD FOREIGN KEY (c-ref) REFERENCES c (id); "]
+      ::
+      [~2037.2.6 %db1 "FROM a WHERE id = 1 SELECT id, c-ref"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%c-ref [~.ud 1]]
+                              ==
+                      ==
+              [%server-time ~2037.2.6]
+              [%relation 'db1.dbo.a']
+              [%schema-time ~2037.2.5]
+              [%data-time ~2037.2.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP FOREIGN KEY breaks a RESTRICT-only two-table cycle
+++  test-foreign-key-51
+  =|  run=@ud
+  %-  exec-5-1
+  :*  run
+      :+  ~2037.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.3.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.3.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.3.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.3.5 %db1 "ALTER TABLE a DROP FOREIGN KEY (b-ref) b; "]
+      ::
+      [~2037.3.6 %db1 "DELETE FROM b WHERE id = 1; "]
+      ::
+      [~2037.3.7 %db1 "FROM b WHERE id = 1 SELECT id, a-ref"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2037.3.7]
+              [%relation 'db1.dbo.b']
+              [%schema-time ~2037.3.1]
+              [%data-time ~2037.3.6]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  composite child-side RENAME COLUMN preserves cascade metadata
+++  test-foreign-key-52
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child-cascade
+                        ==
+      ::
+      [~2038.1.2 %db1 insert-composite-parents]
+      ::
+      [~2038.1.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2038.1.4
+          %db1
+          "ALTER TABLE child RENAME COLUMN ".
+          "(parent-tenant TO tenant-key, parent-code TO code-key); "
+      ::
+      [~2038.1.5 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      [~2038.1.6 %db1 "FROM child SELECT id, tenant-key, code-key, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2038.1.6]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.1.4]
+              [%data-time ~2038.1.5]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  composite parent-side RENAME COLUMN preserves cascade metadata
+++  test-foreign-key-53
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child-cascade
+                        ==
+      ::
+      [~2038.2.2 %db1 insert-composite-parents]
+      ::
+      [~2038.2.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2038.2.4
+          %db1
+          "ALTER TABLE parent RENAME COLUMN ".
+          "(tenant-id TO tenant-key, code TO item-code); "
+      ::
+      [~2038.2.5 %db1 "DELETE FROM parent WHERE tenant-key = 1 AND item-code = 7; "]
+      ::
+      [~2038.2.6 %db1 "FROM child SELECT id, parent-tenant, parent-code, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2038.2.6]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.2.1]
+              [%data-time ~2038.2.5]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  composite DROP FOREIGN KEY removes enforcement
+++  test-foreign-key-54
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2038.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2038.3.2 %db1 insert-composite-parents]
+      ::
+      :+  ~2038.3.3
+          %db1
+          "ALTER TABLE child DROP FOREIGN KEY ".
+          "(parent-tenant, parent-code) parent; "
+      ::
+      :+  ~2038.3.4
+          %db1
+          "INSERT INTO child (id, parent-tenant, parent-code, note) ".
+          "VALUES (12, 9, 9, 'orphan'); "
+      ::
+      [~2038.3.5 %db1 "FROM child WHERE id = 12 SELECT id, parent-tenant, parent-code, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 12]]
+                              [%parent-tenant [~.ud 9]]
+                              [%parent-code [~.ud 9]]
+                              [%note [~.t 'orphan']]
+                              ==
+                      ==
+              [%server-time ~2038.3.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.3.3]
+              [%data-time ~2038.3.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP TABLE FORCE child clears parent incoming FK metadata
+++  test-foreign-key-55
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2038.4.2 %db1 insert-parents]
+      ::
+      [~2038.4.3 %db1 "INSERT INTO child (id, parent-id, note) VALUES (10, 1, 'alpha'); "]
+      ::
+      [~2038.4.4 %db1 "DROP TABLE FORCE child; "]
+      ::
+      [~2038.4.5 %db1 "DELETE FROM parent WHERE id = 1; "]
+      ::
+      [~2038.4.6 %db1 "FROM parent SELECT id, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 0]]
+                              [%label [~.t 'bunt']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%label [~.t 'two']]
+                              ==
+                      ==
+              [%server-time ~2038.4.6]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2038.4.1]
+              [%data-time ~2038.4.5]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  DROP FOREIGN KEY frees only the dropped parent when source columns overlap
+++  test-foreign-key-56
+  =|  run=@ud
+  %-  exec-5-1
+  :*  run
+      :+  ~2038.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE parent-a ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE parent-b ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES parent-a (id), ".
+                        "(parent-id) REFERENCES parent-b (id); "
+                        ==
+      ::
+      [~2038.5.2 %db1 "INSERT INTO parent-a (id) VALUES (1); "]
+      ::
+      [~2038.5.3 %db1 "INSERT INTO parent-b (id) VALUES (1); "]
+      ::
+      [~2038.5.4 %db1 "INSERT INTO child (id, parent-id) VALUES (10, 1); "]
+      ::
+      [~2038.5.5 %db1 "ALTER TABLE child DROP FOREIGN KEY (parent-id) parent-a; "]
+      ::
+      [~2038.5.6 %db1 "DELETE FROM parent-a WHERE id = 1; "]
+      ::
+      [~2038.5.7 %db1 "FROM parent-a SELECT id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2038.5.7]
+              [%relation 'db1.dbo.parent-a']
+              [%schema-time ~2038.5.1]
+              [%data-time ~2038.5.6]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  ALTER TABLE RENAME TO AS OF preserves incoming FK metadata
+++  test-foreign-key-57
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child-cascade
+                        ==
+      ::
+      [~2038.6.2 %db1 insert-parents]
+      ::
+      [~2038.6.3 %db1 insert-children]
+      ::
+      [~2038.6.4 %db1 "ALTER TABLE parent RENAME TO parent-2 AS OF ~2038.6.4; "]
+      ::
+      [~2038.6.5 %db1 "DELETE FROM parent-2 WHERE id = 1; "]
+      ::
+      [~2038.6.6 %db1 "FROM child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2038.6.6]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.6.1]
+              [%data-time ~2038.6.5]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  ALTER NAMESPACE TRANSFER TABLE AS OF preserves incoming FK metadata
+++  test-foreign-key-58
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        create-child-cascade
+                        ==
+      ::
+      [~2038.7.2 %db1 insert-parents]
+      ::
+      [~2038.7.3 %db1 insert-children]
+      ::
+      [~2038.7.4 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE parent AS OF ~2038.7.4; "]
+      ::
+      [~2038.7.5 %db1 "DELETE FROM ns1.parent WHERE id = 1; "]
+      ::
+      [~2038.7.6 %db1 "FROM child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2038.7.6]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.7.1]
+              [%data-time ~2038.7.5]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP TABLE FORCE child AS OF clears parent incoming FK metadata
+++  test-foreign-key-59
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2038.8.2 %db1 insert-parents]
+      ::
+      [~2038.8.3 %db1 "INSERT INTO child (id, parent-id, note) VALUES (10, 1, 'alpha'); "]
+      ::
+      [~2038.8.4 %db1 "DROP TABLE FORCE child AS OF ~2038.8.4; "]
+      ::
+      [~2038.8.5 %db1 "DELETE FROM parent WHERE id = 1; "]
+      ::
+      [~2038.8.6 %db1 "FROM parent SELECT id, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 0]]
+                              [%label [~.t 'bunt']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%label [~.t 'two']]
+                              ==
+                      ==
+              [%server-time ~2038.8.6]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2038.8.1]
+              [%data-time ~2038.8.5]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  namespace transfer keeps FK metadata when parent joins child's namespace
+++  test-foreign-key-60
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        "CREATE TABLE ns1.child ".
+                        "(id @ud, parent-id @ud, note @t) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES dbo.parent (id) ".
+                        "ON DELETE CASCADE ON UPDATE CASCADE; "
+                        ==
+      ::
+      [~2038.9.2 %db1 insert-parents]
+      ::
+      :+  ~2038.9.3
+          %db1
+          "INSERT INTO ns1.child (id, parent-id, note) ".
+          "VALUES (10, 1, 'alpha') (11, 2, 'bravo'); "
+      ::
+      [~2038.9.4 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE parent; "]
+      ::
+      [~2038.9.5 %db1 "DELETE FROM ns1.parent WHERE id = 1; "]
+      ::
+      [~2038.9.6 %db1 "FROM ns1.child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2038.9.6]
+              [%relation 'db1.ns1.child']
+              [%schema-time ~2038.9.1]
+              [%data-time ~2038.9.5]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  namespace transfer retargets child-side FK checks to moved parent
+++  test-foreign-key-61
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2038.10.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2038.10.2 %db1 insert-parents]
+      ::
+      [~2038.10.3 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE parent; "]
+      ::
+      :+  ~2038.10.4
+          %db1
+          %-  zing  :~  "INSERT INTO ns1.parent (id, label) VALUES (3, 'three'); "
+                        "INSERT INTO child (id, parent-id, note) ".
+                        "VALUES (12, 3, 'charlie'); "
+                        ==
+      ::
+      [~2038.10.5 %db1 "FROM child WHERE id = 12 SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 12]]
+                              [%parent-id [~.ud 3]]
+                              [%note [~.t 'charlie']]
+                              ==
+                      ==
+              [%server-time ~2038.10.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2038.10.1]
+              [%data-time ~2038.10.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  namespace transfer retargets parent-side FK actions to moved child
+++  test-foreign-key-62
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2038.11.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        create-child-cascade
+                        ==
+      ::
+      [~2038.11.2 %db1 insert-parents]
+      ::
+      [~2038.11.3 %db1 insert-children]
+      ::
+      [~2038.11.4 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE child; "]
+      ::
+      [~2038.11.5 %db1 "DELETE FROM parent WHERE id = 1; "]
+      ::
+      [~2038.11.6 %db1 "FROM ns1.child SELECT id, parent-id, note"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 11]]
+                              [%parent-id [~.ud 2]]
+                              [%note [~.t 'bravo']]
+                              ==
+                      ==
+              [%server-time ~2038.11.6]
+              [%relation 'db1.ns1.child']
+              [%schema-time ~2038.11.4]
+              [%data-time ~2038.11.5]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  rejects cross-database foreign keys
 ++  test-fail-foreign-key-00
   =|  run=@ud
@@ -2176,5 +3413,602 @@
       [~2032.4.3 %db1 "DROP TABLE node; "]
       ::
       'DROP TABLE: %node used in FOREIGN KEY, use FORCE to DROP'
+      ==
+::
+::  rejects self-referential SET DEFAULT FK at CREATE TABLE
+++  test-fail-foreign-key-42
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2035.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id) ".
+                        "ON DELETE SET DEFAULT; "
+                        ==
+      ::
+      'CREATE TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects self-referential SET DEFAULT FK at ALTER TABLE ADD FOREIGN KEY
+++  test-fail-foreign-key-43
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2035.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      :+  ~2035.5.2
+          %db1
+          %-  zing  :~  "ALTER TABLE node ADD FOREIGN KEY ".
+                        "(parent-id) REFERENCES node (id) ".
+                        "ON UPDATE SET DEFAULT; "
+                        ==
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects composite INSERT with missing parent reference
+++  test-fail-foreign-key-44
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      :+  ~2036.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2036.5.2 %db1 insert-composite-parents]
+      ::
+      :+  ~2036.5.3
+          %db1
+          "INSERT INTO child ".
+          "(id, parent-tenant, parent-code, note) ".
+          "VALUES (10, 1, 8, 'orphan'); "
+      ::
+      'INSERT: FOREIGN KEY parent key not found'
+      ==
+::
+::  rejects composite parent DELETE under RESTRICT
+++  test-fail-foreign-key-45
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      :+  ~2036.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2036.6.2 %db1 insert-composite-parents]
+      ::
+      [~2036.6.3 %db1 insert-composite-child-10]
+      ::
+      [~2036.6.4 %db1 "DELETE FROM parent WHERE tenant-id = 1 AND code = 7; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  rejects composite parent primary-key UPDATE under RESTRICT
+++  test-fail-foreign-key-46
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      :+  ~2036.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2036.7.2 %db1 insert-composite-parents]
+      ::
+      [~2036.7.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2036.7.4
+          %db1
+          "UPDATE parent SET tenant-id = 3, code = 9 ".
+          "WHERE tenant-id = 1 AND code = 7; "
+      ::
+      'UPDATE: FOREIGN KEY restrict violation'
+      ==
+::
+::  composite RESTRICT enforced after ALTER TABLE ADD FOREIGN KEY seeds existing rows
+++  test-fail-foreign-key-47
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      :+  ~2036.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-tenant @ud, parent-code @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2036.8.2 %db1 insert-composite-parents]
+      ::
+      [~2036.8.3 %db1 insert-composite-child-10]
+      ::
+      :+  ~2036.8.4
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-tenant, parent-code) ".
+          "REFERENCES parent (tenant-id, code); "
+      ::
+      :+  ~2036.8.5
+          %db1
+          "UPDATE parent SET tenant-id = 3, code = 9 ".
+          "WHERE tenant-id = 1 AND code = 7; "
+      ::
+      'UPDATE: FOREIGN KEY restrict violation'
+      ==
+::
+::  rejects ALTER TABLE ADD FOREIGN KEY AS OF over existing invalid child rows
+++  test-fail-foreign-key-48
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      :+  ~2036.11.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-id @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2036.11.2 %db1 insert-parents]
+      ::
+      :+  ~2036.11.3
+          %db1
+          "INSERT INTO child (id, parent-id, note) ".
+          "VALUES (10, 99, 'orphan'); "
+      ::
+      :+  ~2036.11.4
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-id) REFERENCES parent (id) ".
+          "AS OF ~2036.11.4; "
+      ::
+      'ALTER TABLE: FOREIGN KEY parent key not found'
+      ==
+::
+::  rejects ALTER TABLE ADD FOREIGN KEY AS OF before latest content time
+++  test-fail-foreign-key-49
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      :+  ~2036.12.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-id @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      [~2036.12.2 %db1 insert-parents]
+      ::
+      [~2036.12.3 %db1 insert-children]
+      ::
+      :+  ~2036.12.4
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-id) REFERENCES parent (id) ".
+          "AS OF ~2036.12.2; "
+      ::
+      'ALTER TABLE: %child as-of data time out of order'
+      ==
+::
+::  two-table RESTRICT cycle blocks DELETE from the first table
+++  test-fail-foreign-key-50
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      :+  ~2037.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.4.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.4.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.4.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.4.5 %db1 "DELETE FROM a WHERE id = 1; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  two-table RESTRICT cycle blocks DELETE from the second table
+++  test-fail-foreign-key-51
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      :+  ~2037.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.5.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.5.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.5.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.5.5 %db1 "DELETE FROM b WHERE id = 1; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  two-table RESTRICT cycle blocks primary-key UPDATE on the first table
+++  test-fail-foreign-key-52
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      :+  ~2037.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.6.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.6.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.6.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.6.5 %db1 "UPDATE a SET id = 2 WHERE id = 1; "]
+      ::
+      'UPDATE: FOREIGN KEY restrict violation'
+      ==
+::
+::  two-table RESTRICT cycle blocks primary-key UPDATE on the second table
+++  test-fail-foreign-key-53
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      :+  ~2037.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2037.7.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2037.7.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2037.7.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2037.7.5 %db1 "UPDATE b SET id = 2 WHERE id = 1; "]
+      ::
+      'UPDATE: FOREIGN KEY restrict violation'
+      ==
+::
+::  rejects mixed two-table cycle with existing CASCADE edge and candidate RESTRICT
+++  test-fail-foreign-key-54
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2037.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id) ".
+                        "ON DELETE CASCADE; "
+                        ==
+      ::
+      [~2037.8.2 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects mixed two-table cycle with existing SET DEFAULT edge and candidate RESTRICT
+++  test-fail-foreign-key-55
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2037.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id) ".
+                        "ON DELETE SET DEFAULT; "
+                        ==
+      ::
+      [~2037.9.2 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects two-table ON UPDATE CASCADE cycle
+++  test-fail-foreign-key-56
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2037.10.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      :+  ~2037.10.2
+          %db1
+          %-  zing  :~  "ALTER TABLE a ADD FOREIGN KEY ".
+                        "(b-ref) REFERENCES b (id) ".
+                        "ON UPDATE CASCADE; "
+                        ==
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects two-table ON UPDATE SET DEFAULT cycle
+++  test-fail-foreign-key-57
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2037.11.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      :+  ~2037.11.2
+          %db1
+          %-  zing  :~  "ALTER TABLE a ADD FOREIGN KEY ".
+                        "(b-ref) REFERENCES b (id) ".
+                        "ON UPDATE SET DEFAULT; "
+                        ==
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects three-table SET DEFAULT cycle
+++  test-fail-foreign-key-58
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2037.12.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, c-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id) ".
+                        "ON DELETE SET DEFAULT; "
+                        "CREATE TABLE c (id @ud, b-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (b-ref) REFERENCES b (id) ".
+                        "ON DELETE SET DEFAULT; "
+                        ==
+      ::
+      :+  ~2037.12.2
+          %db1
+          %-  zing  :~  "ALTER TABLE a ADD FOREIGN KEY ".
+                        "(c-ref) REFERENCES c (id) ".
+                        "ON DELETE SET DEFAULT; "
+                        ==
+      ::
+      'ALTER TABLE: cascading foreign-key cycle not allowed'
+      ==
+::
+::  rejects dropping a composite child-side FK source column
+++  test-fail-foreign-key-59
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2039.1.2 %db1 "ALTER TABLE child DROP COLUMN (parent-tenant); "]
+      ::
+      'ALTER TABLE: column %parent-tenant is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects dropping a composite referenced primary-key column
+++  test-fail-foreign-key-60
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2039.2.2 %db1 "ALTER TABLE parent DROP COLUMN (tenant-id); "]
+      ::
+      'ALTER TABLE: column %tenant-id is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects altering a composite child-side FK source column
+++  test-fail-foreign-key-61
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2039.3.2 %db1 "ALTER TABLE child ALTER COLUMN (parent-code @t); "]
+      ::
+      'ALTER TABLE: column %parent-code is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects altering a composite referenced primary-key column
+++  test-fail-foreign-key-62
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2039.4.2 %db1 "ALTER TABLE parent ALTER COLUMN (code @t); "]
+      ::
+      'ALTER TABLE: column %code is referenced by FOREIGN KEY'
+      ==
+::
+::  rejects changing the composite primary key of a referenced table
+++  test-fail-foreign-key-63
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        create-composite-child
+                        ==
+      ::
+      [~2039.5.2 %db1 "ALTER TABLE parent PRIMARY KEY (code, tenant-id); "]
+      ::
+      'ALTER TABLE: PRIMARY KEY is referenced by FOREIGN KEY'
+      ==
+::
+::  self-referential table rename preserves FK enforcement
+++  test-fail-foreign-key-64
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2039.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        "ALTER TABLE node RENAME TO node-2; "
+                        ==
+      ::
+      [~2039.6.2 %db1 "INSERT INTO node-2 (id, parent-id) VALUES (1, 99); "]
+      ::
+      'INSERT: FOREIGN KEY parent key not found'
+      ==
+::
+::  self-referential source-column rename preserves FK enforcement
+++  test-fail-foreign-key-65
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      :+  ~2039.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        ==
+      ::
+      [~2039.7.2 %db1 "INSERT INTO node (id, parent-id) VALUES (0, 0) (1, 0); "]
+      ::
+      [~2039.7.3 %db1 "ALTER TABLE node RENAME COLUMN (parent-id TO manager-id); "]
+      ::
+      [~2039.7.4 %db1 "DELETE FROM node WHERE id = 0; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  table rename inside a RESTRICT cycle preserves FK enforcement
+++  test-fail-foreign-key-66
+  =|  run=@ud
+  %-  failon-5
+  :*  run
+      :+  ~2039.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2039.8.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2039.8.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2039.8.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2039.8.5 %db1 "ALTER TABLE b RENAME TO b-2; "]
+      ::
+      [~2039.8.6 %db1 "DELETE FROM b-2 WHERE id = 1; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
+      ==
+::
+::  column rename inside a RESTRICT cycle preserves FK enforcement
+++  test-fail-foreign-key-67
+  =|  run=@ud
+  %-  failon-5
+  :*  run
+      :+  ~2039.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud, b-ref @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud, a-ref @ud) ".
+                        "PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-ref) REFERENCES a (id); "
+                        ==
+      ::
+      [~2039.9.2 %db1 "INSERT INTO a (id, b-ref) VALUES (1, 1); "]
+      ::
+      [~2039.9.3 %db1 "INSERT INTO b (id, a-ref) VALUES (1, 1); "]
+      ::
+      [~2039.9.4 %db1 "ALTER TABLE a ADD FOREIGN KEY (b-ref) REFERENCES b (id); "]
+      ::
+      [~2039.9.5 %db1 "ALTER TABLE a RENAME COLUMN (b-ref TO b-key); "]
+      ::
+      [~2039.9.6 %db1 "DELETE FROM b WHERE id = 1; "]
+      ::
+      'DELETE: FOREIGN KEY restrict violation'
       ==
 --

@@ -628,7 +628,7 @@
         =/  child-table=table  (~(got by tables.nxt-schema) source-key)
         =/  parent-file=file   (~(got by files.nxt-data) parent-key)
         =/  removed
-              (unregister-fk source-key -.drop parent-key child-table parent-file)
+              (unregister-fk source-key -.drop parent-key child-table parent-file sys-time)
         :-  (~(put by tables.nxt-schema) source-key child.removed)
             (~(put by files.nxt-data) parent-key parent.removed)
   =.  tables.nxt-schema  -.drop-work
@@ -1366,12 +1366,14 @@
           parent-key=[@tas @tas]
           child-table=table
           parent-file=file
+          unregistered-time=@da
           ==
   ^-  [child=table parent=file]
   ?.  (fk-canonical-exists foreign-constraints.parent-file child-key source-cols)
     ~|("ALTER TABLE: foreign key to drop does not exist" !!)
   =.  foreign-constraints.parent-file
         (remove-incoming-fk foreign-constraints.parent-file child-key source-cols)
+  =.  tmsp.parent-file  unregistered-time
   =.  outbound-fk-index.child-table
         (remove-outbound-fk outbound-fk-index.child-table source-cols parent-key)
   [child-table parent-file]
