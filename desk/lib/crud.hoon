@@ -146,10 +146,11 @@
               parent-file
               tbl-fks
               nxt-data
+              sys-time
               ==
   =.  nxt-data     -.cleared
   =.  parent-file  +.cleared
-  =.  parent-file  (clear-all-incoming-constrained-values parent-file)
+  =.  parent-file  (clear-all-incoming-constrained-values parent-file sys-time)
   ::
   =/  dropped-rows  rowcount.parent-file
   =.  pri-idx.parent-file         ~
@@ -308,6 +309,7 @@
                 inserted-rows
                 fks
                 nxt-data.txn
+                now.bowl
                 ==
     =.  nxt-data.txn  -.constrained
     =.  file.txn      +.constrained
@@ -476,6 +478,7 @@
               deleted-parent-rows
               fks
               nxt-data.txn
+              now.bowl
               ==
   =.  nxt-data.txn  -.constrained
   =.  file.txn      +.constrained
@@ -736,6 +739,7 @@
               child-row-pairs
               fks
               nxt-data.txn
+              now.bowl
               ==
   =.  nxt-data.txn  -.constrained
   =.  file.txn      +.constrained
@@ -1998,6 +2002,7 @@
           rows=(list indexed-row)
           fks=(list outbound-fk-entry)
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  fks  [acc-data child-file]
@@ -2011,6 +2016,7 @@
               rows
               i.fks
               acc-data
+              edit-time
               ==
   %=  $
     fks         t.fks
@@ -2027,6 +2033,7 @@
           rows=(list indexed-row)
           fk=outbound-fk-entry
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  rows  [acc-data child-file]
@@ -2046,6 +2053,7 @@
               parent-key.tuples
               child-pk.tuples
               acc-data
+              edit-time
               ==
   %=  $
     rows        t.rows
@@ -2062,6 +2070,7 @@
           parent-row-key=(list @)
           child-pk=(list @)
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   =/  parent-table-key=[@tas @tas]  reference-table.fk
@@ -2073,6 +2082,7 @@
             child-key
             constrained-columns.fk
             edit
+            edit-time
             ==
     [acc-data child-file]
   =/  parent-file=file
@@ -2085,6 +2095,7 @@
           child-key
           constrained-columns.fk
           edit
+          edit-time
           ==
   =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
   [acc-data child-file]
@@ -2098,6 +2109,7 @@
           pairs=(list [old=indexed-row new=indexed-row])
           fks=(list outbound-fk-entry)
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  fks  [acc-data child-file]
@@ -2111,6 +2123,7 @@
               pairs
               i.fks
               acc-data
+              edit-time
               ==
   %=  $
     fks         t.fks
@@ -2127,6 +2140,7 @@
           pairs=(list [old=indexed-row new=indexed-row])
           fk=outbound-fk-entry
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  pairs  [acc-data child-file]
@@ -2151,6 +2165,7 @@
               fk
               tuples
               acc-data
+              edit-time
               ==
   %=  $
     pairs       t.pairs
@@ -2166,6 +2181,7 @@
           fk=outbound-fk-entry
           tuples=constrained-value-row-tuples
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   =/  parent-table-key=[@tas @tas]  reference-table.fk
@@ -2183,6 +2199,7 @@
             child-key
             constrained-columns.fk
             edit
+            edit-time
             ==
     [acc-data child-file]
   =/  parent-file=file
@@ -2195,6 +2212,7 @@
           child-key
           constrained-columns.fk
           edit
+          edit-time
           ==
   =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
   [acc-data child-file]
@@ -2208,6 +2226,7 @@
           rows=(list indexed-row)
           fks=(list outbound-fk-entry)
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  fks  [acc-data child-file]
@@ -2221,6 +2240,7 @@
               rows
               i.fks
               acc-data
+              edit-time
               ==
   %=  $
     fks         t.fks
@@ -2237,6 +2257,7 @@
           rows=(list indexed-row)
           fk=outbound-fk-entry
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   ?~  rows  [acc-data child-file]
@@ -2256,6 +2277,7 @@
               parent-key.tuples
               child-pk.tuples
               acc-data
+              edit-time
               ==
   %=  $
     rows        t.rows
@@ -2272,6 +2294,7 @@
           parent-row-key=(list @)
           child-pk=(list @)
           acc-data=data
+          edit-time=@da
           ==
   ^-  [data file]
   =/  parent-table-key=[@tas @tas]  reference-table.fk
@@ -2283,6 +2306,7 @@
             child-key
             constrained-columns.fk
             edit
+            edit-time
             ==
     [acc-data child-file]
   =/  parent-file=file
@@ -2295,6 +2319,7 @@
           child-key
           constrained-columns.fk
           edit
+          edit-time
           ==
   =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
   [acc-data child-file]
@@ -2303,6 +2328,7 @@
   |=  $:  parent-file=file
           child-key=[@tas @tas]
           source-cols=(list @tas)
+          clear-time=@da
           ==
   ^-  file
   =/  incoming=foreign-constraint
@@ -2315,16 +2341,18 @@
               source-cols
               incoming
               ==
+  =.  tmsp.parent-file  clear-time
   parent-file
 ::
 ++  clear-all-incoming-constrained-values
-  |=  parent-file=file
+  |=  [parent-file=file clear-time=@da]
   ^-  file
   =.  foreign-constraints.parent-file
     %+  turn  foreign-constraints.parent-file
     |=  incoming=foreign-constraint
     =.  constrained-values.incoming  *constrained-values
     incoming
+  =.  tmsp.parent-file  clear-time
   parent-file
 ::
 ++  clear-outbound-constrained-values
@@ -2334,6 +2362,7 @@
           child-file=file
           fks=(list outbound-fk-entry)
           acc-data=data
+          clear-time=@da
           ==
   ^-  [data file]
   ?~  fks  [acc-data child-file]
@@ -2345,6 +2374,7 @@
               child-file
               i.fks
               acc-data
+              clear-time
               ==
   %=  $
     fks         t.fks
@@ -2359,6 +2389,7 @@
           child-file=file
           fk=outbound-fk-entry
           acc-data=data
+          clear-time=@da
           ==
   ^-  [data file]
   =/  parent-table-key=[@tas @tas]  reference-table.fk
@@ -2368,6 +2399,7 @@
             child-file
             child-key
             constrained-columns.fk
+            clear-time
             ==
     [acc-data child-file]
   =/  parent-file=file
@@ -2379,6 +2411,7 @@
           parent-file
           child-key
           constrained-columns.fk
+          clear-time
           ==
   =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
   [acc-data child-file]
@@ -2742,6 +2775,7 @@
               child-row-pairs
               child-fks
               cur-data
+              now
               ==
   =.  cur-data    -.constrained
   =.  child-file  +.constrained
@@ -2873,6 +2907,7 @@
               child-row-pairs
               child-fks
               cur-data
+              now
               ==
   =.  cur-data    -.constrained
   =.  child-file  +.constrained
@@ -2975,6 +3010,7 @@
               child-file
               child-fks
               cur-data
+              now
               ==
   =.  cur-data    -.cleared
   =.  child-file  +.cleared
@@ -3085,6 +3121,7 @@
               matching-rows
               child-fks
               cur-data
+              now
               ==
   =.  cur-data    -.constrained
   =.  child-file  +.constrained
@@ -3214,6 +3251,7 @@
               changed-pairs
               child-fks
               cur-data
+              now
               ==
   =.  cur-data    -.constrained
   =.  child-file  +.constrained

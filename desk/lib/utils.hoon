@@ -1015,6 +1015,7 @@
           child-key=[@tas @tas]
           source-cols=(list @tas)
           edit=constrained-value-edit
+          edit-time=@da
           ==
   ^-  file
   =/  incoming=foreign-constraint
@@ -1028,6 +1029,7 @@
               source-cols
               edited
               ==
+  =.  tmsp.parent-file  edit-time
   parent-file
 ::
 ++  row-column-values

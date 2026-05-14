@@ -33,7 +33,8 @@ State migration is out of scope for this plan.
 Completed:
 
 - FK metadata molds, construction helpers, and `CREATE TABLE` FK validation/registration.
-- `ALTER TABLE ADD FOREIGN KEY`, including existing child-row validation.
+- `ALTER TABLE ADD FOREIGN KEY`, including existing child-row validation, `constrained-values` seeding, and referenced parent data-time advancement.
+- All runtime `constrained-values` mutations advance the referenced parent file data time.
 - `ALTER TABLE DROP FOREIGN KEY`, including incoming and outbound metadata removal.
 - Child-side DML checks for `INSERT` and child FK-column `UPDATE`, including `AS OF` content-time lookup.
 - Parent `DELETE RESTRICT`, `CASCADE`, and `SET DEFAULT`.
@@ -48,12 +49,7 @@ Completed:
 
 Known gaps:
 
-- `constrained-values` is maintained by child-side DML (`INSERT`, `UPDATE`, `DELETE`) but is not seeded when `ALTER TABLE ADD FOREIGN KEY` is applied to tables with existing rows. `seed-constrained-values-from-rows` in `desk/lib/utils.hoon` is not wired into `alter-tbl` in `desk/lib/ddl.hoon`.
-- This inconsistency has no current behavioral consequence: all enforcement (`RESTRICT`, `CASCADE`, `SET DEFAULT`) uses direct child-row scanning (`child-has-fk-reference`), not `constrained-values`. Seeding must be wired in before any enforcement path is changed to use the reverse index.
-
-- assert-delete-restrict-constraint calls child-has-fk-reference indexed-rows.child-file — it scans the child table's rows directly. constrained-values is never read by any enforcement path; it's purely a maintained reverse index that isn't yet used for lookups.
-
-Current state: test-35 is a correct, passing test. The seeding gap is a state inconsistency (the index is incomplete after retroactive FK addition) but has zero behavioral impact until enforcement is switched to use the index.
+- None currently tracked in this plan.
 
 ## Implementation Milestones
 

@@ -374,9 +374,10 @@
         =/  parent-key=[@tas @tas]
               [namespace.reference-table.fk name.reference-table.fk]
         =/  child-table  (~(got by out-tables) source-key)
+        =/  child-file   (~(got by out-files) source-key)
         =/  parent-file  (~(got by out-files) parent-key)
         =/  registered
-              (register-fk fk child-table parent-file)
+              (register-fk fk child-table child-file parent-file sys-time)
         %=  $
           fks         t.fks
           out-tables  (~(put by out-tables) source-key child.registered)
@@ -644,9 +645,10 @@
         =/  parent-key=[@tas @tas]
               [namespace.reference-table.fk name.reference-table.fk]
         =/  child-table  (~(got by out-tables) source-key)
+        =/  child-file   (~(got by out-files) source-key)
         =/  parent-file  (~(got by out-files) parent-key)
         =/  registered
-              (register-fk fk child-table parent-file)
+              (register-fk fk child-table child-file parent-file sys-time)
         %=  $
           fks         t.fks
           out-tables  (~(put by out-tables) source-key child.registered)
@@ -1324,21 +1326,31 @@
   (assert-fk-existing-rows child-file parent-table parent-file columns.fk)
 ::
 ++  register-fk
-  |=  [fk=foreign-key:ast child-table=table parent-file=file]
+  |=  $:  fk=foreign-key:ast
+          child-table=table
+          child-file=file
+          parent-file=file
+          registered-time=@da
+          ==
   ^-  [child=table parent=file]
   =/  child-key=[@tas @tas]
         [namespace.qualified-table.fk name.qualified-table.fk]
   =/  parent-key=[@tas @tas]
         [namespace.reference-table.fk name.reference-table.fk]
   =/  incoming=foreign-constraint
-        :*  child-key
-            (fk-constraints referential-integrity.fk)
-            (key-names key.pri-indx.child-table)
-            columns.fk
-            *constrained-values
-            ==
+        %:  seed-constrained-values-from-rows
+              :*  child-key
+                  (fk-constraints referential-integrity.fk)
+                  (key-names key.pri-indx.child-table)
+                  columns.fk
+                  *constrained-values
+                  ==
+              child-file
+              columns.fk
+              ==
   =.  foreign-constraints.parent-file
         [incoming foreign-constraints.parent-file]
+  =.  tmsp.parent-file  registered-time
   =/  outbound=outbound-fk-entry
         :*  parent-key
             columns.fk
