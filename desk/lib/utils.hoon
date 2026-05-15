@@ -605,6 +605,7 @@
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
@@ -615,6 +616,7 @@
                                 :~  [%sys %namespaces]
                                     [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
@@ -624,6 +626,7 @@
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
@@ -633,6 +636,7 @@
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
@@ -642,6 +646,7 @@
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]

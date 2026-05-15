@@ -533,6 +533,222 @@
               ==
           ==
 ::
+++  sys-foreign-keys-view
+  ::  view name: sys-foreign-keys
+  ::
+  ::  Base data comes from canonical parent-side +foreign-constraints on
+  ::  +file values.  +populate-system-view enumerates declared FKs and emits
+  ::  one row for each parent/child column pair in FK ordinal order.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.foreign-keys.  It exposes
+  ::  columns: parent-namespace, parent-table, child-namespace, child-table,
+  ::  ordinal, parent-column, child-column, on-delete, on-update.
+  ::
+  ::  Orders by parent-namespace, parent-table, child-namespace, child-table,
+  ::  then ordinal ascending.
+  |=  [db=@tas provenance=path tmsp=@da]
+  ^-  view
+  =/  columns=(list column:ast)
+        %-  addr-columns  :~  [%column %parent-namespace ~.tas 0]
+                              [%column %parent-table ~.tas 0]
+                              [%column %child-namespace ~.tas 0]
+                              [%column %child-table ~.tas 0]
+                              [%column %ordinal ~.ud 0]
+                              [%column %parent-column ~.tas 0]
+                              [%column %child-column ~.tas 0]
+                              [%column %on-delete ~.tas 0]
+                              [%column %on-update ~.tas 0]
+                              ==
+  :*  %view
+      provenance                              ::provenance=path
+      tmsp                                    ::tmsp=@da
+      :+  %crud-txn                          ::crud-txn
+          ~                                     ::ctes=(list cte)
+          [%query (sys-foreign-keys-query db)]  ::query
+      (malt (spun columns mk-col-lu-data))    ::column-lookup
+      %-  malt
+        %+  turn  columns
+                  |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
+      columns                                 ::columns=(list column)
+      ~                                       ::ordering=(list column-order)
+      ~                                       ::indices
+      ==
+++  sys-foreign-keys-query
+  |=  database=@tas
+  ^-  query:ast
+  :*  %query
+          :-  ~          ::from=(unit from)
+              :^  %from
+                  :*  %qualified-table  ::relation
+                      ~
+                      database
+                      %sys
+                      %foreign-keys
+                      ~                    ::alias=(unit @t)
+                      ==
+                  ~  ::(unit as-of)
+                  ~  ::joins=(list joined-relatation)
+          ~  ::scalars=(list scalar-function)
+          ~  ::=predicate
+          ~  ::group-by=(list grouping-column)
+          ~  ::having=predicate
+          :+  %select  ::=select
+              ~               ::top=(unit @ud)
+              :~  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %parent-namespace      ::column=@tas
+                      `%parent-namespace     ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %parent-table          ::column=@tas
+                      `%parent-table         ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %child-namespace       ::column=@tas
+                      `%child-namespace      ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %child-table           ::column=@tas
+                      `%child-table          ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %ordinal               ::column=@tas
+                      `%ordinal              ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %parent-column         ::column=@tas
+                      `%parent-column        ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %child-column          ::column=@tas
+                      `%child-column         ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %on-delete             ::column=@tas
+                      `%on-delete            ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %foreign-keys        ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %on-update             ::column=@tas
+                      `%on-update            ::alias=(unit @t)
+                  ==
+          :~      ::order-by=(list ordering-column)
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %foreign-keys  ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %parent-namespace  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %foreign-keys  ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %parent-table  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %foreign-keys  ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %child-namespace  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %foreign-keys  ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %child-table  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %foreign-keys  ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %ordinal  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              ==
+          ==
+::
 ++  sys-columns-view
   ::  view name: sys-columns
   ::
@@ -1131,6 +1347,16 @@
         (sort table-keys ~(order order-row ordering.view))
         columns.view
   ::
+  %foreign-keys
+    =/  udata=data  (get-data content.database cache-time)
+    =/  foreign-keys  ^-  (list (list @))
+                            %-  zing
+                                    %+  turn  ~(tap by files.udata)
+                                        ~(foo sys-view-foreign-keys tables.schema)
+    %+  atoms-2-mapped-row
+        (sort foreign-keys ~(order order-row ordering.view))
+        columns.view
+  ::
   %columns
     =/  udata=data  (get-data content.database cache-time)
     =/  columns  ^-  (list (list @))
@@ -1259,6 +1485,56 @@
           |=([n=key-column a=@] [~[a name.n ascending.n] +(a)])
     (turn p.keys |=(a=(list @) (weld aa a)))
   --
+::
+++  sys-view-foreign-keys
+  |_  =tables
+  ++  foo
+    |=  [parent-key=[@tas @tas] parent-file=file]
+    ^-  (list (list @))
+    =/  parent-tbl=table  (~(got by tables) parent-key)
+    =/  parent-cols=(list @tas)
+          (turn key.pri-indx.parent-tbl |=(k=key-column name.k))
+    =/  fks=(list foreign-constraint)  foreign-constraints.parent-file
+    |-
+    ?~  fks  ~
+    =/  rows=(list (list @))
+      %-  foreign-key-column-rows
+      :*  parent-key
+          constrained-table.i.fks
+          parent-cols
+          constrained-columns.i.fks
+          actions.i.fks
+          ==
+    =/  rest=(list (list @))  $(fks t.fks)
+    (weld rows rest)
+  --
+::
+++  foreign-key-column-rows
+  |=  $:  parent-key=[@tas @tas]
+          child-key=[@tas @tas]
+          parent-cols=(list @tas)
+          child-cols=(list @tas)
+          actions=constraints
+          ==
+  ^-  (list (list @))
+  =/  ordinal=@ud  1
+  |-
+  ?~  parent-cols
+    ?~  child-cols  ~
+    ~|("sys.foreign-keys: foreign key column mismatch" !!)
+  ?~  child-cols
+    ~|("sys.foreign-keys: foreign key column mismatch" !!)
+  :-  :~  -.parent-key
+          +.parent-key
+          -.child-key
+          +.child-key
+          ordinal
+          i.parent-cols
+          i.child-cols
+          on-delete.actions
+          on-update.actions
+          ==
+  $(parent-cols t.parent-cols, child-cols t.child-cols, ordinal +(ordinal))
 ::
 ++  sys-view-columns
   |_  =tables

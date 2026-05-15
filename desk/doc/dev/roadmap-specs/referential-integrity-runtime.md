@@ -1,214 +1,210 @@
-# Referential Integrity Runtime Plan
+# `sys.foreign-keys` System View Plan
 
-This plan implements the runtime behavior specified in:
+The previous referential-integrity runtime plan is complete. This file now
+tracks the next referential-integrity visibility project: a schema-only system
+view for declared foreign keys.
 
-- `desk/doc/usr/reference/ddl-table.md`
-- `desk/doc/usr/reference/dml-truncate-table.md`
-- `desk/sur/server-state-1.hoon` FK metadata comments
+## Goal
 
-Do not address `DROP NAMESPACE` in this plan.
+Add a user-queryable system view named `sys.foreign-keys` in every user
+database. The view exposes declared foreign-key schema metadata only; it does
+not expose live `constrained-values`, referenced parent key values, or child
+row counts.
 
-## Scope
+The view should be self-contained enough that a user can inspect a foreign key,
+including composite key order and referential actions, without joining to
+`sys.table-keys`.
 
-Preserve the documented schema molds.
+## View Contract
 
-`foreign-constraints` on `file` is the authoritative incoming dependency structure. `outbound-fk-index` on `table` is a derived child-side lookup. Every canonical incoming FK has outbound entries for each source column included in that FK, and every outbound entry corresponds to exactly one canonical incoming FK.
+`sys.foreign-keys`
 
-`foreign-constraint.constrained-values` is a maintained reverse index:
+| Column | Aura | Meaning |
+| --- | --- | --- |
+| `parent-namespace` | `@tas` | Namespace of the referenced parent table. |
+| `parent-table` | `@tas` | Referenced parent table. |
+| `child-namespace` | `@tas` | Namespace of the constrained child table. |
+| `child-table` | `@tas` | Constrained child table. |
+| `ordinal` | `@ud` | One-based column ordinal within the foreign key. |
+| `parent-column` | `@tas` | Parent/referenced primary-key column at `ordinal`. |
+| `child-column` | `@tas` | Child/source column at `ordinal`. |
+| `on-delete` | `@tas` | Delete action: `%restrict`, `%cascade`, or `%set-default`. |
+| `on-update` | `@tas` | Update action: `%restrict`, `%cascade`, or `%set-default`. |
 
-- map key: complete referenced parent primary-key value tuple, equal to the child FK value tuple
-- set value: child row primary-key tuples currently referencing that parent key
+Default ordering:
 
-Runtime must maintain `constrained-values` as part of child-side DML:
+1. `parent-namespace`
+2. `parent-table`
+3. `child-namespace`
+4. `child-table`
+5. `ordinal`
 
-- `INSERT`: for each outbound FK, add the inserted child PK tuple under the inserted child FK value tuple.
-- `UPDATE`: when FK source columns change, move old child PK from the old FK tuple to the new child PK under the new FK tuple; when only child PK changes, replace old child PK with new child PK under the same FK tuple; when both change, do both as one logical move.
-- `DELETE`: remove the deleted child PK tuple from the deleted row's FK value tuple and prune empty child-key sets.
-- Self-referential FKs follow the same rule on one file.
+Expected row shape:
 
-State migration is out of scope for this plan.
+- One row per parent/child column pair in a declared FK.
+- Composite FKs produce multiple rows sharing the same parent/child table
+  identity and ordered by `ordinal`.
+- Empty tables still emit declared FK rows.
+- Dropped FKs, dropped tables, and dropped namespaces do not appear in current
+  view queries, but historical `AS OF` queries can see prior schema states.
 
-## Current Status
+The canonical source of truth is `foreign-constraints` on each parent `file`.
+`outbound-fk-index` is a derived child-side lookup and should not be used as the
+primary source for the view.
 
-Completed:
+## Work Slices
 
-- FK metadata molds, construction helpers, and `CREATE TABLE` FK validation/registration.
-- `ALTER TABLE ADD FOREIGN KEY`, including existing child-row validation, `constrained-values` seeding, and referenced parent data-time advancement.
-- All runtime `constrained-values` mutations advance the referenced parent file data time.
-- `ALTER TABLE DROP FOREIGN KEY`, including incoming and outbound metadata removal.
-- Child-side DML checks for `INSERT` and child FK-column `UPDATE`, including `AS OF` content-time lookup.
-- Parent `DELETE RESTRICT`, `CASCADE`, and `SET DEFAULT`.
-- Parent primary-key `UPDATE RESTRICT`, `CASCADE`, and `SET DEFAULT`.
-- `TRUNCATE TABLE` `ON DELETE RESTRICT`, `CASCADE`, and `SET DEFAULT`.
-- `DROP TABLE` FK guards and `DROP TABLE FORCE` FK metadata cleanup.
-- `ALTER TABLE RENAME TO` FK metadata rewrite.
-- Column lifecycle FK handling: `RENAME COLUMN` rewrites metadata; `DROP COLUMN` and `ALTER COLUMN` reject FK columns.
-- Primary-key alteration rejects referenced tables.
-- Namespace table transfer preserves FK metadata within the same database and rejects cross-database transfer involving FKs.
-- `DROP FOREIGN KEY` regression coverage distinguishes same source columns referencing different parent tables.
+### Slice 1: User Documentation
 
-Known gaps:
+Update `desk/doc/usr/users-guide.md`.
 
-- None currently tracked in this plan.
+- Add `sys.foreign-keys` to the Appendix: System Views section.
+- Document the column list, auras, row semantics, and default ordering.
+- State explicitly that the view is schema-only and does not expose current
+  referencing row counts or key values.
+- Mention that `parent-column` is included even though foreign keys reference
+  the complete parent primary key, so composite FK order is directly visible.
 
-## Implementation Milestones
+Exit criteria:
 
-1. Add pure helpers for `constrained-values` maintenance.
-   Keep this milestone free of runtime DML rewiring. It should produce small,
-   reviewable helpers that operate on `foreign-constraints`,
-   `constrained-values`, row maps, key-column lists, and `outbound-fk-entry`
-   values. Runtime callers are added in milestone 2.
+- Users can learn the view contract from the users guide without reading
+  implementation comments.
+- The documentation distinguishes FK definitions from runtime RI state.
 
-   1.1. Locate the canonical incoming constraint.
-      - Inputs: parent `foreign-constraints`, child table key, and source-column list.
-      - Return the matching `foreign-constraint` or fail with an internal invariant error.
-      - Match the same identity already used by `fk-canonical-exists` and `remove-incoming-fk`: `constrained-table` plus ordered `constrained-columns`.
-      - Exit criteria: handles multiple FKs with the same source columns pointing at different parent tables by relying on the parent-file context, not only source columns; fails if zero or more than one matching canonical incoming constraint exists, so corrupt metadata cannot be silently repaired by picking the first match.
+### Slice 2: View Definition
 
-   1.2. Add one child reference to one constraint.
-      - Inputs: one `foreign-constraint`, parent FK value tuple, and child primary-key tuple.
-      - Insert the child PK into the set at `constrained-values[parent-key]`.
-      - Preserve existing child PKs already stored for that parent key.
-      - Exit criteria: adding the first reference creates the map entry; adding another reference to the same parent key expands the set; adding a duplicate is idempotent.
+Add the static view definition in `desk/lib/sys-views.hoon`.
 
-   1.3. Remove one child reference from one constraint.
-      - Inputs: one `foreign-constraint`, parent FK value tuple, and child primary-key tuple.
-      - Remove the child PK from the set at `constrained-values[parent-key]`.
-      - Prune the parent-key map entry when the resulting child-key set is empty.
-      - Exit criteria: removing a missing reference is treated as an invariant failure, not a silent no-op, so runtime bugs surface during development.
+- Add a `++ sys-foreign-keys-view` arm following the style of
+  `sys-table-keys-view` and `sys-columns-view`.
+- Define the nine columns from the view contract with the correct auras.
+- Define the default ordering listed above.
+- Add the view to database creation and database rename setup paths in
+  `desk/lib/main.hoon`, wherever the existing user-database system views are
+  installed.
 
-   1.4. Move one child reference within one constraint.
-      - Inputs: one `foreign-constraint`, old FK tuple, new FK tuple, old child PK tuple, and new child PK tuple.
-      - Implement as one pure helper that removes the old reference and adds the new reference to the returned constraint.
-      - Cover the three documented cases: FK tuple changed, child PK tuple changed, and both changed.
-      - Exit criteria: same-key moves replace old child PK with new child PK; cross-key moves prune the old key when empty and create/extend the new key.
+Exit criteria:
 
-   1.5. Apply a constrained-value edit back to a parent file.
-      - Inputs: parent `file`, child table key, source-column list, and an edit operation from slices 1.2-1.4.
-      - Rewrite exactly one matching `foreign-constraint` in `foreign-constraints.parent-file`.
-      - Preserve constraint order and all unrelated incoming constraints.
-      - Exit criteria: returns an updated parent file and fails if zero or more than one canonical incoming constraint matches.
+- Newly created databases include `sys.foreign-keys`.
+- Renamed databases preserve/rebuild the view like the other user-database
+  system views.
+- Query planning can resolve `FROM sys.foreign-keys SELECT *`.
 
-   1.6. Add row/key tuple extraction adapters.
-      - Reuse existing `fk-row-values` behavior for FK tuples and child primary-key tuples.
-      - Add a thin helper, if needed, that derives `{old,new}` FK and child-PK tuples from old/new child rows plus an `outbound-fk-entry`.
-      - Include an adapter for child primary-key-only updates, where the outbound FK source columns are unchanged but every outbound FK for the child table still needs the old child PK tuple replaced with the new child PK tuple.
-      - Exit criteria: no ad-hoc tuple-building is duplicated in future `INSERT`, `UPDATE`, or `DELETE` runtime code.
+### Slice 3: View Population Runtime
 
-   1.7. Build an initial `constrained-values` map from existing child rows.
-      - Inputs: one validated `foreign-constraint`, child `file`, and source-column list.
-      - Reuse the add-reference helper from slice 1.2 for each existing child row.
-      - Use this when `ALTER TABLE ADD FOREIGN KEY` registers a constraint over rows that already exist.
-      - Exit criteria: adding an FK over existing valid rows produces the same reverse index that would have existed if the FK had been present before those rows were inserted.
+Populate `sys.foreign-keys` from canonical parent-side metadata.
 
-   1.8. Add focused helper tests or assertions before runtime integration.
-      - Prefer direct helper tests if the local test style supports them; otherwise add the first runtime-state assertions with milestone 2.
-      - Cover add, remove-and-prune, same-key PK move, cross-key FK move, seed-from-existing-rows, and the missing/duplicate-constraint invariant failures.
-      - Exit criteria: helper behavior is proven independently enough that milestone 2 only wires known operations into DML paths.
+- Add a `++ sys-view-foreign-keys` helper in `desk/lib/sys-views.hoon`.
+- Walk `files.data` entries so only tables present at the selected content time
+  participate.
+- For each parent table/file, enumerate `foreign-constraints.parent-file`.
+- For each `foreign-constraint`, emit one row per paired
+  `constrained-columns` and parent primary-key column.
+- Derive parent columns from `key.pri-indx.parent-table`, preserving primary-key
+  order.
+- Emit `actions.on-delete` and `actions.on-update` as `@tas`.
+- Add a `%foreign-keys` case to `populate-system-view`.
+- Keep ordering deterministic through the normal system-view ordering path.
 
-2. Maintain `constrained-values` for child-side DML.
-   2.1. `INSERT`: update parent files after child rows are accepted.
-      - Reuse the validated outbound FK list from child FK enforcement.
-      - Add one reverse-index reference for each inserted child row and outbound FK.
-      - Handle self-referential FKs by updating the in-flight child file before it is persisted.
-      - Exit criteria: inserting child rows maintains parent `constrained-values`, including multi-row self-referential inserts.
+Exit criteria:
 
-   2.2. `UPDATE`: move reverse-index references for changed FK source columns and changed child primary keys.
-      - Update FKs whose source columns changed.
-      - When child primary-key columns change, update every outbound FK for that child table even if no FK source column changed.
-      - Handle self-referential FKs without losing same-file changes.
-      - Exit criteria: every child row update leaves parent `constrained-values` pointing at the new child primary key and/or new parent key.
+- The view reports FK definitions created by both `CREATE TABLE` and
+  `ALTER TABLE ADD FOREIGN KEY`.
+- Composite FKs emit correctly ordered column-pair rows.
+- Empty child tables still show declared FKs.
 
-   2.3. `DELETE`: remove reverse-index references for deleted child rows.
-      - Remove one reverse-index reference for each deleted child row and outbound FK.
-      - Prune empty parent-key entries via the shared helper.
-      - Handle self-referential FKs while preserving delete-time parent-side behavior.
-      - Exit criteria: deleting child rows removes stale parent `constrained-values` entries before the mutation is committed.
+### Slice 4: Cache Invalidation And Lifecycle Wiring
 
-3. Maintain `constrained-values` through parent-side actions.
-   3.1. `DELETE CASCADE`: remove cascaded child rows from all reverse indexes.
-      - Identify the child rows deleted by each cascading incoming constraint before mutating the child file.
-      - Reuse the child-side delete constrained-value remover for every outbound FK on the child table, including the FK that caused the cascade.
-      - Handle self-referential cascades without losing same-file metadata edits.
-      - Exit criteria: deleting parent rows with `ON DELETE CASCADE` leaves no stale `constrained-values` entries for any deleted child row.
+Wire `sys.foreign-keys` into system-view cache updates.
 
-   3.2. `DELETE SET DEFAULT`: move affected child references from the deleted parent key to the bunt key.
-      - For the incoming constraint that triggered `SET DEFAULT`, move each matching child PK from the deleted parent key to the default parent key.
-      - If the default update changes the child primary key, update every outbound FK reverse index for that child row.
-      - Preserve existing validation that the bunt parent key exists and is not itself being deleted.
-      - Exit criteria: deleting parent rows with `ON DELETE SET DEFAULT` leaves `constrained-values` pointing at the default parent key and the final child PK tuple.
+- Add `[%sys %foreign-keys]` to `upd-view-caches` entries for all operations
+  that can create, remove, or rewrite FK metadata:
+  - `CREATE TABLE`
+  - `ALTER TABLE`
+  - `DROP TABLE`
+  - `ALTER NAMESPACE`
+  - `DROP NAMESPACE`
+- Review `CREATE NAMESPACE`, `DROP NAMESPACE`, and database-level setup paths
+  so the view exists and invalidates consistently with `sys.tables`,
+  `sys.table-keys`, and `sys.columns`.
+- Do not invalidate the view for child-side DML that only changes
+  `constrained-values`; this view is schema-only.
 
-   3.3. `UPDATE CASCADE`: move affected child references from the old parent key to the new parent key.
-      - For the incoming constraint that triggered `CASCADE`, move each matching child PK from the old parent key to the new parent key.
-      - If the cascaded FK update changes the child primary key, update every outbound FK reverse index for that child row.
-      - Preserve existing duplicate-key and parent-side restrict behavior.
-      - Exit criteria: updating parent primary keys with `ON UPDATE CASCADE` leaves `constrained-values` pointing at the new parent key and the final child PK tuple.
+Exit criteria:
 
-   3.4. `UPDATE SET DEFAULT`: move affected child references from the old parent key to the bunt key.
-      - For the incoming constraint that triggered `SET DEFAULT`, move each matching child PK from the old parent key to the default parent key.
-      - If the default update changes the child primary key, update every outbound FK reverse index for that child row.
-      - Preserve existing validation that the bunt parent key exists.
-      - Exit criteria: updating parent primary keys with `ON UPDATE SET DEFAULT` leaves `constrained-values` pointing at the default parent key and the final child PK tuple.
+- Current queries after FK schema changes see fresh rows.
+- Pure data changes do not unnecessarily refresh `sys.foreign-keys`.
+- Historical `AS OF` queries continue to resolve the correct schema snapshot.
 
-   3.5. `TRUNCATE TABLE`: apply parent delete semantics to reverse indexes.
-      - Bulk-clear constrained values for outbound FKs on any table whose full row set is removed.
-      - Bulk-clear incoming constrained values on the truncated parent table after restrict/cascade/set-default checks pass.
-      - Keep `SET DEFAULT` guarded: do not shortcut moves when matching child rows exist, since the bunt key is deleted by the truncate.
-      - Exit criteria: truncating parent rows leaves no stale reverse-index entries without walking each deleted row.
+### Slice 5: Runtime Tests
 
-4. Add multi-table cycle detection.
-   4.1. Build a foreign-key graph view from schema metadata.
-      - Represent each FK as a directed edge from child table key to parent table key.
-      - Carry both `on-delete` and `on-update` actions on the edge.
-      - Include the candidate FK being validated without mutating schema/data first.
-      - Exit criteria: validation code can ask one helper whether adding a candidate FK would introduce a disallowed cycle.
+Add tests in `desk/tests/lib/sys-views.hoon`, unless local organization makes
+`desk/tests/lib/foreign-key.hoon` more appropriate for a focused FK view group.
 
-   4.2. Detect cycles reachable from a candidate child/parent edge.
-      - Walk the graph from the candidate parent back toward the candidate child.
-      - Track the path actions so the helper can classify the resulting cycle.
-      - Treat a cycle as allowed only when every FK action in the cycle is `RESTRICT` for both delete and update.
-      - Exit criteria: RESTRICT-only cycles return success; any cycle containing `CASCADE` or `SET DEFAULT` returns a failure.
+Passing test coverage:
 
-   4.3. Integrate cycle detection into `CREATE TABLE`.
-      - Check all FKs declared on the new table against existing schema plus earlier FKs in the same statement.
-      - Preserve the existing self-referential cascade rejection behavior while replacing it with the shared helper.
-      - Keep the current error text: `CREATE TABLE: cascading foreign-key cycle not allowed`.
-      - Exit criteria: `CREATE TABLE` allows RESTRICT-only self/multi-table cycles and rejects cascading cycles before metadata registration.
+- `CREATE TABLE` with single-column FK appears in `sys.foreign-keys`.
+- `CREATE TABLE` with composite FK emits one row per column in ordinal order.
+- `ALTER TABLE ADD FOREIGN KEY` appears in the view.
+- `ALTER TABLE DROP FOREIGN KEY` removes rows from the current view.
+- Empty child tables still emit FK rows.
+- `ON DELETE` and `ON UPDATE` actions are exposed as `%restrict`, `%cascade`,
+  or `%set-default`.
+- Multiple FKs in one database are all present and sorted deterministically.
+- Self-referential FK appears with the same parent and child table identity.
 
-   4.4. Integrate cycle detection into `ALTER TABLE ADD FOREIGN KEY`.
-      - Check the candidate FK against the current schema before existing-row validation/metadata registration.
-      - Keep the current error text: `ALTER TABLE: cascading foreign-key cycle not allowed`.
-      - Exit criteria: `ALTER TABLE ADD FOREIGN KEY` allows RESTRICT-only cycles and rejects any cycle containing `CASCADE` or `SET DEFAULT`.
+Historical/lifecycle coverage:
 
-   4.5. Add focused cycle detection tests.
-      - Cover RESTRICT-only two-table and three-table cycles.
-      - Cover two-table and three-table cycles containing `CASCADE` and `SET DEFAULT`.
-      - Cover self-referential RESTRICT allowed and self-referential cascade/set-default rejected through both create and alter where applicable.
-      - Exit criteria: cycle behavior is proven without relying on later runtime failures.
+- `AS OF` before an FK exists returns no rows for it.
+- `AS OF` after `ADD FOREIGN KEY` but before `DROP FOREIGN KEY` returns rows.
+- `DROP TABLE FORCE` removes incoming/outgoing FK rows from the current view.
+- `ALTER NAMESPACE ... TRANSFER TABLE` rewrites parent and/or child namespace
+  values in the current view and preserves old rows under prior `AS OF`.
+- `DROP NAMESPACE` removes FK rows for dropped tables in the current view and
+  preserves old rows under prior `AS OF`.
 
-5. Add tests without changing existing tests.
+Negative/regression coverage:
 
-## Test Plan
+- Child `INSERT`, `UPDATE`, and `DELETE` do not change the schema-only view
+  rows except for ordinary result metadata timestamps.
+- Composite FK order remains stable after unrelated schema changes.
 
-Add passing tests in `desk/tests/lib/foreign-key.hoon`, continuing `test-foreign-key-13+`:
+Exit criteria:
 
-- RESTRICT-only two-table cycle allowed.
-- Self-referential multi-row insert can reference rows from the same statement.
-- Self-referential RESTRICT behavior works for valid insert and protected delete/update.
-- Parent non-primary-key update does not trigger RI action.
-- `constrained-values` invariant after `ALTER TABLE ADD FOREIGN KEY` over existing child rows.
-- `constrained-values` invariant after child `INSERT`.
-- `constrained-values` invariant after child FK-column `UPDATE`.
-- `constrained-values` invariant after child primary-key-only `UPDATE`.
-- `constrained-values` invariant after child `DELETE`.
-- Optional: invariant after cascade and set-default parent actions.
+- The new tests fail before runtime implementation and pass after it.
+- Tests prove both current-state behavior and `AS OF` behavior.
 
-Add fail-on-message tests, continuing `test-fail-foreign-key-25+`:
+### Slice 6: Users Guide Example Polish
 
-- cascading two-table cycle rejected with `ALTER TABLE: cascading foreign-key cycle not allowed`
-- cascading three-table cycle rejected with `ALTER TABLE: cascading foreign-key cycle not allowed`
-- self-referential cascade rejected with `CREATE TABLE: cascading foreign-key cycle not allowed`
-- self-referential orphan insert rejected with `INSERT: FOREIGN KEY parent key not found`
-- self-referential RESTRICT delete/update rejected with existing restrict messages
+After runtime tests pass, add a short users-guide example if the Appendix entry
+feels too abstract.
 
-The metadata tests should establish the invariant by executing ordinary SQL and then inspecting `server.state`; they should not introduce runtime-only test hooks.
+Suggested example:
+
+```urql
+FROM sys.foreign-keys
+SELECT parent-namespace, parent-table, child-namespace, child-table,
+       ordinal, parent-column, child-column, on-delete, on-update;
+```
+
+Exit criteria:
+
+- The example matches actual output semantics from the implemented view.
+- The users guide remains concise and does not duplicate the DDL reference.
+
+## Implementation Notes
+
+- Prefer parent-side `foreign-constraints` as the authoritative source.
+- Use `outbound-fk-index` only for cross-checking during development, not as the
+  view source.
+- The view should not expose or depend on `constrained-values`.
+- The view should not create a new FK identifier unless a later schema change
+  introduces named constraints or permits multiple distinguishable FKs between
+  the same parent/child identity.
+- Column names should avoid overloading `key`: use `child-column`, not
+  `child-key-column`, because FK source columns are not necessarily child
+  primary-key columns.
+
+## Open Questions
+
+None currently.

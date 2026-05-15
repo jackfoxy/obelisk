@@ -131,6 +131,54 @@
               [%note [~.t 'alpha']]
               ==
       ==
+++  select-foreign-keys
+  "FROM sys.foreign-keys ".
+  "SELECT parent-namespace, parent-table, child-namespace, child-table, ".
+  "ordinal, parent-column, child-column, on-delete, on-update"
+++  select-foreign-keys-as-of
+  |=  tmsp=@da
+  ^-  tape
+  %+  weld
+    "FROM sys.foreign-keys AS OF "
+    %+  weld
+      (scow %da tmsp)
+      " SELECT parent-namespace, parent-table, child-namespace, child-table, ".
+      "ordinal, parent-column, child-column, on-delete, on-update"
+++  fk-row
+  |=  $:  parent-namespace=@tas
+          parent-table=@tas
+          child-namespace=@tas
+          child-table=@tas
+          ordinal=@ud
+          parent-column=@tas
+          child-column=@tas
+          on-delete=@tas
+          on-update=@tas
+          ==
+  ^-  vector:ast
+  :-  %vector
+      :~  [%parent-namespace [~.tas parent-namespace]]
+          [%parent-table [~.tas parent-table]]
+          [%child-namespace [~.tas child-namespace]]
+          [%child-table [~.tas child-table]]
+          [%ordinal [~.ud ordinal]]
+          [%parent-column [~.tas parent-column]]
+          [%child-column [~.tas child-column]]
+          [%on-delete [~.tas on-delete]]
+          [%on-update [~.tas on-update]]
+          ==
+++  foreign-keys-result
+  |=  [server-time=@da schema-time=@da data-time=@da rows=(list vector:ast)]
+  ^-  cmd-result:ast
+  :-  %results
+      :~  [%action 'SELECT']
+          [%result-set rows]
+          [%server-time server-time]
+          [%relation 'db1.sys.foreign-keys']
+          [%schema-time schema-time]
+          [%data-time data-time]
+          [%vector-count (lent rows)]
+          ==
 ::
 ::  CREATE TABLE with FOREIGN KEY and valid INSERTs
 ++  test-foreign-key-00
@@ -2501,6 +2549,334 @@
               [%data-time ~2038.11.5]
               [%vector-count 1]
               ==
+      ==
+::
+::  sys.foreign-keys exposes a single-column CREATE TABLE FK for empty tables
+++  test-foreign-key-63
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2040.1.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2040.1.2 %db1 select-foreign-keys]
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.1.2
+          ~2040.1.1
+          ~2040.1.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ==
+::
+::  sys.foreign-keys emits composite FK columns in ordinal order
+++  test-foreign-key-64
+  =|  run=@ud
+  %-  exec-1-2-ordered
+  :*  run
+      :+  ~2040.2.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-composite-parent
+                        ==
+      ::
+      [~2040.2.2 %db1 create-composite-child-cascade]
+      ::
+      [~2040.2.3 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.2.4
+          %db1
+          (select-foreign-keys-as-of ~2040.2.2)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.2.3
+          ~2040.2.2
+          ~2040.2.2
+          :~  (fk-row %dbo %parent %dbo %child 1 %tenant-id %parent-tenant %cascade %cascade)
+              (fk-row %dbo %parent %dbo %child 2 %code %parent-code %cascade %cascade)
+              ==
+          ==
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.2.4
+          ~2040.2.2
+          ~2040.2.2
+          :~  (fk-row %dbo %parent %dbo %child 1 %tenant-id %parent-tenant %cascade %cascade)
+              (fk-row %dbo %parent %dbo %child 2 %code %parent-code %cascade %cascade)
+              ==
+          ==
+      ==
+::
+::  sys.foreign-keys tracks ALTER TABLE ADD FOREIGN KEY across AS OF
+++  test-foreign-key-65
+  =|  run=@ud
+  %-  exec-1-2-ordered
+  :*  run
+      :+  ~2040.3.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        "CREATE TABLE child ".
+                        "(id @ud, parent-id @ud, note @t) ".
+                        "PRIMARY KEY (id); "
+                        ==
+      ::
+      :+  ~2040.3.2
+          %db1
+          "ALTER TABLE child ADD FOREIGN KEY ".
+          "(parent-id) REFERENCES parent (id); "
+      ::
+      :+  ~2040.3.3
+          %db1
+          (select-foreign-keys-as-of ~2040.3.1)
+      ::
+      [~2040.3.4 %db1 select-foreign-keys]
+      ::
+      (foreign-keys-result ~2040.3.3 ~2040.3.1 ~2040.3.1 ~)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.3.4
+          ~2040.3.2
+          ~2040.3.2
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ==
+::
+::  sys.foreign-keys tracks ALTER TABLE DROP FOREIGN KEY across AS OF
+++  test-foreign-key-66
+  =|  run=@ud
+  %-  exec-2-2-ordered
+  :*  run
+      :+  ~2040.4.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      :+  ~2040.4.2
+          %db1
+          "ALTER TABLE child DROP FOREIGN KEY ".
+          "(parent-id) parent; "
+      ::
+      :+  ~2040.4.3
+          %db1
+          "INSERT INTO child (id, parent-id, note) ".
+          "VALUES (10, 99, 'orphan'); "
+      ::
+      [~2040.4.4 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.4.5
+          %db1
+          (select-foreign-keys-as-of ~2040.4.1)
+      ::
+      (foreign-keys-result ~2040.4.4 ~2040.4.2 ~2040.4.2 ~)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.4.5
+          ~2040.4.1
+          ~2040.4.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ==
+::
+::  child-side DML does not change the schema-only sys.foreign-keys rows
+++  test-foreign-key-67
+  =|  run=@ud
+  %-  exec-4-2-ordered
+  :*  run
+      :+  ~2040.5.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child-cascade
+                        ==
+      ::
+      [~2040.5.2 %db1 insert-parents]
+      ::
+      [~2040.5.3 %db1 insert-children]
+      ::
+      [~2040.5.4 %db1 "UPDATE child SET note = 'changed' WHERE id = 10; "]
+      ::
+      [~2040.5.5 %db1 "DELETE FROM child WHERE id = 11; "]
+      ::
+      [~2040.5.6 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.5.7
+          %db1
+          (select-foreign-keys-as-of ~2040.5.1)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.5.6
+          ~2040.5.1
+          ~2040.5.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %cascade %cascade)]
+          ==
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.5.7
+          ~2040.5.1
+          ~2040.5.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %cascade %cascade)]
+          ==
+      ==
+::
+::  sys.foreign-keys reports multiple FKs and a self-referential FK
+++  test-foreign-key-68
+  =|  run=@ud
+  %-  exec-1-2-ordered
+  :*  run
+      :+  ~2040.6.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE TABLE a (id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE b (id @ud) PRIMARY KEY (id); "
+                        ==
+      ::
+      :+  ~2040.6.2
+          %db1
+          %-  zing  :~  "CREATE TABLE a-child ".
+                        "(id @ud, a-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (a-id) REFERENCES a (id); "
+                        "CREATE TABLE b-child ".
+                        "(id @ud, b-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (b-id) REFERENCES b (id) ".
+                        "ON DELETE SET DEFAULT ON UPDATE SET DEFAULT; "
+                        "CREATE TABLE node ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES node (id); "
+                        ==
+      ::
+      [~2040.6.3 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.6.4
+          %db1
+          (select-foreign-keys-as-of ~2040.6.2)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.6.3
+          ~2040.6.2
+          ~2040.6.2
+          :~  (fk-row %dbo %a %dbo %a-child 1 %id %a-id %restrict %restrict)
+              (fk-row %dbo %b %dbo %b-child 1 %id %b-id %set-default %set-default)
+              (fk-row %dbo %node %dbo %node 1 %id %parent-id %restrict %restrict)
+              ==
+          ==
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.6.4
+          ~2040.6.2
+          ~2040.6.2
+          :~  (fk-row %dbo %a %dbo %a-child 1 %id %a-id %restrict %restrict)
+              (fk-row %dbo %b %dbo %b-child 1 %id %b-id %set-default %set-default)
+              (fk-row %dbo %node %dbo %node 1 %id %parent-id %restrict %restrict)
+              ==
+          ==
+      ==
+::
+::  namespace transfer rewrites parent and child namespaces in sys.foreign-keys
+++  test-foreign-key-69
+  =|  run=@ud
+  %-  exec-2-2-ordered
+  :*  run
+      :+  ~2040.7.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2040.7.2 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE parent; "]
+      ::
+      [~2040.7.3 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE child; "]
+      ::
+      [~2040.7.4 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.7.5
+          %db1
+          (select-foreign-keys-as-of ~2040.7.1)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.7.4
+          ~2040.7.3
+          ~2040.7.3
+          ~[(fk-row %ns1 %parent %ns1 %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.7.5
+          ~2040.7.1
+          ~2040.7.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ==
+::
+::  DROP TABLE FORCE removes current FK rows while preserving prior AS OF rows
+++  test-foreign-key-70
+  =|  run=@ud
+  %-  exec-1-2-ordered
+  :*  run
+      :+  ~2040.8.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        create-parent
+                        create-child
+                        ==
+      ::
+      [~2040.8.2 %db1 "DROP TABLE FORCE parent; "]
+      ::
+      [~2040.8.3 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.8.4
+          %db1
+          (select-foreign-keys-as-of ~2040.8.1)
+      ::
+      (foreign-keys-result ~2040.8.3 ~2040.8.2 ~2040.8.2 ~)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.8.4
+          ~2040.8.1
+          ~2040.8.1
+          ~[(fk-row %dbo %parent %dbo %child 1 %id %parent-id %restrict %restrict)]
+          ==
+      ==
+::
+::  DROP NAMESPACE removes current FK rows while preserving prior AS OF rows
+++  test-foreign-key-71
+  =|  run=@ud
+  %-  exec-1-2-ordered
+  :*  run
+      :+  ~2040.9.1
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE ns1; "
+                        "CREATE TABLE ns1.parent (id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE ns1.child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        ==
+      ::
+      [~2040.9.2 %db1 "DROP NAMESPACE ns1; "]
+      ::
+      [~2040.9.3 %db1 select-foreign-keys]
+      ::
+      :+  ~2040.9.4
+          %db1
+          (select-foreign-keys-as-of ~2040.9.1)
+      ::
+      (foreign-keys-result ~2040.9.3 ~2040.9.2 ~2040.9.2 ~)
+      ::
+      %-  foreign-keys-result
+      :*  ~2040.9.4
+          ~2040.9.1
+          ~2040.9.1
+          ~[(fk-row %ns1 %parent %ns1 %child 1 %id %parent-id %restrict %restrict)]
+          ==
       ==
 ::
 ::  rejects cross-database foreign keys

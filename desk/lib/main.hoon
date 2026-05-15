@@ -274,6 +274,9 @@
                       :-  [%sys %table-keys sys-time]
                           %-  apply-ordering
                               (sys-table-keys-view +<.c sap.bowl sys-time)
+                      :-  [%sys %foreign-keys sys-time]
+                          %-  apply-ordering
+                              (sys-foreign-keys-view +<.c sap.bowl sys-time)
                       :-  [%sys %columns sys-time]
                           %-  apply-ordering
                               (sys-columns-view +<.c sap.bowl sys-time)
@@ -355,6 +358,9 @@
                       :-  [%sys %table-keys sys-time]
                           %-  apply-ordering
                               (sys-table-keys-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %foreign-keys sys-time]
+                          %-  apply-ordering
+                              (sys-foreign-keys-view new-name.c sap.bowl sys-time)
                       :-  [%sys %columns sys-time]
                           %-  apply-ordering
                               (sys-columns-view new-name.c sap.bowl sys-time)

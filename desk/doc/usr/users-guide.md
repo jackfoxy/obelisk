@@ -1394,6 +1394,53 @@ Lists tables and their primary keys.
 
 namespace, name, key-ordinal
 
+## sys.foreign-keys
+
+Lists declared foreign keys. This view describes foreign-key schema only; it
+does not expose current referencing row counts, referenced key values, or other
+runtime referential-integrity state.
+
+Each row represents one ordered parent/child column pair in a declared foreign
+key. Composite foreign keys therefore produce multiple rows that share the same
+parent and child table identity and differ by `ordinal`. Empty tables still
+show their declared foreign keys.
+
+Foreign keys reference the complete primary key of the parent table in primary
+key order. `parent-column` is included so composite foreign-key order can be
+inspected directly from this view without joining to `sys.table-keys`.
+
+### Columns
+
+**parent-namespace @tas** Namespace of the referenced parent table.
+
+**parent-table @tas** Referenced parent table.
+
+**child-namespace @tas** Namespace of the constrained child table.
+
+**child-table @tas** Constrained child table.
+
+**ordinal @ud** One-based ordinal of this column pair within the foreign key.
+
+**parent-column @tas** Parent/referenced primary-key column at `ordinal`.
+
+**child-column @tas** Child/source column at `ordinal`.
+
+**on-delete @tas** Delete action: `restrict`, `cascade`, or `set-default`.
+
+**on-update @tas** Update action: `restrict`, `cascade`, or `set-default`.
+
+### Default Ordering
+
+parent-namespace, parent-table, child-namespace, child-table, ordinal
+
+### Example
+
+```
+FROM sys.foreign-keys
+SELECT parent-namespace, parent-table, child-namespace, child-table,
+       ordinal, parent-column, child-column, on-delete, on-update;
+```
+
 ## sys.columns
 
 Lists table columns.

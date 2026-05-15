@@ -148,6 +148,9 @@
         :-  [%sys %table-keys sys-time]
             %-  apply-ordering
                 (sys-table-keys-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %foreign-keys sys-time]
+            %-  apply-ordering
+                (sys-foreign-keys-view db `path`(limo `path`/test-agent) sys-time)
         :-  [%sys %columns sys-time]
             %-  apply-ordering
                 (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
@@ -672,6 +675,7 @@
                           :~  [%sys %columns ~2000.1.2]
                               [%sys %tables ~2000.1.2]
                               [%sys %table-keys ~2000.1.2]
+                              [%sys %foreign-keys ~2000.1.2]
                               [%sys %sys-log ~2000.1.2]
                               [%sys %data-log ~2000.1.2]
                               ==
@@ -720,6 +724,7 @@
                     :~  [%sys %columns ~2000.1.2]
                         [%sys %tables ~2000.1.2]
                         [%sys %table-keys ~2000.1.2]
+                        [%sys %foreign-keys ~2000.1.2]
                         [%sys %sys-log ~2000.1.2]
                         [%sys %data-log ~2000.1.2]
                         ==
@@ -782,10 +787,12 @@
                         :~  [%sys %columns ~2000.1.2]
                             [%sys %tables ~2000.1.2]
                             [%sys %table-keys ~2000.1.2]
+                            [%sys %foreign-keys ~2000.1.2]
                             [%sys %sys-log ~2000.1.2]
                             [%sys %columns ~2000.1.3]
                             [%sys %tables ~2000.1.3]
                             [%sys %table-keys ~2000.1.3]
+                            [%sys %foreign-keys ~2000.1.3]
                             [%sys %sys-log ~2000.1.3]
                             [%sys %data-log ~2000.1.2]
                             [%sys %data-log ~2000.1.3]
@@ -1130,10 +1137,12 @@
                         :~  [%sys %columns ~2000.1.2]
                             [%sys %tables ~2000.1.2]
                             [%sys %table-keys ~2000.1.2]
+                            [%sys %foreign-keys ~2000.1.2]
                             [%sys %sys-log ~2000.1.2]
                             [%sys %columns ~2000.1.3]
                             [%sys %tables ~2000.1.3]
                             [%sys %table-keys ~2000.1.3]
+                            [%sys %foreign-keys ~2000.1.3]
                             [%sys %sys-log ~2000.1.3]
                             [%sys %data-log ~2000.1.2]
                             [%sys %data-log ~2000.1.3]
@@ -1242,6 +1251,7 @@
                                     ==
                                 :~  [%sys %tables ~2000.1.2]
                                     [%sys %table-keys ~2000.1.2]
+                                    [%sys %foreign-keys ~2000.1.2]
                                     [%sys %columns ~2000.1.2]
                                     [%sys %data-log ~2000.1.2]
                                     [%sys %sys-log ~2000.1.2]
@@ -1249,6 +1259,7 @@
                                     [%sys %tables ~2000.1.3]
                                     [%sys %tables ~2000.1.4]
                                     [%sys %table-keys ~2000.1.4]
+                                    [%sys %foreign-keys ~2000.1.4]
                                     [%sys %columns ~2000.1.4]
                                     [%sys %sys-log ~2000.1.4]
                                     [%sys %data-log ~2000.1.4]
@@ -1363,6 +1374,7 @@
                                 :~  [%sys %columns ~2000.1.2]
                                     [%sys %tables ~2000.1.2]
                                     [%sys %table-keys ~2000.1.2]
+                                    [%sys %foreign-keys ~2000.1.2]
                                     [%sys %sys-log ~2000.1.2]
                                     [%sys %data-log ~2000.1.2]
                                     ==
@@ -1455,6 +1467,7 @@
                         :~  [%sys %columns ~2000.1.2]
                             [%sys %tables ~2000.1.2]
                             [%sys %table-keys ~2000.1.2]
+                            [%sys %foreign-keys ~2000.1.2]
                             [%sys %tables ~2000.1.3]
                             [%sys %sys-log ~2000.1.2]
                             [%sys %data-log ~2000.1.2]
@@ -1674,6 +1687,7 @@
                               [%sys %columns ~2023.7.9..22.35.36..7e90]
                               [%sys %tables ~2023.7.9..22.35.36..7e90]
                               [%sys %table-keys ~2023.7.9..22.35.36..7e90]
+                              [%sys %foreign-keys ~2023.7.9..22.35.36..7e90]
                               [%sys %data-log ~2023.7.9..22.35.36..7e90]
                               ==
                           ~[~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90]
@@ -1758,6 +1772,7 @@
                               [%sys %columns ~2023.7.9..22.35.36..7e90]
                               [%sys %tables ~2023.7.9..22.35.36..7e90]
                               [%sys %table-keys ~2023.7.9..22.35.36..7e90]
+                              [%sys %foreign-keys ~2023.7.9..22.35.36..7e90]
                               [%sys %data-log ~2023.7.9..22.35.36..7e90]
                               [%sys %data-log ~2023.7.9..22.35.38..7e90]
                               [%sys %namespaces ~2023.7.9..22.35.37..7e90]
@@ -1765,6 +1780,7 @@
                               [%sys %columns ~2023.7.9..22.35.38..7e90]
                               [%sys %tables ~2023.7.9..22.35.38..7e90]
                               [%sys %table-keys ~2023.7.9..22.35.38..7e90]
+                              [%sys %foreign-keys ~2023.7.9..22.35.38..7e90]
                               ==
                           :~  ~2000.1.1
                               ~2023.7.9..22.35.36..7e90
@@ -1885,6 +1901,7 @@
                             [%sys %columns ~2023.7.9..22.35.35..7e90]
                             [%sys %tables ~2023.7.9..22.35.35..7e90]
                             [%sys %table-keys ~2023.7.9..22.35.35..7e90]
+                            [%sys %foreign-keys ~2023.7.9..22.35.35..7e90]
                             [%sys %tables ~2023.7.9..22.35.36..7e90]
                             [%sys %data-log ~2023.7.9..22.35.35..7e90]
                             [%sys %data-log ~2023.7.9..22.35.36..7e90]
