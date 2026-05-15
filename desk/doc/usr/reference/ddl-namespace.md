@@ -128,9 +128,7 @@ alter namespace state change after query in script
 
 ## DROP NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
-
-Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
+Deletes a `<namespace>` and all tables in that namespace.
 
 ```
 <drop-namespace> ::= 
@@ -141,7 +139,7 @@ Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
 ### Arguments
 
 **`FORCE`**
-Optionally force deletion of `<namespace>`, dropping all objects associated with the namespace.
+Optionally force deletion of `<namespace>`, dropping all tables associated with the namespace.
 
 **`<namespace>`**
 The name of `<namespace>` to delete.
@@ -165,19 +163,40 @@ Timestamp of namespace deletion. Defaults to `NOW` (current time). When specifie
 
 This command mutates the state of the Obelisk agent.
 
-Only succeeds when no *populated* `<table>`s are in the namespace, unless `FORCE` is specified, possibly resulting in cascading object drops described in `DROP TABLE`.
+Without `FORCE`, the namespace can be dropped only when all tables in the namespace are empty and dropping those tables would not orphan any foreign keys. An orphan foreign key is a constraint whose parent table is in the dropped namespace while the child table is outside the dropped namespace.
+
+Foreign keys wholly contained within the dropped namespace do not block a non-`FORCE` drop, provided the involved tables are empty. Foreign keys where only the child table is in the dropped namespace also do not block a non-`FORCE` drop, provided the child table is empty.
+
+With `FORCE`, all tables in the namespace are dropped regardless of row counts or foreign-key participation. Foreign-key metadata is cleaned up for all affected surviving tables:
+
+- if parent and child are both dropped, both sides are removed with the tables
+- if the parent is dropped and the child remains, the child's outbound foreign-key metadata is removed
+- if the child is dropped and the parent remains, the parent's incoming foreign-key metadata is removed
+
+Dropped tables remain available to historical queries when selected with an `AS OF` time before the namespace drop. The same namespace name, and the same table names within that namespace, may be created again after the drop time.
 
 The namespaces *dbo* and *sys* cannot be dropped.
 
 ### Produced Metadata
 
-Schema timestamp
+action: DROP NAMESPACE <namespace>
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
+
+The result also includes a message for each table dropped by the namespace drop.
 
 ### Exceptions
 
 schema changes must be by local agent
+database `<database>` does not exist
 namespace `<namespace>` does not exist
 namespace `<namespace>` as-of schema time out of order
 namespace `<namespace>` as-of content time out of order
 drop namespace state change after query in script
-`<namespace>` has populated tables and `FORCE` was not specified.
+namespace `<namespace>` cannot be dropped
+`<namespace>` has populated tables and `FORCE` was not specified
+`<namespace>` would orphan foreign keys and `FORCE` was not specified
+`<namespace>` has populated tables and would orphan foreign keys, and `FORCE` was not specified
+
+When the drop would orphan foreign keys, the error message names at least one affected foreign key relationship. If more than one relationship would be orphaned, the message also includes the total count.

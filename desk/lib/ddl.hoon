@@ -267,6 +267,109 @@
       (~(put by next-data) database-name.a sys-time)
       state
 ::
+++  drop-ns
+  |=  $:  d=drop-namespace:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  =(database-name.d %sys)
+        ~|("cannot drop namespace in sys database" !!)
+  =/  db  ~|  "DROP NAMESPACE: database {<database-name.d>} does not exist"
+              (~(got by state) database-name.d)
+  ?:  ?|  =(name.d %dbo)
+          =(name.d %sys)
+          ==
+    ~|("DROP NAMESPACE: namespace {<name.d>} cannot be dropped" !!)
+  =/  sys-time  (set-tmsp as-of.d now.bowl)
+  =/  nxt-schema=schema
+        ~|  "DROP NAMESPACE: namespace {<name.d>} as-of schema ".
+            "time out of order"
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 database-name.d
+                                 ==
+  =/  nxt-data=data
+        ~|  "DROP NAMESPACE: namespace {<name.d>} as-of content ".
+            "time out of order"
+            %:  get-next-data  content.db
+                                next-data
+                                sys-time
+                                database-name.d
+                                ==
+  ?.  (~(has by namespaces.nxt-schema) name.d)
+    ~|("DROP NAMESPACE: namespace {<name.d>} does not exist" !!)
+  =/  table-keys=(list [@tas @tas])
+        (namespace-table-keys name.d tables.nxt-schema)
+  =/  populated=?  (namespace-has-populated-tables table-keys files.nxt-data)
+  =/  orphans=(list [[@tas @tas] [@tas @tas]])
+        (namespace-orphan-fks name.d table-keys files.nxt-data)
+  =/  has-orphans=?  !=(~ orphans)
+  =/  dummy
+    ?.  force.d
+      ?:  ?&(populated has-orphans)
+        ~|((drop-namespace-orphan-message name.d %.y orphans) !!)
+      ?:  has-orphans
+        ~|((drop-namespace-orphan-message name.d %.n orphans) !!)
+      ?:  populated
+        ~|("DROP NAMESPACE: namespace {<name.d>} has populated tables, use FORCE to DROP" !!)
+      ~
+    ~
+  =/  cleaned=[tables files]
+        (remove-namespace-table-fks name.d table-keys tables.nxt-schema files.nxt-data)
+  =.  tables.nxt-schema  -.cleaned
+  =.  files.nxt-data     +.cleaned
+  =/  stripped=[tables files]
+        (remove-namespace-table-entries table-keys tables.nxt-schema files.nxt-data)
+  =.  tables.nxt-schema      -.stripped
+  =.  files.nxt-data         +.stripped
+  =.  namespaces.nxt-schema  (~(del by namespaces.nxt-schema) name.d)
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  =.  tmsp.nxt-data          sys-time
+  =.  provenance.nxt-data    sap.bowl
+  =.  ship.nxt-data          src.bowl
+  =.  sys.db                 (put:schema-key sys.db sys-time nxt-schema)
+  =.  content.db             (put:data-key content.db sys-time nxt-data)
+  =.  event-log.db  :-  :*  %sys-log-event
+                            sys-time
+                            sap.bowl
+                            %drop
+                            %namespace
+                            database-name.d
+                            `name.d
+                            ~
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.db
+  =.  event-log.db
+        %:  drop-namespace-table-events  database-name.d
+                                         table-keys
+                                         sys-time
+                                         sap.bowl
+                                         event-log.db
+                                         ==
+  =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-namespace)
+  =.  state          (update-sys state sys-time)
+  =/  result-meta=(list result:ast)
+        %+  weld
+          ^-  (list result:ast)
+          :~  [%action (crip "DROP NAMESPACE {<name.d>}")]
+              [%server-time now.bowl]
+              [%schema-time sys-time]
+              [%data-time sys-time]
+              ==
+          (drop-namespace-table-messages table-keys)
+  :^  :-  %results
+          result-meta
+      (~(put by next-schemas) database-name.d sys-time)
+      (~(put by next-data) database-name.d sys-time)
+      (~(put by state) name.db db)
+::
 ++  create-tbl
   |=  $:  =create-table:ast
           next-schemas=(map @tas @da)
@@ -762,6 +865,223 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
 ::
+++  namespace-table-keys
+  |=  [ns=@tas tbls=tables]
+  ^-  (list [@tas @tas])
+  =/  pairs=(list [[@tas @tas] table])  ~(tap by tbls)
+  =/  out=(list [@tas @tas])  ~
+  |-
+  ?~  pairs  (flop out)
+  =/  key=[@tas @tas]  -.i.pairs
+  %=  $
+    pairs  t.pairs
+    out    ?:  =(ns -.key)  [key out]  out
+  ==
+::
+++  namespace-has-populated-tables
+  |=  [keys=(list [@tas @tas]) fils=files]
+  ^-  ?
+  |-
+  ?~  keys  %.n
+  =/  fil=file  (~(got by fils) i.keys)
+  ?:  (gth rowcount.fil 0)  %.y
+  $(keys t.keys)
+::
+++  remove-namespace-table-fks
+  |=  $:  ns=@tas
+          keys=(list [@tas @tas])
+          tbls=tables
+          fils=files
+          ==
+  ^-  [tables files]
+  =/  cur-tables=tables  tbls
+  =/  cur-files=files    fils
+  |-
+  ?~  keys  [cur-tables cur-files]
+  =/  key=[@tas @tas]  i.keys
+  =/  tbl=table  (~(got by cur-tables) key)
+  =/  fil=file   (~(got by cur-files) key)
+  =/  clean-files=files
+        %:  remove-namespace-outgoing-fks  ns
+                                          key
+                                          tbl
+                                          cur-files
+                                          ==
+  =/  clean-tables=tables
+        %:  remove-namespace-incoming-fks  ns
+                                          key
+                                          foreign-constraints.fil
+                                          cur-tables
+                                          ==
+  %=  $
+    keys        t.keys
+    cur-tables  clean-tables
+    cur-files   clean-files
+  ==
+::
+++  remove-namespace-outgoing-fks
+  |=  $:  ns=@tas
+          tbl-key=[@tas @tas]
+          dropped-tbl=table
+          fils=files
+          ==
+  ^-  files
+  =/  fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.dropped-tbl)
+  =/  cur-files=files  fils
+  |-
+  ?~  fks  cur-files
+  =/  parent-key=[@tas @tas]  reference-table.i.fks
+  ?:  =(ns -.parent-key)
+    $(fks t.fks)
+  =/  parent-fil=file  (~(got by cur-files) parent-key)
+  =.  foreign-constraints.parent-fil
+        %^  remove-incoming-fk  foreign-constraints.parent-fil
+                                tbl-key
+                                constrained-columns.i.fks
+  =.  cur-files  (~(put by cur-files) parent-key parent-fil)
+  $(fks t.fks)
+::
+++  remove-namespace-incoming-fks
+  |=  $:  ns=@tas
+          tbl-key=[@tas @tas]
+          constraints=(list foreign-constraint)
+          tbls=tables
+          ==
+  ^-  tables
+  =/  cur-tables  tbls
+  |-
+  ?~  constraints  cur-tables
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  ?:  =(ns -.child-key)
+    $(constraints t.constraints)
+  =/  child-tbl=table  (~(got by cur-tables) child-key)
+  =.  outbound-fk-index.child-tbl
+        %^  remove-outbound-fk  outbound-fk-index.child-tbl
+                                constrained-columns.i.constraints
+                                tbl-key
+  =.  cur-tables  (~(put by cur-tables) child-key child-tbl)
+  $(constraints t.constraints)
+::
+++  namespace-orphan-fks
+  |=  $:  ns=@tas
+          keys=(list [@tas @tas])
+          fils=files
+          ==
+  ^-  (list [[@tas @tas] [@tas @tas]])
+  =/  out=(list [[@tas @tas] [@tas @tas]])  ~
+  |-
+  ?~  keys  (flop out)
+  =/  parent-key=[@tas @tas]  i.keys
+  =/  fil=file  (~(got by fils) parent-key)
+  %=  $
+    keys  t.keys
+    out   %:  collect-orphan-fks  ns
+                                   parent-key
+                                   foreign-constraints.fil
+                                   out
+                                   ==
+  ==
+::
+++  collect-orphan-fks
+  |=  $:  ns=@tas
+          parent-key=[@tas @tas]
+          constraints=(list foreign-constraint)
+          out=(list [[@tas @tas] [@tas @tas]])
+          ==
+  ^-  (list [[@tas @tas] [@tas @tas]])
+  |-
+  ?~  constraints  out
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  %=  $
+    constraints  t.constraints
+    out          ?:  =(ns -.child-key)
+                   out
+                 [[parent-key child-key] out]
+  ==
+::
+++  drop-namespace-orphan-message
+  |=  $:  ns=@tas
+          populated=?
+          orphans=(list [[@tas @tas] [@tas @tas]])
+          ==
+  ^-  tape
+  ?~  orphans
+    "DROP NAMESPACE: namespace {<ns>} would orphan FOREIGN KEY, use FORCE to DROP"
+  =/  orphan=[[@tas @tas] [@tas @tas]]  i.orphans
+  =/  parent-key=[@tas @tas]  -.orphan
+  =/  child-key=[@tas @tas]   +.orphan
+  =/  count=@ud  (lent orphans)
+  ?:  populated
+    ?:  =(count 1)
+      "DROP NAMESPACE: namespace {<ns>} has populated tables and would ".
+      "orphan FOREIGN KEY {<-.parent-key>}.{<+.parent-key>} -> ".
+      "{<-.child-key>}.{<+.child-key>}, use FORCE to DROP"
+    "DROP NAMESPACE: namespace {<ns>} has populated tables and would ".
+    "orphan FOREIGN KEY {<-.parent-key>}.{<+.parent-key>} -> ".
+    "{<-.child-key>}.{<+.child-key>} ({<count>} total), use FORCE to DROP"
+  ?:  =(count 1)
+    "DROP NAMESPACE: namespace {<ns>} would orphan FOREIGN KEY ".
+    "{<-.parent-key>}.{<+.parent-key>} -> ".
+    "{<-.child-key>}.{<+.child-key>}, use FORCE to DROP"
+  "DROP NAMESPACE: namespace {<ns>} would orphan FOREIGN KEY ".
+  "{<-.parent-key>}.{<+.parent-key>} -> ".
+  "{<-.child-key>}.{<+.child-key>} ({<count>} total), use FORCE to DROP"
+::
+++  remove-namespace-table-entries
+  |=  $:  keys=(list [@tas @tas])
+          tbls=tables
+          fils=files
+          ==
+  ^-  [tables files]
+  =/  cur-tables=tables  tbls
+  =/  cur-files=files    fils
+  |-
+  ?~  keys  [cur-tables cur-files]
+  %=  $
+    keys        t.keys
+    cur-tables  (~(del by cur-tables) i.keys)
+    cur-files   (~(del by cur-files) i.keys)
+  ==
+::
+++  drop-namespace-table-events
+  |=  $:  db-name=@tas
+          keys=(list [@tas @tas])
+          sys-time=@da
+          provenance=path
+          log=(list sys-log-event)
+          ==
+  ^-  (list sys-log-event)
+  |-
+  ?~  keys  log
+  =/  key=[@tas @tas]  i.keys
+  %=  $
+    keys  t.keys
+    log   :-  :*  %sys-log-event
+                 sys-time
+                 provenance
+                 %drop
+                 %table
+                 db-name
+                 `-.key
+                 `+.key
+                 ~
+                 ~
+                 ~
+                 ~
+                 ==
+             log
+  ==
+::
+++  drop-namespace-table-messages
+  |=  keys=(list [@tas @tas])
+  ^-  (list result:ast)
+  |-
+  ?~  keys  ~
+  =/  key=[@tas @tas]  i.keys
+  :-  [%message (crip "DROP TABLE {<-.key>}.{<+.key>}")]
+  $(keys t.keys)
+::
 ++  mk-foreign-key-work
   |=  $:  child-key=[@tas @tas]
           =schema
@@ -787,7 +1107,14 @@
   =/  child-table  (~(got by out-tables) child-key)
   =/  child-file   (~(got by out-files) child-key)
   =/  parent-file  (~(got by out-files) parent-key)
-  =/  registered   (register-fk fk child-table child-file parent-file sys-time)
+  =/  registered
+        %:  register-fk  child-key
+                         fk
+                         child-table
+                         child-file
+                         parent-file
+                         sys-time
+                         ==
   %=  $
     fks         t.fks
     out-tables  (~(put by out-tables) child-key child.registered)
@@ -1214,15 +1541,14 @@
                                ==
 ::
 ++  register-fk
-  |=  $:  fk=foreign-key:ast
+  |=  $:  child-key=[@tas @tas]
+          fk=foreign-key:ast
           child-table=table
           child-file=file
           parent-file=file
           registered-time=@da
           ==
   ^-  [child=table parent=file]
-  =/  child-key=[@tas @tas]
-        [namespace.qualified-table.fk name.qualified-table.fk]
   =/  parent-key=[@tas @tas]
         [namespace.reference-table.fk name.reference-table.fk]
   =/  incoming=foreign-constraint

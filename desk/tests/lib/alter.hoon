@@ -288,6 +288,354 @@
               ==
       ==
 ::
+::  drops an empty namespace and removes it from sys.namespaces
+++  test-drop-namespace-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.2.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.2.3 %db1 "DROP NAMESPACE ns1"]
+      ::
+      [~2000.2.4 %db1 "FROM sys.namespaces SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%tmsp [~.da ~2000.2.1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %sys]]
+                              [%tmsp [~.da ~2000.2.1]]
+                              ==
+                      ==
+              [%server-time ~2000.2.4]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2000.2.3]
+              [%data-time ~2000.2.3]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  drops namespace tables while preserving prior AS OF reads and name reuse
+++  test-drop-namespace-01
+  =|  run=@ud
+  %-  exec-6-2
+  :*  run
+      [~2000.4.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.4.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      :+  ~2000.4.3
+          %db1
+          "CREATE TABLE ns1.my-table ".
+          "(id @ud, label @t) PRIMARY KEY (id)"
+      ::
+      [~2000.4.4 %db1 "INSERT INTO ns1.my-table (id, label) VALUES (1, 'old')"]
+      ::
+      [~2000.4.5 %db1 "DROP NAMESPACE FORCE ns1"]
+      ::
+      [~2000.4.6 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      :+  ~2000.4.7
+          %db1
+          "CREATE TABLE ns1.my-table ".
+          "(id @ud, label @t) PRIMARY KEY (id)"
+      ::
+      :+  ~2000.4.8
+          %db1
+          "FROM ns1.my-table AS OF ~2000.4.4 SELECT id, label"
+      ::
+      [~2000.4.9 %db1 "FROM ns1.my-table SELECT id, label"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%label [~.t 'old']]
+                              ==
+                      ==
+              [%server-time ~2000.4.8]
+              [%relation 'db1.ns1.my-table']
+              [%schema-time ~2000.4.3]
+              [%data-time ~2000.4.4]
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2000.4.9]
+              [%relation 'db1.ns1.my-table']
+              [%schema-time ~2000.4.7]
+              [%data-time ~2000.4.7]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  records namespace and table drop events for namespace table drops
+++  test-drop-namespace-02
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      [~2000.5.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.5.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      :+  ~2000.5.3
+          %db1
+          "CREATE TABLE ns1.a (id @ud) PRIMARY KEY (id)"
+      ::
+      :+  ~2000.5.4
+          %db1
+          "CREATE TABLE ns1.b (id @ud) PRIMARY KEY (id)"
+      ::
+      [~2000.5.5 %db1 "DROP NAMESPACE FORCE ns1"]
+      ::
+      :+  ~2000.5.6
+          %db1
+          "FROM sys.sys-log WHERE tmsp = ~2000.5.5 ".
+          "SELECT action, component, namespace, relation"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%action [~.tas %drop]]
+                              [%component [~.tas %namespace]]
+                              [%namespace [~.tas %ns1]]
+                              [%relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %drop]]
+                              [%component [~.tas %table]]
+                              [%namespace [~.tas %ns1]]
+                              [%relation [~.tas %a]]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %drop]]
+                              [%component [~.tas %table]]
+                              [%namespace [~.tas %ns1]]
+                              [%relation [~.tas %b]]
+                              ==
+                      ==
+              [%server-time ~2000.5.6]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2000.5.5]
+              [%data-time ~2000.5.5]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  drop namespace result includes a message for each dropped table
+++  test-drop-namespace-03
+  =|  run=@ud
+  %-  exec-1-l
+  :*  run
+      :+  ~2000.6.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1.ns1.a (id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1.ns1.b (id @ud) PRIMARY KEY (id); "
+                        "INSERT INTO db1.ns1.a (id) VALUES (1); "
+                        ==
+      ::
+      [~2000.6.2 %db1 "FROM sys.namespaces SELECT *"]
+      ::
+      [~2000.6.3 %db1 "DROP NAMESPACE FORCE ns1"]
+      ::
+      :~  :-  %results
+              :~  [%action 'DROP NAMESPACE %ns1']
+                  [%server-time ~2000.6.3]
+                  [%schema-time ~2000.6.3]
+                  [%data-time ~2000.6.3]
+                  [%message 'DROP TABLE %ns1.%b']
+                  [%message 'DROP TABLE %ns1.%a']
+                  ==
+          ==
+      ==
+::
+::  drops a namespace where parent and child FKs are both inside
+++  test-drop-namespace-04
+  =|  run=@ud
+  %-  exec-7-2
+  :*  run
+      [~2000.11.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.11.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.11.3 %db1 "CREATE TABLE ns1.parent (id @ud) PRIMARY KEY (id)"]
+      ::
+      :+  ~2000.11.4
+          %db1
+          "CREATE TABLE ns1.child ".
+          "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+          "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id)"
+      ::
+      [~2000.11.5 %db1 "DROP NAMESPACE ns1"]
+      ::
+      [~2000.11.6 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      :+  ~2000.11.7
+          %db1
+          "CREATE TABLE ns1.child ".
+          "(id @ud, parent-id @ud) PRIMARY KEY (id)"
+      ::
+      [~2000.11.8 %db1 "INSERT INTO ns1.child (id, parent-id) VALUES (1, 99)"]
+      ::
+      [~2000.11.9 %db1 "FROM ns1.child SELECT id, parent-id"]
+      ::
+      [~2000.11.10 %db1 "FROM sys.tables SELECT namespace, name"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%parent-id [~.ud 99]]
+                              ==
+                      ==
+              [%server-time ~2000.11.9]
+              [%relation 'db1.ns1.child']
+              [%schema-time ~2000.11.7]
+              [%data-time ~2000.11.8]
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%namespace [~.tas %ns1]]
+                              [%name [~.tas %child]]
+                              ==
+                      ==
+              [%server-time ~2000.11.10]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2000.11.7]
+              [%data-time ~2000.11.8]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP NAMESPACE FORCE parent cleans surviving child outbound FK metadata
+++  test-drop-namespace-05
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2000.12.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1.ns1.parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1..child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        ==
+      ::
+      [~2000.12.2 %db1 "INSERT INTO ns1.parent (id) VALUES (1)"]
+      ::
+      [~2000.12.3 %db1 "DROP NAMESPACE FORCE ns1"]
+      ::
+      [~2000.12.4 %db1 "INSERT INTO child (id, parent-id) VALUES (10, 99)"]
+      ::
+      [~2000.12.5 %db1 "FROM child SELECT id, parent-id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 10]]
+                              [%parent-id [~.ud 99]]
+                              ==
+                      ==
+              [%server-time ~2000.12.5]
+              [%relation 'db1.dbo.child']
+              [%schema-time ~2000.12.1]
+              [%data-time ~2000.12.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  DROP NAMESPACE FORCE child cleans surviving parent incoming FK metadata
+++  test-drop-namespace-06
+  =|  run=@ud
+  %-  exec-4-1
+  :*  run
+      :+  ~2001.1.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1..parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1.ns1.child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES parent (id); "
+                        ==
+      ::
+      [~2001.1.2 %db1 "INSERT INTO parent (id) VALUES (1)"]
+      ::
+      [~2001.1.3 %db1 "INSERT INTO ns1.child (id, parent-id) VALUES (10, 1)"]
+      ::
+      [~2001.1.4 %db1 "DROP NAMESPACE FORCE ns1"]
+      ::
+      [~2001.1.5 %db1 "DELETE FROM parent WHERE id = 1"]
+      ::
+      [~2001.1.6 %db1 "FROM parent SELECT id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2001.1.6]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2001.1.1]
+              [%data-time ~2001.1.5]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  DROP NAMESPACE child-only FK cleanup works without FORCE when empty
+++  test-drop-namespace-07
+  =|  run=@ud
+  %-  exec-3-1
+  :*  run
+      :+  ~2001.2.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1..parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1.ns1.child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES parent (id); "
+                        ==
+      ::
+      [~2001.2.2 %db1 "INSERT INTO parent (id) VALUES (1)"]
+      ::
+      [~2001.2.3 %db1 "DROP NAMESPACE ns1"]
+      ::
+      [~2001.2.4 %db1 "DELETE FROM parent WHERE id = 1"]
+      ::
+      [~2001.2.5 %db1 "FROM parent SELECT id"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2001.2.5]
+              [%relation 'db1.dbo.parent']
+              [%schema-time ~2001.2.1]
+              [%data-time ~2001.2.4]
+              [%vector-count 0]
+              ==
+      ==
+::
 ::  rejects alter namespace when as-of equals latest schema time
 ++  test-fail-alter-namespace-table-00
   =|  run=@ud
@@ -322,6 +670,174 @@
           "ALTER NAMESPACE ns1 TRANSFER TABLE my-table AS OF ~2000.1.2"
       ::
       'ALTER NAMESPACE: %my-table as-of schema time out of order'
+      ==
+::
+::  rejects dropping a namespace in a missing database
+++  test-fail-drop-namespace-00
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      [~2000.2.1 %sys "DROP NAMESPACE missing-db.ns1"]
+      ::
+      'DROP NAMESPACE: database %missing-db does not exist'
+      ==
+::
+::  rejects dropping a missing namespace
+++  test-fail-drop-namespace-01
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.2.2 %db1 "DROP NAMESPACE missing"]
+      ::
+      'DROP NAMESPACE: namespace %missing does not exist'
+      ==
+::
+::  rejects dropping the dbo namespace
+++  test-fail-drop-namespace-02
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.2.2 %db1 "DROP NAMESPACE dbo"]
+      ::
+      'DROP NAMESPACE: namespace %dbo cannot be dropped'
+      ==
+::
+::  rejects dropping the sys namespace
+++  test-fail-drop-namespace-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.2.2 %db1 "DROP NAMESPACE sys"]
+      ::
+      'DROP NAMESPACE: namespace %sys cannot be dropped'
+      ==
+::
+::  rejects drop namespace when as-of equals latest schema time
+++  test-fail-drop-namespace-04
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2000.2.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.2.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.2.3 %db1 "DROP NAMESPACE ns1 AS OF ~2000.2.2"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 as-of schema time out of order'
+      ==
+::
+::  rejects drop namespace when as-of precedes latest content time
+++  test-fail-drop-namespace-05
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      [~2000.3.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.3.2
+          %db1
+          "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"
+      ::
+      [~2000.3.3 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.3.4 %db1 "INSERT INTO my-table (col1) VALUES ('cord')"]
+      ::
+      [~2000.3.5 %db1 "DROP NAMESPACE ns1 AS OF ~2000.3.3..1.1.1"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 as-of content time out of order'
+      ==
+::
+::  rejects dropping a populated namespace without FORCE
+++  test-fail-drop-namespace-06
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      [~2000.7.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.7.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      :+  ~2000.7.3
+          %db1
+          "CREATE TABLE ns1.my-table (id @ud) PRIMARY KEY (id)"
+      ::
+      [~2000.7.4 %db1 "INSERT INTO ns1.my-table (id) VALUES (1)"]
+      ::
+      [~2000.7.5 %db1 "DROP NAMESPACE ns1"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 has populated tables, use FORCE to DROP'
+      ==
+::
+::  rejects dropping a parent namespace that would orphan a child FK
+++  test-fail-drop-namespace-07
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2000.8.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1.ns1.parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1..child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        ==
+      ::
+      [~2000.8.2 %db1 "DROP NAMESPACE ns1"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 would orphan FOREIGN KEY %ns1.%parent -> %dbo.%child, use FORCE to DROP'
+      ==
+::
+::  reports a representative orphan FK and count when multiple would orphan
+++  test-fail-drop-namespace-08
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2000.9.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1.ns1.parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1..child-a ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        "CREATE TABLE db1..child-b ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        ==
+      ::
+      [~2000.9.2 %db1 "DROP NAMESPACE ns1"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 would orphan FOREIGN KEY %ns1.%parent -> %dbo.%child-b (2 total), use FORCE to DROP'
+      ==
+::
+::  reports both populated tables and orphan FKs when both block the drop
+++  test-fail-drop-namespace-09
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      :+  ~2000.10.1
+          %sys
+          %-  zing  :~  "CREATE DATABASE db1; "
+                        "CREATE NAMESPACE db1.ns1; "
+                        "CREATE TABLE db1.ns1.parent ".
+                        "(id @ud) PRIMARY KEY (id); "
+                        "CREATE TABLE db1..child ".
+                        "(id @ud, parent-id @ud) PRIMARY KEY (id) ".
+                        "FOREIGN KEY (parent-id) REFERENCES ns1.parent (id); "
+                        ==
+      ::
+      [~2000.10.2 %db1 "INSERT INTO ns1.parent (id) VALUES (1)"]
+      ::
+      [~2000.10.3 %db1 "DROP NAMESPACE ns1"]
+      ::
+      'DROP NAMESPACE: namespace %ns1 has populated tables and would orphan FOREIGN KEY %ns1.%parent -> %dbo.%child, use FORCE to DROP'
       ==
 ::
 ::  ALTER TABLE runtime coverage

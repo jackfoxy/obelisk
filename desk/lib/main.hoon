@@ -190,7 +190,15 @@
             ~|("DROP NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("DROP NAMESPACE: state change after query in script" !!)
-      ~|("%drop-namespace not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (drop-ns(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %drop-table
       ?.  =(our.bowl src.bowl)
             ~|("DROP TABLE: table must be dropped by local agent" !!)
