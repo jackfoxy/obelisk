@@ -1,6 +1,16 @@
 # Releases
 
 
+v0.8-beta release notes
+
+* ALTER DATABASE
+* ALTER NAMESPACE
+* ALTER TABLE
+* DROP NAMESPACE
+* Foreign Key Referential Integrity
+* sys.foreign-keys view
+* fixed bug where system views were not ordered
+
 ## v0.7 beta
 
 * Common Table Expressions (CTE)

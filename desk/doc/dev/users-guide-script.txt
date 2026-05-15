@@ -56,6 +56,49 @@
 =uql "DROP TABLE FORCE my-table-2;"
 
 
+# Referential Integrity
+
+=uql "CREATE DATABASE ri-demo; ".
+"CREATE TABLE ri-demo..authors ".
+"  (id @ud, name @t) ".
+"  PRIMARY KEY (id); ".
+"CREATE TABLE ri-demo..books ".
+"  (id @ud, author-id @ud, title @t) ".
+"  PRIMARY KEY (id) ".
+"  FOREIGN KEY (author-id) REFERENCES authors (id);"
+
+=uql "INSERT INTO ri-demo..authors ".
+"VALUES ".
+"  (1, 'Ursula K. Le Guin') ".
+"  (2, 'Octavia Butler'); ".
+"INSERT INTO ri-demo..books ".
+"VALUES ".
+"  (10, 1, 'The Dispossessed') ".
+"  (11, 2, 'Parable of the Sower');"
+
+=uql "INSERT INTO ri-demo..books ".
+"VALUES (12, 99, 'Orphaned Book');"
+
+=uql "DELETE FROM ri-demo..authors ".
+"WHERE id = 1;"
+
+=uql "CREATE TABLE ri-demo..reviews ".
+"  (id @ud, book-id @ud, body @t) ".
+"  PRIMARY KEY (id) ".
+"  FOREIGN KEY (book-id) REFERENCES books (id) ".
+"  ON DELETE CASCADE; ".
+"INSERT INTO ri-demo..reviews ".
+"VALUES (100, 10, 'Essential reading'); ".
+"DELETE FROM ri-demo..books ".
+"WHERE id = 10; ".
+"FROM ri-demo..reviews ".
+"SELECT *;"
+
+=uql "FROM ri-demo.sys.foreign-keys ".
+"SELECT parent-table, child-table, ordinal, ".
+"       parent-column, child-column, on-delete, on-update;"
+
+
 # Sample Database
 :obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 

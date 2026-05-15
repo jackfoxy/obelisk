@@ -34,6 +34,28 @@ CREATE TABLE db1..my-table
 ```
 
 ```urQL
+CREATE TABLE parent
+  (id @ud, label @t)
+  PRIMARY KEY (id);
+CREATE TABLE child
+  (id @ud, parent-id @ud, note @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (parent-id) REFERENCES parent (id);
+```
+
+```urQL
+CREATE TABLE tenant-codes
+  (tenant-id @ud, code @ud, label @t)
+  PRIMARY KEY (tenant-id, code);
+CREATE TABLE tenant-items
+  (id @ud, tenant-id @ud, code @ud, item @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (tenant-id, code)
+    REFERENCES tenant-codes (tenant-id, code)
+    ON DELETE CASCADE ON UPDATE CASCADE;
+```
+
+```urQL
 ALTER TABLE my-table RENAME TO renamed-table;
 ```
 
@@ -69,6 +91,17 @@ ALTER TABLE my-table
   COLUMNS (name, col3, created),
   PRIMARY KEY (name, col3)
   AS OF ~2026.5.1;
+```
+
+```urQL
+ALTER TABLE child
+  ADD FOREIGN KEY (parent-id) REFERENCES parent (id)
+  ON DELETE RESTRICT ON UPDATE CASCADE;
+```
+
+```urQL
+ALTER TABLE child
+  DROP FOREIGN KEY (parent-id) parent;
 ```
 
 ```urQL
@@ -294,4 +327,10 @@ SELECT col-name, col-type;
 FROM sys.table-keys
 WHERE name = 'calendar'
 SELECT name AS Table-Name, key-ordinal, key;
+```
+
+```urQL
+FROM sys.foreign-keys
+SELECT parent-namespace, parent-table, child-namespace, child-table,
+       ordinal, parent-column, child-column, on-delete, on-update;
 ```

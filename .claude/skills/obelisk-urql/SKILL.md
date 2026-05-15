@@ -119,6 +119,11 @@ ALTER NAMESPACE [ <database>. ] <namespace>
 CREATE TABLE [ <db-qualifier> ] <table>
   ( <column> <aura> [ ,...n ] )
   PRIMARY KEY ( <column> [ ,...n ] )
+  [ FOREIGN KEY ( <column> [ ,...n ] )
+      REFERENCES [ <namespace>. ] <table> ( <column> [ ,...n ] )
+      [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
+      [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ]
+    [ ,...n ] ]
   [ <as-of-time> ]
 
 ALTER TABLE [ <db-qualifier> ] <table>
@@ -129,9 +134,16 @@ ALTER TABLE [ <db-qualifier> ] <table>
   [ DROP COLUMN ( <column> [ ,...n ] ) ]
   [ RENAME COLUMN ( { <column> TO <column> } [ ,...n ] ) ]
   [ ALTER COLUMN ( { <column> <aura> } [ ,...n ] ) ]
+  [ ADD FOREIGN KEY ( <column> [ ,...n ] )
+      REFERENCES [ <namespace>. ] <table> ( <column> [ ,...n ] )
+      [ ON DELETE { RESTRICT | CASCADE | SET DEFAULT } ]
+      [ ON UPDATE { RESTRICT | CASCADE | SET DEFAULT } ] ]
+  [ DROP FOREIGN KEY ( <column> [ ,...n ] ) [ <namespace>. ] <table> ]
   [ <as-of-time> ]
 
 DROP TABLE [ FORCE ] [ <db-qualifier> ] <table> [ <as-of-time> ]
+
+ DROP NAMESPACE [ FORCE ] [ <database>. ] <namespace>
 
 DROP DATABASE [ FORCE ] <database>
 ```
@@ -193,11 +205,47 @@ ALTER TABLE my-table
 - `PRIMARY KEY` must reference existing columns, must change the existing key, and must be unique over existing data
 - duplicate names in COLUMNS, PRIMARY KEY, ADD COLUMN, DROP COLUMN, RENAME COLUMN, or ALTER COLUMN fail
 - `AS OF` must be greater than both latest schema and latest data timestamps
-- FOREIGN KEY clauses are parsed in the AST/docs but are not current runtime-scope behavior for ALTER TABLE tests
+
+### FOREIGN KEY / referential integrity
+
+Foreign keys are runtime-enforced. A child table's foreign-key columns must
+match the complete primary key of the referenced parent table, in primary-key
+order. Referenced parent columns must be exactly the parent table's full
+`PRIMARY KEY`; partial keys and non-primary-key references are invalid.
+
+```
+CREATE TABLE parent (id @ud, label @t) PRIMARY KEY (id);
+CREATE TABLE child
+  (id @ud, parent-id @ud, note @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (parent-id) REFERENCES parent (id);
+```
+
+Composite foreign keys are declared in matching parent primary-key order:
+
+```
+CREATE TABLE parent
+  (tenant-id @ud, code @ud, label @t)
+  PRIMARY KEY (tenant-id, code);
+CREATE TABLE child
+  (id @ud, parent-tenant @ud, parent-code @ud)
+  PRIMARY KEY (id)
+  FOREIGN KEY (parent-tenant, parent-code)
+    REFERENCES parent (tenant-id, code);
+```
+
+- default action is `RESTRICT` for both `ON DELETE` and `ON UPDATE`
+- `RESTRICT` rejects parent changes while child rows reference the parent key
+- `CASCADE` propagates parent key deletes/updates to child rows
+- `SET DEFAULT` sets child key columns to their aura bunt values; the parent table must contain the bunt key
+- `ALTER TABLE ADD FOREIGN KEY` validates existing child rows at the effective content time
+- `ALTER TABLE DROP FOREIGN KEY ( <child-columns> ) [ <namespace>. ] <parent-table>` removes enforcement for that relationship
+- self-referential and cyclic foreign keys are allowed only when their actions do not create cascading cycles
+- child-side `INSERT` and `UPDATE` reject missing parent keys
 
 ### not yet implemented
 
-ALTER INDEX, CREATE INDEX, CREATE VIEW, DROP INDEX, DROP NAMESPACE, DROP VIEW
+ALTER INDEX, CREATE INDEX, CREATE VIEW, DROP INDEX,DROP VIEW
 
 ## data manipulation commands
 
@@ -528,6 +576,7 @@ Available for introspection queries:
 | sys.namespaces | namespaces in a database |
 | sys.tables | tables with admin info (namespace, name, agent, tmsp, row-count) |
 | sys.table-keys | primary key columns per table |
+| sys.foreign-keys | declared foreign keys, one row per parent/child column pair |
 | sys.columns | table columns (namespace, name, col-ordinal, col-name, col-type) |
 | sys.sys-log | schema state change history |
 | sys.data-log | data state change history |

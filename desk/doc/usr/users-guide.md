@@ -307,6 +307,88 @@ Attempting to drop the still-populated `my-table-2` without `FORCE` results in a
 DROP TABLE FORCE my-table-2;
 ```
 
+# Referential Integrity
+
+Referential integrity keeps relationships between tables valid. A foreign key
+declares that values in a child table must match the primary key of a parent
+table, and Obelisk enforces that rule when rows are inserted, updated, deleted,
+or truncated. This lets you model normalized data, where facts are stored once
+in the table that owns them and other tables refer to those facts by key,
+without leaving dangling references when the parent data changes.
+
+Here is a small parent/child example. `authors` owns each author identity, and
+`books` stores only the author key.
+
+```
+CREATE DATABASE ri-demo;
+CREATE TABLE ri-demo..authors
+  (id @ud, name @t)
+  PRIMARY KEY (id);
+CREATE TABLE ri-demo..books
+  (id @ud, author-id @ud, title @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (author-id) REFERENCES authors (id);
+```
+
+Now insert parent rows first, then child rows that reference them.
+
+```
+INSERT INTO ri-demo..authors
+VALUES
+  (1, 'Ursula K. Le Guin')
+  (2, 'Octavia Butler');
+INSERT INTO ri-demo..books
+VALUES
+  (10, 1, 'The Dispossessed')
+  (11, 2, 'Parable of the Sower');
+```
+
+The foreign key rejects child rows whose parent key does not exist.
+
+```
+INSERT INTO ri-demo..books
+VALUES (12, 99, 'Orphaned Book');
+```
+
+That command fails because there is no author with `id = 99`. The same
+relationship also protects parent rows: since the default action is
+`RESTRICT`, Obelisk will reject deleting an author while books still reference
+that author.
+
+```
+DELETE FROM ri-demo..authors
+WHERE id = 1;
+```
+
+You can choose a different action when defining the foreign key. This example
+uses `ON DELETE CASCADE`, so deleting a book also deletes its dependent reviews.
+
+```
+CREATE TABLE ri-demo..reviews
+  (id @ud, book-id @ud, body @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (book-id) REFERENCES books (id)
+  ON DELETE CASCADE;
+INSERT INTO ri-demo..reviews
+VALUES (100, 10, 'Essential reading');
+DELETE FROM ri-demo..books
+WHERE id = 10;
+FROM ri-demo..reviews
+SELECT *;
+```
+
+`ON UPDATE` supports the same actions: `RESTRICT`, `CASCADE`, and
+`SET DEFAULT`. `SET DEFAULT` changes the child column to its aura bunt value, so
+the parent table must contain that default key when the action runs.
+
+To inspect declared foreign keys, query `sys.foreign-keys`.
+
+```
+FROM ri-demo.sys.foreign-keys
+SELECT parent-table, child-table, ordinal,
+       parent-column, child-column, on-delete, on-update;
+```
+
 # Sample Database
 
 Before we get into queries, let's load some more interesting data to work with. The Obelisk distribution comes with a sample "animal-shelter" database adapted from Ami Levin's [Animal Shelter](https://github.com/ami-levin/Animal_Shelter) database for learning SQL. Ami is a SQL educator and you can find his [advanced SQL courses here](https://www.linkedin.com/learning/instructors/ami-levin).
