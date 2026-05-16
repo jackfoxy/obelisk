@@ -360,7 +360,9 @@
                               (sys-table-keys-view new-name.c sap.bowl sys-time)
                       :-  [%sys %foreign-keys sys-time]
                           %-  apply-ordering
-                              (sys-foreign-keys-view new-name.c sap.bowl sys-time)
+                              %^  sys-foreign-keys-view  new-name.c
+                                                         sap.bowl
+                                                         sys-time
                       :-  [%sys %columns sys-time]
                           %-  apply-ordering
                               (sys-columns-view new-name.c sap.bowl sys-time)
@@ -403,11 +405,17 @@
                 `(crip "renamed database {<name.c>} to {<new-name.c>}")
                 ==
             event-log.sys-db
-  =.  view-cache.sys-db  (upd-view-caches state sys-db sys-time ~ %alter-database)
+  =.  view-cache.sys-db  %:  upd-view-caches  state
+                                              sys-db
+                                              sys-time
+                                              ~
+                                              %alter-database
+                                              ==
   =.  state  (~(put by (~(del by state) name.c)) new-name.c db)
   =.  state  (~(put by state) %sys sys-db)
   :^  :-  %results
-          :~  [%action (crip "ALTER DATABASE {<name.c>} RENAME TO {<new-name.c>}")]
+          :~  :-  %action
+                  (crip "ALTER DATABASE {<name.c>} RENAME TO {<new-name.c>}")
               [%server-time sys-time]
               [%schema-time sys-time]
               [%message (crip "database {<name.c>} renamed to {<new-name.c>}")]

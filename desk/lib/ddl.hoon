@@ -145,7 +145,8 @@
   =/  src-key  [namespace.src name.src]
   =/  tgt-key  [target-namespace.a name.src]
   =/  tbl=table
-        ~|  "ALTER NAMESPACE: table {<namespace.src>}.{<name.src>} does not exist"
+        ~|  "ALTER NAMESPACE: table {<namespace.src>}.{<name.src>} ".
+            "does not exist"
         (~(got by tables.src-schema) src-key)
   ?:  (~(has by tables.tgt-schema) tgt-key)
     ~|  "ALTER NAMESPACE: table {<target-namespace.a>}.{<name.src>} ".
@@ -208,16 +209,21 @@
     =.  tables.src-schema  (~(put by tables.src-schema) src-key old-src-tbl)
     =/  old-src-fil=file  (~(got by files.src-data) src-key)
     =.  foreign-constraints.old-src-fil  ~
-    =.  files.src-data  (~(put by files.src-data) src-key old-src-fil)
+    =.  files.src-data       (~(put by files.src-data) src-key old-src-fil)
     =.  tmsp.src-data        sys-time
     =.  provenance.src-data  sap.bowl
     =.  ship.src-data        src.bowl
-    =.  sys.src-db        (put:schema-key sys.src-db sys-time src-schema)
-    =.  content.src-db    (put:data-key content.src-db sys-time src-data)
-    =.  event-log.src-db  [event event-log.src-db]
-    =.  view-cache.src-db  (upd-view-caches state src-db sys-time ~ %alter-namespace)
-    =.  state             (~(put by state) database.src src-db)
-    =.  state             (update-sys state sys-time)
+    =.  sys.src-db           (put:schema-key sys.src-db sys-time src-schema)
+    =.  content.src-db       (put:data-key content.src-db sys-time src-data)
+    =.  event-log.src-db     [event event-log.src-db]
+    =.  view-cache.src-db    %:  upd-view-caches  state
+                                                  src-db
+                                                  sys-time
+                                                  ~
+                                                  %alter-namespace
+                                                  ==
+    =.  state                (~(put by state) database.src src-db)
+    =.  state                (update-sys state sys-time)
     :^  :-  %results
             :~  [%action (crip "ALTER NAMESPACE TRANSFER TABLE {<name.src>}")]
                 [%server-time now.bowl]
@@ -250,20 +256,27 @@
   =.  provenance.tgt-data  sap.bowl
   =.  ship.tgt-data        src.bowl
   =.  event-log.tgt-db     [event event-log.tgt-db]
-  =.  sys.src-db      (put:schema-key sys.src-db sys-time src-schema)
-  =.  sys.tgt-db      (put:schema-key sys.tgt-db sys-time tgt-schema)
-  =.  content.tgt-db  (put:data-key content.tgt-db sys-time tgt-data)
-  =.  view-cache.tgt-db  (upd-view-caches state tgt-db sys-time ~ %alter-namespace)
-  =.  state  (~(put by state) database.src src-db)
-  =.  state  (~(put by state) database-name.a tgt-db)
-  =.  state  (update-sys state sys-time)
+  =.  sys.src-db           (put:schema-key sys.src-db sys-time src-schema)
+  =.  sys.tgt-db           (put:schema-key sys.tgt-db sys-time tgt-schema)
+  =.  content.tgt-db       (put:data-key content.tgt-db sys-time tgt-data)
+  =.  view-cache.tgt-db    %:  upd-view-caches  state
+                                                tgt-db
+                                                sys-time
+                                                ~
+                                                %alter-namespace
+                                                ==
+  =.  state                (~(put by state) database.src src-db)
+  =.  state                (~(put by state) database-name.a tgt-db)
+  =.  state                (update-sys state sys-time)
   :^  :-  %results
           :~  [%action (crip "ALTER NAMESPACE TRANSFER TABLE {<name.src>}")]
               [%server-time now.bowl]
               [%schema-time sys-time]
               [%data-time sys-time]
               ==
-      (~(put by (~(put by next-schemas) database.src sys-time)) database-name.a sys-time)
+      %+  ~(put by (~(put by next-schemas) database.src sys-time))
+            database-name.a
+            sys-time
       (~(put by next-data) database-name.a sys-time)
       state
 ::
@@ -313,15 +326,23 @@
       ?:  has-orphans
         ~|((drop-namespace-orphan-message name.d %.n orphans) !!)
       ?:  populated
-        ~|("DROP NAMESPACE: namespace {<name.d>} has populated tables, use FORCE to DROP" !!)
+        ~|  "DROP NAMESPACE: namespace {<name.d>} has populated tables, ".
+            "use FORCE to DROP"
+            !!
       ~
     ~
   =/  cleaned=[tables files]
-        (remove-namespace-table-fks name.d table-keys tables.nxt-schema files.nxt-data)
+        %:  remove-namespace-table-fks  name.d
+                                        table-keys
+                                        tables.nxt-schema
+                                        files.nxt-data
+                                        ==
   =.  tables.nxt-schema  -.cleaned
   =.  files.nxt-data     +.cleaned
   =/  stripped=[tables files]
-        (remove-namespace-table-entries table-keys tables.nxt-schema files.nxt-data)
+        %^  remove-namespace-table-entries  table-keys
+                                            tables.nxt-schema
+                                            files.nxt-data
   =.  tables.nxt-schema      -.stripped
   =.  files.nxt-data         +.stripped
   =.  namespaces.nxt-schema  (~(del by namespaces.nxt-schema) name.d)
@@ -1006,8 +1027,8 @@
           orphans=(list [[@tas @tas] [@tas @tas]])
           ==
   ^-  tape
-  ?~  orphans
-    "DROP NAMESPACE: namespace {<ns>} would orphan FOREIGN KEY, use FORCE to DROP"
+  ?~  orphans  "DROP NAMESPACE: namespace {<ns>} would orphan FOREIGN KEY, ".
+               "use FORCE to DROP"
   =/  orphan=[[@tas @tas] [@tas @tas]]  i.orphans
   =/  parent-key=[@tas @tas]  -.orphan
   =/  child-key=[@tas @tas]   +.orphan
@@ -1473,7 +1494,7 @@
         ?:  ?&  =(reference-table.entry parent-key)
                 =(constrained-columns.entry source-cols)
                 ==
-          entry(reference-columns (rename-names reference-columns.entry renames))
+         entry(reference-columns (rename-names reference-columns.entry renames))
         entry
   %=  $
     entries  t.entries
@@ -1505,8 +1526,8 @@
   =/  parent-table=table  (~(got by tables) parent-key)
   =/  parent-file=file    (~(got by files) parent-key)
   =/  dummy  (assert-fk-source-cols column-lookup.child-table columns.fk)
-  =/  dummy
-        (assert-fk-reference-cols column-lookup.parent-table reference-columns.fk)
+  =/  dummy  %+  assert-fk-reference-cols  column-lookup.parent-table
+                                           reference-columns.fk
   =/  parent-pk=(list @tas)  (key-names key.pri-indx.parent-table)
   ?.  =(reference-columns.fk parent-pk)
     =/  msg  " TABLE: foreign key reference columns do not match referenced ".
