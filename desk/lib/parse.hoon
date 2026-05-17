@@ -3887,9 +3887,9 @@
     (jest '@sv')             ::  signed base32
     (jest '@sw')             ::  signed base64
     (jest '@sx')             ::  signed hexadecimal
-    (jest '@t')              ::  UTF-8 text (cord)
-    (jest '@ta')             ::  ASCII text (knot)
     (jest '@tas')            ::  ASCII text symbol (term)
+    (jest '@ta')             ::  ASCII text (knot)
+    (jest '@t')              ::  UTF-8 text (cord)
     (jest '@ub')             ::  unsigned binary
     (jest '@ud')             ::  unsigned decimal
     (jest '@uv')             ::  unsigned base32
