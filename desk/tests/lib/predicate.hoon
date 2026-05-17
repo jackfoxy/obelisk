@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing filtered queries on a Gall agent with %obelisk.
 ::
-/-  ast, *obelisk
+/-  ast=obelisk-ast, *obelisk
 /+  *predicate, *scalars, *test, *test-helpers, *utils
 |%
 ::

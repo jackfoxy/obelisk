@@ -1,4 +1,4 @@
-/-  ast
+/-  ast=obelisk-ast
 /+  parse,  *test
 ::
 :: we frequently break the rules of unit and regression tests here

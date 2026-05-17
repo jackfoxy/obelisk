@@ -1,4 +1,4 @@
-/-  ast
+/-  ast=obelisk-ast
 !:
 :: a library for parsing urQL tapes
 :: use (parse:parse(default-database '<db>') "<script>")

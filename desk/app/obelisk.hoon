@@ -1,4 +1,4 @@
-/-  *server-state-1, server-state-1, server-state-0, *obelisk, ast
+/-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
 /+  default-agent, dbug, *main, *migration, *print
 |%
 +$  versioned-state

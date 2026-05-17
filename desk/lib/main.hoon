@@ -1,4 +1,4 @@
-/-  ast, *server-state-1, *obelisk
+/-  ast=obelisk-ast, *server-state-1, *obelisk
 /+  *sys-views, *ddl, *crud, parse, *utils
 |_  [state=server =bowl:gall]
 ::

@@ -1,5 +1,5 @@
 :: this file  will contain code that handles scalars in the engine
-/-  ast, *obelisk
+/-  ast=obelisk-ast, *obelisk
 /+  *predicate, *utils, mip, math
 |%
 :: inventory:

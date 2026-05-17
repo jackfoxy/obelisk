@@ -42,9 +42,9 @@ You can also install it from the %hawk UI, but this will be much slower and is n
 
 ### Developers
 
-Copy sur/ast/hoon to your project to work with Obelisk results.
+Copy sur/obelisk-ast.hoon to your project to work with Obelisk results.
 
-You are free to poke the %obelisk desk with urQL via the %tape or %tape2 actions or use the API defined in sur/ast/hoon and poke via %commands. There are no scries.
+You are free to poke the %obelisk desk with urQL via the %tape or %tape2 actions or use the API defined in sur/obelisk-ast.hoon and poke via %commands. There are no scries.
 
 You can also read directly from the server state, although this is not recommended. If you update the server state directly, you are on your own, in other words "strongly discouraged".
 

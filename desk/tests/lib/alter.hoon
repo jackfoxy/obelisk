@@ -1,4 +1,4 @@
-/-  ast
+/-  ast=obelisk-ast
 /+  parse, *test, *test-helpers
 |%
 ::

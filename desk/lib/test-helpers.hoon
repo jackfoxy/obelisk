@@ -1,5 +1,5 @@
 ::
-/-  ast, *obelisk, *server-state-1
+/-  ast=obelisk-ast, *obelisk, *server-state-1
 /+  *test, *scalars, parse
 /=  agent  /app/obelisk
 |%

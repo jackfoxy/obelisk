@@ -290,7 +290,7 @@ And since there is ordering involved in typing rows, `<row-type>` is technically
 <sup>2</sup> Much RDBMS literature refers to all these initial, interim, and final data representations as _tables_. We reserve that term for what others refer to as _user-defined tables_.
 
 ### Api Types
-All static types in the Obelisk API are defined in `sur/ast/hoon`.
+All static types in the Obelisk API are defined in `sur/obelisk-ast.hoon`.
 
 ### Remarks
 
