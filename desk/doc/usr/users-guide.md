@@ -350,6 +350,11 @@ INSERT INTO ri-demo..books
 VALUES (12, 99, 'Orphaned Book');
 ```
 
+```
+INSERT: FOREIGN KEY parent key not found
+INSERT: [%dbo %books] row 1
+```
+
 That command fails because there is no author with `id = 99`. The same
 relationship also protects parent rows: since the default action is
 `RESTRICT`, Obelisk will reject deleting an author while books still reference
@@ -358,6 +363,10 @@ that author.
 ```
 DELETE FROM ri-demo..authors
 WHERE id = 1;
+```
+
+```
+DELETE: FOREIGN KEY restrict violation
 ```
 
 You can choose a different action when defining the foreign key. This example
@@ -388,6 +397,12 @@ FROM ri-demo.sys.foreign-keys
 SELECT parent-table, child-table, ordinal,
        parent-column, child-column, on-delete, on-update;
 ```
+
+| parent-table | child-table | ordinal | parent-column | child-column | on-delete | on-update |
+|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+|%authors|%books|1|%id|%author-id|%restrict|%restrict|
+|%books|%reviews|1|%id|%book-id|%cascade|%restrict|
+
 
 # Sample Database
 
@@ -1275,117 +1290,25 @@ When the parser alone is applied to an urQL script it creates an Obelisk API str
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
 ```
-=uql "WITH (FROM staff-assignments ".
-"          WHERE role = 'Veterinarian' ".
-"          SELECT email) AS vets ".
-"FROM vets ".
-"SELECT email ".
-"UNION ".
-"FROM staff-assignments ".
-"WHERE role = 'Manager' ".
-"SELECT email;"
+WITH (FROM staff-assignments
+      WHERE role = 'Veterinarian'
+      SELECT email) AS vets
+FROM vets
+SELECT email
+UNION
+FROM staff-assignments
+WHERE role = 'Manager'
+SELECT email;
+```
+
+Click the `Parse` button in the Obelisk UI or in the dojo:
+
+```
 (parse:parse(default-database 'animal-shelter') uql)
 ```
 
 ```
-~[
-  [ %crud-txn
-      ctes
-    ~[
-      [ %cte
-        name=%vets
-          body
-        [ %query
-          [ %query
-              from
-            [ ~
-              [ %from
-                  relation
-                [ %qualified-table
-                  ship=~
-                  database=%animal-shelter
-                  namespace=%dbo
-                  name=%staff-assignments
-                  alias=~
-                ]
-                as-of=~
-                joins=~
-              ]
-            ]
-            scalars=~
-              predicate
-            { [%unqualified-column name=%role alias=~]
-              %eq
-              [p=~.t q=34.161.114.843.280.767.114.475.234.646]
-            }
-            group-by=~
-            having={}
-              select
-            [ %select
-              top=~
-              columns=~[[%unqualified-column name=%email alias=~]]
-            ]
-            order-by=~
-          ]
-        ]
-      ]
-    ]
-      body
-    [ %set-query
-      [ %set-query
-          head
-        [ %query
-            from
-          [~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]]
-          scalars=~
-          predicate={}
-          group-by=~
-          having={}
-            select
-          [%select top=~ columns=~[[%unqualified-column name=%email alias=~]]]
-          order-by=~
-        ]
-          tail
-        ~[
-          [ op=%union
-              query
-            [ %query
-                from
-              [ ~
-                [ %from
-                    relation
-                  [ %qualified-table
-                    ship=~
-                    database=%animal-shelter
-                    namespace=%dbo
-                    name=%staff-assignments
-                    alias=~
-                  ]
-                  as-of=~
-                  joins=~
-                ]
-              ]
-              scalars=~
-                predicate
-              { [%unqualified-column name=%role alias=~]
-                %eq
-                [p=~.t q=32.199.642.035.675.469]
-              }
-              group-by=~
-              having={}
-                select
-              [ %select
-                top=~
-                columns=~[[%unqualified-column name=%email alias=~]]
-              ]
-              order-by=~
-            ]
-          ]
-        ]
-      ]
-    ]
-  ]
-]
+~[[%crud-txn ctes=~[[%cte name=%vets body=[%query [%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=34.161.114.843.280.767.114.475.234.646]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]] body=[%set-query [%set-query head=[%query from=[~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]] scalars=~ predicate={} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~] tail=~[[op=%union query=[%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=32.199.642.035.675.469]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]]]]]
 ```
 The structure is wrapped in a list because a script potentially consists of multiple commands which the engine will execute in order.
 

@@ -36,39 +36,6 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  $action
-::    [%tape @tas tape]          - prints result to dodjo
-::    [%tape2 @tas tape]         - suppresses printing result to dojo
-::    [%commands (list command)] - prints result to dojo
-::    [%test @tas tape]          - supports expect-fail-message in unit tests
-::    [%parse tape]              - returns (list command)
-::  
-+$  action
-  $%
-    [%tape default-database=@tas urql=tape]
-    [%tape2 default-database=@tas urql=tape]
-    [%commands cmds=(list command)]
-    [%test default-database=@tas urql=tape]
-    [%parse default-database=@tas urql=tape]
-    ==
-::
-+$  db-cmd
-  $?
-    %alter-database
-    %create-database
-    %drop-database
-    %create-namespace
-    %alter-namespace
-    %drop-namespace
-    %create-table
-    %alter-table
-    %drop-table
-    %truncate-table
-    %insert
-    %update
-    %delete
-    ==
-::
 +$  set-table
   $+  set-table
   $:  %set-table
@@ -199,10 +166,5 @@
       new-parent-key=(list @)
       old-child-pk=(list @)
       new-child-pk=(list @)
-      ==
-+$  fk-graph-edge
-  $:  child-key=[@tas @tas]
-      parent-key=[@tas @tas]
-      actions=constraints
       ==
 --

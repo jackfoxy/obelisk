@@ -584,7 +584,7 @@
           db=database
           sys-time=@da
           sys-vws=(unit (list [@tas @tas]))
-          caller=db-cmd
+          caller=db-cmd:ast
           ==
   ^-  view-cache
   ?-  caller
@@ -780,9 +780,9 @@
 ::
 ++  ri-actions-to-constraints
   |=  ri=(list referential-integrity-action:ast)
-  ^-  constraints
-  =/  on-delete=key-constraint  %restrict
-  =/  on-update=key-constraint  %restrict
+  ^-  constraints:ast
+  =/  on-delete=key-constraint:ast  %restrict
+  =/  on-update=key-constraint:ast  %restrict
   |-
   ?~  ri  [%constraints on-delete on-update]
   ?-  i.ri
@@ -797,22 +797,22 @@
           parent-key=[@tas @tas]
           ri=(list referential-integrity-action:ast)
           ==
-  ^-  fk-graph-edge
+  ^-  fk-graph-edge:ast
   :*  child-key
       parent-key
       (ri-actions-to-constraints ri)
       ==
 ::
 ++  fk-graph-with-candidate
-  |=  [=files candidate=fk-graph-edge]
-  ^-  (list fk-graph-edge)
+  |=  [=files candidate=fk-graph-edge:ast]
+  ^-  (list fk-graph-edge:ast)
   [candidate (fk-graph-from-files files)]
 ::
 ++  fk-graph-from-files
   |=  =files
-  ^-  (list fk-graph-edge)
+  ^-  (list fk-graph-edge:ast)
   =/  pairs=(list [[@tas @tas] file])  ~(tap by files)
-  =/  edges=(list fk-graph-edge)  ~
+  =/  edges=(list fk-graph-edge:ast)  ~
   |-
   ?~  pairs  (flop edges)
   =/  parent-key=[@tas @tas]  -.i.pairs
@@ -827,20 +827,20 @@
 ++  fk-graph-edges-from-parent
   |=  $:  parent-key=[@tas @tas]
           constraints=(list foreign-constraint)
-          edges=(list fk-graph-edge)
+          edges=(list fk-graph-edge:ast)
           ==
-  ^-  (list fk-graph-edge)
+  ^-  (list fk-graph-edge:ast)
   |-
   ?~  constraints  edges
   =/  incoming=foreign-constraint  i.constraints
-  =/  edge=fk-graph-edge  :*  constrained-table.incoming
+  =/  edge=fk-graph-edge:ast  :*  constrained-table.incoming
                               parent-key
                               actions.incoming
                               ==
   $(constraints t.constraints, edges [edge edges])
 ::
 ++  fk-graph-candidate-has-cycle
-  |=  [graph=(list fk-graph-edge) candidate=fk-graph-edge]
+  |=  [graph=(list fk-graph-edge:ast) candidate=fk-graph-edge:ast]
   ^-  ?
   %:  fk-graph-path-has-cycle  graph
                                parent-key.candidate
@@ -849,7 +849,7 @@
                                ==
 ::
 ++  fk-graph-candidate-has-cascading-cycle
-  |=  [graph=(list fk-graph-edge) candidate=fk-graph-edge]
+  |=  [graph=(list fk-graph-edge:ast) candidate=fk-graph-edge:ast]
   ^-  ?
   %:  fk-graph-path-has-cascading-cycle  graph
                                          parent-key.candidate
@@ -859,7 +859,7 @@
                                          ==
 ::
 ++  fk-graph-path-has-cycle
-  |=  $:  graph=(list fk-graph-edge)
+  |=  $:  graph=(list fk-graph-edge:ast)
           current=[@tas @tas]
           target=[@tas @tas]
           visited=(list [@tas @tas])
@@ -867,7 +867,7 @@
   ^-  ?
   ?:  =(current target)  %.y
   ?:  (table-key-in-list current visited)  %.n
-  =/  edges=(list fk-graph-edge)  (fk-graph-outgoing-edges graph current)
+  =/  edges=(list fk-graph-edge:ast)  (fk-graph-outgoing-edges graph current)
   |-
   ?~  edges  %.n
   ?:  %:  fk-graph-path-has-cycle  graph
@@ -879,7 +879,7 @@
   $(edges t.edges)
 ::
 ++  fk-graph-path-has-cascading-cycle
-  |=  $:  graph=(list fk-graph-edge)
+  |=  $:  graph=(list fk-graph-edge:ast)
           current=[@tas @tas]
           target=[@tas @tas]
           visited=(list [@tas @tas])
@@ -888,10 +888,10 @@
   ^-  ?
   ?:  =(current target)  cascading
   ?:  (table-key-in-list current visited)  %.n
-  =/  edges=(list fk-graph-edge)  (fk-graph-outgoing-edges graph current)
+  =/  edges=(list fk-graph-edge:ast)  (fk-graph-outgoing-edges graph current)
   |-
   ?~  edges  %.n
-  =/  edge=fk-graph-edge  i.edges
+  =/  edge=fk-graph-edge:ast  i.edges
     ?:  %:  fk-graph-path-has-cascading-cycle
               graph
               parent-key.edge
@@ -903,9 +903,9 @@
   $(edges t.edges)
 ::
 ++  fk-graph-outgoing-edges
-  |=  [graph=(list fk-graph-edge) source=[@tas @tas]]
-  ^-  (list fk-graph-edge)
-  =/  out=(list fk-graph-edge)  ~
+  |=  [graph=(list fk-graph-edge:ast) source=[@tas @tas]]
+  ^-  (list fk-graph-edge:ast)
+  =/  out=(list fk-graph-edge:ast)  ~
   |-
   ?~  graph  (flop out)
   %=  $
@@ -916,7 +916,7 @@
   ==
 ::
 ++  fk-edge-cascading
-  |=  edge=fk-graph-edge
+  |=  edge=fk-graph-edge:ast
   ^-  ?
   ?|  !=(on-delete.actions.edge %restrict)
       !=(on-update.actions.edge %restrict)

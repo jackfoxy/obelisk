@@ -1544,13 +1544,13 @@
                                source-key
                                columns.fk
     ~|((weld action " TABLE: foreign key already exists") !!)
-  =/  candidate=fk-graph-edge
+  =/  candidate=fk-graph-edge:ast
         %:  make-fk-graph-edge
               source-key
               parent-key
               referential-integrity.fk
               ==
-  =/  graph=(list fk-graph-edge)
+  =/  graph=(list fk-graph-edge:ast)
         (fk-graph-with-candidate files candidate)
   ?:  (fk-graph-candidate-has-cascading-cycle graph candidate)
     ~|((weld action " TABLE: cascading foreign-key cycle not allowed") !!)
@@ -1621,9 +1621,9 @@
 ::
 ++  fk-constraints
   |=  ri=(list referential-integrity-action:ast)
-  ^-  constraints
-  =/  on-delete=key-constraint  %restrict
-  =/  on-update=key-constraint  %restrict
+  ^-  constraints:ast
+  =/  on-delete=key-constraint:ast  %restrict
+  =/  on-update=key-constraint:ast  %restrict
   |-
   ?~  ri  [%constraints on-delete on-update]
   ?-  i.ri

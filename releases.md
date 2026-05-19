@@ -10,6 +10,7 @@ v0.8-beta release notes
 * Foreign Key Referential Integrity
 * sys.foreign-keys view
 * fixed bug where system views were not ordered
+* fixes and improvements to obelisk ui
 
 ## v0.7 beta
 

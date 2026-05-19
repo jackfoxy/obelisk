@@ -144,12 +144,6 @@
     ::                  (list @tas)  := reference table primary key column names
     outbound-fk-index=outbound-fk-index
     ==
-+$  key-constraint  ?(%cascade %restrict %set-default)
-+$  constraints
-  $:  %constraints
-      on-delete=key-constraint
-      on-update=key-constraint
-      ==
 +$  column-lookup  (map @tas [aura @])
 +$  typ-addr
   $:  type=@ta

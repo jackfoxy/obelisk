@@ -1,6 +1,6 @@
 # Obelisk
 
-|install ~dister-nomryg-nilref %obelisk
+##### |install ~dister-nomryg-nilref %obelisk
 
 ### RDBMS for the Urbit computer
 
@@ -16,13 +16,13 @@
 
 Obelisk employs a dialect of SQL called "urQL" that provides for these properties.
 
-See [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder for more information.
+For more information see [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder and the USTJ article [Obelisk: Reinventing SQL for Modern Computing](https://urbitsystems.tech/article/v03-i01/obelisk-reinventing-sql-for-modern-computing).
 
 ### Using the %hawk UI
 
 The best user experience with %obelisk directly comes with the preinstalled %hawk Obelisk UI: click the Obelisk landscape tile to open %hawk to Obelisk. UX is similar to SQL Studio. You can write and run scripts, save scripts and results, and open script templates.
 
-You will find the same actions from the %dojo execute a little faster, the UI does add some overhead. Still the UI is the recommended interface for most direct user interactions with the %obelisk desk.
+You will find the same actions from the %dojo execute a little faster (see the [Users Guide](/desk/doc/sur/users-guide.md)), the UI does add some overhead. Still the UI is the recommended interface for most direct user interactions with the %obelisk desk.
 
 ### Beta release
 

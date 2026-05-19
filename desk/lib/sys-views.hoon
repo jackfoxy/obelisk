@@ -1514,7 +1514,7 @@
           child-key=[@tas @tas]
           parent-cols=(list @tas)
           child-cols=(list @tas)
-          actions=constraints
+          actions=constraints:ast
           ==
   ^-  (list (list @))
   =/  ordinal=@ud  1
