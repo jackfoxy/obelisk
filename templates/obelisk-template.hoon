@@ -1,39 +1,52 @@
-!:
+/-  ast=obelisk-ast
+/+  *strandio, *hawk
+|=  [the-card=card the-file=file here=path origin=(unit path)]
+^-  load
+=/  f  ~(. fu the-file)
+=/  c  ~(. iu the-card)
+=/  d  (d:f /)
+=/  m  (m:f /)
+::
 :: obelisk-ui
 ::   A user interface for Obelisk.
 ::   [protocol: hawk-500]
 ::
+::  Technical overview:
 ::
-::  Installation Instructions:
+::    This template is a Hawk %shed that renders a single-page Obelisk
+::    workbench.  The top-level route switch handles four request shapes:
+::    the initial render, default database changes, query execution, and
+::    parse-only execution.  UI state that should survive pokes is carried
+::    through form fields and htmx request parameters, then parsed back out
+::    of the incoming card.
 ::
-::   - Install %obelisk manually
-::       https://github.com/jackfoxy/obelisk
+::    Query and parse actions communicate with the %obelisk agent by opening
+::    a /server watch on an action-specific wire, poking an obelisk-action
+::    cage, reading one fact from that wire, and then consuming the matching
+::    kick.  Query facts are decoded as (each (list cmd-result:ast) tang).
+::    Parse facts are decoded as (each (list command:ast) tang).  The
+::    response molds live in /sur/obelisk-ast and are imported as ast.
 ::
-::   - Install this hawk template by
-::     placing it at an empty spot in %hawk
+::    The schema tree is rebuilt from SELECT queries against the system views.
+::    The sys database exposes sys.databases.  Every other database gets its
+::    system views under that database's sys namespace, and those views are
+::    combined with namespace, relation, key, and column rows to build the
+::    schema tree.  Successful CREATE/DROP DATABASE commands update the
+::    database list locally.  Successful CREATE/DROP NAMESPACE commands update
+::    only the affected database node, and successful CREATE/DROP TABLE
+::    commands update only the affected namespace node.  These local updates
+::    preserve unrelated expanded/collapsed state, while expanding the parent
+::    database or namespace nodes needed to show the changed object.
 ::
-::   - Create an inital database:
-::     `CREATE DATABASE db1;`
+::    The default database dropdown is rendered from the current schema tree.
+::    Its entries are sorted, preserve the selected database across schema
+::    refreshes, fall back to sys when the selected database disappears, and
+::    switch to a newly created database after CREATE DATABASE succeeds.
 ::
-::   - Run a query:
-::     `FROM sys.sys.databases SELECT *;`
-::
-::
-::  Usage Instructions
-::
-::   - If you select text in the script,
-::     only the selected portion will be run.
-::
-::   - Read the Obelisk Users Guide
-::
-::     https://github.com/jackfoxy/obelisk/blob/master/docs/users-guide.md
-::
-::
-::  It will also be useful to place this
-::  file at /~/config/templates/obelisk-ui
-::  so that you can easily place it at a
-::  blank hawk page.
-::
+::    Result sets are rendered with hidden export data alongside the visible
+::    tabs.  Save Results serializes every rendered result set in DOM order
+::    with the chosen delimiter and a blank line between result sets, so
+::    multi-command scripts can be saved as one text file.
 ::
 ::  Keybindings:
 ::
@@ -100,53 +113,503 @@
   |=  [id=@ta query=tape]
   =/  m  (strand ,poke-result)
   ^-  form:m
-  ;<  our=@p  bind:m  get-our
-  ;<  now=@da  bind:m  get-time
-  =/  dock  [our %obelisk]
-  =/  default  (fall parse-default-db %sys)
-  =/  action  [%tape2 default query]       ::does not print to dojo
-  =/  obelisk-command=cage  obelisk-action/!>(action)
-  ;<  ~  bind:m  (watch /query/[id] dock /server)
-  ;<  ~  bind:m  (poke dock obelisk-command)
-  ;<  [mark =vase]  bind:m  (take-fact /query/[id])
+  ;<  response=vase  bind:m  (call-obelisk id %tape2 query)
   |=  tin=strand-input:strand
-  ?~  res=(mole |.((poke-result +:vase)))
+  ?~  res=(mole |.((poke-result +:response)))
     `[%fail [%malformed-obelisk-response ~]]
   `[%done u.res]
 ::
-::  parse returns [%& (list command)] or [%| tang] on /server.
+::  parse returns [%& (list command:ast)] or [%| tang] on /server.
 ++  parse-obelisk
   |=  [id=@ta query=tape]
   =/  m  (strand ,parse-output)
   ^-  form:m
-  ;<  our=@p  bind:m  get-our
-  ;<  now=@da  bind:m  get-time
-  =/  dock  [our %obelisk]
-  =/  default  (fall parse-default-db %sys)
-  =/  action  [%parse default query]
-  =/  obelisk-command=cage  obelisk-action/!>(action)
-  ;<  ~  bind:m  (watch /parse/[id] dock /server)
-  ;<  ~  bind:m  (poke dock obelisk-command)
-  ;<  [mark =vase]  bind:m  (take-fact /parse/[id])
+  ;<  response=vase  bind:m  (call-obelisk id %parse query)
   |=  tin=strand-input:strand
-  ?~  res=(mole |.((parse-result +:vase)))
+  ?~  res=(mole |.((parse-result +:response)))
     `[%fail [%malformed-obelisk-response ~]]
   ?-  -.u.res
     %.n  `[%done [%.n p.u.res]]
-    %.y  `[%done [%.y (text !>(p.u.res))]]
+    %.y  `[%done [%.y p.u.res]]
   ==
 ::
-+$  poke-result  (each (list cmd-result) tang)
-+$  parse-result  (each (list *) tang)
-+$  parse-output  (each tape tang)
+++  call-obelisk
+  |=  [id=@ta kind=?(%tape2 %parse) query=tape]
+  =/  m  (strand ,vase)
+  ^-  form:m
+  ;<  our=@p  bind:m  get-our
+  =/  dock  [our %obelisk]
+  =/  default  (fall parse-default-db %sys)
+  =/  action  ;;(action:ast [kind default query])
+  =/  command=cage  obelisk-action/!>(action)
+  =/  wire=path
+    ?-  kind
+      %tape2  /query/[id]
+      %parse  /parse/[id]
+    ==
+  ;<  ~  bind:m  (watch wire dock /server)
+  ;<  ~  bind:m  (poke dock command)
+  ;<  [mark =vase]  bind:m  (take-fact wire)
+  ;<  ~  bind:m  (take-kick wire)
+  (pure:m vase)
+::
++$  poke-result  (each (list cmd-result:ast) tang)
++$  parse-result  (each (list command:ast) tang)
++$  parse-output  (each (list command:ast) tang)
+::
+++  query-result-set
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  ;<  res=poke-result  bind:m  (query-obelisk id query)
+  ?-  -.res
+    %.n  (pure:m ~)
+    %.y  (pure:m (poke-result-vectors p.res))
+  ==
+::
+++  query-database-rows
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  (query-result-set %schema-databases sys-databases-query)
+::
+++  query-namespace-rows
+  |=  db=@tas
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  (query-result-set %schema-namespaces (sys-namespaces-query db))
+::
+++  query-table-rows
+  |=  db=@tas
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  (query-result-set %schema-tables (sys-tables-query db))
+::
+++  query-key-rows
+  |=  db=@tas
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  (query-result-set %schema-keys (sys-table-keys-query db))
+::
+++  query-column-rows
+  |=  db=@tas
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  (query-result-set %schema-columns (sys-columns-query db))
+::
+++  sys-databases-query
+  ^-  tape
+  "FROM sys.sys.databases SELECT database;"
+::
+++  sys-namespaces-query
+  |=  db=@tas
+  ^-  tape
+  (weld "FROM " (weld (trip db) ".sys.namespaces SELECT namespace;"))
+::
+++  sys-tables-query
+  |=  db=@tas
+  ^-  tape
+  (weld "FROM " (weld (trip db) ".sys.tables SELECT namespace, name;"))
+::
+++  sys-table-keys-query
+  |=  db=@tas
+  ^-  tape
+  %+  weld  "FROM "
+  %+  weld  (trip db)
+  ".sys.table-keys SELECT namespace, name, key-ordinal, key, key-ascending;"
+::
+++  sys-columns-query
+  |=  db=@tas
+  ^-  tape
+  %+  weld  "FROM "
+  %+  weld  (trip db)
+  ".sys.columns SELECT namespace, name, col-ordinal, col-name, col-type;"
+::
+++  poke-result-vectors
+  |=  results=(list cmd-result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  (weld (cmd-result-vectors i.results) $(results t.results))
+::
+++  cmd-result-vectors
+  |=  cmd-result=cmd-result:ast
+  ^-  (list vector:ast)
+  (result-vectors +.cmd-result)
+::
+++  result-vectors
+  |=  results=(list result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  ?+  -.i.results
+    $(results t.results)
+    %result-set
+      (weld +.i.results $(results t.results))
+  ==
+::
+++  vector-value
+  |=  [name=@tas vector=vector:ast]
+  ^-  (unit dime)
+  =/  cells=(list vector-cell:ast)  +.vector
+  |-
+  ?~  cells  ~
+  ?:  =(name p.i.cells)
+    `q.i.cells
+  $(cells t.cells)
+::
+++  vector-tas
+  |=  [name=@tas vector=vector:ast]
+  ^-  (unit @tas)
+  ?~  val=(vector-value name vector)  ~
+  ?.  =(%tas p.u.val)  ~
+  ``@tas`q.u.val
+::
+++  vector-ta
+  |=  [name=@tas vector=vector:ast]
+  ^-  (unit @ta)
+  ?~  val=(vector-value name vector)  ~
+  ?.  =(%ta p.u.val)  ~
+  ``@ta`q.u.val
+::
+++  vector-ud
+  |=  [name=@tas vector=vector:ast]
+  ^-  (unit @ud)
+  ?~  val=(vector-value name vector)  ~
+  ?.  =(%ud p.u.val)  ~
+  ``@ud`q.u.val
+::
+++  vector-flag
+  |=  [name=@tas vector=vector:ast]
+  ^-  (unit ?)
+  ?~  val=(vector-value name vector)  ~
+  ?.  =(%f p.u.val)  ~
+  `=(0 q.u.val)
+::
+++  decode-database-row
+  |=  vector=vector:ast
+  ^-  (unit @tas)
+  (vector-tas %database vector)
+::
+++  decode-namespace-row
+  |=  vector=vector:ast
+  ^-  (unit @tas)
+  (vector-tas %namespace vector)
+::
+++  decode-table-row
+  |=  vector=vector:ast
+  ^-  (unit sys-table-row)
+  ?~  ns=(vector-tas %namespace vector)  ~
+  ?~  name=(vector-tas %name vector)  ~
+  `[namespace=u.ns name=u.name]
+::
+++  decode-key-row
+  |=  vector=vector:ast
+  ^-  (unit sys-key-row)
+  ?~  ns=(vector-tas %namespace vector)  ~
+  ?~  table-name=(vector-tas %name vector)  ~
+  ?~  ordinal=(vector-ud %key-ordinal vector)  ~
+  ?~  key-name=(vector-tas %key vector)  ~
+  ?~  ascending=(vector-flag %key-ascending vector)  ~
+  `[namespace=u.ns table=u.table-name ordinal=u.ordinal key=u.key-name ascending=u.ascending]
+::
+++  decode-column-row
+  |=  vector=vector:ast
+  ^-  (unit sys-column-row)
+  ?~  ns=(vector-tas %namespace vector)  ~
+  ?~  table-name=(vector-tas %name vector)  ~
+  ?~  ordinal=(vector-ud %col-ordinal vector)  ~
+  ?~  column-name=(vector-tas %col-name vector)  ~
+  ?~  type=(vector-ta %col-type vector)  ~
+  `[namespace=u.ns table=u.table-name ordinal=u.ordinal column=u.column-name type=u.type]
+::
+++  decode-rows-as
+  |*  out=mold
+  |*  [rows=(list vector:ast) decode=$-(vector:ast (unit out))]
+  ^-  (list out)
+  ?~  rows  ~
+  =/  row=(unit out)  (decode i.rows)
+  ?~  row
+    $(rows t.rows)
+  [u.row $(rows t.rows)]
+::
+++  column-node-from-row
+  |=  row=sys-column-row
+  ^-  column-node
+  [ordinal=ordinal.row name=column.row type=type.row]
+::
+++  key-node-from-row
+  |=  row=sys-key-row
+  ^-  key-node
+  [ordinal=ordinal.row name=key.row ascending=ascending.row]
+::
+++  load-schema-tree
+  =/  m  (strand ,schema-tree)
+  ^-  form:m
+  ;<  rows=(list vector:ast)  bind:m  query-database-rows
+  =/  databases=(list @tas)  %+  sort   %+  (decode-rows-as @tas)
+                                              rows
+                                              decode-database-row
+                                        aor
+  (load-database-nodes databases)
+::
+++  maybe-load-schema-tree
+  =/  m  (strand ,schema-tree)
+  ^-  form:m
+  ?:  should-load-schema-tree
+    load-schema-tree
+  (pure:m ~)
+::
+++  should-load-schema-tree
+  ^-  ?
+  ?:  =((pib:c /schema-refresh) "true")  %.y
+  ?:  ?=([* %query] (rib:c /))  %.n
+  ?.  ?=([* %parse] (rib:c /))  %.y
+  %.n
+::
+++  load-database-nodes
+  |=  databases=(list @tas)
+  =/  m  (strand ,schema-tree)
+  ^-  form:m
+  ?~  databases  (pure:m ~)
+  ;<  node=database-node  bind:m  (load-database-node i.databases)
+  ;<  rest=schema-tree  bind:m  $(databases t.databases)
+  (pure:m [node rest])
+::
+++  load-database-node
+  |=  db=@tas
+  =/  m  (strand ,database-node)
+  ^-  form:m
+  ?:  =(db %sys)  (pure:m sys-database-node)
+  ;<  namespace-rows=(list vector:ast)  bind:m  (query-namespace-rows db)
+  ;<  table-rows=(list vector:ast)      bind:m  (query-table-rows db)
+  ;<  key-rows=(list vector:ast)        bind:m  (query-key-rows db)
+  ;<  column-rows=(list vector:ast)     bind:m  (query-column-rows db)
+  =/  namespaces  %+  sort  %+  (decode-rows-as @tas)  namespace-rows
+                                                       decode-namespace-row
+                            aor
+  =/  tables      %+  (decode-rows-as sys-table-row)  table-rows
+                                                      decode-table-row
+  =/  keys        %+  (decode-rows-as sys-key-row)  key-rows
+                                                    decode-key-row
+  =/  columns     %+  (decode-rows-as sys-column-row)  column-rows
+                                                       decode-column-row
+  %-  pure:m  :-  name=db
+                  (build-namespace-nodes namespaces tables keys columns)
+::
+++  sys-database-node
+  ^-  database-node 
+  [name=%sys namespaces=~[[name=%sys relations=~[sys-databases-view]]]]
+::
+++  build-namespace-nodes
+  |=  $:  namespaces=(list @tas)
+          tables=(list sys-table-row)
+          keys=(list sys-key-row)
+          columns=(list sys-column-row)
+          ==
+  ^-  (list namespace-node)
+  ?~  namespaces  ~
+  :-  (build-namespace-node i.namespaces tables keys columns)
+      $(namespaces t.namespaces)
+::
+++  build-namespace-node
+  |=  $:  namespace=@tas
+          tables=(list sys-table-row)
+          keys=(list sys-key-row)
+          columns=(list sys-column-row)
+      ==
+  ^-  namespace-node
+  =/  relations=(list relation-node)
+    %+  sort
+      %+  weld  ?:  =(namespace %sys)  :~  sys-namespaces-view
+                                           sys-tables-view
+                                           sys-table-keys-view
+                                           sys-foreign-keys-view
+                                           sys-columns-view
+                                           sys-sys-log-view
+                                           sys-data-log-view
+                                           ==
+                ~
+                (table-relation-nodes namespace tables keys columns)
+      relation-lte
+  [name=namespace relations=relations]
+::
+++  table-relation-nodes
+  |=  $:  namespace=@tas
+          tables=(list sys-table-row)
+          keys=(list sys-key-row)
+          columns=(list sys-column-row)
+      ==
+  ^-  (list relation-node)
+  ?~  tables  ~
+  ?:  =(namespace namespace.i.tables)
+    :-  :^  kind=%table
+            name=name.i.tables
+            :: columns
+            %+  sort  (collect-columns namespace.i.tables name.i.tables columns)
+                      column-lte
+            :: keys
+            %+  sort  (collect-keys namespace.i.tables name.i.tables keys)
+                      key-lte
+        $(tables t.tables)
+  $(tables t.tables)
+::
+++  collect-columns
+  |=  [namespace=@tas table-name=@tas rows=(list sys-column-row)]
+  ^-  (list column-node)
+  ?~  rows  ~
+  ?:  ?&  =(namespace namespace.i.rows)
+          =(table-name table.i.rows)
+          ==
+    [(column-node-from-row i.rows) $(rows t.rows)]
+  $(rows t.rows)
+::
+++  collect-keys
+  |=  [namespace=@tas table-name=@tas rows=(list sys-key-row)]
+  ^-  (list key-node)
+  ?~  rows  ~
+  ?:  ?&  =(namespace namespace.i.rows)
+          =(table-name table.i.rows)
+          ==
+    [(key-node-from-row i.rows) $(rows t.rows)]
+  $(rows t.rows)
+::
+++  column-lte
+  |=  [a=column-node b=column-node]
+  ^-  ?
+  (lth ordinal.a ordinal.b)
+::
+++  key-lte
+  |=  [a=key-node b=key-node]
+  ^-  ?
+  (lth ordinal.a ordinal.b)
+::
+++  relation-lte
+  |=  [a=relation-node b=relation-node]
+  ^-  ?
+  ?.  =(name.a name.b)
+    (aor name.a name.b)
+  (aor kind.a kind.b)
+::::::
+::::++  sys-view
+::::  |=  [view-name=@tas columns=(list column-node)]
+::::  ^-  relation-node
+::::  [kind=%view name=view-name columns=columns keys=~]
+::
+++  make-column-node
+  |=  [ordinal=@ud column-name=@tas aura=@ta]
+  ^-  column-node
+  [ordinal=ordinal name=column-name type=aura]
+::
+++  sys-databases-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%databases
+      :~  (make-column-node 1 %database %tas)
+          (make-column-node 2 %sys-agent %ta)
+          (make-column-node 3 %sys-tmsp %da)
+          (make-column-node 4 %data-ship %p)
+          (make-column-node 5 %data-agent %ta)
+          (make-column-node 6 %data-tmsp %da)
+          ==
+      keys=~
+::
+++  sys-namespaces-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%namespaces
+      :~  (make-column-node 1 %namespace %tas)
+          (make-column-node 2 %tmsp %da)
+          ==
+      keys=~
+::
+++  sys-tables-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%tables
+      :~  (make-column-node 1 %namespace %tas)
+          (make-column-node 2 %name %tas)
+          (make-column-node 3 %agent %ta)
+          (make-column-node 4 %tmsp %da)
+          (make-column-node 5 %row-count %ud)
+          ==
+      keys=~
+::
+++  sys-table-keys-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%table-keys
+      :~  (make-column-node 1 %namespace %tas)
+          (make-column-node 2 %name %tas)
+          (make-column-node 3 %key-ordinal %ud)
+          (make-column-node 4 %key %tas)
+          (make-column-node 5 %key-ascending %f)
+          ==
+      keys=~
+::
+++  sys-foreign-keys-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%foreign-keys
+      :~  (make-column-node 1 %parent-namespace %tas)
+          (make-column-node 2 %parent-table %tas)
+          (make-column-node 3 %child-namespace %tas)
+          (make-column-node 4 %child-table %tas)
+          (make-column-node 5 %ordinal %ud)
+          (make-column-node 6 %parent-column %tas)
+          (make-column-node 7 %child-column %tas)
+          (make-column-node 8 %on-delete %tas)
+          (make-column-node 9 %on-update %tas)
+          ==
+      keys=~
+::
+++  sys-columns-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%columns
+      :~  (make-column-node 1 %namespace %tas)
+          (make-column-node 2 %name %tas)
+          (make-column-node 3 %col-ordinal %ud)
+          (make-column-node 4 %col-name %tas)
+          (make-column-node 5 %col-type %ta)
+          ==
+      keys=~
+::
+++  sys-sys-log-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%sys-log
+      :~  (make-column-node 1 %tmsp %da)
+          (make-column-node 2 %agent %ta)
+          (make-column-node 3 %action %tas)
+          (make-column-node 4 %component %tas)
+          (make-column-node 5 %database %t)
+          (make-column-node 6 %namespace %t)
+          (make-column-node 7 %relation %tas)
+          (make-column-node 8 %target-database %t)
+          (make-column-node 9 %target-namespace %t)
+          (make-column-node 10 %target-relation %t)
+          (make-column-node 11 %message %t)
+          ==
+      keys=~
+::
+++  sys-data-log-view
+  ^-  relation-node
+  :^  kind=%view
+      name=%data-log
+      :~  (make-column-node 1 %tmsp %da)
+          (make-column-node 2 %ship %p)
+          (make-column-node 3 %agent %ta)
+          (make-column-node 4 %namespace %tas)
+          (make-column-node 5 %table %tas)
+          (make-column-node 6 %row-count %ud)
+          ==
+      keys=~
 ::
 ++  print-vector
-  |=  [num=@ud =vector]
+  |=  [num=@ud vector=vector:ast]
   ;tr
     ;td.p1.bd1(style "white-space: nowrap; text-align: right;"): {(scow %ud num)}
     ;*
     %+  turn  +.vector
-    |=  cell=vector-cell
+    |=  cell=vector-cell:ast
     ::;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
     ;td.p1.bd1(style "white-space: nowrap;"): {(text (dime-to-vase q.cell))}
   ==
@@ -184,18 +647,13 @@
   ::
 ++  parse-default-db
   ^-  (unit term)
-  ?~  res=(gid:d "default-db")  ~
-  =/  el=manx  +.u.res
-  %+  bind
-    (~(get by (malt a.g.el)) %val)
-  crip
-::
-++  child-node
-  |=  [tree=file pax=path]
-  ^-  (unit file)
-  ?~  pax  `tree
-  ?~  next=(~(get by dir.tree) i.pax)  ~
-  $(tree u.next, pax t.pax)
+  ?~  req=(reb:c /default-db)
+    ?~  res=(gid:d "default-db")  ~
+    =/  el=manx  +.u.res
+    %+  bind
+      (~(get by (malt a.g.el)) %val)
+    crip
+  `q.u.req
 ::
 ++  collect-child-paths
   |=  [tree=file prefix=path]
@@ -244,7 +702,7 @@
   |=  [query=tape results=manx default-db=(unit term)]
   =/  m  (strand ,vase)
   ^-  form:m
-  ;<  =server  bind:m  (scry server %gx %obelisk /server/noun)
+  ;<  schemas=schema-tree  bind:m  maybe-load-schema-tree
   %-  pure:m  !>
   ;div.fc.hf
     ;+
@@ -256,7 +714,7 @@
       =size  "0.4"
       =label  "Schemas"
       ;+
-        =/  m=manx  (print-schemas server default-db)
+        =/  m=manx  (print-schemas schemas default-db)
         m(a.g [[%slot "side"] a.g.m])
       ;hawk-sidebar#h-output.hf.fc
         =side  "bottom"
@@ -264,7 +722,7 @@
         =open  ""
         =size  "0.4"
         ;div.fc.hf
-          ;+  (print-header server default-db)
+          ;+  (print-header schemas default-db)
           ;+  (print-query-form query)
         ==
         ;+  results(a.g [[%slot "side"] a.g.results])
@@ -274,7 +732,7 @@
   ==
   ::
 ++  print-header
-  |=  [=server default-db=(unit term)]
+  |=  [schemas=schema-tree default-db=(unit term)]
   ;header.p2.frw.g4.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
       ;div#file-menu-backdrop.hidden(onclick "closeFileMenu()", style "position: fixed; inset: 0; z-index: 9;");
       ;div#file-menu.rel(style "position: relative; display: inline-block;", data-open "false")
@@ -332,25 +790,23 @@
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/roadmap.md", target "_blank", rel "noopener noreferrer"): Roadmap
-    ;+  (print-form-set-default-db server default-db)
+    ;+  (print-form-set-default-db schemas default-db)
+    ;+  print-for-developers-menu
   ==
   ::
 ++  print-form-set-default-db
-  |=  [=server default-db=(unit term)]
-  ;form.fr.ac.g1.pl-2(method "post")
-    =hx-trigger  "change from:find select"
-    =hx-on-htmx-config-request  "configRequest(event)"
+  |=  [schemas=schema-tree default-db=(unit term)]
+  ;form#default-db-form.fr.ac.g1.pl-2(method "post")
     ;input.hidden(name "/", value "set-default-db");
     ;div.p1.loader.mono.s-2
       ;span.loaded.f3: Default DB
       ;span.loading.f4: saving..
     ==
-    ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')), style "color-scheme: light dark; color: CanvasText; background: Canvas;")
+    ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')), onchange "syncDefaultDbMarker(this.value)", style "color-scheme: light dark; color: CanvasText; background: Canvas;")
       =name  "default-db"
       =required  ""
-      ;option(value "sys", style "color: CanvasText; background: Canvas;"): sys
       ;*
-      %+  turn  (sort ~(tap in ~(key by (~(del by server) %sys))) aor)
+      %+  turn  (database-names schemas)
       |=  =term
       =;  m=manx
         ?~  default-db  m
@@ -360,48 +816,60 @@
     ==
   ==
 ::
-++  current-schema
-  |=  =database
-  ^-  schema
-  =/  schema-key  ((on @da schema) gth)
-  +:(need (pry:schema-key sys.database))
-::
-++  namespace-table-names
-  |=  [=schema ns=@tas]
-  ^-  (list [@tas table])
-  %+  sort
-      %+  turn
-          %+  skim  ~(tap by tables.schema)
-                    |=  [k=[@tas @tas] v=table]
-                    =(ns -.k)
-              |=  [k=[@tas @tas] v=table]
-          [+.k v]
-      |=  [a=[@ *] b=[@ *]]
-      (aor -.a -.b)
-::
-++  table-columns
-  |=  =table
+++  print-for-developers-menu
   ^-  manx
-  =/  foo  %-  malt  %+  turn  key.pri-indx.table
-                         |=(=key-column [name.key-column key-column])
+  ;div.rel.pl-2(style "position: relative; display: inline-block;")
+    ;div#dev-menu-backdrop.hidden(onclick "closeDevMenu()", style "position: fixed; inset: 0; z-index: 9;");
+    ;div#dev-menu.rel(style "position: relative; display: inline-block;", data-open "false")
+      ;button#dev-menu-toggle.underline(type "button", onclick "return toggleDevMenu()", aria-expanded "false", style "cursor: pointer; display: inline-block; position: relative; z-index: 11;")
+        ;span: For Developers
+      ==
+      ;div#dev-menu-panel.abs.b2.bd1.br1.fc.hidden(style "position: absolute; z-index: 11; min-width: 12rem; top: calc(100% + 0.25rem); right: 0;")
+        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/sur/obelisk-ast.hoon", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): API/AST
+        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/tree/master/.claude/skills/obelisk-urql", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): urQL
+        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/dev/users-guide-script.txt", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): Sample urQL
+        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/dev/performance.md", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): Benchmarks
+      ==
+    ==
+  ==
+::
+++  database-names
+  |=  schemas=schema-tree
+  ^-  (list @tas)
+  (sort (database-names-raw schemas) aor)
+::
+++  database-names-raw
+  |=  schemas=schema-tree
+  ^-  (list @tas)
+  ?~  schemas  ~
+  [name.i.schemas $(schemas t.schemas)]
+::
+++  relation-columns
+  |=  rel=relation-node
+  ^-  manx
   ;div.p3.fc.g1
     ;*
-    %+  turn  columns.table
-    |=  =column
-    =/  aura=tape  (weld "@" (trip type.column))
-    =/  key-col=(unit key-column)  (~(get by foo) name.column)
-    =/  is-index  ?~  key-col  " "
-                  ?:  ascending.u.key-col  "↑"
-                  "↓"
+    %+  turn  columns.rel
+    |=  col=column-node
+    =/  aura=tape  (weld "@" (trip type.col))
+    =/  is-index=tape  (key-indicator name.col keys.rel)
       ;summary(style "display: grid; grid-template-columns: 4ch 4ch 1fr; column-gap: 1ch; align-items: center;")
         ;span;
         ;span.f4.mono(style "text-align: center;"): {(weld is-index aura)}
-        ;span: {(trip name.column)}
+        ;span: {(trip name.col)}
       ==
   ==
+::
+++  key-indicator
+  |=  [name=@tas keys=(list key-node)]
+  ^-  tape
+  ?~  keys  " "
+  ?:  =(name name.i.keys)
+    ?:(ascending.i.keys "↑" "↓")
+  $(keys t.keys)
   ::
 ++  column-name-csv
-  |=  cols=(list column)
+  |=  cols=(list column-node)
   ^-  tape
   ?~  cols  ""
   ?~  t.cols
@@ -409,16 +877,16 @@
   (weld (trip name.i.cols) (weld "," $(cols t.cols)))
 ::
 ++  column-spec-csv
-  |=  cols=(list column)
+  |=  cols=(list column-node)
   ^-  tape
   ?~  cols  ""
-  =/  spec=tape  (weld (trip name.i.cols) (weld ":" (weld "@" (trip type.i.cols))))
+  =/  spec  (weld (trip name.i.cols) (weld ":" (weld "@" (trip type.i.cols))))
   ?~  t.cols
     spec
   (weld spec (weld "," $(cols t.cols)))
 ::
 ++  key-spec-csv
-  |=  keys=(list key-column)
+  |=  keys=(list key-node)
   ^-  tape
   ?~  keys  ""
   =/  order=tape  ?:(ascending.i.keys "ASC" "DESC")
@@ -427,38 +895,38 @@
     spec
   (weld spec (weld "," $(keys t.keys)))
 ::
-++  namespace-view-names
-  |=  [=schema ns=@tas]
-  ^-  (list [@tas view])
-  =/  view-key  ((on ns-rel-key view) ns-rel-comp)
-    %+  turn  %+  sort  %+  turn
-                            %+  skim  (tap:view-key views.schema)
-                                      |=  [k=[@tas @tas @da] v=view]
-                                      =(ns -.k)
-                                |=  [k=[@tas @tas @da] v=view]
-                            [+.k v]
-                        |=  [a=[[@tas @da] view] b=[[@tas @da] view]]
-                        ?.  =(-.a -.b)  (aor +<.a +<.b)
-                        (aor -.a -.b)
-              |=  [k=[@tas @da] v=view]
-              [-.k v]
-::
-++  view-columns  
-  |=  =view
+++  print-relation
+  |=  [db=@tas ns=@tas rel=relation-node]
   ^-  manx
-  ;div.p3.fc.g1
-    ;*
-    %+  turn  columns.view
-    |=  =column
-      ;summary(style "display: grid; grid-template-columns: 4ch 4ch 1fr; column-gap: 1ch; align-items: center;")
-        ;span;
-        ;span.f4.mono(style "text-align: center;"): {(weld "@" (trip type.column))}
-        ;span: {(trip name.column)}
+  =/  kind-text=tape    ?-  kind.rel
+                          %table  "table"
+                          %view   "view"
+                          ==
+  =/  tag=tape          ?-  kind.rel
+                          %table  "tbl"
+                          %view   "vw"
+                          ==
+  =/  columns-csv=tape  (column-name-csv columns.rel)
+  =/  specs-csv=tape
+    ?:(=(kind.rel %table) (column-spec-csv columns.rel) "")
+  =/  keys-csv=tape
+    ?:(=(kind.rel %table) (key-spec-csv keys.rel) "")
+  ;details.rel(style "position: relative;")
+    =data-relation  "{(trip db)}.{(trip ns)}.{(trip name.rel)}"
+    ;summary(oncontextmenu "openTableContextMenu(event, '{kind-text}', '{(trip db)}', '{(trip ns)}', '{(trip name.rel)}', '{columns-csv}', '{specs-csv}', '{keys-csv}'); return false;", style "padding-right: 2rem;")
+      ;span.fr.ac.g1(style "display: inline-flex;")
+        ;span.f4.mono: {(weld "[" (weld tag "]"))}
+        ;span: {(trip name.rel)}
       ==
+    ==
+    ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, '{kind-text}', '{(trip db)}', '{(trip ns)}', '{(trip name.rel)}', '{columns-csv}', '{specs-csv}', '{keys-csv}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
+      ;span.mono: ...
+    ==
+    ;*  ~[(relation-columns rel)]
   ==
 ::
 ++  print-schemas
-  |=  [=server default-db=(unit term)]
+  |=  [schemas=schema-tree default-db=(unit term)]
   ;div.wf.hf.scroll-y.b2
     ;div.sticky.b2
       =style  "top: 0;"
@@ -467,66 +935,32 @@
     ==
     ;div#schema.p2
       ;*
-      %+  turn  (sort ~(tap in ~(key by server)) aor)
-      |=  =term
-      =/  db=database  ;;(database (~(got by server) term))
-      =/  schema=schema  +:(need (pry:((on @da schema) gth) sys.db))
+      %+  turn  schemas
+      |=  db=database-node
       ;details
+        =data-db  (trip name.db)
         ;summary
           ;span.f4.mono: [db] 
-          ;span: {(trip term)} 
-          ;+  ?.  =(default-db `term)  ;/("")
-          ;span.f3: (default)
+          ;span: {(trip name.db)} 
+          ;+  ?.  =(default-db `name.db)  ;/("")
+          ;span.schema-default-db.f3: (default)
         ==
         ;div.p3.fc.g1
           ;*
-          %+  turn  (sort ~(tap in ~(key by namespaces.schema)) aor)
-          |=  ns=@tas
-            =/  tables=(list [@tas table])  (namespace-table-names schema ns)
-            =/  views=(list [@tas view])  (namespace-view-names schema ns)
+          %+  turn  namespaces.db
+          |=  ns=namespace-node
             ;details
+              =data-ns  "{(trip name.db)}.{(trip name.ns)}"
               ;summary
                 ;span.f4.mono: [ns]
-                ;span: {(trip ns)}
+                ;span: {(trip name.ns)}
               ==
-              ;+
-                ?~  tables  ;/("")
-                ;div.p3.fc.g1
-                  ;*
-                  %+  turn  tables
-                  |=  tbl=[@tas table]
-                    ;details.rel(style "position: relative;")
-                      ;summary(oncontextmenu "openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}', '{(column-spec-csv columns.+.tbl)}', '{(key-spec-csv key.pri-indx.+.tbl)}'); return false;", style "padding-right: 2rem;")
-                        ;span.fr.ac.g1(style "display: inline-flex;")
-                          ;span.f4.mono: [tbl]
-                          ;span: {(trip -.tbl)}
-                        ==
-                      ==
-                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}', '{(column-spec-csv columns.+.tbl)}', '{(key-spec-csv key.pri-indx.+.tbl)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
-                        ;span.mono: ...
-                      ==
-                      ;*  ~[(table-columns +.tbl)]
-                    ==
-                ==
-              ;+
-                ?~  views  ;/("")
-                ;div.p3.fc.g1
-                  ;*
-                  %+  turn  views
-                  |=  vw=[@tas view]
-                    ;details.rel(style "position: relative;")
-                      ;summary(oncontextmenu "openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}', '', ''); return false;", style "padding-right: 2rem;")
-                        ;span.fr.ac.g1(style "display: inline-flex;")
-                          ;span.f4.mono: [vw]
-                          ;span: {(trip -.vw)}
-                        ==
-                      ==
-                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}', '', ''); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
-                        ;span.mono: ...
-                      ==
-                      ;*  ~[(view-columns +.vw)]
-                    ==
-                ==
+              ;div.p3.fc.g1
+                ;*
+                %+  turn  relations.ns
+                |=  rel=relation-node
+                (print-relation name.db name.ns rel)
+              ==
           ==
         ==
       ==
@@ -666,22 +1100,22 @@
   ?~  tp  acc
   $(tp t.tp, acc [i.tp acc])
 ++  print-results
-  |=  results=(list cmd-result)
+  |=  results=(list cmd-result:ast)
   ;div#results.grow.b1.mono.s0.hf
     ;*  (print-numbered-cmd-results results 1)
   ==
 ++  print-numbered-cmd-results
-  |=  [results=(list cmd-result) num=@ud]
+  |=  [results=(list cmd-result:ast) num=@ud]
   ^-  (list manx)
   ?~  results  ~
   [(print-cmd-result-tabs num i.results) $(results t.results, num +(num))]
 ::
 ++  print-cmd-result-tabs
-  |=  [group-id=@ud =cmd-result]
+  |=  [group-id=@ud cmd-result=cmd-result:ast]
   =/  num-sets=@ud
     %-  lent
     %+  skim  +.cmd-result
-    |=  =result
+    |=  result=result:ast
     =(-.result %result-set)
   ;div.result-export-group.rel(style "position: relative;")
     =data-results-group  (scow %ud group-id)
@@ -691,18 +1125,18 @@
         ;div.p3
           ;*
           %+  turn  +.cmd-result
-          |=(=result (print-result-metadata result))
+          |=(result=result:ast (print-result-metadata result))
         ==
       ;hawk-tabs.grow.hf
         ;div.p3(data-tab "Results")
           ;*
           %+  turn  +.cmd-result
-          |=(=result (print-result-set result))
+          |=(result=result:ast (print-result-set result))
         ==
       ;div.p3(data-tab "Messages")
         ;*
         %+  turn  +.cmd-result
-        |=(=result (print-result-metadata result))
+        |=(result=result:ast (print-result-metadata result))
       ==
     ==
     ;+
@@ -714,46 +1148,34 @@
   ==
 ::
 ++  print-result-metadata
-  |=  =result
+  |=  result=result:ast
   ?+  -.result  ;div;
     %action
-      ;div.fr.g1
-        ;div.bold: message:
-        ;div: {(trip action.result)}
-      ==
+      (print-message-row "message:" (trip action.result))
     %relation
-      ;div.fr.g1
-        ;div.bold: message:
-        ;div: {(trip relation.result)}
-      ==
+      (print-message-row "message:" (trip relation.result))
     %message
-      ;div.fr.g1
-        ;div.bold: message:
-        ;div: {(trip msg.result)}
-      ==
+      (print-message-row "message:" (trip msg.result))
     %vector-count
-      ;div.fr.g1
-        ;div.bold: vector count:
-        ;div: {(scow %ud count.result)}
-      ==
+      (print-message-row "vector count:" (scow %ud count.result))
     %server-time
-      ;div.fr.g1
-        ;div.bold: server-time:
-        ;div: {(scow %da date.result)}
-      ==
+      (print-message-row "server-time:" (scow %da date.result))
     %schema-time
-      ;div.fr.g1
-        ;div.bold: schema-time:
-        ;div: {(scow %da date.result)}
-      ==
+      (print-message-row "schema-time:" (scow %da date.result))
     %data-time
-      ;div.fr.g1
-        ;div.bold: data-time:
-        ;div: {(scow %da date.result)}
-      ==
+      (print-message-row "data-time:" (scow %da date.result))
   ==
+::
+++  print-message-row
+  |=  [label=tape value=tape]
+  ^-  manx
+  ;div.fr.g1
+    ;div.bold: {label}
+    ;div: {value}
+  ==
+::
 ++  print-result-set
-  |=  =result
+  |=  result=result:ast
   ?+  -.result  ;/("")
     %result-set
       (print-list-vector +.result)
@@ -761,6 +1183,10 @@
   ::
 ++  print-results-save-panel
   |=  group-id=@ud
+  (print-results-save-panel-with-delimiter group-id %.y)
+::
+++  print-results-save-panel-with-delimiter
+  |=  [group-id=@ud show-delimiter=?]
   ;div.results-save-panel.hidden.b2.bd1.br1(style "position: fixed; top: 0; left: 0; z-index: 20; min-width: 16rem; max-width: 20rem;")
     ;form.results-save-panel-form.fc.g1.loader.p2
       =method  "post"
@@ -769,21 +1195,24 @@
       =onsubmit  "event.preventDefault(); submitResultsSavePanel(event); return false;"
       ;div.s-2.o7: Save results to child path
       ;input.results-save-child.br1.bd1.p-1.wfc(name "_child-path", value "results-1", placeholder "results-1");
-      ;div.fc.g1
-        ;div.s-2.o7: Delimiter
-        ;label.fr.ac.g1
-          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "comma", checked "");
-          ;span: comma
-        ==
-        ;label.fr.ac.g1
-          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "space");
-          ;span: space
-        ==
-        ;label.fr.ac.g1
-          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "tab");
-          ;span: tab
-        ==
-      ==
+      ;+
+        ?:  show-delimiter
+          ;div.fc.g1
+            ;div.s-2.o7: Delimiter
+            ;label.fr.ac.g1
+              ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "comma", checked "");
+              ;span: comma
+            ==
+            ;label.fr.ac.g1
+              ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "space");
+              ;span: space
+            ==
+            ;label.fr.ac.g1
+              ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "tab");
+              ;span: tab
+            ==
+          ==
+        ;/("")
       ;button.results-save-submit.p-1.bd1.br1.b2.hover.loader(type "button", onclick "submitResultsSavePanel(event); return false;")
         ;span.loaded.fr.ac.g1
           ;span: Save
@@ -794,12 +1223,12 @@
   ==
 ::
 ++  print-results-export-data
-  |=  results=(list result)
+  |=  results=(list result:ast)
   ^-  manx
   ;div.results-export-data.hidden
     ;*
     %+  turn  results
-    |=  =result
+    |=  result=result:ast
     ?+  -.result  ;/("")
       %result-set
         (print-result-export-set +.result)
@@ -807,7 +1236,7 @@
   ==
 ::
 ++  print-result-export-set
-  |=  vectors=(list vector)
+  |=  vectors=(list vector:ast)
   ^-  manx
   ;div.result-export-set.hidden
     ;+
@@ -816,22 +1245,22 @@
       ;div.result-export-headers.hidden
         ;*
         %+  turn  +:i.vectors
-        |=  cell=vector-cell
+        |=  cell=vector-cell:ast
         ;textarea.result-export-header.hidden: {(trip p.cell)}
       ==
     ;*
     %+  turn  vectors
-    |=  =vector
+    |=  vector=vector:ast
     ;div.result-export-row.hidden
       ;*
       %+  turn  +.vector
-      |=  cell=vector-cell
+      |=  cell=vector-cell:ast
       ;textarea.result-export-cell.hidden: {(text (dime-to-vase q.cell))}
     ==
   ==
 ::
 ++  print-list-vector
-  |=  vectors=(list vector)
+  |=  vectors=(list vector:ast)
   ;div
     ;table.p3
       =style  "border-collapse: collapse;"
@@ -840,7 +1269,7 @@
         ;*
         ?~  vectors  ~
         %+  turn  +:i.vectors
-        |=  cell=vector-cell
+        |=  cell=vector-cell:ast
         ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
       ==
       ;*  (print-numbered-vectors vectors 1)
@@ -848,7 +1277,7 @@
   ==
 ::
 ++  print-numbered-vectors
-  |=  [vectors=(list vector) num=@ud]
+  |=  [vectors=(list vector:ast) num=@ud]
   ^-  (list manx)
   ?~  vectors  ~
   [(print-vector num i.vectors) $(vectors t.vectors, num +(num))]
@@ -859,8 +1288,14 @@
     %.n  (print-tang p.output)
     %.y
       ;div#results.grow.b1.mono.s0
-        ;div.scroll-x.scroll-y.p4.pre-wrap(style "white-space: pre-wrap;")
-          {p.output}
+        ;div.result-export-group.rel
+          =data-results-group  "1"
+          =data-has-results  "true"
+          ;div.scroll-x.scroll-y.p4.pre-wrap(style "white-space: pre-wrap;")
+            {(text !>(p.output))}
+          ==
+          ;+  (print-results-save-panel-with-delimiter 1 %.n)
+          ;textarea.parse-export-text.hidden: {(text !>(p.output))}
         ==
       ==
   ==
@@ -877,10 +1312,13 @@
       e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
       e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
-      let crud-txn = window.getcrud-txn()
-      const selText = crud-txn.toString();
+      let selection = window.getSelection()
+      const selText = selection.toString();
       e.detail.parameters['/selected-query-text'] = selText;
+      e.detail.parameters['default-db'] = $('#default-db').val() || 'sys';
       window.obeliskLastQuery = selText || ($('#query-text').val() || '');
+      window.obeliskLastAction = $('#query-action').val() || 'query';
+      e.detail.parameters['schema-refresh'] = 'false';
     }
     function submitQueryAction(action) {
       const input = document.getElementById('query-action');
@@ -1027,6 +1465,28 @@
       setFileMenuOpen(!isOpen);
       return false;
     }
+    function setDevMenuOpen(open) {
+      const menu = document.getElementById('dev-menu');
+      const panel = document.getElementById('dev-menu-panel');
+      const toggle = document.getElementById('dev-menu-toggle');
+      const backdrop = document.getElementById('dev-menu-backdrop');
+      if (!menu || !panel || !toggle || !backdrop) {
+        return;
+      }
+      menu.setAttribute('data-open', open ? 'true' : 'false');
+      backdrop.classList.toggle('hidden', !open);
+      panel.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function toggleDevMenu() {
+      const menu = document.getElementById('dev-menu');
+      const isOpen = !!menu && menu.getAttribute('data-open') === 'true';
+      setDevMenuOpen(!isOpen);
+      return false;
+    }
+    function closeDevMenu() {
+      setDevMenuOpen(false);
+    }
     function hideSaveAsPanel() {
       const form = document.getElementById('save-panel-form');
       if (form) {
@@ -1159,8 +1619,26 @@
     function textareaValues(node, selector) {
       return Array.from(node.querySelectorAll(selector)).map((el) => el.value || '');
     }
+    function resultsExportSets(group) {
+      const root = document.getElementById('results');
+      const sets = root ? Array.from(root.querySelectorAll('.result-export-set')) : [];
+      if (sets.length) {
+        return sets;
+      }
+      return group ? Array.from(group.querySelectorAll('.result-export-set')) : [];
+    }
+    function parseExportText(group) {
+      const root = document.getElementById('results');
+      const node = (root && root.querySelector('.parse-export-text')) ||
+        (group && group.querySelector('.parse-export-text'));
+      return node ? (node.value || '') : null;
+    }
     function buildResultsExportText(group, delimiter) {
-      const sets = Array.from(group.querySelectorAll('.result-export-set'));
+      const parseText = parseExportText(group);
+      if (parseText !== null) {
+        return parseText.endsWith('\n') ? parseText : (parseText + '\n');
+      }
+      const sets = resultsExportSets(group);
       const chunks = sets.map((set) => {
         const lines = [];
         const headers = textareaValues(set, '.result-export-header');
@@ -1630,41 +2108,457 @@
       renderEditorTabs();
     }
 
-    function saveSchemaState() {
-      const result = [];
-      document.querySelectorAll('#schema details').forEach((el) => {
-        const s = el.querySelector(':scope > summary');
-        result.push({key: s ? s.textContent.trim() : '', open: el.open});
-      });
-      return result;
+    function eachMatch(query, regex, build) {
+      return Array.from(String(query || '').matchAll(regex))
+        .map((match) => build(match))
+        .filter(Boolean);
     }
-    function restoreSchemaState(saved) {
-      const details = Array.from(document.querySelectorAll('#schema details'));
-      saved.forEach(({key, open}) => {
-        if (!key) { return; }
-        const el = details.find((d) => {
-          const s = d.querySelector(':scope > summary');
-          return s && s.textContent.trim() === key;
-        });
-        if (el) { el.open = open; }
-      });
-    }
-    async function maybeRefreshSchema(query) {
-      const lower = (query || '').toLowerCase();
-      if (!lower.includes('create') && !lower.includes('drop')) { return; }
-      const saved = saveSchemaState();
-      try {
-        const res = await fetch(window.location.href, {credentials: 'same-origin'});
-        if (!res.ok) { return; }
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        const newSchema = doc.getElementById('schema');
-        const oldSchema = document.getElementById('schema');
-        if (newSchema && oldSchema) {
-          oldSchema.replaceWith(newSchema);
-          restoreSchemaState(saved);
+    function schemaMutationSource(query) {
+      let inBlock = false;
+      return String(query || '').split(/\r?\n/).map((line) => {
+        if (inBlock) {
+          if (line.startsWith('*/')) { inBlock = false; }
+          return '';
         }
-      } catch (_err) {}
+        if (line.startsWith('/*')) {
+          inBlock = true;
+          return '';
+        }
+        const comment = line.indexOf('::');
+        return comment >= 0 ? line.slice(0, comment) : line;
+      }).join('\n');
+    }
+    function currentDefaultDb() {
+      return document.getElementById('default-db')?.value || 'sys';
+    }
+    function parseNamespaceRef(raw, fallbackDb) {
+      const parts = String(raw || '').toLowerCase().split('.').filter(Boolean);
+      if (parts.length >= 2) {
+        return {db: parts[parts.length - 2], ns: parts[parts.length - 1]};
+      }
+      if (parts.length === 1) {
+        return {db: fallbackDb, ns: parts[0]};
+      }
+      return null;
+    }
+    function parseTableRef(raw, fallbackDb) {
+      const text = String(raw || '').toLowerCase();
+      const parts = text.split('.');
+      const compact = parts.filter(Boolean);
+      if (parts.length >= 3) {
+        return {
+          db: parts[0] || fallbackDb,
+          ns: parts[1] || 'dbo',
+          table: compact[compact.length - 1]
+        };
+      }
+      if (compact.length === 2) {
+        return {db: fallbackDb, ns: compact[0], table: compact[1]};
+      }
+      if (compact.length === 1) {
+        return {db: fallbackDb, ns: 'dbo', table: compact[0]};
+      }
+      return null;
+    }
+    function parseColumnSpecs(body) {
+      return String(body || '').split(',')
+        .map((part) => part.trim().match(/^([a-z][a-z0-9-]*)\s+(@[a-z0-9-]+)\b/i))
+        .filter(Boolean)
+        .map((match) => [match[2].toLowerCase(), match[1].toLowerCase()]);
+    }
+    function parseKeySpecs(body) {
+      return String(body || '').split(',')
+        .map((part) => part.trim().match(/^([a-z][a-z0-9-]*)(?:\s+(asc|desc))?/i))
+        .filter(Boolean)
+        .map((match) => ({
+          name: match[1].toLowerCase(),
+          order: (match[2] || 'ASC').toUpperCase()
+        }));
+    }
+    function schemaMutations(query) {
+      const fallbackDb = currentDefaultDb();
+      const mutations = [
+        ...eachMatch(query, /\bcreate\s+database\s+([a-z][a-z0-9-]*)\b/gi, (match) => ({
+          index: match.index,
+          type: 'create-db',
+          db: match[1].toLowerCase()
+        })),
+        ...eachMatch(query, /\bdrop\s+database\s+([a-z][a-z0-9-]*)\b/gi, (match) => ({
+          index: match.index,
+          type: 'drop-db',
+          db: match[1].toLowerCase()
+        })),
+        ...eachMatch(query, /\bcreate\s+namespace\s+((?:[a-z][a-z0-9-]*\.)?[a-z][a-z0-9-]*)\b/gi, (match) => {
+          const ref = parseNamespaceRef(match[1], fallbackDb);
+          return ref ? {index: match.index, type: 'create-ns', ref} : null;
+        }),
+        ...eachMatch(query, /\bdrop\s+namespace\s+(?:force\s+)?((?:[a-z][a-z0-9-]*\.)?[a-z][a-z0-9-]*)\b/gi, (match) => {
+          const ref = parseNamespaceRef(match[1], fallbackDb);
+          return ref ? {index: match.index, type: 'drop-ns', ref} : null;
+        }),
+        ...eachMatch(query, /\bcreate\s+table\s+([a-z][a-z0-9-]*(?:(?:\.\.?)[a-z][a-z0-9-]*){0,2})\s*\(([\s\S]*?)\)\s*primary\s+key\s*\(([\s\S]*?)\)/gi, (match) => {
+          const ref = parseTableRef(match[1], fallbackDb);
+          if (!ref) { return null; }
+          return {
+            index: match.index,
+            type: 'create-table',
+            spec: {
+              db: ref.db,
+              ns: ref.ns,
+              name: ref.table,
+              kind: 'table',
+              columns: parseColumnSpecs(match[2]),
+              keys: parseKeySpecs(match[3])
+            }
+          };
+        }),
+        ...eachMatch(query, /\bdrop\s+table\s+(?:force\s+)?([a-z][a-z0-9-]*(?:(?:\.\.?)[a-z][a-z0-9-]*){0,2})\b/gi, (match) => {
+          const ref = parseTableRef(match[1], fallbackDb);
+          return ref ? {index: match.index, type: 'drop-table', ref} : null;
+        })
+      ];
+      return mutations.sort((a, b) => a.index - b.index);
+    }
+    function sysViewSpecs() {
+      return [
+        {name: 'columns', columns: [
+          ['@tas', 'namespace'], ['@tas', 'name'], ['@ud', 'col-ordinal'],
+          ['@tas', 'col-name'], ['@ta', 'col-type']
+        ]},
+        {name: 'data-log', columns: [
+          ['@da', 'tmsp'], ['@p', 'ship'], ['@ta', 'agent'],
+          ['@tas', 'namespace'], ['@tas', 'table'], ['@ud', 'row-count']
+        ]},
+        {name: 'foreign-keys', columns: [
+          ['@tas', 'parent-namespace'], ['@tas', 'parent-table'],
+          ['@tas', 'child-namespace'], ['@tas', 'child-table'],
+          ['@ud', 'ordinal'], ['@tas', 'parent-column'],
+          ['@tas', 'child-column'], ['@tas', 'on-delete'],
+          ['@tas', 'on-update']
+        ]},
+        {name: 'namespaces', columns: [
+          ['@tas', 'namespace'], ['@da', 'tmsp']
+        ]},
+        {name: 'sys-log', columns: [
+          ['@da', 'tmsp'], ['@ta', 'agent'], ['@tas', 'action'],
+          ['@tas', 'component'], ['@t', 'database'], ['@t', 'namespace'],
+          ['@tas', 'relation'], ['@t', 'target-database'],
+          ['@t', 'target-namespace'], ['@t', 'target-relation'],
+          ['@t', 'message']
+        ]},
+        {name: 'table-keys', columns: [
+          ['@tas', 'namespace'], ['@tas', 'name'], ['@ud', 'key-ordinal'],
+          ['@tas', 'key'], ['@f', 'key-ascending']
+        ]},
+        {name: 'tables', columns: [
+          ['@tas', 'namespace'], ['@tas', 'name'], ['@ta', 'agent'],
+          ['@da', 'tmsp'], ['@ud', 'row-count']
+        ]}
+      ].sort((a, b) => a.name.localeCompare(b.name));
+    }
+    function immediateSummary(details) {
+      return details ? details.querySelector(':scope > summary') : null;
+    }
+    function makeSummary(kind, name) {
+      const summary = document.createElement('summary');
+      const tag = document.createElement('span');
+      tag.className = 'f4 mono';
+      tag.textContent = '[' + kind + ']';
+      summary.appendChild(tag);
+      summary.appendChild(document.createTextNode(' '));
+      const label = document.createElement('span');
+      label.textContent = name;
+      summary.appendChild(label);
+      return summary;
+    }
+    function makeRelationDetails(db, ns, spec) {
+      const details = document.createElement('details');
+      details.className = 'rel';
+      details.style.position = 'relative';
+      details.dataset.relation = db + '.' + ns + '.' + spec.name;
+      const kind = spec.kind || 'view';
+      const tagText = kind === 'table' ? '[tbl]' : '[vw]';
+      const columnsCsv = spec.columns.map((entry) => entry[1]).join(',');
+      const columnSpecsCsv = kind === 'table'
+        ? spec.columns.map((entry) => entry[1] + ':' + entry[0]).join(',')
+        : '';
+      const keySpecsCsv = kind === 'table'
+        ? (spec.keys || []).map((key) => key.name + ':' + key.order).join(',')
+        : '';
+      const openMenu = (event) => {
+        return openTableContextMenu(
+          event,
+          kind,
+          db,
+          ns,
+          spec.name,
+          columnsCsv,
+          columnSpecsCsv,
+          keySpecsCsv
+        );
+      };
+      const summary = document.createElement('summary');
+      summary.style.paddingRight = '2rem';
+      summary.addEventListener('contextmenu', openMenu);
+      const label = document.createElement('span');
+      label.className = 'fr ac g1';
+      label.style.display = 'inline-flex';
+      const tag = document.createElement('span');
+      tag.className = 'f4 mono';
+      tag.textContent = tagText;
+      const name = document.createElement('span');
+      name.textContent = spec.name;
+      label.appendChild(tag);
+      label.appendChild(name);
+      summary.appendChild(label);
+      details.appendChild(summary);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.style.position = 'absolute';
+      button.style.top = '0.2rem';
+      button.style.right = '0.2rem';
+      button.style.zIndex = '1';
+      button.style.padding = '0 0.5rem';
+      button.style.lineHeight = '1';
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openMenu(event);
+      });
+      const dots = document.createElement('span');
+      dots.className = 'mono';
+      dots.textContent = '...';
+      button.appendChild(dots);
+      details.appendChild(button);
+      const columns = document.createElement('div');
+      columns.className = 'p3 fc g1';
+      spec.columns.forEach(([aura, column]) => {
+        const row = document.createElement('summary');
+        row.style.display = 'grid';
+        row.style.gridTemplateColumns = '4ch 4ch 1fr';
+        row.style.columnGap = '1ch';
+        row.style.alignItems = 'center';
+        row.appendChild(document.createElement('span'));
+        const type = document.createElement('span');
+        type.className = 'f4 mono';
+        type.style.textAlign = 'center';
+        const key = (spec.keys || []).find((entry) => entry.name === column);
+        type.textContent = (key ? (key.order === 'DESC' ? '↓' : '↑') : ' ') + aura;
+        const col = document.createElement('span');
+        col.textContent = column;
+        row.appendChild(type);
+        row.appendChild(col);
+        columns.appendChild(row);
+      });
+      details.appendChild(columns);
+      return details;
+    }
+    function makeNamespaceDetails(db, ns, includeViews) {
+      const details = document.createElement('details');
+      details.dataset.ns = db + '.' + ns;
+      details.appendChild(makeSummary('ns', ns));
+      const body = document.createElement('div');
+      body.className = 'p3 fc g1';
+      if (includeViews) {
+        sysViewSpecs().forEach((spec) => {
+          body.appendChild(makeRelationDetails(db, ns, spec));
+        });
+      }
+      details.appendChild(body);
+      return details;
+    }
+    function makeDatabaseDetails(db) {
+      const details = document.createElement('details');
+      details.dataset.db = db;
+      details.appendChild(makeSummary('db', db));
+      const body = document.createElement('div');
+      body.className = 'p3 fc g1';
+      body.appendChild(makeNamespaceDetails(db, 'dbo', false));
+      body.appendChild(makeNamespaceDetails(db, 'sys', true));
+      details.appendChild(body);
+      return details;
+    }
+    function schemaDatabases() {
+      return Array.from(document.querySelectorAll('#schema > details[data-db]'));
+    }
+    function databaseNode(db) {
+      return document.querySelector('#schema > details[data-db="' + db + '"]');
+    }
+    function namespaceNode(db, ns) {
+      return document.querySelector('#schema details[data-ns="' + db + '.' + ns + '"]');
+    }
+    function expandDatabaseNode(db) {
+      const node = databaseNode(db);
+      if (node) { node.open = true; }
+    }
+    function expandNamespaceNode(db, ns) {
+      const node = namespaceNode(db, ns);
+      if (node) { node.open = true; }
+    }
+    function databaseBody(db) {
+      const node = databaseNode(db);
+      return node ? node.querySelector(':scope > div') : null;
+    }
+    function namespaceBody(db, ns) {
+      const node = namespaceNode(db, ns);
+      return node ? node.querySelector(':scope > div') : null;
+    }
+    function namespaceNodes(db) {
+      const body = databaseBody(db);
+      return body ? Array.from(body.querySelectorAll(':scope > details[data-ns]')) : [];
+    }
+    function relationNodes(db, ns) {
+      const body = namespaceBody(db, ns);
+      return body ? Array.from(body.querySelectorAll(':scope > details[data-relation]')) : [];
+    }
+    function removeDatabaseNode(db) {
+      const node = databaseNode(db);
+      if (node) { node.remove(); }
+    }
+    function insertDatabaseNode(db) {
+      const schema = document.getElementById('schema');
+      if (!schema || document.querySelector('#schema > details[data-db="' + db + '"]')) {
+        return;
+      }
+      const node = makeDatabaseDetails(db);
+      const next = schemaDatabases().find((el) => {
+        return (el.dataset.db || '').localeCompare(db) > 0;
+      });
+      if (next) {
+        schema.insertBefore(node, next);
+      } else {
+        schema.appendChild(node);
+      }
+      node.open = true;
+    }
+    function insertNamespaceNode(db, ns) {
+      const body = databaseBody(db);
+      const key = db + '.' + ns;
+      if (!body || document.querySelector('#schema details[data-ns="' + key + '"]')) {
+        expandDatabaseNode(db);
+        return;
+      }
+      const node = makeNamespaceDetails(db, ns, ns === 'sys');
+      const next = namespaceNodes(db).find((el) => {
+        const name = (el.dataset.ns || '').split('.').pop();
+        return name.localeCompare(ns) > 0;
+      });
+      if (next) {
+        body.insertBefore(node, next);
+      } else {
+        body.appendChild(node);
+      }
+      expandDatabaseNode(db);
+    }
+    function removeNamespaceNode(db, ns) {
+      expandDatabaseNode(db);
+      const node = namespaceNode(db, ns);
+      if (node) { node.remove(); }
+    }
+    function insertTableNode(spec) {
+      insertNamespaceNode(spec.db, spec.ns);
+      const body = namespaceBody(spec.db, spec.ns);
+      const key = spec.db + '.' + spec.ns + '.' + spec.name;
+      if (!body || document.querySelector('#schema details[data-relation="' + key + '"]')) {
+        expandDatabaseNode(spec.db);
+        expandNamespaceNode(spec.db, spec.ns);
+        return;
+      }
+      const node = makeRelationDetails(spec.db, spec.ns, spec);
+      const next = relationNodes(spec.db, spec.ns).find((el) => {
+        const name = (el.dataset.relation || '').split('.').pop();
+        return name.localeCompare(spec.name) > 0;
+      });
+      if (next) {
+        body.insertBefore(node, next);
+      } else {
+        body.appendChild(node);
+      }
+      expandDatabaseNode(spec.db);
+      expandNamespaceNode(spec.db, spec.ns);
+    }
+    function removeTableNode(ref) {
+      expandDatabaseNode(ref.db);
+      expandNamespaceNode(ref.db, ref.ns);
+      const node = document.querySelector(
+        '#schema details[data-relation="' + ref.db + '.' + ref.ns + '.' + ref.table + '"]'
+      );
+      if (node) { node.remove(); }
+    }
+    function syncDefaultDbMarker(db) {
+      document.querySelectorAll('.schema-default-db').forEach((el) => el.remove());
+      const node = document.querySelector('#schema > details[data-db="' + db + '"]');
+      const summary = immediateSummary(node);
+      if (!summary) { return; }
+      summary.appendChild(document.createTextNode(' '));
+      const marker = document.createElement('span');
+      marker.className = 'schema-default-db f3';
+      marker.textContent = '(default)';
+      summary.appendChild(marker);
+    }
+    function setDefaultDbSelection(db) {
+      const select = document.getElementById('default-db');
+      if (!select) { return; }
+      select.value = db;
+      syncDefaultDbMarker(db);
+    }
+    function syncDefaultDbOption(db, shouldExist) {
+      const select = document.getElementById('default-db');
+      if (!select) { return; }
+      const existing = Array.from(select.options).find((option) => option.value === db);
+      if (!shouldExist) {
+        const wasSelected = select.value === db;
+        if (existing) { existing.remove(); }
+        if (wasSelected) { setDefaultDbSelection('sys'); }
+        return;
+      }
+      if (!existing) {
+        const option = document.createElement('option');
+        option.value = db;
+        option.textContent = db;
+        option.style.color = 'CanvasText';
+        option.style.background = 'Canvas';
+        const next = Array.from(select.options).find((el) => {
+          return el.value.localeCompare(db) > 0;
+        });
+        if (next) {
+          select.insertBefore(option, next);
+        } else {
+          select.appendChild(option);
+        }
+      }
+    }
+    function maybeRefreshSchema(query) {
+      if (window.obeliskLastAction && window.obeliskLastAction !== 'query') {
+        return;
+      }
+      const source = schemaMutationSource(query);
+      const lower = source.toLowerCase();
+      if (!lower.includes('create') && !lower.includes('drop')) { return; }
+      schemaMutations(source).forEach((mutation) => {
+        switch (mutation.type) {
+          case 'drop-db':
+            removeDatabaseNode(mutation.db);
+            syncDefaultDbOption(mutation.db, false);
+            break;
+          case 'drop-ns':
+            removeNamespaceNode(mutation.ref.db, mutation.ref.ns);
+            break;
+          case 'drop-table':
+            removeTableNode(mutation.ref);
+            break;
+          case 'create-db':
+            insertDatabaseNode(mutation.db);
+            syncDefaultDbOption(mutation.db, true);
+            setDefaultDbSelection(mutation.db);
+            break;
+          case 'create-ns':
+            insertNamespaceNode(mutation.ref.db, mutation.ref.ns);
+            break;
+          case 'create-table':
+            insertTableNode(mutation.spec);
+            break;
+        }
+      });
     }
     if (!window.obeliskFileMenuHandler) {
       window.obeliskFileMenuHandler = true;
@@ -1679,6 +2573,20 @@
       };
       document.addEventListener('pointerdown', maybeCloseFileMenu, true);
       document.addEventListener('click', maybeCloseFileMenu, true);
+    }
+    if (!window.obeliskDevMenuHandler) {
+      window.obeliskDevMenuHandler = true;
+      const maybeCloseDevMenu = (e) => {
+        const menu = document.getElementById('dev-menu');
+        if (!menu || menu.getAttribute('data-open') !== 'true') {
+          return;
+        }
+        if (!eventInside(menu, e)) {
+          closeDevMenu();
+        }
+      };
+      document.addEventListener('pointerdown', maybeCloseDevMenu, true);
+      document.addEventListener('click', maybeCloseDevMenu, true);
     }
     if (!window.obeliskTableContextMenuHandler) {
       window.obeliskTableContextMenuHandler = true;
@@ -1743,111 +2651,59 @@
   ::
 ::
 ::::::::::::::::::::::::::::::::::::::
-::  obelisk types & wrapper
+::  schema tree query types
 ::
 ::
-+$  server  (map @tas *)
-+$  database
-  $:  %database
-    name=@tas
-    created-provenance=path
-    created-tmsp=@da
-    sys=((mop @da schema) gth)
-    ::content=((mop @da data) gth)
-    content=((mop @da *) gth)
-    ::=view-cache
-    view-cache=*
-    ==
++$  schema-tree  (list database-node)
 ::
-+$  schema
-  $:  %schema
-    provenance=path
-    tmsp=@da
-    =namespaces
-    =tables
-    =views
-  :: permissions   :: maybe at server or database level?
-    ==
-+$  table
-  $+  table
-  $:  %table
-    provenance=path
-    tmsp=@da
-    ::=column-lookup
-    column-lookup=*
-    typ-addr-lookup=*
-    pri-indx=index
-    columns=(list column)      ::  canonical column list
-    indices=(list index)      :: to do: indices indexed by (list column)
-    ==
-+$  column
-  $+  column
-  $:  %column
-    name=@tas
-    type=@ta
-    addr=@
-    ==
-+$  ns-rel-key
-  $:  ns=@tas
-      rel=@tas
-      time=@da
++$  database-node
+  $:  name=@tas
+      namespaces=(list namespace-node)
       ==
-++  ns-rel-comp
-  |=  [p=ns-rel-key q=ns-rel-key]
-  ^-  ?
-  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(rel.p rel.q)  (gth rel.p rel.q)
-  (gth time.p time.q)
-+$  namespaces  (map @tas @da)
-+$  tables  (map [@tas @tas] table)
-+$  views  ((mop ns-rel-key view) ns-rel-comp)
-+$  view
-  $+  view
-  $:  %view
-    provenance=path
-    tmsp=@da
-    ::=crud-txn
-    ::=column-lookup
-    crud-txn=*
-    column-lookup=*
-    typ-addr-lookup=*
-    columns=(list column)      ::  canonical column list
-    :: to do: replace ordering with index (requires non-unique mop type)
-    ordering=(list *)
-    :: indices
-    ==
-+$  index
-  $:  %index
-    unique=?
-    key=(list key-column)
-    ==
-+$  key-column
-  $:  %key-column
-    name=@tas
-    =aura
-    ascending=?
-    ==
 ::
-::  OUTPUT
++$  namespace-node
+  $:  name=@tas
+      relations=(list relation-node)
+      ==
 ::
-+$  cmd-result  [%results (list result)]
-+$  result
-  $%
-    [%action action=@t]
-    [%relation relation=@t]
-    [%message msg=@t]
-    [%vector-count count=@ud]
-    [%server-time date=@da]
-    [%security-time date=@da]
-    [%schema-time date=@da]
-    [%data-time date=@da]
-    [%result-set (list vector)]
-    ==
++$  relation-kind  ?(%table %view)
++$  relation-node
+  $:  kind=relation-kind
+      name=@tas
+      columns=(list column-node)
+      keys=(list key-node)
+      ==
 ::
-+$  vector-cell  [p=@tas q=dime]
-+$  vector
-  $+  vector
-  $:  %vector
-    (lest vector-cell)
-    ==
++$  column-node
+  $:  ordinal=@ud
+      name=@tas
+      type=@ta
+      ==
+::
++$  key-node
+  $:  ordinal=@ud
+      name=@tas
+      ascending=?
+      ==
+::
++$  sys-table-row
+  $:  namespace=@tas
+      name=@tas
+      ==
+::
++$  sys-key-row
+  $:  namespace=@tas
+      table=@tas
+      ordinal=@ud
+      key=@tas
+      ascending=?
+      ==
+::
++$  sys-column-row
+  $:  namespace=@tas
+      table=@tas
+      ordinal=@ud
+      column=@tas
+      type=@ta
+      ==
 --
