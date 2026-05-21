@@ -1,6 +1,15 @@
 /-  *obelisk-ast
 |% 
 ::
+++  print-crash
+  |=  trace=tang
+  ^-  @f
+  ~&  "%obelisk-crash:"
+  |-
+  ?~  trace  %.y
+  ~&  "{<(crip ~(ram re i.trace))>}"
+  $(trace t.trace)
+::
 ::  +print:  (list cmd-result) -> ?
 ++  print
   |=  a=(list cmd-result)

@@ -648,26 +648,26 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+::        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "INSERT INTO db1..my-table (col1) VALUES ('cord') "
 ::  =.  run  +(run)
 ::  =^  mov4  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db2"])
+::        !>([%tape %sys "CREATE DATABASE db2"])
 ::  ::
 ::  %+  expect-fail-message
 ::        'DROP DATABASE: database must be dropped by local agent'
@@ -832,7 +832,7 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1"])
+::        !>([%tape %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message
@@ -1543,19 +1543,19 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1"])
+::        !>([%tape %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+::        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message

@@ -52,12 +52,14 @@ SELECT
 The first thing to do is define a database. In the dojo enter the following poke:
 
 ```
-:obelisk &obelisk-action [%tape %sys "CREATE DATABASE db1"]
+:obelisk &obelisk-action [%tape-print %sys "CREATE DATABASE db1"]
 ```
 
 Let's review the obelisk-action:
 
-**%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
+**%tape-print** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
+
+`%tape-print` prints result messages and up to 10 rows of SELECT results to the dojo. If you prefer to execute quietly use `%tape`, but be aware you will not be notified of errors resulting in crash.
 
 **%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in `CREATE DATABASE`, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
 
@@ -411,7 +413,7 @@ Before we get into queries, let's load some more interesting data to work with. 
 Execute the following in the dojo to load the database. It will take a little over a minute to load.
 
 ```
-:obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+:obelisk &obelisk-action [%tape-print %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 ```
 
 # Query

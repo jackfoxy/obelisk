@@ -1044,16 +1044,16 @@
   ==
 ::
 ::  $action
-::    [%tape @tas tape]          - prints result to dodjo
-::    [%tape2 @tas tape]         - suppresses printing result to dojo
-::    [%commands (list command)] - prints result to dojo
+::    [%tape @tas tape]          - execute urQL script, parse and runtime
+::    [%tape-print @tas tape]    - execute urQL script, prints result to dojo
+::    [%commands (list command)] - execute API commands in runtime
 ::    [%test @tas tape]          - supports expect-fail-message in unit tests
-::    [%parse tape]              - returns (list command)
+::    [%parse tape]              - parse urQL script, returns (list command)
 ::  
 +$  action
   $%
     [%tape default-database=@tas urql=tape]
-    [%tape2 default-database=@tas urql=tape]
+    [%tape-print default-database=@tas urql=tape]
     [%commands cmds=(list command)]
     [%test default-database=@tas urql=tape]
     [%parse default-database=@tas urql=tape]

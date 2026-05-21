@@ -24,7 +24,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+>+>+<.mov1))
 ::
@@ -37,7 +37,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::
   %+  expect-eq
     !>  expect
@@ -53,11 +53,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov2))
 ::
@@ -70,7 +70,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   %+  expect-fail-message
         'placeholder for debugging'
         |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
@@ -91,7 +91,7 @@
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  %+  expect-eq
               !>  expect-1
@@ -109,11 +109,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov1))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov2))
@@ -128,7 +128,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   %+  expect-fail-message
         'placeholder for debugging'
         |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
@@ -146,11 +146,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   %+  weld  %+  expect-eq
                 !>  expect-1
@@ -169,15 +169,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
@@ -194,15 +194,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::=^  mov2  agent
   ::%+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
   ::    %obelisk-action
-  ::    !>  [%tape2 db.resolve-1 uql.resolve-1]
+  ::    !>  [%tape db.resolve-1 uql.resolve-1]
   ::=^  mov3  agent
   ::%+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
   ::    %obelisk-action
-  ::    !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::    !>  [%tape db.resolve-2 uql.resolve-2]
   ::::
   ::%+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
   ::          (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
@@ -225,15 +225,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov3))
 ::
@@ -248,11 +248,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   ::
   %+  expect-fail-message
         'placeholder for debugging'
@@ -271,15 +271,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   %+  expect-eq
     !>  expect
@@ -298,19 +298,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov3))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov4))
@@ -329,19 +329,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  %+  expect-eq
                 !>  expect-1
@@ -363,19 +363,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  %+  expect-eq
                 !>  expect-1
@@ -396,19 +396,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov4))
 ::
@@ -423,15 +423,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   ::
   %+  expect-fail-message
         'placeholder for debugging'
@@ -453,23 +453,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov4))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov5))
@@ -489,23 +489,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  %+  expect-eq
                 !>  expect-1
@@ -526,23 +526,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov5))
 ::
@@ -561,27 +561,27 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov5))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov6))
@@ -600,27 +600,27 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov6))
 ::
@@ -640,31 +640,31 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov6))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov7))
@@ -684,31 +684,31 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov7))
 ::
@@ -729,35 +729,35 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov7))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov8))
@@ -780,35 +780,35 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov6))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov8))
@@ -830,23 +830,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
 
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
@@ -856,11 +856,11 @@
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov7))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov8))
@@ -882,39 +882,39 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov8))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov9))
@@ -940,47 +940,47 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-3]))
       %obelisk-action
-      !>  [%tape2 db.resolve-3 uql.resolve-3]
+      !>  [%tape db.resolve-3 uql.resolve-3]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-4]))
       %obelisk-action
-      !>  [%tape2 db.resolve-4 uql.resolve-4]
+      !>  [%tape db.resolve-4 uql.resolve-4]
   ::
   %-  zing  :~  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov8))
                 (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov9))
@@ -1006,43 +1006,43 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov9))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov10))
@@ -1073,59 +1073,59 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-3]))
       %obelisk-action
-      !>  [%tape2 db.resolve-3 uql.resolve-3]
+      !>  [%tape db.resolve-3 uql.resolve-3]
   =^  mov12  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-4]))
       %obelisk-action
-      !>  [%tape2 db.resolve-4 uql.resolve-4]
+      !>  [%tape db.resolve-4 uql.resolve-4]
   =^  mov13  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-5]))
       %obelisk-action
-      !>  [%tape2 db.resolve-5 uql.resolve-5]
+      !>  [%tape db.resolve-5 uql.resolve-5]
   =^  mov14  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-6]))
       %obelisk-action
-      !>  [%tape2 db.resolve-6 uql.resolve-6]
+      !>  [%tape db.resolve-6 uql.resolve-6]
   ::
   %-  zing  :~  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov9))
                 (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov10))
@@ -1154,47 +1154,47 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-8]))
       %obelisk-action
-      !>  [%tape2 db.action-8 uql.action-8]
+      !>  [%tape db.action-8 uql.action-8]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov10))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov11))
@@ -1219,51 +1219,51 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-8]))
       %obelisk-action
-      !>  [%tape2 db.action-8 uql.action-8]
+      !>  [%tape db.action-8 uql.action-8]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-9]))
       %obelisk-action
-      !>  [%tape2 db.action-9 uql.action-9]
+      !>  [%tape db.action-9 uql.action-9]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov12  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov11))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov12))
@@ -1283,19 +1283,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
-      !>  [%tape2 db.action uql.action]
+      !>  [%tape db.action uql.action]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1317,19 +1317,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   %+  expect-eq
       !>  expect
@@ -1348,23 +1348,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1390,31 +1390,31 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1439,31 +1439,31 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   %+  expect-eq
       !>  expect
@@ -1486,35 +1486,35 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1542,35 +1542,35 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1597,23 +1597,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
 
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
@@ -1623,11 +1623,11 @@
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1654,39 +1654,39 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1717,47 +1717,47 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-3]))
       %obelisk-action
-      !>  [%tape2 db.resolve-3 uql.resolve-3]
+      !>  [%tape db.resolve-3 uql.resolve-3]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-4]))
       %obelisk-action
-      !>  [%tape2 db.resolve-4 uql.resolve-4]
+      !>  [%tape db.resolve-4 uql.resolve-4]
   ::
   %-  zing  :~  %+  expect-eq
                   !>  expect-1
@@ -1791,43 +1791,43 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -1863,59 +1863,59 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-3]))
       %obelisk-action
-      !>  [%tape2 db.resolve-3 uql.resolve-3]
+      !>  [%tape db.resolve-3 uql.resolve-3]
   =^  mov12  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-4]))
       %obelisk-action
-      !>  [%tape2 db.resolve-4 uql.resolve-4]
+      !>  [%tape db.resolve-4 uql.resolve-4]
   =^  mov13  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-5]))
       %obelisk-action
-      !>  [%tape2 db.resolve-5 uql.resolve-5]
+      !>  [%tape db.resolve-5 uql.resolve-5]
   =^  mov14  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-6]))
       %obelisk-action
-      !>  [%tape2 db.resolve-6 uql.resolve-6]
+      !>  [%tape db.resolve-6 uql.resolve-6]
   ::
   %-  zing  :~  %+  expect-eq
                   !>  expect-1
@@ -1956,47 +1956,47 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-8]))
       %obelisk-action
-      !>  [%tape2 db.action-8 uql.action-8]
+      !>  [%tape db.action-8 uql.action-8]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -2026,51 +2026,51 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   =^  mov6  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-5]))
       %obelisk-action
-      !>  [%tape2 db.action-5 uql.action-5]
+      !>  [%tape db.action-5 uql.action-5]
   =^  mov7  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-6]))
       %obelisk-action
-      !>  [%tape2 db.action-6 uql.action-6]
+      !>  [%tape db.action-6 uql.action-6]
   =^  mov8  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-7]))
       %obelisk-action
-      !>  [%tape2 db.action-7 uql.action-7]
+      !>  [%tape db.action-7 uql.action-7]
   =^  mov9  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-8]))
       %obelisk-action
-      !>  [%tape2 db.action-8 uql.action-8]
+      !>  [%tape db.action-8 uql.action-8]
   =^  mov10  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-9]))
       %obelisk-action
-      !>  [%tape2 db.action-9 uql.action-9]
+      !>  [%tape db.action-9 uql.action-9]
   =^  mov11  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.resolve-1 uql.resolve-1]
+      !>  [%tape db.resolve-1 uql.resolve-1]
   =^  mov12  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
       %obelisk-action
-      !>  [%tape2 db.resolve-2 uql.resolve-2]
+      !>  [%tape db.resolve-2 uql.resolve-2]
   ::
   %+  weld
         %+  expect-eq
@@ -2105,7 +2105,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::
   %+  expect-fail-message
       expect
@@ -2123,7 +2123,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::
   %+  expect-fail-message
       expect
@@ -2159,7 +2159,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   ::
   %+  expect-fail-message
       expect
@@ -2178,11 +2178,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   ::
   %+  expect-fail-message
       expect
@@ -2225,15 +2225,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
    =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   ::
   %+  expect-fail-message
       expect
@@ -2253,15 +2253,15 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
    =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   ::
   %+  expect-fail-message
       expect
@@ -2282,19 +2282,19 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   ::
   %+  expect-fail-message
       expect
@@ -2316,23 +2316,23 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-1]))
       %obelisk-action
-      !>  [%tape2 db.action-1 uql.action-1]
+      !>  [%tape db.action-1 uql.action-1]
   =^  mov3  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-2]))
       %obelisk-action
-      !>  [%tape2 db.action-2 uql.action-2]
+      !>  [%tape db.action-2 uql.action-2]
   =^  mov4  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-3]))
       %obelisk-action
-      !>  [%tape2 db.action-3 uql.action-3]
+      !>  [%tape db.action-3 uql.action-3]
   =^  mov5  agent
   %+  ~(on-poke agent (bowl [run tmsp.action-4]))
       %obelisk-action
-      !>  [%tape2 db.action-4 uql.action-4]
+      !>  [%tape db.action-4 uql.action-4]
   ::
   %+  expect-fail-message
       expect
@@ -2529,11 +2529,11 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   =^  mov2  agent
   %+  ~(on-poke agent (bowl [run tmsp.resolve]))
       %obelisk-action
-      !>  [%tape2 db.resolve uql.resolve]
+      !>  [%tape db.resolve uql.resolve]
   ::
   (eval-rand-results expected-meta ;;(cmd-result:ast ->+>+>+<.mov2) ranges)
 ::
@@ -2547,7 +2547,7 @@
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run tmsp.init]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape db.init uql.init]
   %+  expect-fail-message
         'placeholder for debugging'
         |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))

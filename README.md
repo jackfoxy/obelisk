@@ -34,7 +34,7 @@ This repository includes a sample database, "animal-shelter", derived from https
 
 The animal-shelter database comes installed, but should you drop it and wish to reinstall from the %dojo:
 
-:obelisk &obelisk-action [%tape2 %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+:obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 
 Depending on your system it will load in about 30 seconds.
 
@@ -44,7 +44,7 @@ You can also install it from the %hawk UI, but this will be much slower and is n
 
 Copy sur/obelisk-ast.hoon to your project to work with Obelisk results.
 
-You are free to poke the %obelisk desk with urQL via the %tape or %tape2 actions or use the API defined in sur/obelisk-ast.hoon and poke via %commands. There are no scries.
+You are free to poke the %obelisk desk with urQL via the %tape or %tape-print actions or use the API defined in sur/obelisk-ast.hoon and poke via %commands. There are no scries.
 
 You can also read directly from the server state, although this is not recommended. If you update the server state directly, you are on your own, in other words "strongly discouraged".
 

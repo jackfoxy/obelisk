@@ -88,24 +88,24 @@
   ?-    -.act
   ::
   ::  prints results
-  %tape
+  %tape-print
     =/  virtualized
         ^-  (each (pair (list cmd-result) server:server-state-1) tang)
         %-  mule
           |.
           %:  state-server
-          ::::~>  %bout.[0 %parse-cmds]
           (parse-urql +<.act +>.act)
           ==
     ?-  -.virtualized
       %.n
+        =/  dummy  (print-crash p.virtualized)
         :_  this
         :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
             [%give %kick ~[/server] ~]
         ==
       %.y
         =/  res  p.virtualized
-        =/  x  (print -.res)
+        =/  dummy  (print -.res)
         :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>([& -.res])]
             [%give %kick ~[/server] ~]
@@ -113,7 +113,7 @@
     ==
   ::
   ::  action without printing results
-  %tape2
+  %tape
     =/  virtualized
       ^-  (each (pair (list cmd-result) server:server-state-1) tang)
       %-  mule
@@ -219,7 +219,7 @@
                 [our.bowl dap.bowl]
                 %poke
                 %obelisk-action
-                !>([%tape2 %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+                !>([%tape %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
             ==
         ==
       ==
