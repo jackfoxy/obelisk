@@ -228,12 +228,8 @@
   |=  results=(list cmd-result:ast)
   ^-  (list vector:ast)
   ?~  results  ~
-  (weld (cmd-result-vectors i.results) $(results t.results))
-::
-++  cmd-result-vectors
-  |=  cmd-result=cmd-result:ast
-  ^-  (list vector:ast)
-  (result-vectors +.cmd-result)
+  %+  weld  (result-vectors +.i.results)
+            $(results t.results)
 ::
 ++  result-vectors
   |=  results=(list result:ast)
@@ -247,88 +243,95 @@
 ::
 ++  vector-value
   |=  [name=@tas vector=vector:ast]
-  ^-  (unit dime)
+  ^-  dime
   =/  cells=(list vector-cell:ast)  +.vector
   |-
-  ?~  cells  ~
+  ?~  cells  !!
   ?:  =(name p.i.cells)
-    `q.i.cells
+    q.i.cells
   $(cells t.cells)
 ::
 ++  vector-tas
   |=  [name=@tas vector=vector:ast]
-  ^-  (unit @tas)
-  ?~  val=(vector-value name vector)  ~
-  ?.  =(%tas p.u.val)  ~
-  ``@tas`q.u.val
+  ^-  @tas
+  =/  val  (vector-value name vector)
+  ?>  =(%tas p.val)
+  `@tas`q.val
 ::
 ++  vector-ta
   |=  [name=@tas vector=vector:ast]
-  ^-  (unit @ta)
-  ?~  val=(vector-value name vector)  ~
-  ?.  =(%ta p.u.val)  ~
-  ``@ta`q.u.val
+  ^-  @ta
+  =/  val  (vector-value name vector)
+  ?>  =(%ta p.val)
+  `@ta`q.val
 ::
 ++  vector-ud
   |=  [name=@tas vector=vector:ast]
-  ^-  (unit @ud)
-  ?~  val=(vector-value name vector)  ~
-  ?.  =(%ud p.u.val)  ~
-  ``@ud`q.u.val
+  ^-  @ud
+  =/  val  (vector-value name vector)
+  ?>  =(%ud p.val)
+  `@ud`q.val
 ::
 ++  vector-flag
   |=  [name=@tas vector=vector:ast]
-  ^-  (unit ?)
-  ?~  val=(vector-value name vector)  ~
-  ?.  =(%f p.u.val)  ~
-  `=(0 q.u.val)
+  ^-  ?
+  =/  val  (vector-value name vector)
+  ?>  =(%f p.val)
+  =(0 q.val)
 ::
 ++  decode-database-row
   |=  vector=vector:ast
-  ^-  (unit @tas)
+  ^-  @tas
   (vector-tas %database vector)
 ::
 ++  decode-namespace-row
   |=  vector=vector:ast
-  ^-  (unit @tas)
+  ^-  @tas
   (vector-tas %namespace vector)
 ::
 ++  decode-table-row
   |=  vector=vector:ast
-  ^-  (unit sys-table-row)
-  ?~  ns=(vector-tas %namespace vector)  ~
-  ?~  name=(vector-tas %name vector)  ~
-  `[namespace=u.ns name=u.name]
+  ^-  sys-table-row
+  =/  ns  (vector-tas %namespace vector)
+  =/  name  (vector-tas %name vector)
+  [namespace=ns name=name]
 ::
 ++  decode-key-row
   |=  vector=vector:ast
-  ^-  (unit sys-key-row)
-  ?~  ns=(vector-tas %namespace vector)  ~
-  ?~  table-name=(vector-tas %name vector)  ~
-  ?~  ordinal=(vector-ud %key-ordinal vector)  ~
-  ?~  key-name=(vector-tas %key vector)  ~
-  ?~  ascending=(vector-flag %key-ascending vector)  ~
-  `[namespace=u.ns table=u.table-name ordinal=u.ordinal key=u.key-name ascending=u.ascending]
+  ^-  sys-key-row
+  =/  ns  (vector-tas %namespace vector)
+  =/  table-name  (vector-tas %name vector)
+  =/  ordinal  (vector-ud %key-ordinal vector)
+  =/  key-name  (vector-tas %key vector)
+  =/  ascending  (vector-flag %key-ascending vector)
+  :*  namespace=ns
+      table=table-name
+      ordinal=ordinal
+      key=key-name
+      ascending=ascending
+      ==
 ::
 ++  decode-column-row
   |=  vector=vector:ast
-  ^-  (unit sys-column-row)
-  ?~  ns=(vector-tas %namespace vector)  ~
-  ?~  table-name=(vector-tas %name vector)  ~
-  ?~  ordinal=(vector-ud %col-ordinal vector)  ~
-  ?~  column-name=(vector-tas %col-name vector)  ~
-  ?~  type=(vector-ta %col-type vector)  ~
-  `[namespace=u.ns table=u.table-name ordinal=u.ordinal column=u.column-name type=u.type]
+  ^-  sys-column-row
+  =/  ns  (vector-tas %namespace vector)
+  =/  table-name  (vector-tas %name vector)
+  =/  ordinal  (vector-ud %col-ordinal vector)
+  =/  column-name  (vector-tas %col-name vector)
+  =/  col-type  (vector-ta %col-type vector)
+  :*  namespace=ns
+      table=table-name
+      ordinal=ordinal
+      column=column-name
+      type=col-type
+      ==
 ::
 ++  decode-rows-as
   |*  out=mold
-  |*  [rows=(list vector:ast) decode=$-(vector:ast (unit out))]
+  |*  [rows=(list vector:ast) decode=$-(vector:ast out)]
   ^-  (list out)
   ?~  rows  ~
-  =/  row=(unit out)  (decode i.rows)
-  ?~  row
-    $(rows t.rows)
-  [u.row $(rows t.rows)]
+  [(decode i.rows) $(rows t.rows)]
 ::
 ++  column-node-from-row
   |=  row=sys-column-row
@@ -2483,6 +2486,14 @@
         '#schema details[data-relation="' + ref.db + '.' + ref.ns + '.' + ref.table + '"]'
       );
       if (node) { node.remove(); }
+      collapseEmptyNamespaceNode(ref.db, ref.ns);
+    }
+    function collapseEmptyNamespaceNode(db, ns) {
+      if (ns === 'sys' || relationNodes(db, ns).length > 0) {
+        return;
+      }
+      const node = namespaceNode(db, ns);
+      if (node) { node.open = false; }
     }
     function syncDefaultDbMarker(db) {
       document.querySelectorAll('.schema-default-db').forEach((el) => el.remove());
