@@ -113,7 +113,7 @@
   |=  [id=@ta query=tape]
   =/  m  (strand ,poke-result)
   ^-  form:m
-  ;<  response=vase  bind:m  (call-obelisk id %tape2 query)
+  ;<  response=vase  bind:m  (call-obelisk id %tape query)
   |=  tin=strand-input:strand
   ?~  res=(mole |.((poke-result +:response)))
     `[%fail [%malformed-obelisk-response ~]]
@@ -134,7 +134,7 @@
   ==
 ::
 ++  call-obelisk
-  |=  [id=@ta kind=?(%tape2 %parse) query=tape]
+  |=  [id=@ta kind=?(%tape %parse) query=tape]
   =/  m  (strand ,vase)
   ^-  form:m
   ;<  our=@p  bind:m  get-our
@@ -144,7 +144,7 @@
   =/  command=cage  obelisk-action/!>(action)
   =/  wire=path
     ?-  kind
-      %tape2  /query/[id]
+      %tape  /query/[id]
       %parse  /parse/[id]
     ==
   ;<  ~  bind:m  (watch wire dock /server)
