@@ -10,6 +10,7 @@ v0.8-beta release notes
 * Foreign Key Referential Integrity
 * sys.foreign-keys view
 * fixed bug where system views were not ordered
+* fixed bug where SELECT sub-set of system view columns returned duplicate rows 
 * fixes and improvements to obelisk ui
 
 ## v0.7 beta

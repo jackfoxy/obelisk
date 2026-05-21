@@ -769,8 +769,26 @@
           ==
 ::
 ++  do-query
-  ::  state may be updated by insertion into view-cache, which does not effect
-  ::  any other part of the state
+  ::  Execute one query AST and return updated relation metadata plus vectors.
+  ::
+  ::  Paths:
+  ::  - No FROM: resolve scalar context and delegate to +select-literals.
+  ::    Literal-only results have no source rows to deduplicate.
+  ::  - FROM with no joins: delegate to +select-relation.  That path eventually
+  ::    uses +relation-vectors, which deduplicates projected vectors in both
+  ::    ordered and unordered relation paths.
+  ::  - FROM with joins in a CTE: delegate to +join-all.  If there is no
+  ::    predicate, return the joined relation without vectors so the CTE can be
+  ::    materialized later.  If there is a predicate, filter joined rows here,
+  ::    but still return no vectors.
+  ::  - FROM with joins in a normal SELECT: delegate to +join-all, qualify the
+  ::    selected columns, prepare the predicate, then delegate to +joined-result.
+  ::    +joined-result uses a set to deduplicate projected vectors.
+  ::  - Set queries are handled by +do-set-query, which calls +do-query for each
+  ::    operand and deduplicates vectors through set operations.
+  ::
+  ::  State may be updated by insertion into view-cache, which does not affect
+  ::  any other part of the state.
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [join-return (list vector)]
   :: literal/scalar only
@@ -850,24 +868,27 @@
 ++  do-set-query
   |=  [sq=set-query:ast =named-ctes]
   ^-  [join-return (list vector)]
-  =/  head-rt  (do-query head.sq named-ctes %.n)
-  =/  head-jr=join-return  -.head-rt
+  =/  head-rt                     (do-query head.sq named-ctes %.n)
+  =/  head-jr=join-return         -.head-rt
   =/  head-vectors=(list vector)  +.head-rt
-  =.  state     server.head-jr
-  =/  out-cols  (query-output-columns head.sq head-jr head-vectors named-ctes)
-  =/  has-union  (set-query-has-union sq)
-  =.  out-cols
-    ?:  has-union  (check-union-output-names out-cols)
-    out-cols
-  =/  out-metas
-    %+  turn  out-cols
-    |=  c=column:ast
-    :+  [%qualified-column *qualified-table:ast name.c ~]
-        type.c
-        addr.c
-  =/  rows=(set vector)  (vectors-to-set head-vectors)
+  =.  state                       server.head-jr
+  =/  out-cols                    %:  query-output-columns  head.sq
+                                                            head-jr
+                                                            head-vectors
+                                                            named-ctes
+                                                            ==
+  =/  has-union                   (set-query-has-union sq)
+  =.  out-cols                    ?:  has-union
+                                    (check-union-output-names out-cols)
+                                  out-cols
+  =/  out-metas  %+  turn  out-cols
+                           |=  c=column:ast
+                           :+  [%qualified-column *qualified-table:ast name.c ~]
+                               type.c
+                               addr.c
+  =/  rows=(set vector)         (vectors-to-set head-vectors)
   =/  sources=(list set-table)  set-tables.head-jr
-  =/  rest  tail.sq
+  =/  rest                      tail.sq
   |-
   ?~  rest
     :-  :*  %join-return
@@ -877,20 +898,22 @@
             out-metas
             ==
         ~(tap in rows)
-  =/  next-rt  (do-query query.i.rest named-ctes %.n)
-  =/  next-jr=join-return  -.next-rt
+  =/  next-rt                     (do-query query.i.rest named-ctes %.n)
+  =/  next-jr=join-return         -.next-rt
   =/  next-vectors=(list vector)  +.next-rt
-  =.  state     server.next-jr
-  =/  next-cols
-    (query-output-columns query.i.rest next-jr next-vectors named-ctes)
-  =.  next-cols
-    ?:  has-union  (check-union-output-names next-cols)
-    next-cols
+  =.  state                       server.next-jr
+  =/  next-cols                   %:  query-output-columns  query.i.rest
+                                                            next-jr
+                                                            next-vectors
+                                                            named-ctes
+                                                            ==
+  =.  next-cols  ?:  has-union  (check-union-output-names next-cols)
+                 next-cols
   %=  $
     rows     %:  apply-set-op  op.i.rest
-                              rows
-                              (vectors-to-set next-vectors)
-                              ==
+                               rows
+                               (vectors-to-set next-vectors)
+                               ==
     sources  (weld sources set-tables.next-jr)
     rest     t.rest
   ==

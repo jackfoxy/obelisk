@@ -895,60 +895,8 @@
           ==
   ^-  (list vector)
   ?:  ordered
-    =/  out   *(list vector)
-    |-
-    ?~  rows  out
-    =/  include-row=?
-      ?~  filter
-        %.y
-      ((need filter) i.rows)
-    ?.  include-row
-      $(rows t.rows)
-    =/  row                     *(list vector-cell:ast)
-    =/  cols=(list templ-cell)  templ-cells
-    |-
-    ?~  cols
-      ^$(rows t.rows, out [(vector %vector row) out])
-    ?^  scalar.i.cols
-      =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-      $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-    ?~  column.i.cols    :: literal
-      $(cols t.cols, row [vc.i.cols row])
-    %=  $
-      cols  t.cols
-      row   :-  :-  p.vc.i.cols
-                    [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
-                row
-    ==
-  ::  original set-based path for unordered rows
-  =/  out-rows   *(set vector)
-  |-
-  ?~  rows  ~(tap in out-rows)
-  =/  include-row=?
-    ?~  filter
-      %.y
-    ((need filter) i.rows)
-  ?.  include-row
-    $(rows t.rows)
-  =/  row                     *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector row))
-      rows      t.rows
-    ==
-  ?^  scalar.i.cols
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-  ?~  column.i.cols    :: literal
-    $(cols t.cols, row [vc.i.cols row])
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.i.cols
-                  [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
-              row
-  ==
+    (filter-ordered filter ;;((list data-row) rows) templ-cells)
+  (filter-unordered filter ;;((list data-row) rows) templ-cells)
 ::
 ++  joined-results
   |=  $:  filter=(unit $-(data-row ?))
@@ -958,59 +906,92 @@
           ==
   ^-  (list vector)
   ?:  ordered
-    =/  out   *(list vector)
-    |-
-    ?~  rows  out
-    =/  include-row=?
-      ?~  filter
+    (filter-ordered filter ;;((list data-row) rows) templ-cells)
+  (filter-unordered filter ;;((list data-row) rows) templ-cells)
+::
+++  filter-ordered
+  ::  Filter ordered result rows into vectors.
+  ::
+  ::  Uses a set to prevent duplicate rows while preserving the existing
+  ::  ordered output path.
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list data-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
+  =/  out   *(list vector)
+  =/  seen  *(set vector)
+  |-
+  ?~  rows  out
+  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
+  ?.  ?~  filter
         %.y
       ((need filter) i.rows)
-    ?.  include-row
-      $(rows t.rows)
-    =/  row                     *(list vector-cell:ast)
-    =/  cols=(list templ-cell)  templ-cells
-    |-
-    ?~  cols
-      ^$(rows t.rows, out [(vector %vector row) out])
-    ?^  scalar.i.cols
-      =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-      $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-    ?~  column.i.cols    :: literal
-      $(cols t.cols, row [vc.i.cols row])
-    %=  $
-      cols  t.cols
-      row   :-  :-  p.vc.i.cols
-                    [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
-                row
+    $(rows t.rows)
+  =/  cells                  *(list vector-cell:ast)
+  =/  cols=(list templ-cell)  templ-cells
+  |-
+  ?~  cols
+    =/  result-vector=vector  (vector %vector cells)
+    ?:  (~(has in seen) result-vector)
+      ^$(rows t.rows)
+    %=  ^$
+      seen  (~(put in seen) result-vector)
+      out   [result-vector out]
+      rows  t.rows
     ==
-  ::  original set-based path for unordered rows
-  =/  out-rows   *(set vector)
+  ?^  scalar.i.cols                                           :: resolved scalar
+    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
+  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
+  =/  value          ?:  is-indexed-row                       :: value
+                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
+                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
+  %=  $
+    cols   t.cols
+    cells  :-  :-  p.vc.i.cols
+                   [p.q.vc.i.cols value]
+               cells
+  ==
+::
+++  filter-unordered
+  ::  Filter unordered result rows into vectors.
+  ::
+  ::  Uses a set to prevent duplicate rows while preserving the distinct
+  ::  indexed-row and joined-row data-addressing semantics.
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list data-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
+  =/  out-rows  *(set vector)
   |-
   ?~  rows  ~(tap in out-rows)
-  =/  include-row=?
-    ?~  filter
-      %.y
-    ((need filter) i.rows)
-  ?.  include-row
+  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
+  ?.  ?~  filter
+        %.y
+      ((need filter) i.rows)
     $(rows t.rows)
-  =/  row                     *(list vector-cell:ast)
+  =/  cells                  *(list vector-cell:ast)
   =/  cols=(list templ-cell)  templ-cells
   |-
   ?~  cols
     %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector row))
+      out-rows  (~(put in out-rows) (vector %vector cells))
       rows      t.rows
     ==
-  ?^  scalar.i.cols
+  ?^  scalar.i.cols                                           :: resolved scalar
     =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-  ?~  column.i.cols    :: literal
-    $(cols t.cols, row [vc.i.cols row])
+    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
+  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
+  =/  value          ?:  is-indexed-row                       :: value  
+                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
+                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
   %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.i.cols
-                  [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
-              row
+    cols   t.cols
+    cells  :-  :-  p.vc.i.cols
+                   [p.q.vc.i.cols value]
+               cells
   ==
 ::
 ++  recalc-addr
