@@ -162,6 +162,14 @@
 "FROM premium-dogs ".
 "SELECT *;"
 
+=uql "WITH (FROM reference.species ".
+"      WHERE species = 'Dog' ".
+"         OR species = 'Cat' ".
+"      SELECT species) AS target-species ".
+"FROM adoptions ".
+"WHERE species IN target-species.species ".
+"SELECT name, species, adoption-date, adoption-fee;"
+
 
 # Time Travel
 

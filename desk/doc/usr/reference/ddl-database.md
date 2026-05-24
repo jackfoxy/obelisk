@@ -104,8 +104,6 @@ state change after query in script
 
 ## DROP DATABASE
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
-
 Deletes an existing `<database>` and all associated objects.
 ```
 <drop-database> ::= DROP DATABASE [ FORCE ] <database>
@@ -140,9 +138,9 @@ The name of the database to delete.
 ## Remarks
 This command mutates the state of the Obelisk agent.
 
-The command only succeeds when no populated tables exist in the database, unless `FORCE` is specified.
-
 Dropping a database is permanent and leaves no trace of the database for time travel transactions. It removes the row from the `sys.sys.databases` view.
+
+The command only succeeds when no populated tables exist in the database, unless `FORCE` is specified.
 
 If the database only contains future dated content. The `DROP` command will succeed without requiring `FORCE`.
 

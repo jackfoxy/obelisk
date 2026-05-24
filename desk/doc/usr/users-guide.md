@@ -29,7 +29,7 @@ DDL commands define databases, their data tables and other components, data mani
 |CREATE VIEW       |*not implemented*|
 |DROP DATABASE     | |
 |DROP INDEX        |*not implemented*|
-|DROP NAMESPACE    |*not implemented*|
+|DROP NAMESPACE    | |
 |DROP TABLE        | |
 |DROP VIEW         |*not implemented*|
 
@@ -86,7 +86,7 @@ Every successful command returns metadata about the state of the server and effe
 
 **%server-time** -- The time, according to the server, the script executed. This corresponds to `now.bowl` in the agent. Unless the command was submitted with an `AS OF` clause (which overrides server time) Obelisk will record this time to any internal timestamps. In this case the time of database creation.
 
-**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands).<sup>1</sup>
+**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands). `%schema-time` is generally the time of the Table or View schema (structure definition) creation or last alteration.
 
 Let's look at the state of our server by querying a system view on the database schema.
 
@@ -264,11 +264,11 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/update.md) for full syntax and examples.
+`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/dml-update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
-Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
+Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`. It clears the target table directly, but for referential-integrity purposes it behaves like `DELETE FROM <table>` without a `WHERE` clause: foreign-key `ON DELETE` actions are still enforced, so tables with related rows may require work proportional to the affected foreign-key relationships and rows.
 
 ```
 TRUNCATE TABLE my-table-1;
@@ -433,7 +433,7 @@ SELECT 0;
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 1 ]
 ```
-Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/reference/01-preliminaries.md)).
+Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/reference/preliminaries.md)).
 
 The system inserted a default name for the literal column. We could have specified an alias:
 
@@ -537,7 +537,7 @@ Scalar function categories:
 - **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
 - **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
 
-A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/reference/scalars.md) for full syntax.
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full syntax.
 
 ## WHERE clause
 
@@ -563,7 +563,7 @@ SELECT *;
   ...
   ~2049.12.30  2.049  12  December  30  Thursday  364  5  53
 ```
-Logical operators *AND*, *OR*, and *NOT*<sup>2</sup> provide for compound predicates as with SQL.
+Logical operators *AND*, *OR*, and *NOT* provide for compound predicates as with SQL.
 ```
 FROM reference.calendar
 WHERE day-name = 'nonsense'
@@ -587,7 +587,7 @@ SELECT *;
 ```
 As would be expected the *OR* conjunction operator take precedence over *AND*.
 
-Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/reference/10-select.md) for the full syntax available for predicates.
+Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/usr/reference/select.md) for the full syntax available for predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'nonsense'
@@ -600,8 +600,6 @@ SELECT *;
 %result-set
   result set empty
 ```
-
-<sup>2</sup> The *NOT* operator currently does not parse in all expected configurations due to a bug.
 
 ## WITH clause
 
@@ -638,9 +636,21 @@ FROM premium-dogs
 SELECT *;
 ```
 
+A single-column CTE used as a predicate set — find all adoptions whose species is in a chosen list:
+
+```
+WITH (FROM reference.species
+      WHERE species = 'Dog'
+         OR species = 'Cat'
+      SELECT species) AS target-species
+FROM adoptions
+WHERE species IN target-species.species
+SELECT name, species, adoption-date, adoption-fee;
+```
+
 # Time Travel
 
-Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/reference/01-preliminaries.md) reference document.)
+Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/usr/reference/preliminaries.md) reference document.)
 
 Almost all urQL commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*).
 
@@ -833,7 +843,7 @@ We did not need to specify the exact time of the content state, only a time equa
     [ %vector-count 3 ]
 ```
 
-As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of-time>` documentation in [Preliminaries](/docs/reference/01-preliminaries.md).
+As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of-time>` documentation in [Preliminaries](/docs/usr/reference/preliminaries.md).
 
 # Joins
 
