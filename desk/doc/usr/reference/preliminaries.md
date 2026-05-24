@@ -314,6 +314,6 @@ Among the metadata returned by queries is the schema and content times (labelled
 
 Creating a new `NAMESPACE` or `TABLE` may be back-dated to anytime subsequent to the latest of schema time or content time. The same applies to `TRUNCATE TABLE` which is a special case of zeroing-out the content of a table.
 
-WARNING: It is possible to future date a `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
 
 All other data manipulation commands -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, `NOW`. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes.

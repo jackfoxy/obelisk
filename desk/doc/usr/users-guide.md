@@ -2,7 +2,7 @@
 
 If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend. If you are unfamiliar with relational database design we recommend a quick guide to [database design/normalization](https://www.splunk.com/en_us/blog/learn/data-normalization.html).
 
-It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.md) chapter of the Reference document before proceeding.
+It is recommended to read the [Preliminaries](/docs/reference/usr/preliminaries.md) chapter of the Reference document before proceeding.
 
 Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
 
@@ -11,7 +11,7 @@ Use the %hawk Obelisk UI for a SQL Studio-like experience: write and run scripts
 
 # Commands
 
-Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
+Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. Once a query returning results appears in a script, all following commands must also be queries; no further schema or data changes are allowed in that script.
 
 DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and `SELECT` performs queries.
 
@@ -57,9 +57,9 @@ The first thing to do is define a database. In the dojo enter the following poke
 
 Let's review the obelisk-action:
 
-**%tape-print** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
+**%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
 
-`%tape-print` prints result messages and up to 10 rows of SELECT results to the dojo. If you prefer to execute quietly use `%tape`, but be aware you will not be notified of errors resulting in crash.
+`%tape-print` same as %tape and prints result messages and up to 10 rows of SELECT results to the dojo. If you prefer to execute quietly use `%tape`, but be aware you will not be notified of errors resulting in crash in the dojo.
 
 **%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in `CREATE DATABASE`, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
 
@@ -76,7 +76,7 @@ Submitting this poke will print to the dojo:
 ```
 %obelisk-result:
   %results
-    [ %action 'created database %db1' ]
+    [ %message 'created database %db1' ]
     [ %server-time ~2024.9.26..21.14.00..7fc8 ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
 ```
@@ -157,8 +157,6 @@ The table's columns are defined by pairs of name/aura separated by comma, and fi
 ```
 Two commands and two %results blocks, all recorded at the same time.
 
-<sup>1</sup> `%schema-time` is generally the time of the Table or View schema (structure definition) creation.
-
 # Data Manipulation
 ## INSERT
 
@@ -186,7 +184,7 @@ Provide the comma separated data according to the hoon format for the column's a
 ```
 %obelisk-result:
   %results
-    [ %action 'INSERT INTO %my-table-1' ]
+    [ %action 'INSERT INTO db1.dbo.my-table-1' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -195,7 +193,7 @@ Provide the comma separated data according to the hoon format for the column's a
     [ %message 'table data:' ]
     [ %vector-count 3 ]
   %results
-    [ %action 'INSERT INTO %my-table-2' ]
+    [ %action 'INSERT INTO db1.dbo.my-table-2' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -220,7 +218,7 @@ WHERE col1 = 'tomorrow';
 ```
 %obelisk-result:
   %results
-    [ %action 'DELETE FROM db2.dbo.my-table-2' ]
+    [ %action 'DELETE FROM db1.dbo.my-table-2' ]
     [ %server-time ~2025.3.31..16.28.20..063c ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -264,7 +262,7 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/dml-update.md) for full syntax and examples.
+`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/usr/dml-update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
@@ -276,7 +274,7 @@ TRUNCATE TABLE my-table-1;
 ```
 %obelisk-result:
   %results
-    [ %action 'TRUNCATE TABLE %my-table-1' ]
+    [ %action 'TRUNCATE TABLE db1.dbo.my-table-1' ]
     [ %server-time ~2024.9.27..17.03.38..92af ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -317,6 +315,11 @@ table, and Obelisk enforces that rule when rows are inserted, updated, deleted,
 or truncated. This lets you model normalized data, where facts are stored once
 in the table that owns them and other tables refer to those facts by key,
 without leaving dangling references when the parent data changes.
+
+Foreign keys must reference a table in the same database. The referenced columns
+must exactly match the parent table's complete `PRIMARY KEY`, in primary-key
+order, and each child/source column aura must match the corresponding
+parent/referenced column aura.
 
 Here is a small parent/child example. `authors` owns each author identity, and
 `books` stores only the author key.
@@ -433,7 +436,7 @@ SELECT 0;
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 1 ]
 ```
-Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/reference/preliminaries.md)).
+Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/usr/reference/preliminaries.md)).
 
 The system inserted a default name for the literal column. We could have specified an alias:
 
@@ -537,7 +540,7 @@ Scalar function categories:
 - **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
 - **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
 
-A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full syntax.
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/usr/scalars.md) for full syntax.
 
 ## WHERE clause
 
@@ -585,7 +588,7 @@ SELECT *;
   ...
   ~2049.12.3  2.049  12  December  3  Friday  337  6  49
 ```
-As would be expected the *OR* conjunction operator take precedence over *AND*.
+As would be expected the *AND* conjunction operator take precedence over *OR*.
 
 Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/usr/reference/select.md) for the full syntax available for predicates.
 ```
@@ -667,7 +670,7 @@ CREATE DATABASE db2 AS OF ~2030.1.1;
 ```
 %obelisk-result:
   %results
-    [ %action 'created database %db2' ]
+    [ %message 'created database %db2' ]
     [ %server-time ~2024.9.29..21.14.00..7fc8 ]
     [ %schema-time ~2030.1.1 ]
 ```
@@ -855,6 +858,10 @@ A `JOIN` is a query clause that combines rows from two or more data objects, pos
 
 Joining on full primary key columns is the most efficient, as the data is indexed on primary keys. Joining on a partial primary key (the leading columns of the key) or on non-key columns requires a scan and is less efficient. A partial key must be the leading columns of the primary key — trailing-only subsets are not valid.
 
+If no columns match by both name and aura type, the natural join crashes rather
+than producing a cartesian product. Use `CROSS JOIN` when you intentionally need
+all row combinations.
+
 Let's use the system view *sys.table-keys* to find like primary keys.
 
 ```
@@ -902,7 +909,7 @@ SELECT T1.date, day-name, us-federal-holiday;
 
 ## JOIN ON predicate
 
-The `ON` predicate in a join is restricted to equality conditions between columns, combined with `AND`. No other operators or `OR` conjunctions are permitted.
+The `ON` predicate in a join is restricted to equality conditions between columns from different relations, combined with `AND`. No other operators or `OR` conjunctions are permitted.
 
 ```
 FROM adoptions A
@@ -929,7 +936,7 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 ## Outer Joins
 
-While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, but not the Obelisk runtime in the current release, the same result can be obtaind by a `UNION` of `JOIN` followed by a `CROSS JOIN` filtered by a `WHERE` predicate, or just a `CROSS JOIN` with `WHERE` predicate filtering.
+While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, they are not supported by the Obelisk runtime in the current release. Some outer-join-style questions can be rewritten with `UNION`, regular `JOIN`, and `CROSS JOIN` filtered by a `WHERE` predicate, but this is not a complete substitute for runtime outer joins.
 
 # SET OPERATIONS
 
@@ -1212,6 +1219,13 @@ namespace.
 change the primary key, add columns, drop columns, rename columns, and change a
 column aura. Foreign key alterations are not covered here.
 
+Foreign-key participation constrains some table alterations. A primary key
+cannot be changed while another table references it; drop the foreign keys first
+if you need to redefine the key. Columns that participate in a foreign key,
+either as child/source columns or referenced primary-key columns, cannot be
+dropped or aura-altered. Renaming a foreign-key column is allowed; Obelisk
+rewrites the affected foreign-key metadata to the new column name.
+
 Start with a small table:
 
 ```
@@ -1260,7 +1274,7 @@ Use the concrete schema or data timestamp returned by the earlier command in
 place of `<timestamp-before-the-alter>`.
 
 Change the primary key only when the proposed key is unique over the existing
-rows:
+rows and the table is not referenced by a foreign key:
 
 ```
 ALTER TABLE schema-work..tasks

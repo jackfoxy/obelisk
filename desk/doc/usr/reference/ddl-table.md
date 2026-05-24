@@ -48,7 +48,7 @@ If not explicitly qualified, it defaults to the Obelisk agent's current database
 **`<column> <aura>`**
 The list of user-defined column names and associated auras.
 
-For more details on auras, refer to [01-preliminaries](01-preliminaries.md)
+For more details on auras, refer to [Preliminaries](preliminaries.md)
 
 **`<PRIMARY KEY`**
 
@@ -84,7 +84,7 @@ All the values that make up the foreign key in the referencing row(s) are set to
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
-WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time..
+WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
 ### API
 ```

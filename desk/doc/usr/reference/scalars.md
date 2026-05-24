@@ -109,7 +109,7 @@ END
 
 All expressions must share the same type.
 
-NOTE: until outer joins are implemented `COALESCE` is a useles function. 
+NOTE: until outer joins are implemented `COALESCE` is a useless function. 
 
 ## Arithmetic Operations
 
@@ -513,7 +513,7 @@ MIN(--10, -5)       :: @sd → returns -5
 
 For `@rd` inputs, fractional parts are adjusted so the effective range uses whole numbers: the low bound is rounded down (floor) and the high bound is rounded up (ceiling). The result is always a whole number value within the adjusted range.
 
-NOTE: Invoking `RAND` is the only instance of a `SELECT` command in Obelisk producint a result set that is not deterministic. Obelisk produces the following warning message: "warning: results are non-deterministic".
+NOTE: Invoking `RAND` is the only instance of a `SELECT` command in Obelisk producing a result set that is not deterministic. Obelisk produces the following warning message: "warning: results are non-deterministic".
 
 Parameters: `@ud`, `@sd`, or `@rd` (both must match)
 Returns: same type as inputs
