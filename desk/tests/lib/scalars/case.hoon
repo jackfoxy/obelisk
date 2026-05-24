@@ -204,8 +204,7 @@
 ::  ::::::::::::::::::::
 ::  :::: WHEN TESTS ::::
 ::  ::::::::::::::::::::
-::  TODO: test that if we have a target then the whens are datums (and viceversa)
-::  TODO: test that all the whens are of the same kind
+::
 ::
 ::  %eq tests
 ::
@@ -875,7 +874,7 @@
 ::::  ::::::::::::::::::::
 ::::  :::: THEN TESTS ::::
 ::::  ::::::::::::::::::::
-::::  TODO: interesting test case, what if two whens match? which one do we pick?
+::::  first matching when is covered by +test-case-first-match
 ::::
 ::::  set up some costant context for tests
 ::::
@@ -1918,6 +1917,35 @@
     ==
     ==
 ::
+++  test-case-first-match
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-case-first-matching-when
+        :-  :*  %case
+              ~
+              :~  [%case-when-then true-predicate q-col-1]
+                  [%case-when-then true-predicate q-col-2]
+              ==
+              (some q-col-3)
+              ==
+            literal-1
+    :-  %simple-case-first-matching-when
+        :-  :*  %case
+              (some literal-1)
+              :~  [%case-when-then literal-1 q-col-1]
+                  [%case-when-then literal-1 q-col-2]
+              ==
+              (some q-col-3)
+              ==
+            literal-1
+  ==
+  ==
+::
 ++  test-fail-searched-empty-cases
   %+  expect-fail-message
     'cases can\'t be empty'
@@ -1954,6 +1982,44 @@
               :*  %case
                 (some literal-1)
                 ~[[%case-when-then true-predicate [~.ud 1]]]
+                ~
+                ==
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-searched-when-datum
+  %+  expect-fail-message
+    'when scalar not allowed in searched case'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                ~
+                ~[[%case-when-then literal-1 [~.ud 1]]]
+                ~
+                ==
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-simple-mixed-when-kinds
+  %+  expect-fail-message
+    'when predicate not allowed in simple case'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                (some literal-1)
+                :~  [%case-when-then literal-1 [~.ud 1]]
+                    [%case-when-then true-predicate [~.ud 2]]
+                ==
                 ~
                 ==
               table-named-ctes

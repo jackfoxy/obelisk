@@ -2288,8 +2288,7 @@
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
-  ::  build (predicate resolved-scalar) pairs for the simple CASE form;
-  ::  each predicate compares target against a when-value at runtime.
+  ::  build (predicate resolved-scalar) pairs for the searched CASE form.
   ::  if else.scalar is present, appends a catch-all entry whose predicate
   ::  always returns %.y.
   |=  $:  scalar=case:ast
@@ -2306,6 +2305,8 @@
     =/  items  cases.scalar
     |-  ^-  [@uvJ (list [$-(data-row ?) resolved-scalar])]
     ?~  items  [seed (flop acc)]
+    ?.  ?=([ops-and-conjs:ast * *] when.i.items)
+      ~|("when scalar not allowed in searched case" !!)
     =/  qualified-pred
           %+  normalize-predicate  ;;(predicate:ast when.i.items)
                                    qualifier-lookup
@@ -2901,6 +2902,19 @@
     :-  seed
     ~|  "scalar {<name.datum>} not found"
         (~(got by resolved-scalars) name.datum)
+  ?:  ?|  ?=([%e ~] datum)
+          ?=([%phi ~] datum)
+          ?=([%pi ~] datum)
+          ?=([%tau ~] datum)
+          ==
+    %:  prepare-scalar  ;;(scalar-function:ast datum)
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        bowl
+                        seed
+                        ==
   ?:  ?=(dime datum)
     [seed datum]
   ?:  ?=(cte-column:ast datum)

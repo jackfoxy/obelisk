@@ -2228,6 +2228,99 @@
   ==
   ==
 ::
+:: builtin scalar functions permitted as arithmetic operands
+::
+++  test-builtin-operands-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-addition
+        :-  [%arithmetic %lus [%abs [~.sd -5]] [~.sd --1]]
+            [~.sd --6]
+    :-  %ceiling-addition
+        :-  [%arithmetic %lus [%ceiling [~.rd .~1.2]] [~.rd .~0]]
+            [~.rd .~2]
+    :-  %day-addition
+        :-  [%arithmetic %lus [%day [~.da ~2023.6.20..10.30.45]] [~.ud 1]]
+            [~.ud 21]
+    :-  %degrees-addition
+        :-  [%arithmetic %lus [%degrees [~.rd .~0]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %floor-sqrt-multiplication
+        :-  [%arithmetic %tar [%floor [~.rd .~2.9]] [%sqrt [~.rd .~16]]]
+            [~.rd .~8]
+    :-  %hour-addition
+        :-  [%arithmetic %lus [%hour [~.da ~2023.6.20..10.30.45]] [~.ud 1]]
+            [~.ud 11]
+    :-  %len-addition
+        :-  [%arithmetic %lus [%len [~.t 'abc']] [~.ud 1]]
+            [~.ud 4]
+    :-  %log-addition
+        :-  [%arithmetic %lus [%log [~.rd .~1] ~] [~.rd .~1]]
+            [~.rd .~1]
+    :-  %max-min-addition
+        :-  [%arithmetic %lus [%max [~.ud 2] [~.ud 5]] [%min [~.ud 7] [~.ud 3]]]
+            [~.ud 8]
+    :-  %minute-addition
+        :-  [%arithmetic %lus [%minute [~.da ~2023.6.20..10.30.45]] [~.ud 1]]
+            [~.ud 31]
+    :-  %month-addition
+        :-  [%arithmetic %lus [%month [~.da ~2023.6.20..10.30.45]] [~.ud 1]]
+            [~.ud 7]
+    :-  %round-addition
+        :-  [%arithmetic %lus [%round [~.ud 1.234] [~.sd -1]] [~.ud 1]]
+            [~.ud 1.231]
+    :-  %second-addition
+        :-  [%arithmetic %lus [%second [~.da ~2023.6.20..10.30.45]] [~.ud 1]]
+            [~.ud 46]
+    :-  %sign-addition
+        :-  [%arithmetic %lus [%sign [~.sd -5]] [~.sd --2]]
+            [~.sd --1]
+    :-  %sin-addition
+        :-  [%arithmetic %lus [%sin [~.rd .~0]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %cos-multiplication
+        :-  [%arithmetic %tar [%cos [~.rd .~0]] [~.rd .~1]]
+            [~.rd .~1]
+    :-  %tan-addition
+        :-  [%arithmetic %lus [%tan [~.rd .~0]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %asin-addition
+        :-  [%arithmetic %lus [%asin [~.rd .~0]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %acos-addition
+        :-  [%arithmetic %lus [%acos [~.rd .~1]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %atan-addition
+        :-  [%arithmetic %lus [%atan [~.rd .~0]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %atan2-addition
+        :-  [%arithmetic %lus [%atan2 [~.rd .~0] [~.rd .~1]] [~.rd .~0]]
+            [~.rd .~0]
+    :-  %year-month-subtraction
+        :-  :^  %arithmetic  %hep
+                             [%year [~.da ~2023.6.20..10.30.45]]
+                             [%month [~.da ~2023.6.20..10.30.45]]
+            [~.ud 2.017]
+    :-  %pi-multiplication
+        :-  [%arithmetic %tar [%pi ~] [~.rd .~1]]
+            [~.rd .~3.141592653589793]
+    :-  %tau-multiplication
+        :-  [%arithmetic %tar [%tau ~] [~.rd .~1]]
+            [~.rd .~6.283185307179586]
+    :-  %e-multiplication
+        :-  [%arithmetic %tar [%e ~] [~.rd .~1]]
+            [~.rd .~2.718281828459045]
+    :-  %phi-multiplication
+        :-  [%arithmetic %tar [%phi ~] [~.rd .~1]]
+            [~.rd .~1.618033988749895]
+  ==
+  ==
+::
 :: parser-migrated arithmetic fail tests now belong at scalar preparation time
 ::
 ++  test-fail-arithmetic-00
@@ -2235,7 +2328,9 @@
     'number system conflict: ~.t %lus ~.ud'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [%concat ~[[~.t 'hello'] [~.t 'world']]] [~.ud 1]]
+              :^  %arithmetic  %lus
+                               [%concat ~[[~.t 'hello'] [~.t 'world']]]
+                               [~.ud 1]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2271,7 +2366,9 @@
     'number system conflict: ~.t %fas ~.ud'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %fas [%substring [~.t 'hello'] [~.ud 1] `[~.ud 3]] [~.ud 2]]
+              :^  %arithmetic  %fas
+                               [%substring [~.t 'hello'] [~.ud 1] `[~.ud 3]]
+                               [~.ud 2]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2307,7 +2404,9 @@
     '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [%left [~.t 'abc'] [~.ud 1]] [%right [~.t 'xyz'] [~.ud 1]]]
+              :^  %arithmetic  %lus
+                               [%left [~.t 'abc'] [~.ud 1]]
+                               [%right [~.t 'xyz'] [~.ud 1]]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2319,7 +2418,11 @@
     'number system conflict: ~.ud %lus ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %tar [%arithmetic %lus [~.ud 5] [%concat ~[[~.t 'a'] [~.t 'b']]]] [~.ud 2]]
+              :^  %arithmetic  %tar
+                               :^  %arithmetic  %lus
+                                                [~.ud 5]
+                                                [%concat ~[[~.t 'a'] [~.t 'b']]]
+                               [~.ud 2]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2391,7 +2494,9 @@
     'number system conflict: ~.t %lus ~.ud'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [%replace [~.t 'hello'] [~.t 'll'] [~.t 'LL']] [~.ud 1]]
+              :^  %arithmetic  %lus
+                               [%replace [~.t 'hello'] [~.t 'll'] [~.t 'LL']]
+                               [~.ud 1]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2439,7 +2544,9 @@
     'number system conflict: ~.t %lus ~.ud'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [%string-concat ~[[~.t 'a'] [~.t 'b']] [~.t ' ']] [~.ud 1]]
+              :^  %arithmetic  %lus
+                               [%string-concat ~[[~.t 'a'] [~.t 'b']] [~.t ' ']]
+                               [~.ud 1]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2451,7 +2558,14 @@
     'number system conflict: ~.t %lus ~.ud'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [%stuff [~.t 'hello'] [~.ud 2] [~.ud 3] [~.t 'xx']] [~.ud 1]]
+              :^  %arithmetic  %lus
+                               :*  %stuff
+                                 [~.t 'hello']
+                                 [~.ud 2]
+                                 [~.ud 3]
+                                 [~.t 'xx']
+                               ==
+                               [~.ud 1]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])

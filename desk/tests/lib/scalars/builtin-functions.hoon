@@ -2101,6 +2101,46 @@
     else=[~.dr ~d2]
   ==
 ::
+++  builtin-node-rd-zero
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.rd .~0]
+    else=[~.rd .~1]
+  ==
+::
+++  builtin-node-rd-one
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.rd .~1]
+    else=[~.rd .~0]
+  ==
+::
+++  builtin-node-rd-four
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.rd .~4]
+    else=[~.rd .~1]
+  ==
+::
+++  builtin-node-rd-one-five
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.rd .~1.5]
+    else=[~.rd .~1]
+  ==
+::
+++  builtin-node-sd-neg
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.sd -5]
+    else=[~.sd --5]
+  ==
+::
 ::
 ::  :::::::::::::::::::::::::::
 ::  :::: BUILTIN FNS TESTS ::::
@@ -6372,6 +6412,168 @@
     :-  %add-time-embedded-cte-columns
         :-  [%add-time builtin-cte-date builtin-cte-duration]
             [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+++  test-embedded-by-name-builtin-functions-02
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %month-embedded-scalar-name
+        :-  [%month [%scalar-name %scalar5]]
+            [~.ud 3]
+    :-  %day-embedded-scalar-name
+        :-  [%day [%scalar-name %scalar5]]
+            [~.ud 15]
+    :-  %hour-embedded-scalar-name
+        :-  [%hour [%scalar-name %scalar5]]
+            [~.ud 10]
+    :-  %minute-embedded-scalar-name
+        :-  [%minute [%scalar-name %scalar5]]
+            [~.ud 30]
+    :-  %second-embedded-scalar-name
+        :-  [%second [%scalar-name %scalar5]]
+            [~.ud 45]
+    :-  %subtract-time-embedded-scalar-names
+        :-  [%subtract-time [%scalar-name %scalar5] [%scalar-name %scalar6]]
+            [~.da ~2026.3.14..10.30.45]
+    :-  %lower-embedded-scalar-name
+        :-  [%lower [%scalar-name %scalar3]]
+            [~.t 'hello']
+    :-  %upper-embedded-scalar-name
+        :-  [%upper [%scalar-name %scalar3]]
+            [~.t 'HELLO']
+    :-  %replace-embedded-scalar-name
+        :-  [%replace [%scalar-name %scalar3] [~.t 'ell'] [~.t 'ELL']]
+            [~.t 'hELLo']
+    :-  %replicate-embedded-scalar-name
+        :-  [%replicate [~.t 'ha'] [%scalar-name %scalar1]]
+            [~.t 'hahaha']
+    :-  %reverse-embedded-scalar-name
+        :-  [%reverse [%scalar-name %scalar3]]
+            [~.t 'olleh']
+    :-  %right-embedded-scalar-names
+        :-  [%right [%scalar-name %scalar3] [%scalar-name %scalar1]]
+            [~.t 'llo']
+    :-  %substring-embedded-scalar-name
+        :-  [%substring [%scalar-name %scalar3] [~.ud 2] (some [%scalar-name %scalar1])]
+            [~.t 'ell']
+    :-  %trim-embedded-scalar-name
+        :-  [%trim [%scalar-name %scalar3] ~]
+            [~.t 'hello']
+    :-  %quotestring-embedded-scalar-name
+        :-  [%quotestring [%scalar-name %scalar3] ~]
+            [~.t '[hello]']
+    :-  %patindex-embedded-scalar-name
+        :-  [%patindex [%scalar-name %scalar3] [~.t 'ell']]
+            [~.ud 2]
+    :-  %stuff-embedded-scalar-names
+        :-  [%stuff [%scalar-name %scalar3] [~.ud 2] [%scalar-name %scalar1] [%scalar-name %scalar4]]
+            [~.t 'hworldo']
+  ==
+  ==
+::
+++  test-embedded-by-node-builtin-functions-02
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %floor-embedded-scalar-node
+        :-  [%floor builtin-node-rd-one-five]
+            [~.rd .~1]
+    :-  %ceiling-embedded-scalar-node
+        :-  [%ceiling builtin-node-rd-one-five]
+            [~.rd .~2]
+    :-  %round-embedded-scalar-node
+        :-  [%round builtin-node-rd-one-five [~.ud 0]]
+            [~.rd .~2]
+    :-  %sign-embedded-scalar-node
+        :-  [%sign builtin-node-sd-neg]
+            [~.sd -1]
+    :-  %sqrt-embedded-scalar-node
+        :-  [%sqrt builtin-node-rd-four]
+            [~.rd .~2]
+    :-  %log-embedded-scalar-node
+        :-  [%log builtin-node-rd-one ~]
+            [~.rd .~0]
+    :-  %max-embedded-scalar-node
+        :-  [%max builtin-node-num [~.ud 5]]
+            [~.ud 5]
+    :-  %min-embedded-scalar-node
+        :-  [%min builtin-node-num [~.ud 2]]
+            [~.ud 2]
+    :-  %degrees-embedded-scalar-node
+        :-  [%degrees builtin-node-rd-zero]
+            [~.rd .~0]
+    :-  %sin-embedded-scalar-node
+        :-  [%sin builtin-node-rd-zero]
+            [~.rd .~0]
+    :-  %cos-embedded-scalar-node
+        :-  [%cos builtin-node-rd-zero]
+            [~.rd .~1]
+    :-  %tan-embedded-scalar-node
+        :-  [%tan builtin-node-rd-zero]
+            [~.rd .~0]
+    :-  %asin-embedded-scalar-node
+        :-  [%asin builtin-node-rd-zero]
+            [~.rd .~0]
+    :-  %acos-embedded-scalar-node
+        :-  [%acos builtin-node-rd-one]
+            [~.rd .~0]
+    :-  %atan-embedded-scalar-node
+        :-  [%atan builtin-node-rd-zero]
+            [~.rd .~0]
+    :-  %atan2-embedded-scalar-node
+        :-  [%atan2 builtin-node-rd-zero builtin-node-rd-one]
+            [~.rd .~0]
+  ==
+  ==
+::
+++  test-embedded-by-cte-column-builtin-functions-02
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %second-embedded-cte-column
+        :-  [%second builtin-cte-date]
+            [~.ud 45]
+    :-  %subtract-time-embedded-cte-columns
+        :-  [%subtract-time builtin-cte-date builtin-cte-duration]
+            [~.da ~2026.3.14..10.30.45]
+    :-  %sign-embedded-cte-column
+        :-  [%sign builtin-cte-num]
+            [~.ud 1]
+    :-  %max-embedded-cte-column
+        :-  [%max builtin-cte-num [~.ud 5]]
+            [~.ud 5]
+    :-  %min-embedded-cte-column
+        :-  [%min builtin-cte-num [~.ud 2]]
+            [~.ud 2]
+    :-  %upper-embedded-cte-column
+        :-  [%upper builtin-cte-text-1]
+            [~.t 'HELLO']
+    :-  %replace-embedded-cte-column
+        :-  [%replace builtin-cte-text-1 [~.t 'ell'] [~.t 'ELL']]
+            [~.t 'hELLo']
+    :-  %right-embedded-cte-column
+        :-  [%right builtin-cte-text-1 builtin-cte-num]
+            [~.t 'llo']
+    :-  %patindex-embedded-cte-column
+        :-  [%patindex builtin-cte-text-1 [~.t 'ell']]
+            [~.ud 2]
+    :-  %quotestring-embedded-cte-column
+        :-  [%quotestring builtin-cte-text-1 ~]
+            [~.t '[hello]']
   ==
   ==
 ::

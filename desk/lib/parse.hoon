@@ -4976,10 +4976,22 @@
   ::  unary builtin functions
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
+  ?:  =(%hour fn-name)
+    [%hour (finalize-param raw-scalar-body aliases)]
+  ?:  =(%minute fn-name)
+    [%minute (finalize-param raw-scalar-body aliases)]
   ?:  =(%month fn-name)
     [%month (finalize-param raw-scalar-body aliases)]
+  ?:  =(%second fn-name)
+    [%second (finalize-param raw-scalar-body aliases)]
   ?:  =(%year fn-name)
     [%year (finalize-param raw-scalar-body aliases)]
+  ?:  =(%add-time fn-name)
+    :+  %add-time  (finalize-param -.raw-scalar-body aliases)
+                  (finalize-param +.raw-scalar-body aliases)
+  ?:  =(%subtract-time fn-name)
+    :+  %subtract-time  (finalize-param -.raw-scalar-body aliases)
+                       (finalize-param +.raw-scalar-body aliases)
   ?:  =(%abs fn-name)
     [%abs (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
@@ -5158,7 +5170,9 @@
 :: TODO: replace params with parse-scalar-param
 ++  parse-builtin-scalar-name
   ;~  pose
+    (cold %subtract-time (jester 'subtract-time'))
     (cold %getutcdate (jester %getutcdate))
+    (cold %add-time (jester 'add-time'))
     (cold %degrees (jester %degrees))
     (cold %ceiling (jester %ceiling))
     (cold %substring (jester %substring))
@@ -5170,6 +5184,7 @@
     (cold %reverse (jester %reverse))
     (cold %atan2 (jester %atan2))
     (cold %floor (jester %floor))
+    (cold %minute (jester %minute))
     (cold %month (jester %month))
     (cold %right (jester %right))
     (cold %round (jester %round))
@@ -5180,8 +5195,10 @@
     (cold %stuff (jester %stuff))
     (cold %concat (jester %concat))
     (cold %string (jester %string))
+    (cold %second (jester %second))
     (cold %sign (jester %sign))
     (cold %sqrt (jester %sqrt))
+    (cold %hour (jester %hour))
     (cold %left (jester %left))
     (cold %trim (jester %trim))
     (cold %year (jester %year))
@@ -5202,6 +5219,36 @@
     (cold %tau (jester %tau))
     (cold %pi (jester %pi))
     (cold %e (jester %e))
+  ==
+++  parse-builtin-scalar-constant
+  |=  tub=nail
+  ^-  (like *)
+  =/  constant-follow
+    ;~  pose
+      gah
+      (just '\09')
+      (just '\0d')
+      par
+      com
+    ==
+  =/  parsed
+    %+  cook
+      |=  a=[@tas *]
+      -.a
+    ;~  plug
+      ;~  pose
+        (cold %phi (jester %phi))
+        (cold %tau (jester %tau))
+        (cold %pi (jester %pi))
+        (cold %e (jester %e))
+      ==
+      (peek constant-follow)
+    ==
+  =/  result  (parsed tub)
+  ?~  q.result
+    result
+  :*  p.result
+      [~ u=[p=[%builtin-fn [p.u.q.result [%no-params ~]]] q=q.u.q.result]]
   ==
 ++  parse-builtin-scalar-params
   |=  [fn-name=@tas tub=nail]
@@ -5242,8 +5289,13 @@
     %pi          ((stag %no-params (parse-no-params ~)) tub)
     %tau         ((stag %no-params (parse-no-params ~)) tub)
     %day         (scalar-one-param tub)
+    %hour        (scalar-one-param tub)
+    %minute      (scalar-one-param tub)
     %month       (scalar-one-param tub)
+    %second      (scalar-one-param tub)
     %year        (scalar-one-param tub)
+    %add-time    (scalar-two-param tub)
+    %subtract-time  (scalar-two-param tub)
     %abs         (scalar-one-param tub)
     %floor       (scalar-one-param tub)
     %ceiling     (scalar-one-param tub)
@@ -5355,6 +5407,7 @@
     parse-coalesce
     parse-standalone-builtin-scalar-fn
     parse-builtin-scalar-fn
+    parse-builtin-scalar-constant
     parse-scalar-param
   ==
 ++  parse-scalar-node  ~+
@@ -5520,6 +5573,10 @@
     [%ceiling (finalize-param raw-scalar-body aliases)]
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
+  ?:  =(%hour fn-name)
+    [%hour (finalize-param raw-scalar-body aliases)]
+  ?:  =(%minute fn-name)
+    [%minute (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
     [%floor (finalize-param raw-scalar-body aliases)]
   ?:  =(%len fn-name)
@@ -5534,6 +5591,8 @@
     ~|("finalize-math-builtin-fn: %log requires one or two params" !!)
   ?:  =(%month fn-name)
     [%month (finalize-param raw-scalar-body aliases)]
+  ?:  =(%second fn-name)
+    [%second (finalize-param raw-scalar-body aliases)]
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
       :+  %round
@@ -5680,6 +5739,7 @@
     ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     parse-coalesce
     parse-builtin-scalar-fn
+    parse-builtin-scalar-constant
     parse-scalar-param
   ==
 ++  arithmetic-token
@@ -5795,6 +5855,7 @@
     parse-coalesce
     parse-standalone-builtin-scalar-fn
     parse-scalar-node-arithmetic
+    parse-builtin-scalar-constant
     parse-arithmetic
     parse-builtin-scalar-fn
   ==

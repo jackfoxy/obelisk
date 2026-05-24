@@ -1220,4 +1220,60 @@
               (bowl [0 ~2026.4.21])
               eny:(bowl [0 ~2026.4.21])
               ==
+::
+++  test-fail-if-then-missing-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate [%scalar-name %missing] q-col-2]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-else-missing-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else false-predicate q-col-2 [%scalar-name %missing]]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-then-missing-embedded-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate [%abs [%scalar-name %missing]] q-col-2]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-else-missing-embedded-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else false-predicate q-col-2 [%abs [%scalar-name %missing]]]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
 --
