@@ -847,6 +847,18 @@
   ?~  schemas  ~
   [name.i.schemas $(schemas t.schemas)]
 ::
+++  print-copy-button
+  |=  target=@tas
+  ^-  manx
+  ;button.copy-pane-button.bd1.br1.b2.hover
+    =type  "button"
+    =title  "copy to clipboard"
+    =aria-label  "copy to clipboard"
+    =onclick  "return copyPaneToClipboard('{(trip target)}', this, event);"
+    =style  "position: absolute; top: 0.5rem; right: 0.5rem; z-index: 6; width: 2rem; height: 2rem; padding: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+    ;span(style "font-size: 1rem; line-height: 1;", aria-hidden "true"): ⧉
+  ==
+::
 ++  relation-columns
   |=  rel=relation-node
   ^-  manx
@@ -973,6 +985,7 @@
 ++  print-query-form
   |=  [query=tape]
   ;form#query-form.grow.fc.mono.s0.hf
+    =style  "position: relative;"
     :: =method  "post"
     =hx-swap  "outerHTML"
     =hx-target  "#results"
@@ -986,6 +999,7 @@
       ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
       ;button#query-tab-add.px-2.py-1.bd1.br1.hover(type "button", onclick "newEditorTab()", style "margin-bottom: 1px;"): +
     ==
+    ;+  (print-copy-button %script)
     ;textarea#query-text.p3.grow.b0(hx-preserve "")
       =aura  "t-multi"
       =name  "/query-text"
@@ -1007,6 +1021,8 @@
   |=  =tang
   =/  tang  (show-crash-messages tang)
   ;div#results.grow.basis-half.b1.mono.s0
+    =style  "position: relative;"
+    ;+  (print-copy-button %results)
     ;div.scroll-x.scroll-y.p4(data-tab "error")
       ;*
       %+  turn  tang
@@ -1105,6 +1121,8 @@
 ++  print-results
   |=  results=(list cmd-result:ast)
   ;div#results.grow.b1.mono.s0.hf
+    =style  "position: relative;"
+    ;+  (print-copy-button %results)
     ;*  (print-numbered-cmd-results results 1)
   ==
 ++  print-numbered-cmd-results
@@ -1132,9 +1150,7 @@
         ==
       ;hawk-tabs.grow.hf
         ;div.p3(data-tab "Results")
-          ;*
-          %+  turn  +.cmd-result
-          |=(result=result:ast (print-result-set result))
+          ;*  (print-result-sets +.cmd-result 0)
         ==
       ;div.p3(data-tab "Messages")
         ;*
@@ -1149,6 +1165,14 @@
       ?:  =(0 num-sets)  ;/("")
       (print-results-export-data +.cmd-result)
   ==
+::
+++  print-result-sets
+  |=  [results=(list result:ast) index=@ud]
+  ^-  (list manx)
+  ?~  results  ~
+  =/  next-index=@ud
+    ?:(=(-.i.results %result-set) +(index) index)
+  [(print-result-set index i.results) $(results t.results, index next-index)]
 ::
 ++  print-result-metadata
   |=  result=result:ast
@@ -1172,16 +1196,16 @@
 ++  print-message-row
   |=  [label=tape value=tape]
   ^-  manx
-  ;div.fr.g1
-    ;div.bold: {label}
-    ;div: {value}
+  ;div.result-message-row.fr.g1
+    ;div.result-message-label.bold: {label}
+    ;div.result-message-value: {value}
   ==
 ::
 ++  print-result-set
-  |=  result=result:ast
+  |=  [index=@ud result=result:ast]
   ?+  -.result  ;/("")
     %result-set
-      (print-list-vector +.result)
+      (print-list-vector index +.result)
   ==
   ::
 ++  print-results-save-panel
@@ -1242,41 +1266,96 @@
   |=  vectors=(list vector:ast)
   ^-  manx
   ;div.result-export-set.hidden
-    ;+
-      ?~  vectors
-        ;/("")
-      ;div.result-export-headers.hidden
-        ;*
-        %+  turn  +:i.vectors
-        |=  cell=vector-cell:ast
-        ;textarea.result-export-header.hidden: {(trip p.cell)}
-      ==
-    ;*
-    %+  turn  vectors
-    |=  vector=vector:ast
-    ;div.result-export-row.hidden
-      ;*
-      %+  turn  +.vector
-      |=  cell=vector-cell:ast
-      ;textarea.result-export-cell.hidden: {(text (dime-to-vase q.cell))}
-    ==
+    ;textarea.result-export-text.hidden: {(result-export-set-text vectors)}
   ==
 ::
+++  result-export-set-text
+  |=  vectors=(list vector:ast)
+  ^-  tape
+  ?~  vectors  ""
+  %+  join-tapes  "\0a"
+  :-  (vector-header-text i.vectors)
+  (turn vectors vector-row-text)
+::
+++  vector-header-text
+  |=  vector=vector:ast
+  ^-  tape
+  %+  join-tapes  "\09"
+  %+  turn  +:vector
+  |=  cell=vector-cell:ast
+  (trip p.cell)
+::
+++  vector-row-text
+  |=  vector=vector:ast
+  ^-  tape
+  %+  join-tapes  "\09"
+  %+  turn  +.vector
+  |=  cell=vector-cell:ast
+  (text (dime-to-vase q.cell))
+::
+++  join-tapes
+  |=  [sep=tape tapes=(list tape)]
+  ^-  tape
+  ?~  tapes  ""
+  ?~  t.tapes
+    i.tapes
+  (weld i.tapes (weld sep $(tapes t.tapes)))
+::
+++  result-page-size  500
+++  result-paging-threshold  800
+::
 ++  print-list-vector
+  |=  [set-index=@ud vectors=(list vector:ast)]
+  =/  row-count=@ud  (lent vectors)
+  ?:  (gth result-paging-threshold row-count)
+    (print-full-list-vector vectors)
+  (print-paged-list-vector set-index row-count vectors)
+::
+++  print-full-list-vector
   |=  vectors=(list vector:ast)
   ;div
     ;table.p3
       =style  "border-collapse: collapse;"
-      ;tr
-        ;th.p1.bd1;
-        ;*
-        ?~  vectors  ~
-        %+  turn  +:i.vectors
-        |=  cell=vector-cell:ast
-        ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
-      ==
+      ;+  (print-vector-header vectors)
       ;*  (print-numbered-vectors vectors 1)
     ==
+  ==
+::
+++  print-paged-list-vector
+  |=  [set-index=@ud row-count=@ud vectors=(list vector:ast)]
+  =/  page-count=@ud
+    (div (sub (add row-count result-page-size) 1) result-page-size)
+  ;div.paged-result-set
+    =data-result-set-index  (scow %ud set-index)
+    =data-page-size  (scow %ud result-page-size)
+    =data-row-count  (scow %ud row-count)
+    =data-page  "1"
+    ;div.result-pager.fr.ac.g2.p1
+      ;button.result-page-prev.p-1.bd1.br1.b2.hover(type "button", disabled "", onclick "pageResultSet(this, -1); return false;"): Previous
+      ;span.result-pager-label: Rows 1-{(scow %ud result-page-size)} of {(scow %ud row-count)} · Page 1 of {(scow %ud page-count)}
+      ;button.result-page-next.p-1.bd1.br1.b2.hover(type "button", onclick "pageResultSet(this, 1); return false;"): Next
+    ==
+    ;table.result-page-table.p3
+      =style  "border-collapse: collapse;"
+      ;thead
+        ;+  (print-vector-header vectors)
+      ==
+      ;tbody.result-page-body
+        ;*  (print-numbered-vectors (scag result-page-size vectors) 1)
+      ==
+    ==
+  ==
+::
+++  print-vector-header
+  |=  vectors=(list vector:ast)
+  ^-  manx
+  ;tr
+    ;th.p1.bd1;
+    ;*
+    ?~  vectors  ~
+    %+  turn  +:i.vectors
+    |=  cell=vector-cell:ast
+    ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
   ==
 ::
 ++  print-numbered-vectors
@@ -1290,15 +1369,17 @@
   ?-  -.output
     %.n  (print-tang p.output)
     %.y
+      =/  parse-text  (text !>(p.output))
       ;div#results.grow.b1.mono.s0
+        =style  "position: relative;"
+        ;+  (print-copy-button %results)
         ;div.result-export-group.rel
           =data-results-group  "1"
           =data-has-results  "true"
-          ;div.scroll-x.scroll-y.p4.pre-wrap(style "white-space: pre-wrap;")
-            {(text !>(p.output))}
+          ;div.parse-export-text.scroll-x.scroll-y.p4.pre-wrap(style "white-space: pre-wrap;")
+            {parse-text}
           ==
           ;+  (print-results-save-panel-with-delimiter 1 %.n)
-          ;textarea.parse-export-text.hidden: {(text !>(p.output))}
         ==
       ==
   ==
@@ -1331,6 +1412,81 @@
       $('#query-form').find('[type=submit]').click();
       return false;
     }
+    function copyPaneToClipboard(target, button, event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      const text = target === 'script' ? scriptPaneText() : resultsPaneText();
+      copyTextToClipboard(String(text || ''))
+        .then(() => flashCopyButton(button))
+        .catch((err) => console.error(err));
+      return false;
+    }
+    function scriptPaneText() {
+      const textarea = document.getElementById('query-text');
+      return textarea ? (textarea.value || '') : '';
+    }
+    function resultsPaneText() {
+      const group = firstResultsCopyGroup();
+      if (group) {
+        const text = buildResultsClipboardText(group, ',');
+        if (text) {
+          return text;
+        }
+      }
+      const results = document.getElementById('results');
+      if (!results) {
+        return '';
+      }
+      const clone = results.cloneNode(true);
+      clone.querySelectorAll('.copy-pane-button, .results-save-panel, .hidden').forEach((node) => node.remove());
+      return ensureTrailingNewline(clone.innerText || '');
+    }
+    function firstResultsCopyGroup() {
+      return document.querySelector('.result-export-group');
+    }
+    function ensureTrailingNewline(text) {
+      return text && !text.endsWith('\n') ? (text + '\n') : text;
+    }
+    function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise((resolve, reject) => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.top = '-1000px';
+        textarea.style.left = '-1000px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          if (!document.execCommand('copy')) {
+            throw new Error('copy failed');
+          }
+          resolve();
+        } catch (err) {
+          reject(err);
+        } finally {
+          textarea.remove();
+        }
+      });
+    }
+    function flashCopyButton(button) {
+      if (!button) {
+        return;
+      }
+      const oldTitle = button.getAttribute('title') || 'copy to clipboard';
+      const oldLabel = button.getAttribute('aria-label') || 'copy to clipboard';
+      button.setAttribute('title', 'copied');
+      button.setAttribute('aria-label', 'copied');
+      window.setTimeout(() => {
+        button.setAttribute('title', oldTitle);
+        button.setAttribute('aria-label', oldLabel);
+      }, 1200);
+    }
     function prepareExportForm(form) {
       const state = getEditorTabs();
       const activeTab = state.tabs[state.active];
@@ -1359,24 +1515,10 @@
         .filter(Boolean);
     }
     function getKnownChildPaths() {
-      if (!window.obeliskKnownChildPaths) {
-        window.obeliskKnownChildPaths = new Set();
-      }
-      readKnownChildPaths().forEach((path) => window.obeliskKnownChildPaths.add(path));
-      return window.obeliskKnownChildPaths;
+      return new Set(readKnownChildPaths());
     }
     function getRenderableChildPaths() {
-      const paths = new Set(readKnownChildPaths());
-      if (window.obeliskKnownChildPaths) {
-        window.obeliskKnownChildPaths.forEach((path) => paths.add(normalizeChildPath(path)));
-      }
-      const state = getEditorTabs();
-      state.tabs.forEach((tab) => {
-        if (tab.savedPath) {
-          paths.add(normalizeChildPath(tab.savedPath));
-        }
-      });
-      return Array.from(paths).sort((a, b) => a.localeCompare(b));
+      return Array.from(getKnownChildPaths()).sort((a, b) => a.localeCompare(b));
     }
     function knownChildPathExists(path) {
       return getKnownChildPaths().has(normalizeChildPath(path));
@@ -1385,13 +1527,45 @@
       if (!path) {
         return;
       }
-      getKnownChildPaths().add(normalizeChildPath(path));
+      const normalizedPath = normalizeChildPath(path);
+      if (knownChildPathExists(normalizedPath)) {
+        return;
+      }
+      const container = document.getElementById('existing-child-paths');
+      if (!container) {
+        return;
+      }
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.className = 'existing-child-path';
+      input.value = normalizedPath;
+      container.appendChild(input);
     }
     function currentTabPath(tab) {
       return normalizeChildPath((tab && (tab.savedPath || tab.draftPath)) ? (tab.savedPath || tab.draftPath) : 'script-1');
     }
     function getSortedChildPaths() {
       return getRenderableChildPaths();
+    }
+    async function refreshKnownChildPaths() {
+      const container = document.getElementById('existing-child-paths');
+      if (!container) {
+        return;
+      }
+      try {
+        const url = window.location.pathname + window.location.search;
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) {
+          return;
+        }
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        const fresh = doc.getElementById('existing-child-paths');
+        if (fresh) {
+          container.innerHTML = fresh.innerHTML;
+        }
+      } catch (_err) {
+        // best effort only
+      }
     }
     function childCodeUrl(path) {
       const base = new URL(window.location.href);
@@ -1619,9 +1793,6 @@
       }
       return ',';
     }
-    function textareaValues(node, selector) {
-      return Array.from(node.querySelectorAll(selector)).map((el) => el.value || '');
-    }
     function resultsExportSets(group) {
       const root = document.getElementById('results');
       const sets = root ? Array.from(root.querySelectorAll('.result-export-set')) : [];
@@ -1634,7 +1805,121 @@
       const root = document.getElementById('results');
       const node = (root && root.querySelector('.parse-export-text')) ||
         (group && group.querySelector('.parse-export-text'));
-      return node ? (node.value || '') : null;
+      return node ? ((typeof node.value === 'string' ? node.value : node.textContent) || '') : null;
+    }
+    function resultExportRows(set) {
+      const compact = set.querySelector('.result-export-text');
+      if (compact) {
+        return (compact.value || '').split('\n').filter(Boolean).map((line) => line.split('\t'));
+      }
+      const rows = [];
+      const headers = Array.from(set.querySelectorAll('.result-export-header')).map((el) => el.value || '');
+      if (headers.length) {
+        rows.push(headers);
+      }
+      Array.from(set.querySelectorAll('.result-export-row')).forEach((row) => {
+        rows.push(Array.from(row.querySelectorAll('.result-export-cell')).map((el) => el.value || ''));
+      });
+      return rows;
+    }
+    function pageResultSet(button, delta) {
+      const paged = button ? button.closest('.paged-result-set') : null;
+      if (!paged) {
+        return false;
+      }
+      const page = parseInt(paged.getAttribute('data-page') || '1', 10) || 1;
+      renderResultPage(paged, page + delta);
+      return false;
+    }
+    function pagedResultRows(paged) {
+      if (paged._resultRows) {
+        return paged._resultRows;
+      }
+      const group = paged.closest('.result-export-group');
+      if (!group) {
+        return [];
+      }
+      const index = parseInt(paged.getAttribute('data-result-set-index') || '0', 10) || 0;
+      const sets = Array.from(group.querySelectorAll('.result-export-set'));
+      paged._resultRows = sets[index] ? resultExportRows(sets[index]) : [];
+      return paged._resultRows;
+    }
+    function setPagerButtonDisabled(button, disabled) {
+      if (!button) {
+        return;
+      }
+      button.disabled = disabled;
+      if (disabled) {
+        button.setAttribute('disabled', '');
+      } else {
+        button.removeAttribute('disabled');
+      }
+    }
+    function renderResultPage(paged, page) {
+      const pageSize = parseInt(paged.getAttribute('data-page-size') || '500', 10) || 500;
+      const rows = pagedResultRows(paged);
+      if (rows.length < 2) {
+        return;
+      }
+      const dataRows = rows.slice(1);
+      const total = dataRows.length;
+      const pageCount = Math.max(1, Math.ceil(total / pageSize));
+      const nextPage = Math.min(Math.max(1, page), pageCount);
+      const start = (nextPage - 1) * pageSize;
+      const end = Math.min(start + pageSize, total);
+      const body = paged.querySelector('.result-page-body');
+      if (!body) {
+        return;
+      }
+      body.innerHTML = '';
+      dataRows.slice(start, end).forEach((cells, offset) => {
+        const row = document.createElement('tr');
+        const number = document.createElement('td');
+        number.className = 'p1 bd1';
+        number.style.whiteSpace = 'nowrap';
+        number.style.textAlign = 'right';
+        number.textContent = String(start + offset + 1);
+        row.appendChild(number);
+        cells.forEach((cell) => {
+          const td = document.createElement('td');
+          td.className = 'p1 bd1';
+          td.style.whiteSpace = 'nowrap';
+          td.textContent = cell;
+          row.appendChild(td);
+        });
+        body.appendChild(row);
+      });
+      const label = paged.querySelector('.result-pager-label');
+      if (label) {
+        label.textContent = 'Rows ' + (start + 1) + '-' + end + ' of ' + total +
+          ' · Page ' + nextPage + ' of ' + pageCount;
+      }
+      paged.setAttribute('data-page', String(nextPage));
+      setPagerButtonDisabled(paged.querySelector('.result-page-prev'), nextPage <= 1);
+      setPagerButtonDisabled(paged.querySelector('.result-page-next'), nextPage >= pageCount);
+    }
+    function buildResultsClipboardText(group, delimiter) {
+      const sections = [];
+      const resultText = buildResultsExportText(group, delimiter).trimEnd();
+      const messageText = buildResultsMessageText(group).trimEnd();
+      if (resultText) {
+        sections.push(resultText);
+      }
+      if (messageText) {
+        sections.push(messageText);
+      }
+      return sections.length ? (sections.join('\n\n') + '\n') : '';
+    }
+    function buildResultsMessageText(group) {
+      const lines = Array.from(group.querySelectorAll('.result-message-row')).map((row) => {
+        const label = row.querySelector('.result-message-label');
+        const value = row.querySelector('.result-message-value');
+        return [
+          label ? label.textContent.trim() : '',
+          value ? value.textContent.trim() : '',
+        ].filter(Boolean).join(' ');
+      }).filter(Boolean);
+      return lines.length ? (lines.join('\n') + '\n') : '';
     }
     function buildResultsExportText(group, delimiter) {
       const parseText = parseExportText(group);
@@ -1643,16 +1928,7 @@
       }
       const sets = resultsExportSets(group);
       const chunks = sets.map((set) => {
-        const lines = [];
-        const headers = textareaValues(set, '.result-export-header');
-        if (headers.length) {
-          lines.push(headers.join(delimiter));
-        }
-        Array.from(set.querySelectorAll('.result-export-row')).forEach((row) => {
-          const cells = textareaValues(row, '.result-export-cell');
-          lines.push(cells.join(delimiter));
-        });
-        return lines.join('\n');
+        return resultExportRows(set).map((cells) => cells.join(delimiter)).join('\n');
       }).filter(Boolean);
       return chunks.length ? (chunks.join('\n\n') + '\n') : '';
     }
@@ -1800,7 +2076,7 @@
       }
       return false;
     }
-    function toggleOpenPanel() {
+    async function toggleOpenPanel() {
       const panel = document.getElementById('open-panel');
       if (!panel) {
         return false;
@@ -1812,6 +2088,7 @@
         hideOpenPanel();
         return false;
       }
+      await refreshKnownChildPaths();
       renderOpenPanel();
       panel.classList.remove('hidden');
       return false;
@@ -1974,7 +2251,10 @@
     function buildTableActionCode(action, context) {
       if (action === 'SELECT') {
         return [
+          '::WITH (FROM...',
+          '::      SELECT...) AS ...',
           'FROM ' + context.db + '.' + context.ns + '.' + context.table,
+          '::JOIN',
           '::SCALARS',
           '::WHERE',
           'SELECT ' + context.columns.join(', ') + ' ;'
