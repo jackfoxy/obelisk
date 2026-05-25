@@ -32,7 +32,7 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Predicates can reference CTEs for certain use cases.
 
-* Relational division is supported with a DIVIDED BY operator. (not yet implemented in the urQL parser or Obelisk)
+* Relational division is supported with a DIVIDED BY operator. (parsed but not yet implemented in the Obelisk runtime)
 
 * Reading and/or updating data on foreign ships is permissible if the ship's pilot has granted permission. Cross database joins are allowed, but cross ship joins are not. (Not yet implemented in Obelisk.)
 
@@ -314,6 +314,6 @@ Among the metadata returned by queries is the schema and content times (labelled
 
 Creating a new `NAMESPACE` or `TABLE` may be back-dated to anytime subsequent to the latest of schema time or content time. The same applies to `TRUNCATE TABLE` which is a special case of zeroing-out the content of a table.
 
-WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
 All other data manipulation commands -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, `NOW`. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes.

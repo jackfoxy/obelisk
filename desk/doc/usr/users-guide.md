@@ -2,7 +2,7 @@
 
 If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend. If you are unfamiliar with relational database design we recommend a quick guide to [database design/normalization](https://www.splunk.com/en_us/blog/learn/data-normalization.html).
 
-It is recommended to read the [Preliminaries](/docs/reference/usr/preliminaries.md) chapter of the Reference document before proceeding.
+It is recommended to read the [Preliminaries](/docs/usr/reference/preliminaries.md) chapter of the Reference document before proceeding.
 
 Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
 
@@ -123,7 +123,7 @@ The first atom is the column label or alias, and the *dime* is the data aura and
 
 We will talk more about crud-txn (querying) later.
 
-*sys.sys.databases* records a row for every event that mutates the state of the server, in other words every event that changes the state of a database's schema or data contents.
+*sys.sys.databases* shows the database schema and data state history. Use *sys.sys-log* for schema events and *sys.data-log* for data events.
 
 All the other system views describing database schemas are in the *%sys* namespace of each user database and documented in the Appendix of this article.
 
@@ -250,7 +250,7 @@ WHERE col1 = 'today';
     [ %vector-count 2 ]
 ```
 
-The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'` and no data-time is recorded.
+The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'`.
 
 Use the `DEFAULT` keyword in `SET` to reset a column to its aura bunt value.
 
@@ -262,7 +262,7 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/usr/dml-update.md) for full syntax and examples.
+`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT` and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
@@ -393,7 +393,7 @@ SELECT *;
 
 `ON UPDATE` supports the same actions: `RESTRICT`, `CASCADE`, and
 `SET DEFAULT`. `SET DEFAULT` changes the child column to its aura bunt value, so
-the parent table must contain that default key when the action runs.
+the referenced parent table must contain that default key when the action runs.
 
 To inspect declared foreign keys, query `sys.foreign-keys`.
 
@@ -462,7 +462,7 @@ Set the default database to animal-shelter and submit the following script:
 FROM reference.calendar
 SELECT *;
 ```
-Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` clauses before `SELECT`.
+Unlike the syntax in standard SQL, when present the `FROM` and `WHERE` clauses must precede `SELECT`.
 ```
 %obelisk-result:
   %results
@@ -519,7 +519,7 @@ SELECT day-name AS Day;
 ```
 Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
-Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order.
+Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order. `GROUP BY`, `ORDER BY`, and `TOP` are supported by the urQL parser but not by the Obelisk runtime in the current release.
 
 ## SCALARS
 
@@ -534,13 +534,74 @@ SELECT name, species, adoption-date, full-label, fee-tier;
 
 Scalar function categories:
 
-- **Arithmetic** — `col1 + col2 * 3 END` — supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd`; must end with `END`
-- **String** — `CONCAT(...)`, `TRIM(...)`, `UPPER(...)`, `LOWER(...)`, `REPLACE(...)`, `SUBSTRING(...)`
-- **DateTime** — `YEAR(...)`, `MONTH(...)`, `DAY(...)`, `HOUR(...)`, `MINUTE(...)`, `GETUTCDATE()`
-- **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
-- **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
+- **Control flow**
+  - `IF <predicate> THEN <scalar-node> ELSE <scalar-node> ENDIF`
+  - `CASE [ <scalar-node> ] WHEN { <scalar-node> | <predicate> } THEN <scalar-node> [ ...n ] [ ELSE <scalar-node> ] END`
+  - `COALESCE(<scalar-node> [ ,...n ])`
 
-A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/usr/scalars.md) for full syntax.
+- **Arithmetic**
+  - `col1 + col2 * 3 END`
+  - must end with `END`
+  - supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd` data auras
+
+- **DateTime**
+  - `GETUTCDATE()`
+  - `YEAR(<time-expression>)`
+  - `MONTH(<time-expression>)`
+  - `DAY(<time-expression>)`
+  - `HOUR(<time-expression>)`
+  - `MINUTE(<time-expression>)`
+  - `SECOND(<time-expression>)`
+  - `ADD-TIME(<time-expression>, <time-expression>)`
+  - `SUBTRACT-TIME(<time-expression>, <time-expression>)`
+
+- **Mathematical**
+  - `ABS(<numeric-expression>)`
+  - `LOG(<numeric-expression>)`
+  - `FLOOR(<numeric-expression>)`
+  - `CEILING(<numeric-expression>)`
+  - `ROUND(<numeric-expression>, <numeric-expression>)`
+  - `SIGN(<numeric-expression>)`
+  - `SQRT(<numeric-expression>)`
+  - `MAX(<numeric-expression>, <numeric-expression>)`
+  - `MIN(<numeric-expression>, <numeric-expression>)`
+  - `RAND(<numeric-expression>, <numeric-expression>)`
+  - `DEGREES(<numeric-expression>)`
+  - `SIN(<numeric-expression>)`
+  - `COS(<numeric-expression>)`
+  - `TAN(<numeric-expression>)`
+  - `ASIN(<numeric-expression>)`
+  - `ACOS(<numeric-expression>)`
+  - `ATAN(<numeric-expression>)`
+  - `ATAN2(<numeric-expression>, <numeric-expression>)`
+
+- **Mathematical constants**
+  - `PI`
+  - `TAU`
+  - `E`
+  - `PHI`
+
+- **String**
+  - `LEN(<string-expression>)`
+  - `LEFT(<string-expression>, <numeric-expression>)`
+  - `RIGHT(<string-expression>, <numeric-expression>)`
+  - `SUBSTRING(<string-expression>, <numeric-expression> [ , <numeric-expression> ])`
+  - `LOWER(<string-expression>)`
+  - `UPPER(<string-expression>)`
+  - `LTRIM(<string-expression> [ , <string-expression> ])`
+  - `RTRIM(<string-expression> [ , <string-expression> ])`
+  - `TRIM(<string-expression> [ , <string-expression> ])`
+  - `CONCAT(<string-expression> [ ,...n ])`
+  - `REPLACE(<string-expression>, <string-expression>, <string-expression>)`
+  - `REPLICATE(<string-expression>, <numeric-expression>)`
+  - `REVERSE(<string-expression>)`
+  - `STRING(<numeric-expression>)`
+  - `STRING-CONCAT(<string-expression> [ ,...n ], <string-expression>)`
+  - `PATINDEX(<string-expression>, <string-expression>)`
+  - `QUOTESTRING(<string-expression> [ , <string-expression>, <string-expression> ])`
+  - `STUFF(<string-expression>, <numeric-expression>, <numeric-expression>, <string-expression>)`
+
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full documentation.
 
 ## WHERE clause
 
@@ -655,11 +716,11 @@ SELECT name, species, adoption-date, adoption-fee;
 
 Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/usr/reference/preliminaries.md) reference document.)
 
-Almost all urQL commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*).
+Most schema and data commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*). Notable exceptions include `ALTER DATABASE` and `DROP DATABASE`; security commands use separate timing semantics.
 
 In terms of DDL commands, this is most useful for *back dating* new database schemas, or even future dating. Just be aware you may end up making your database unalterable by future dating.
 
-WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
 For example future dating a new database
 
@@ -745,7 +806,7 @@ DROP DATABASE db2;
 
 This time let's create the database in the past and populate it.
 
-All data manipulation commands other than `TRUNCATE TABLE` -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, *NOW*. Use `<as-of-time>` to apply the change to any prior version of the data, thus discarding subsequent content changes for the new data context.
+All data manipulation commands other than `TRUNCATE TABLE` -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, *NOW*. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes for the new data context.
 
 
  Let's make one `INSERT` operating on the present content state followed by one operating on the past.
@@ -846,11 +907,13 @@ We did not need to specify the exact time of the content state, only a time equa
     [ %vector-count 3 ]
 ```
 
-As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of-time>` documentation in [Preliminaries](/docs/usr/reference/preliminaries.md).
+As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of>` documentation in [Preliminaries](/docs/usr/reference/preliminaries.md).
 
 # Joins
 
 A `JOIN` is a query clause that combines rows from two or more data objects, possibly based on a related column or columns between them. It allows you to retrieve and manipulate data from multiple tables as if they were a single table. Any number of tables, views, or CTEs can be joined.
+
+Joined objects may live in different databases on the same ship, but cross-ship joins are not permitted.
 
 ## Natural Joins
 
@@ -1136,7 +1199,7 @@ CREATE DATABASE db3; :: this is a line comment
 :: and comment out the remainder of the line
 /* this is a block comment
 
-everyting within /* and */
+everything within /* and */
 (begin and end symbols must be in columns 1 and 2)
 is a comment
 
@@ -1210,14 +1273,16 @@ SELECT *;
 ```
 
 Transfers can also cross user databases when both databases and namespaces
-exist. Tables cannot be moved into or out of the `sys` database or `sys`
-namespace.
+exist, but tables participating in foreign keys can only move between
+namespaces in the same database. Tables cannot be moved into or out of the
+`sys` database or `sys` namespace.
 
 ## ALTER TABLE
 
 `ALTER TABLE` changes one table. It can rename the table, reorder columns,
 change the primary key, add columns, drop columns, rename columns, and change a
-column aura. Foreign key alterations are not covered here.
+column aura. Foreign-key behavior is covered in the `Referential Integrity`
+section; alteration syntax is in the `ALTER TABLE` reference.
 
 Foreign-key participation constrains some table alterations. A primary key
 cannot be changed while another table references it; drop the foreign keys first
@@ -1508,19 +1573,19 @@ in schema views such as `sys.tables`.
 
 **component @tas** Event component, such as `database`, `namespace`, or `table`.
 
-**database @t** Database affected by the event, when applicable.
+**database @tas** Database affected by the event, when applicable.
 
-**namespace @t** Namespace affected by the event, when applicable.
+**namespace @tas** Namespace affected by the event, when applicable.
 
 **relation @tas** Component name.
 
-**target-database @t** Target database for rename-style events, when
+**target-database @tas** Target database for rename-style events, when
 applicable. Empty when unused.
 
-**target-namespace @t** Target namespace for rename-style events, when
+**target-namespace @tas** Target namespace for rename-style events, when
 applicable. Empty when unused.
 
-**target-relation @t** Target name for rename-style events, when applicable. Empty
+**target-relation @tas** Target name for rename-style events, when applicable. Empty
 when unused.
 
 **message @t** Human-readable event message. Empty when unused.

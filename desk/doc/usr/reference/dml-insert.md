@@ -83,7 +83,7 @@ Note that multiple parentheses enclosed rows of column values are NOT comma sepa
 
 ### Produced Metadata
 
-message: INSERT INTO <namespace name>.<table name>
+action: INSERT INTO <namespace name>.<table name>
 server time: <timestamp>
 schema time: <timestamp>   The most current table schema time
 data time: <timestamp>     The source content time upon which the INSERT acted

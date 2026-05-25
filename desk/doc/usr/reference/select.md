@@ -140,6 +140,8 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 The `WITH` clause makes the result `<relation>` of a `<crud-txn>` statement available to the subsequent `<crud-txn>` statements in the `WITH` clause and `<cmd>`s in the main `<crud-txn>` by `<name>`. `<crud-txn>`s in the `WITH` clause cannot have their own `WITH` clause, rather preceding CTEs within the clause are available and function as a virtual `WITH` clause.
 
+Output column names within a CTE must be unique. When a CTE selects from a join in which both relations share a column name, the duplicates must be disambiguated with aliases (e.g. `T1.date AS cal-date, T2.date AS hol-date`). `SELECT *` on a joined CTE is valid only when the resulting column names are unique.
+
 **`<relation> [ [AS] <alias> ]`**
 Any valid `<relation>`.
 
@@ -240,6 +242,8 @@ Set operations function between the prior `<relation>` or running `<relation>` r
 **UNION**
 
 `UNION` concatenates the left and right `<relation>`s into one `<relation>` of distinct rows.
+
+When a set query contains `UNION`, every `SELECT` participating in the set query must produce unique output column names. Selecting the same column twice, or using `AS` to produce the same output name twice, is rejected. This restriction is specific to set queries containing `UNION`; `EXCEPT` and `INTERSECT` alone do not impose it.
 
 **EXCEPT**
 

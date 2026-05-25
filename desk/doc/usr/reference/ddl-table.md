@@ -188,7 +188,7 @@ Changes the constraint that enforces data integrity via a specified column or co
 
 `ALTER TABLE PRIMARY KEY` is rejected if the table is referenced by any foreign key, unless those foreign keys are first dropped. `ON UPDATE` does not apply to changes in primary-key definition.
 
-**`ADD ( <column> <aura> [ ,... n ] )`**
+**`ADD COLUMN ( <column> <aura> [ ,... n ] )`**
 Denotes a list of user-defined column names and associated auras. If `COLUMNS` is not specified the columns are appended to the existing canonical ordering.
 
 **`DROP COLUMN ( <column> [ ,... n ] )`**
@@ -299,7 +299,7 @@ alter table `<table>` as-of schema time out of order
 alter table `<table>`as-of data time out of order
 alter table state change after query in script
 alter table COLUMNS does not alter existing canonical order
-alter table COLUMNS does include every column
+alter table COLUMNS does not include every column
 alter table PRIMARY KEY is not unique over existing data
 alter table PRIMARY KEY does not alter existing key
 
