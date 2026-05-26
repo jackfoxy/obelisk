@@ -25,7 +25,7 @@
 ++  on-init
   ^-  (quip card _this)
   =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
-  =+  .^(dudes=(set [dude:gall ?]) %ge our %base now /$)
+  =+  .^(desks=(set desk) %cd /=//=)
   =/  install-hawk=card
     :*  %pass
         /init/hawk/install
@@ -36,7 +36,7 @@
         !>([%hawk ~dister-migrev-dolseg %hawk])
     ==
   =/  hawk-cards=(list card)
-    ?:  |((~(has in dudes) [%hawk &]) (~(has in dudes) [%hawk |]))
+    ?:  (~(has in desks) %hawk)
       ~
     [install-hawk ~]
   =/  animal-cards=(list card)
