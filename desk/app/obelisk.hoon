@@ -26,19 +26,17 @@
   ^-  (quip card _this)
   =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
   =+  .^(desks=(set desk) %cd /=//=)
-  =/  install-hawk=card
-    :*  %pass
-        /init/hawk/install
-        %agent
-        [our.bowl %hood]
-        %poke
-        %kiln-install
-        !>([%hawk ~dister-migrev-dolseg %hawk])
-    ==
-  =/  hawk-cards=(list card)
-    ?:  (~(has in desks) %hawk)
-      ~
-    [install-hawk ~]
+  =/  install-hawk=card  :*  %pass
+                             /init/hawk/install
+                             %agent
+                             [our.bowl %hood]
+                             %poke
+                             %kiln-install
+                             !>([%hawk ~dister-migrev-dolseg %hawk])
+                             ==
+  =/  hawk-cards=(list card)  ?:  (~(has in desks) %hawk)
+                                ~
+                              [install-hawk ~]
   =/  animal-cards=(list card)
     :~  :*  %pass
             /init/animal-shelter
@@ -52,8 +50,8 @@
             %x
             da+now.bowl
             /gen/animal-shelter/all-animal-shelter/txt
+            ==
         ==
-    ==
   :_  this(state *state-1)
   (weld hawk-cards animal-cards)
 ++  on-save
@@ -65,11 +63,11 @@
   ::
   =/  r=(each state-1 tang)
     %-  mule  |.
-    =/  old  !<(versioned-state old-state)
-    ?-  -.old
-      %0  [%1 (migrate-server-0-to-1 server.old)]
-      %1  old
-    ==
+              =/  old  !<(versioned-state old-state)
+              ?-  -.old
+                %0  [%1 (migrate-server-0-to-1 server.old)]
+                %1  old
+                ==
   ::  if it succeeded, use the old state
   ::
   ?:  ?=(%.y -.r)  `this(state p.r)

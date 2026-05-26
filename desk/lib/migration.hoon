@@ -8,12 +8,17 @@
 ++  migrate-server-0-to-1
   |=  old-server=server:oldstate
   ^-  server
+  ?:  =(~ old-server)  *server
   =/  new-server=server
-    %-  malt
-    %+  turn  ~(tap by old-server)
-      |=  [kv=[name=@tas db=database:oldstate]]
-      [name.kv (migrate-database-0-to-1 db.kv)]
-  ?:  ?!((~(has by new-server) %sys))  new-server
+    %-  malt  %+  turn  ~(tap by old-server)
+                        |=  [kv=[name=@tas db=database:oldstate]]
+                        [name.kv (migrate-database-0-to-1 db.kv)]
+  :: NOTE: a situation where there are existing databases, but no %sys database,
+  ::       indicates the server has been tampered with outside of the normal
+  ::       runtime operations...or some unanticipated bug
+  ?:  ?!((~(has by new-server) %sys))
+    ~&  "WARNING: no %sys database encountered during migration"
+    new-server
   =/  sys-db=database  (~(got by new-server) %sys)
   =.  event-log.sys-db
         (weld (database-create-events old-server) event-log.sys-db)
