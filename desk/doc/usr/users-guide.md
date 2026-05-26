@@ -1405,7 +1405,7 @@ The structure is wrapped in a list because a script potentially consists of mult
 
 The last two column structures are unqualified. The parser does not have the table definition information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
 
-# APPENDIX: System Views
+# APPENDIX I: System Views
 
 Views on database schema, data, and history metadata. `sys.sys.databases` is
 only available in database `sys`; the remaining system views are in the `sys`
@@ -1626,4 +1626,273 @@ List views and whether their caches are populated/not populated. *not implemente
 
 **name @tas** View name.
 
-...
+# APPENDIX II: Using Obelisk in a Hoon Program
+
+Obelisk exposes an API for Hoon programs. The API accepts an
+`action:ast` poke and sends one result fact on `/server`.
+
+Most programs should send urQL text and let Obelisk parse it. Building command
+ASTs by hand is possible, but it is more work, more fragile, and usually not
+worth skipping the parser.
+
+## Importing the API Molds
+
+The public molds live in `/sur/obelisk-ast.hoon`. Import them with a face:
+
+```hoon
+/-  ast=obelisk-ast
+```
+
+Then refer to the API types as `action:ast`, `command:ast`,
+`cmd-result:ast`, `result:ast`, `vector:ast`, and `vector-cell:ast`.
+
+## Choosing an Action
+
+The client-facing action shapes are:
+
+```hoon
++$  action
+  $%
+    [%tape default-database=@tas urql=tape]
+    [%tape-print default-database=@tas urql=tape]
+    [%parse default-database=@tas urql=tape]
+    [%commands cmds=(list command)]
+    ==
+```
+
+There is also a `%test` action used by the Obelisk test code. Client programs
+should use the four actions above.
+
+Use `%tape` for normal application code:
+
+```hoon
+[%tape %sys "FROM sys.sys.databases SELECT database;"]
+```
+
+`%tape` executes a urQL script and returns results through `/server`.
+
+`%tape-print` executes the same script and also prints formatted output to the
+dojo using `/lib/print.hoon`. It is useful for interactive tools and debugging.
+
+`%parse` parses urQL and returns `(list command:ast)` without executing it.
+Use this when you want to inspect the AST or debug parser output.
+
+`%commands` executes `(list command:ast)` directly. This is advanced. Prefer
+urQL text unless you have a specific reason to construct Obelisk command ASTs
+yourself.
+
+## Success and Failure
+
+The Hawk template uses these result molds:
+
+```hoon
++$  poke-result   (each (list cmd-result:ast) tang)
++$  parse-result  (each (list command:ast) tang)
++$  parse-output  (each (list command:ast) tang)
+```
+
+`parse-output` intentionally mirrors `parse-result`; the UI keeps parse
+rendering separate from query-result rendering.
+
+The result is an `each`:
+
+`[& ...]` or `%.y` is success.
+
+`[| tang]` or `%.n` is failure.
+
+On failure, the `tang` contains the crash or parser error output. Do not assume
+that a poke failure will be printed in the dojo unless you used `%tape-print`
+or print the `tang` yourself.
+
+## Calling %obelisk
+
+The usual Gall pattern is:
+
+1. Open a `/server` watch on a unique wire.
+2. Poke `%obelisk` with mark `%obelisk-action`.
+3. Read one fact from that wire.
+4. Consume the kick.
+5. Decode the returned vase with the expected mold.
+
+This is the compact version from the Hawk template:
+
+```hoon
+/-  ast=obelisk-ast
+/+  *strandio
+|%
+::
++$  poke-result   (each (list cmd-result:ast) tang)
++$  parse-result  (each (list command:ast) tang)
++$  parse-output  (each (list command:ast) tang)
+::
+++  query-obelisk
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,poke-result)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %tape query)
+  |=  tin=strand-input:strand
+  ?~  res=(mole |.((poke-result +:response)))
+    `[%fail [%malformed-obelisk-response ~]]
+  `[%done u.res]
+::
+++  parse-obelisk
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,parse-output)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %parse query)
+  |=  tin=strand-input:strand
+  ?~  res=(mole |.((parse-result +:response)))
+    `[%fail [%malformed-obelisk-response ~]]
+  ?-  -.u.res
+    %.n  `[%done [%.n p.u.res]]
+    %.y  `[%done [%.y p.u.res]]
+  ==
+::
+++  call-obelisk
+  |=  [id=@ta kind=?(%tape %parse) query=tape]
+  =/  m  (strand ,vase)
+  ^-  form:m
+  ;<  our=@p  bind:m  get-our
+  =/  dock  [our %obelisk]
+  =/  default  %sys
+  =/  action  ;;(action:ast [kind default query])
+  =/  command=cage  obelisk-action/!>(action)
+  =/  wire=path
+    ?-  kind
+      %tape   /query/[id]
+      %parse  /parse/[id]
+    ==
+  ;<  ~  bind:m  (watch wire dock /server)
+  ;<  ~  bind:m  (poke dock command)
+  ;<  [mark =vase]  bind:m  (take-fact wire)
+  ;<  ~  bind:m  (take-kick wire)
+  (pure:m vase)
+--
+```
+
+The `id` is only used to make the wire unique. The fact mark is not needed in
+this pattern because the vase is decoded with the expected mold.
+
+To call `%tape-print`, build the same `action:ast` with `%tape-print` and poke
+it with mark `%obelisk-action`. It returns the same success or failure shape as
+`%tape`, and also prints to the dojo.
+
+## Query Results
+
+A successful `%tape` action returns:
+
+```hoon
+(list cmd-result:ast)
+```
+
+Each command in the script produces one `cmd-result`:
+
+```hoon
+[%results (list result:ast)]
+```
+
+Each `result:ast` is one entry in the command output. Common entries include:
+
+```hoon
+[%message msg=@t]
+[%server-time date=@da]
+[%schema-time date=@da]
+[%data-time date=@da]
+[%vector-count count=@ud]
+[%result-set (list vector:ast)]
+```
+
+Other result entries include `%action`, `%relation`, and `%security-time`.
+
+A `%result-set` contains query rows as `(list vector:ast)`. A vector is a 
+row result of a SELECT query:
+
+```hoon
++$  vector-cell  [p=@tas q=dime]
++$  vector
+  $+  vector
+  $:  %vector
+    (lest vector-cell)
+    ==
+```
+
+Each cell is a named value. `p` is the column name or alias, and `q` is the
+`dime`, which carries the aura and atom for the value.
+
+## Printing Results
+
+`%tape-print` uses `/lib/print.hoon`.
+
+`print` prints the `%obelisk-result:` heading and walks the `(list cmd-result)`.
+`print-cmd-result` prints each `%results` block. Metadata entries such as
+`%message`, `%server-time`, `%schema-time`, `%data-time`, and `%vector-count`
+print as bracketed rows.
+
+For `%result-set`, `print-result-set` prints the column headings from the first
+vector, then prints result rows. It prints up to 10 rows directly; longer
+result sets show an ellipsis and then the final row.
+
+Failures are formatted by `print-crash`, which prints `%obelisk-crash:` and
+then the `tang`.
+
+## Extracting Result Rows
+
+If your code only wants rows, ignore metadata and collect `%result-set` values.
+This follows the Hawk template:
+
+```hoon
+++  poke-result-vectors
+  |=  results=(list cmd-result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  %+  weld  (result-vectors +.i.results)
+            $(results t.results)
+::
+++  result-vectors
+  |=  results=(list result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  ?+  -.i.results
+    $(results t.results)
+    %result-set
+      (weld +.i.results $(results t.results))
+  ==
+```
+
+Then wrap it around `query-obelisk`:
+
+```hoon
+++  query-result-set
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  ;<  res=poke-result  bind:m  (query-obelisk id query)
+  ?-  -.res
+    %.n  (pure:m ~)
+    %.y  (pure:m (poke-result-vectors p.res))
+  ==
+```
+
+That gives client code a flat `(list vector:ast)` across all result sets in the
+script.
+
+## Parse-Only Calls
+
+`%parse` is the same Gall interaction, but the expected success value is
+`(list command:ast)`.
+
+```hoon
+++  inspect-urql
+  |=  query=tape
+  =/  m  (strand ,parse-output)
+  ^-  form:m
+  ;<  parsed=parse-output  bind:m  (parse-obelisk %inspect query)
+  ?-  -.parsed
+    %.n  (pure:m [%.n p.parsed])
+    %.y  (pure:m [%.y p.parsed])
+  ==
+```
+
+Use this for inspection and debugging. The returned commands are the AST that
+`%commands` would accept, but manually constructing that AST is not the normal
+programming path.
