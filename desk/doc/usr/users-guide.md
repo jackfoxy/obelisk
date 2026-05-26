@@ -1628,62 +1628,85 @@ List views and whether their caches are populated/not populated. *not implemente
 
 # APPENDIX II: Using Obelisk in a Hoon Program
 
-Obelisk exposes an API for Hoon programs. The API accepts an
-`action:ast` poke and sends one result fact on `/server`.
+This appendix describes how to use the `%obelisk` agent from your own Hoon
+code. It is concerned with the Gall API surface, not urQL syntax. The dojo
+pokes used throughout this guide already exercise the same interface; here we
+spell out the molds, the poke shapes, the `/server` response protocol, and the
+shape of the returned data.
+
+The reference template in `templates/obelisk-template.hoon` is the canonical
+client of this API. The arms `query-obelisk`, `parse-obelisk`, `call-obelisk`,
+`query-result-set`, `poke-result-vectors`, `result-vectors`,
+`print-poke-result`, and `print-parse-output` in that template are good
+starting points for your own client code.
 
 Most programs should send urQL text and let Obelisk parse it. Building command
 ASTs by hand is possible, but it is more work, more fragile, and usually not
 worth skipping the parser.
 
-## Importing the API Molds
+## Importing the API molds
 
-The public molds live in `/sur/obelisk-ast.hoon`. Import them with a face:
+The molds you need live in `/sur/obelisk-ast.hoon`. Import them with an alias:
 
 ```hoon
 /-  ast=obelisk-ast
 ```
 
-Then refer to the API types as `action:ast`, `command:ast`,
-`cmd-result:ast`, `result:ast`, `vector:ast`, and `vector-cell:ast`.
+The common molds used by client code are `action:ast`, `command:ast`,
+`cmd-result:ast`, and `result:ast`.
+
+`vector:ast` and `vector-cell:ast` are response molds for receiving query
+data.
+
+Additional molds cover DDL (creating databases and manipulating schemas), DML
+(inserting, updating, and deleting data), and queries.
+
+## Prefer urQL text over command ASTs
+
+Obelisk accepts both urQL source text and pre-parsed command ASTs. Almost all
+client code should send urQL text with `%tape` (or `%tape-print`). The parser
+is the first step in the `%tape` pipeline, is quite efficient for most
+purposes, and keeps your code readable. Constructing a `(list command:ast)`
+programmatically and submitting it with `%commands` is supported but advanced;
+prefer urQL unless you have a specific reason to skip parsing, such as a
+generator that already produced an AST or a test that wants to exercise the
+runtime in isolation.
 
 ## Choosing an Action
 
-The client-facing action shapes are:
+`action:ast` selects which operation `%obelisk` performs. The script variants
+take a default database (used to qualify unqualified table references in the
+script) and a urQL tape.
 
 ```hoon
 +$  action
-  $%
-    [%tape default-database=@tas urql=tape]
-    [%tape-print default-database=@tas urql=tape]
-    [%parse default-database=@tas urql=tape]
-    [%commands cmds=(list command)]
-    ==
+  $%  [%tape default-database=@tas urql=tape]
+      [%tape-print default-database=@tas urql=tape]
+      [%commands cmds=(list command)]
+      [%parse default-database=@tas urql=tape]
+  ==
 ```
+
+- `%tape` — parse and execute a urQL script. Results are sent on `/server`.
+- `%tape-print` — same as `%tape`, and additionally prints formatted output to
+  the dojo via the `print` library in `desk/lib/print.hoon`.
+- `%parse` — parse a urQL script and return the resulting `(list command)`
+  without executing it. Useful for inspection and debugging.
+- `%commands` — submit a custom-built list of commands. Bypasses the parser.
 
 There is also a `%test` action used by the Obelisk test code. Client programs
 should use the four actions above.
 
-Use `%tape` for normal application code:
+The mark for the poke is always `%obelisk-action`.
 
 ```hoon
-[%tape %sys "FROM sys.sys.databases SELECT database;"]
+[%tape %sys "FROM sys.databases SELECT database;"]
 ```
 
-`%tape` executes a urQL script and returns results through `/server`.
+## Result molds
 
-`%tape-print` executes the same script and also prints formatted output to the
-dojo using `/lib/print.hoon`. It is useful for interactive tools and debugging.
-
-`%parse` parses urQL and returns `(list command:ast)` without executing it.
-Use this when you want to inspect the AST or debug parser output.
-
-`%commands` executes `(list command:ast)` directly. This is advanced. Prefer
-urQL text unless you have a specific reason to construct Obelisk command ASTs
-yourself.
-
-## Success and Failure
-
-The Hawk template uses these result molds:
+The template defines two thin `each` wrappers around the agent's response
+shapes:
 
 ```hoon
 +$  poke-result   (each (list cmd-result:ast) tang)
@@ -1691,208 +1714,205 @@ The Hawk template uses these result molds:
 +$  parse-output  (each (list command:ast) tang)
 ```
 
-`parse-output` intentionally mirrors `parse-result`; the UI keeps parse
-rendering separate from query-result rendering.
+`poke-result` is what comes back from `%tape` and `%tape-print`. `parse-result`
+is what comes back from `%parse`. `parse-output` is an alias of `parse-result`;
+the template defines it as a separate name so parse rendering can stay
+independent of query rendering without coupling the two through one mold.
 
-The result is an `each`:
-
-`[& ...]` or `%.y` is success.
-
-`[| tang]` or `%.n` is failure.
-
-On failure, the `tang` contains the crash or parser error output. Do not assume
-that a poke failure will be printed in the dojo unless you used `%tape-print`
-or print the `tang` yourself.
+Success is `[%.y ...]` (head `&`); failure is `[%.n tang]` (head `|`), where
+`tang` contains the crash trace or parser error. Inspect the head before
+unwrapping the payload.
 
 ## Calling %obelisk
 
-The usual Gall pattern is:
+DDL and DML commands transparently mutate the state of the `%obelisk` desk.
+SELECT queries can also make silent caching mutations, so `%obelisk` does not
+support scrying.
 
-1. Open a `/server` watch on a unique wire.
-2. Poke `%obelisk` with mark `%obelisk-action`.
-3. Read one fact from that wire.
-4. Consume the kick.
-5. Decode the returned vase with the expected mold.
+Every poke that returns data uses the same flow:
 
-This is the compact version from the Hawk template:
+1. Open a `/server` watch on a wire that uniquely identifies this request.
+2. Poke `%obelisk` with mark `%obelisk-action` and the `action` vase.
+3. Read one `%fact` from the wire. Its vase contains an `each` cell whose head
+   is `%.y` on success and `%.n` on failure.
+4. Consume the matching `%kick`.
+5. Decode the returned vase using the expected mold (`poke-result` for
+   `%tape`, `%tape-print`, and `%commands`; `parse-result` for `%parse`).
+
+The wire only needs to be unique per outstanding request. The template uses
+`/query/[id]` for `%tape` and `/parse/[id]` for `%parse`, where `id` is a
+caller-supplied tag.
+
+## Example
+
+This mirrors `call-obelisk`, `query-obelisk`, and `parse-obelisk` from the
+template. It depends on the standard `strandio` library.
 
 ```hoon
 /-  ast=obelisk-ast
 /+  *strandio
 |%
-::
 +$  poke-result   (each (list cmd-result:ast) tang)
 +$  parse-result  (each (list command:ast) tang)
-+$  parse-output  (each (list command:ast) tang)
-::
-++  query-obelisk
-  |=  [id=@ta query=tape]
-  =/  m  (strand ,poke-result)
-  ^-  form:m
-  ;<  response=vase  bind:m  (call-obelisk id %tape query)
-  |=  tin=strand-input:strand
-  ?~  res=(mole |.((poke-result +:response)))
-    `[%fail [%malformed-obelisk-response ~]]
-  `[%done u.res]
-::
-++  parse-obelisk
-  |=  [id=@ta query=tape]
-  =/  m  (strand ,parse-output)
-  ^-  form:m
-  ;<  response=vase  bind:m  (call-obelisk id %parse query)
-  |=  tin=strand-input:strand
-  ?~  res=(mole |.((parse-result +:response)))
-    `[%fail [%malformed-obelisk-response ~]]
-  ?-  -.u.res
-    %.n  `[%done [%.n p.u.res]]
-    %.y  `[%done [%.y p.u.res]]
-  ==
 ::
 ++  call-obelisk
-  |=  [id=@ta kind=?(%tape %parse) query=tape]
+  |=  [id=@ta kind=?(%tape %parse) default=@tas query=tape]
   =/  m  (strand ,vase)
   ^-  form:m
-  ;<  our=@p  bind:m  get-our
-  =/  dock  [our %obelisk]
-  =/  default  %sys
+  ;<  our=@p     bind:m  get-our
+  =/  dock    [our %obelisk]
   =/  action  ;;(action:ast [kind default query])
-  =/  command=cage  obelisk-action/!>(action)
+  =/  cage    obelisk-action/!>(action)
   =/  wire=path
     ?-  kind
       %tape   /query/[id]
       %parse  /parse/[id]
     ==
-  ;<  ~  bind:m  (watch wire dock /server)
-  ;<  ~  bind:m  (poke dock command)
-  ;<  [mark =vase]  bind:m  (take-fact wire)
-  ;<  ~  bind:m  (take-kick wire)
+  ;<  ~                  bind:m  (watch wire dock /server)
+  ;<  ~                  bind:m  (poke dock cage)
+  ;<  [mark=@tas =vase]  bind:m  (take-fact wire)
+  ;<  ~                  bind:m  (take-kick wire)
   (pure:m vase)
+::
+++  query-obelisk
+  |=  [id=@ta default=@tas query=tape]
+  =/  m  (strand ,poke-result)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %tape default query)
+  (pure:m ;;(poke-result +:response))
+::
+++  parse-obelisk
+  |=  [id=@ta default=@tas query=tape]
+  =/  m  (strand ,parse-result)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %parse default query)
+  (pure:m ;;(parse-result +:response))
 --
 ```
 
 The `id` is only used to make the wire unique. The fact mark is not needed in
 this pattern because the vase is decoded with the expected mold.
 
-To call `%tape-print`, build the same `action:ast` with `%tape-print` and poke
-it with mark `%obelisk-action`. It returns the same success or failure shape as
-`%tape`, and also prints to the dojo.
+The cast on `+:response` is the decode step: the fact's vase carries the
+`each`-wrapped payload as a noun, and you cast it to the expected mold before
+inspecting it.
 
-## Query Results
+## Reading `cmd-result` and `result`
 
-A successful `%tape` action returns:
-
-```hoon
-(list cmd-result:ast)
-```
-
-Each command in the script produces one `cmd-result`:
+A successful `%tape` poke returns `(list cmd-result:ast)`. One `cmd-result`
+corresponds to one command in the script. Each `cmd-result` is just a tagged
+list of `result` entries:
 
 ```hoon
-[%results (list result:ast)]
++$  cmd-result  [%results (list result)]
++$  result
+  $%  [%action @t]
+      [%relation @t]
+      [%message msg=@t]
+      [%vector-count count=@ud]
+      [%server-time date=@da]
+      [%security-time date=@da]
+      [%schema-time date=@da]
+      [%data-time date=@da]
+      [%result-set (list vector)]
+  ==
 ```
 
-Each `result:ast` is one entry in the command output. Common entries include:
-
-```hoon
-[%message msg=@t]
-[%server-time date=@da]
-[%schema-time date=@da]
-[%data-time date=@da]
-[%vector-count count=@ud]
-[%result-set (list vector:ast)]
-```
-
-Other result entries include `%action`, `%relation`, and `%security-time`.
-
-A `%result-set` contains query rows as `(list vector:ast)`. A vector is a 
-row result of a SELECT query:
+A `%result-set` carries the rows of a SELECT as a `(list vector)`. A `vector`
+is a tagged non-empty list of `vector-cell`:
 
 ```hoon
 +$  vector-cell  [p=@tas q=dime]
-+$  vector
-  $+  vector
-  $:  %vector
-    (lest vector-cell)
-    ==
++$  vector       [%vector (lest vector-cell)]
 ```
 
-Each cell is a named value. `p` is the column name or alias, and `q` is the
-`dime`, which carries the aura and atom for the value.
+Each cell pairs a column name or alias (`p`) with a dime carrying the value's
+aura and atom (`q`). Column order in the vector matches the SELECT column order.
 
 ## Printing Results
 
-`%tape-print` uses `/lib/print.hoon`.
+Use `%tape-print` exactly as you would use `%tape` in your code. It runs the
+script and then walks the result list through `desk/lib/print.hoon`. For each
+`result` it prints a labeled line to the dojo; for each
+`%result-set` it prints the heading row followed by data rows. If a result set
+has eleven or more rows, the first ten are printed and an ellipsis (`...`)
+stands in for the remainder, followed by the last row. This is purely a
+display convenience — the `%fact` on `/server` always contains the full result
+list. Use `%tape` for programmatic consumers and reserve `%tape-print` for
+interactive debugging.
 
-`print` prints the `%obelisk-result:` heading and walks the `(list cmd-result)`.
-`print-cmd-result` prints each `%results` block. Metadata entries such as
-`%message`, `%server-time`, `%schema-time`, `%data-time`, and `%vector-count`
-print as bracketed rows.
-
-For `%result-set`, `print-result-set` prints the column headings from the first
-vector, then prints result rows. It prints up to 10 rows directly; longer
-result sets show an ellipsis and then the final row.
-
-Failures are formatted by `print-crash`, which prints `%obelisk-crash:` and
-then the `tang`.
+Failures are formatted by `print-crash`, which prints `%obelisk-crash:`, any
+pertinent error messages bubbled to the top of the crash, and then the `tang`.
 
 ## Extracting Result Rows
 
-If your code only wants rows, ignore metadata and collect `%result-set` values.
-This follows the Hawk template:
+For clients that only care about result-set rows, the template provides
+`poke-result-vectors` and `result-vectors`. They drop the per-command and
+per-result envelopes and concatenate every `%result-set` payload across the
+script:
 
 ```hoon
 ++  poke-result-vectors
   |=  results=(list cmd-result:ast)
   ^-  (list vector:ast)
   ?~  results  ~
-  %+  weld  (result-vectors +.i.results)
-            $(results t.results)
+  (weld (result-vectors +.i.results) $(results t.results))
 ::
 ++  result-vectors
   |=  results=(list result:ast)
   ^-  (list vector:ast)
   ?~  results  ~
-  ?+  -.i.results
-    $(results t.results)
-    %result-set
-      (weld +.i.results $(results t.results))
+  ?+  -.i.results  $(results t.results)
+    %result-set  (weld +.i.results $(results t.results))
   ==
 ```
 
-Then wrap it around `query-obelisk`:
+Chained with `query-obelisk`, this gives a strand that returns a flat
+`(list vector:ast)`:
 
 ```hoon
 ++  query-result-set
-  |=  [id=@ta query=tape]
+  |=  [id=@ta default=@tas query=tape]
   =/  m  (strand ,(list vector:ast))
   ^-  form:m
-  ;<  res=poke-result  bind:m  (query-obelisk id query)
+  ;<  res=poke-result  bind:m  (query-obelisk id default query)
   ?-  -.res
     %.n  (pure:m ~)
     %.y  (pure:m (poke-result-vectors p.res))
   ==
 ```
 
-That gives client code a flat `(list vector:ast)` across all result sets in the
-script.
+To pull a named field out of one row, walk its cells and return `q` when `p`
+matches the column you want.
 
-## Parse-Only Calls
+## Parse-only example
 
-`%parse` is the same Gall interaction, but the expected success value is
-`(list command:ast)`.
+`%parse` is the same poke shape but returns AST instead of results. It is the
+right choice when you want to inspect or transform commands without touching
+the runtime:
 
 ```hoon
-++  inspect-urql
-  |=  query=tape
-  =/  m  (strand ,parse-output)
-  ^-  form:m
-  ;<  parsed=parse-output  bind:m  (parse-obelisk %inspect query)
-  ?-  -.parsed
-    %.n  (pure:m [%.n p.parsed])
-    %.y  (pure:m [%.y p.parsed])
-  ==
+;<  res=parse-result  bind:m  (parse-obelisk %inspect %animal-shelter script)
+?-  -.res
+  %.n  (pure:m ~)              :: tang in p.res describes the parse error
+  %.y  (pure:m p.res)          :: (list command:ast)
+==
 ```
 
-Use this for inspection and debugging. The returned commands are the AST that
-`%commands` would accept, but manually constructing that AST is not the normal
-programming path.
+A successful parse returns one `command:ast` per top-level urQL command in the
+script, in source order. Failures return a `tang` describing where parsing
+stopped. Be aware that parser syntax errors are notoriously difficult to debug.
+This is common to all SQL parsers: they are designed for efficient parsing, and
+the trade-off is often a lack of useful debug information. Sometimes the urQL
+parser will provide a useful crash message, and sometimes it will not. You
+might have to inspect your script closely to find the syntax problem.
+
+## When to use `%commands`
+
+`%commands` skips parsing and submits a `(list command:ast)` directly. It is
+the lowest-level entry point and is useful for generators that already build
+ASTs, or for unit tests that want to exercise the runtime independently of the
+parser. The trade-off is that you become responsible for producing a
+well-formed AST: every `command` variant, every nested mold, every `dime`
+aura. Bugs in the AST surface as runtime crashes rather than parser errors.
+For application code, prefer `%tape` and let the parser do this work.
