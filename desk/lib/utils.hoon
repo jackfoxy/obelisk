@@ -49,9 +49,17 @@
     =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k ~.t)  (alpha -.q -.p)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
+    ?:  =(-<.k ~.t)
+      ?:  ->.k  (alpha -.p -.q)
+      (alpha -.q -.p)
+    ?:  =(-<.k ~.rd)
+      ?:  ->.k  (lth:rd -.p -.q)
+      (gth:rd -.p -.q)
+    ?:  =(-<.k ~.sd)
+      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
+      =((cmp:si `@s`-.p `@s`-.q) --1)
+    ?:  ->.k  (lth -.p -.q)
+    (gth -.p -.q)
   --
 ::
 ++  pri-key
