@@ -9,6 +9,7 @@
   |=  old-server=server:oldstate
   ^-  server
   ?:  =(~ old-server)  *server
+  ~&  "migrating 0.7.0 to 0.8.0"
   =/  new-server=server
     %-  malt  %+  turn  ~(tap by old-server)
                         |=  [kv=[name=@tas db=database:oldstate]]
@@ -22,6 +23,7 @@
   =/  sys-db=database  (~(got by new-server) %sys)
   =.  event-log.sys-db
         (weld (database-create-events old-server) event-log.sys-db)
+  ~&  "migration complete"
   (~(put by new-server) %sys sys-db)
 ::
 ++  migrate-database-0-to-1
@@ -41,20 +43,18 @@
 ++  migrate-sys-0-to-1
   |=  old-sys=((mop @da schema:oldstate) gth)
   ^-  ((mop @da schema) gth)
-  %+  gas:schema-key
-      *((mop @da schema) gth)
-      %+  turn  (tap:old-schema-key old-sys)
-      |=  [kv=[@da schema:oldstate]]
-      [-.kv (migrate-schema-0-to-1 +.kv)]
+  %+  gas:schema-key  *((mop @da schema) gth)
+                      %+  turn  (tap:old-schema-key old-sys)
+                                |=  [kv=[@da schema:oldstate]]
+                                [-.kv (migrate-schema-0-to-1 +.kv)]
 ::
 ++  migrate-content-0-to-1
   |=  old-content=((mop @da data:oldstate) gth)
   ^-  ((mop @da data) gth)
-  %+  gas:data-key
-      *((mop @da data) gth)
-      %+  turn  (tap:old-data-key old-content)
-      |=  [kv=[@da data:oldstate]]
-      [-.kv (migrate-data-0-to-1 +.kv)]
+  %+  gas:data-key  *((mop @da data) gth)
+                    %+  turn  (tap:old-data-key old-content)
+                              |=  [kv=[@da data:oldstate]]
+                              [-.kv (migrate-data-0-to-1 +.kv)]
 ::
 ++  migrate-schema-0-to-1
   |=  old-schema=schema:oldstate
@@ -63,12 +63,11 @@
       provenance.old-schema
       tmsp.old-schema
       namespaces.old-schema
-      %-  malt
-      %+  turn  ~(tap by tables.old-schema)
-      |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
-      [-.kv (migrate-table-0-to-1 +.kv)]
-      views.old-schema
-      ==
+      %-  malt  %+  turn  ~(tap by tables.old-schema)
+                          |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
+                          [-.kv (migrate-table-0-to-1 +.kv)]
+                          views.old-schema
+                          ==
 ::
 ++  migrate-data-0-to-1
   |=  old-data=data:oldstate
@@ -77,11 +76,10 @@
       ship.old-data
       provenance.old-data
       tmsp.old-data
-      %-  malt
-      %+  turn  ~(tap by files.old-data)
-      |=  [kv=[[ns=@tas name=@tas] file:oldstate]]
-      [-.kv (migrate-file-0-to-1 +.kv)]
-      ==
+      %-  malt  %+  turn  ~(tap by files.old-data)
+                          |=  [kv=[[ns=@tas name=@tas] file:oldstate]]
+                          [-.kv (migrate-file-0-to-1 +.kv)]
+                          ==
 ::
 ++  migrate-table-0-to-1
   |=  old-table=table:oldstate
@@ -149,74 +147,69 @@
   |=  [db-name=@tas curr=schema prev=(unit schema)]
   ^-  (list sys-log-event)
   =/  ns-events=(list sys-log-event)
-        %+  turn
-          %+  skim  ~(tap by namespaces.curr)
-          |=  [kv=[@tas @da]]
-          ?~  prev
-            =(tmsp.curr +.kv)
-          ?&  =(tmsp.curr +.kv)
-              ?!((~(has by namespaces.u.prev) -.kv))
-          ==
-        |=  [kv=[@tas @da]]
-        ^-  sys-log-event
-        :*  %sys-log-event
-            tmsp.curr
-            provenance.curr
-            %create
-            %namespace
-            db-name
-            `-.kv
-            ~
-            ~
-            ~
-            ~
-            ~
-            ==
+        %+  turn  %+  skim  ~(tap by namespaces.curr)
+                            |=  [kv=[@tas @da]]
+                            ?~  prev  =(tmsp.curr +.kv)
+                            ?&  =(tmsp.curr +.kv)
+                                ?!((~(has by namespaces.u.prev) -.kv))
+                            ==
+                  |=  [kv=[@tas @da]]
+                  ^-  sys-log-event
+                  :*  %sys-log-event
+                      tmsp.curr
+                      provenance.curr
+                      %create
+                      %namespace
+                      db-name
+                      `-.kv
+                      ~
+                      ~
+                      ~
+                      ~
+                      ~
+                      ==
   =/  tbl-creates=(list sys-log-event)
-        %+  turn
-          %+  skim  ~(tap by tables.curr)
-          |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
-          ?~  prev
-            =(tmsp.curr tmsp.tbl.kv)
-          ?&  =(tmsp.curr tmsp.tbl.kv)
-              ?!((~(has by tables.u.prev) k.kv))
-          ==
-        |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
-        ^-  sys-log-event
-        :*  %sys-log-event
-            tmsp.curr
-            provenance.curr
-            %create
-            %table
-            db-name
-            `ns.k.kv
-            `name.k.kv
-            ~
-            ~
-            ~
-            ~
-            ==
+        %+  turn  %+  skim  ~(tap by tables.curr)
+                            |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+                            ?~  prev
+                              =(tmsp.curr tmsp.tbl.kv)
+                            ?&  =(tmsp.curr tmsp.tbl.kv)
+                                ?!((~(has by tables.u.prev) k.kv))
+                            ==
+                  |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+                  ^-  sys-log-event
+                  :*  %sys-log-event
+                      tmsp.curr
+                      provenance.curr
+                      %create
+                      %table
+                      db-name
+                      `ns.k.kv
+                      `name.k.kv
+                      ~
+                      ~
+                      ~
+                      ~
+                      ==
   =/  tbl-drops=(list sys-log-event)
-        ?~  prev
-          ~
-        %+  turn
-          %+  skim  ~(tap by tables.u.prev)
-          |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
-          ?!((~(has by tables.curr) k.kv))
-        |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
-        ^-  sys-log-event
-        :*  %sys-log-event
-            tmsp.curr
-            provenance.curr
-            %drop
-            %table
-            db-name
-            `ns.k.kv
-            `name.k.kv
-            ~
-            ~
-            ~
-            ~
-            ==
+        ?~  prev  ~
+        %+  turn  %+  skim  ~(tap by tables.u.prev)
+                            |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+                            ?!((~(has by tables.curr) k.kv))
+                  |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+                  ^-  sys-log-event
+                  :*  %sys-log-event
+                      tmsp.curr
+                      provenance.curr
+                      %drop
+                      %table
+                      db-name
+                      `ns.k.kv
+                      `name.k.kv
+                      ~
+                      ~
+                      ~
+                      ~
+                      ==
   (weld ns-events (weld tbl-creates tbl-drops))
 --

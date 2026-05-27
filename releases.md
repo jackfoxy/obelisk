@@ -1,7 +1,7 @@
 # Releases
 
 
-v0.8-beta release notes
+## v0.8-beta
 
 * ALTER DATABASE
 * ALTER NAMESPACE
@@ -14,6 +14,10 @@ v0.8-beta release notes
 * fixed bug where SELECT sub-set of system view columns returned duplicate rows
 * fixes to constant scalar function processing and missing scalars
 * fixes and improvements to obelisk ui
+* UI: all aspects significantly faster
+* UI: multi-command scripts have tabbed results
+* UI: copy script or result to clipboard
+* UI: paging of long result sets
 
 ## v0.7 beta
 
