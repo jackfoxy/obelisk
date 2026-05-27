@@ -35,7 +35,7 @@
       created-provenance.old-db
       created-tmsp.old-db
       sys-1
-      (migrate-content-0-to-1 content.old-db)
+      (migrate-content-0-to-1 sys-1 content.old-db)
       `view-cache`view-cache.old-db
       (build-event-log name.old-db sys-1)
       ==
@@ -49,12 +49,12 @@
                                 [-.kv (migrate-schema-0-to-1 +.kv)]
 ::
 ++  migrate-content-0-to-1
-  |=  old-content=((mop @da data:oldstate) gth)
+  |=  [sys-1=((mop @da schema) gth) old-content=((mop @da data:oldstate) gth)]
   ^-  ((mop @da data) gth)
   %+  gas:data-key  *((mop @da data) gth)
                     %+  turn  (tap:old-data-key old-content)
                               |=  [kv=[@da data:oldstate]]
-                              [-.kv (migrate-data-0-to-1 +.kv)]
+                              [-.kv (migrate-data-0-to-1 (schema-at sys-1 -.kv) +.kv)]
 ::
 ++  migrate-schema-0-to-1
   |=  old-schema=schema:oldstate
@@ -70,7 +70,7 @@
                           ==
 ::
 ++  migrate-data-0-to-1
-  |=  old-data=data:oldstate
+  |=  [schema-at-data=(unit schema) old-data=data:oldstate]
   ^-  data
   :*  %data
       ship.old-data
@@ -78,7 +78,14 @@
       tmsp.old-data
       %-  malt  %+  turn  ~(tap by files.old-data)
                           |=  [kv=[[ns=@tas name=@tas] file:oldstate]]
-                          [-.kv (migrate-file-0-to-1 +.kv)]
+                          :-  -.kv
+                          ?~  schema-at-data
+                            ~&  "MIGRATION WARNING: no schema for data time ".
+                                "{<tmsp.old-data>}; preserving file ".
+                                "{<ns.-.kv>}.{<name.-.kv>} row order"
+                            (migrate-file-0-to-1 -.kv ~ +.kv)
+                          =/  tbl=(unit table)  (~(get by tables.u.schema-at-data) -.kv)
+                          (migrate-file-0-to-1 -.kv tbl +.kv)
                           ==
 ::
 ++  migrate-table-0-to-1
@@ -96,17 +103,64 @@
       ==
 ::
 ++  migrate-file-0-to-1
-  |=  old-file=file:oldstate
+  |=  [tbl-key=[@tas @tas] mtbl=(unit table) old-file=file:oldstate]
   ^-  file
+  ?~  mtbl
+    ~&  "MIGRATION WARNING: no table schema for file ".
+        "{<-.tbl-key>}.{<+.tbl-key>}; preserving row order"
+    :*  %file
+        ship.old-file
+        provenance.old-file
+        tmsp.old-file
+        rowcount.old-file
+        pri-idx.old-file
+        indexed-rows.old-file
+        ~
+        ==
+  =/  rows=(list indexed-row)
+    %+  turn  indexed-rows.old-file
+              |=  row=indexed-row:oldstate
+              [%indexed-row key.row data.row]
+  =/  primary-key  (pri-key key.pri-indx.u.mtbl)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.u.mtbl))
+  =/  rebuilt-pri=(tree [(list @) (map @tas @)])
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             (turn rows |=(row=indexed-row [key.row data.row]))
+  =/  rebuilt-rows=(list indexed-row)
+        %+  turn  (tap:primary-key rebuilt-pri)
+                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  =/  source-count=@ud   (lent rows)
+  =/  rebuilt-count=@ud  (lent rebuilt-rows)
+  =/  dummy
+    ?:  =(source-count rebuilt-count)  ~
+    ~&  "MIGRATION WARNING: primary-index rebuild for file ".
+        "{<-.tbl-key>}.{<+.tbl-key>} changed row count from ".
+        "{<source-count>} to {<rebuilt-count>}"
+    ~
+  =/  dummy
+    ?:  =(rowcount.old-file rebuilt-count)  ~
+    ~&  "MIGRATION WARNING: rowcount for file {<-.tbl-key>}.{<+.tbl-key>} ".
+        "changed from {<rowcount.old-file>} to {<rebuilt-count>}"
+    ~
   :*  %file
       ship.old-file
       provenance.old-file
       tmsp.old-file
-      rowcount.old-file
-      pri-idx.old-file
-      indexed-rows.old-file
+      rebuilt-count
+      rebuilt-pri
+      rebuilt-rows
       ~
       ==
+::
+::  Effective migrated schema for a historical data snapshot.
+++  schema-at
+  |=  [sys-1=((mop @da schema) gth) time=@da]
+  ^-  (unit schema)
+  =/  time-key  (add time 1)
+  =/  found=(unit [@da schema])  (pry:schema-key (lot:schema-key sys-1 `time-key ~))
+  ?~  found  ~
+  [~ +:u.found]
 ::
 ++  database-create-events
   |=  old-server=server:oldstate
