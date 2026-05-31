@@ -31,6 +31,13 @@
 "  ('tomorrow', ~2024.9.27, 2)".
 "  ('next day', ~2024.9.28, 3);"
 
+## UPSERT
+
+=uql "UPSERT INTO my-table-2 ".
+"VALUES ".
+"  ('today', ~2024.9.26, 4)".
+"  ('next week', ~2024.10.3, 7);"
+
 ## DELETE
 
 =uql "DELETE FROM my-table-2".

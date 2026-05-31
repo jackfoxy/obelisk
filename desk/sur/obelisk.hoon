@@ -131,7 +131,7 @@
 ::
 +$  seed  @uvJ
 ::
-::  common metadata for DELETE, INSERT, UPDATE
+::  common metadata for DELETE, INSERT, UPSERT, UPDATE
 +$  txn-meta
   $+  txn-meta
   $:  %txn-meta

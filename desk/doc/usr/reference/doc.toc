@@ -4,6 +4,7 @@
 /ddl-table/md               DDL Table
 /ddl-index/md               DDL Index
 /dml-insert/md              DML Insert
+/dml-upsert/md              DML Upsert
 /dml-update/md              DML Update
 /dml-delete/md              DML Delete
 /dml-truncate-table/md      DML Truncate Table

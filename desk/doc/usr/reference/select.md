@@ -280,6 +280,7 @@ This operator performs a relational division on the left `<relation>` as the div
   $%  [%query query]
       [%set-query set-query]
       [%insert insert]
+      [%upsert insert]
       [%delete delete]
       [%update update]
       [%merge merge]

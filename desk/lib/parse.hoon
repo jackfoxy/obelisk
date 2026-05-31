@@ -120,6 +120,9 @@
     %:  cold  %insert
               ;~(plug whitespace (jester 'insert') whitespace (jester 'into'))
               ==
+    %:  cold  %upsert
+              ;~(plug whitespace (jester 'upsert') whitespace (jester 'into'))
+              ==
     %:  cold  %merge
               ;~(plug whitespace (jester 'merge') whitespace (jester 'into'))
               ==
@@ -197,7 +200,7 @@
           ==
     %alter-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "alter index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -266,7 +269,7 @@
       ==
     %alter-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "alter namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -342,7 +345,7 @@
           ==
     %create-database
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create database parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -393,7 +396,7 @@
           !!
     %create-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -431,7 +434,7 @@
           !!
     %create-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -520,7 +523,7 @@
           ==
     %create-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create table parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -644,7 +647,7 @@
       !!
     %delete
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "delete parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -659,7 +662,7 @@
           ==
     %drop-database
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop database parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -682,7 +685,7 @@
           !!
     %drop-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -698,7 +701,7 @@
           ==
     %drop-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -809,7 +812,7 @@
                                             ->.parsed
                                             %.n
                                             :-  ~
-                                                %:  as-of-offset:ast  
+                                                %:  as-of-offset:ast
                                                       %as-of-offset
                                                       +>-.parsed
                                                       +>+<.parsed
@@ -886,7 +889,7 @@
           !!
     %drop-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop intabledex parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -948,7 +951,7 @@
           !!
     %drop-view
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop view parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -970,7 +973,7 @@
           !!
     %grant
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "grant parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -991,22 +994,39 @@
           ==
     %insert
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "insert parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
-                                        ::~>  %bout.[0 %parse-insert]  
+                                        ::~>  %bout.[0 %parse-insert]
                                         %-  parse-insert
                                               [[1 1] q.q.command-nail]
                                 [(wonk nail) nail]
       ~|  "insert parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  ins
-            ::~>  %bout.[0 %parse-produce-insert]  
-            (produce-insert parsed)
+            ::~>  %bout.[0 %parse-produce-insert]
+            (produce-insert %insert parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
+                      commands
+      ==
+    %upsert
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail
+                                    ~|  "upsert parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-insert
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "upsert parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+      =/  ups  (produce-insert %upsert parsed)
+      %=  $
+        script    q.q.u.+3.q:nail
+        commands  :-  (crud-txn:ast %crud-txn ~ [%upsert ups])
                       commands
       ==
     %merge
@@ -1055,7 +1075,7 @@
           ==
     %revoke
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "revoke parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1076,7 +1096,7 @@
           ==
     %truncate-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "truncate table parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1106,14 +1126,14 @@
                                             ~
                   ?:  ?=([qualified-table:ast %as-of [@ @]] parsed)
                     %^  truncate-table:ast  %truncate-table
-                                            -.parsed  
+                                            -.parsed
                                             [~ +>.parsed]
                   !!
                   commands
           ==
     %update
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "update parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1128,7 +1148,7 @@
       ==
     %with
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "with parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1148,7 +1168,17 @@
               commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
                                               :-  %insert
-                                                  (produce-insert +>.parsed)
+                                                  (produce-insert %insert +>.parsed)
+                                              ==
+                            commands
+            ==
+          ?:  =(+<.parsed %upsert)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  crud-txn:ast  %crud-txn
+                                              (produce-ctes -.parsed)
+                                              :-  %upsert
+                                                  (produce-insert %upsert +>.parsed)
                                               ==
                             commands
             ==
@@ -1503,7 +1533,7 @@
     whitespace
     ;~  pfix
       (jester 'on')
-      %+  more  com  
+      %+  more  com
                 ;~  pose  ;~  pfix  whitespace
                                     ;~(sfix parse-grant-object whitespace)
                                     ==
@@ -1842,6 +1872,10 @@
         parse-insert
         ==
       ;~  plug
+        (cold %upsert ;~(plug (jester 'upsert') whitespace (jester 'into')))
+        parse-insert
+        ==
+      ;~  plug
         (cold %merge ;~(plug (jester 'merge') whitespace (jester 'into')))
         parse-merge
         ==
@@ -1876,6 +1910,7 @@
     ;~(plug (jester 'merge') whitespace)
     ;~(plug (jester 'query') whitespace)
     ;~(plug (jester 'select') whitespace)
+    ;~(plug (jester 'upsert') whitespace)
     ;~(plug (jester 'update') whitespace)
   ==
 ++  parse-cte  ~+
@@ -1925,9 +1960,9 @@
           whitespace
           ;~  pfix
             (jester 'on')
-            %+  more  com  
+            %+  more  com
                       ;~  pose  ;~  pfix  whitespace
-                                          ;~  sfix  parse-revoke-object 
+                                          ;~  sfix  parse-revoke-object
                                                     whitespace
                                                     ==
                                           ==
@@ -1938,7 +1973,7 @@
           ==
         ==
     ;~(sfix parse-grant-duration end-or-next-command)
-  == 
+  ==
 ++  parse-revoke-object
   ;~  pose  (jester 'all')
             (jester 'server')
@@ -2104,69 +2139,69 @@
   [%qualified-column obj name.a alias.a]
 ::
 ++  produce-insert
-  |=  a=*
+  |=  [op=?(%insert %upsert) a=*]
   ~+
   ^-  insert:ast
   =/  table  -<.a
   =/  c      ->.a
   ::
   ?:  ?=([~ %values *] c)            :: insert rows
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([~ [* %values] *] c)        :: insert column names rows
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ ->.c]
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ ->.c]
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     `+<-.c
                     [%data +>.c]
                     ==
-  ~|("Cannot parse insert {<a>}" !!)
+  ~|("Cannot parse insert/upsert {<a>}" !!)
 ++  produce-matching-profile
   |=  a=*
   ^-  (list [@t datum:ast])
@@ -2741,14 +2776,14 @@
     ?~  target.cooked-case
       ~
     (some (finalize-scalar-node (need target.cooked-case) aliases))
-  =/  finalized-cases 
+  =/  finalized-cases
     |-
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
     =/  cwt=case-when-then-helper  i.cases.cooked-case
     =/  when-cwt  when.cwt
-    =/  finalized-when  
+    =/  finalized-when
       ?:  ?=(scalar-node-helper when-cwt)
         (finalize-scalar-node when-cwt aliases)
       %:  finalize-predicate  when-cwt
@@ -3155,7 +3190,7 @@
     ?:  ?=([@ @] -.a)
       ?:  ?=([%all-columns @] -.a)
         %=  $
-          columns  :-  %+  selected-all-table:ast  
+          columns  :-  %+  selected-all-table:ast
                             %all-object
                             ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
                               (~(got by alias-map) (crip (cass (trip ->.a))))
@@ -3759,7 +3794,7 @@
     parse-insert-value-core
     insert-value
   ==
-::  
+::
 ::  used for various commands
 ::
 ++  cook-column
@@ -4372,7 +4407,7 @@
     ;~  plug                :: AS <alias> <as-of-time>
       parse-qualified-table
       parse-as-of
-      ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)) 
+      ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
     ==
     ;~  plug                :: <alias> <as-of-time>
       parse-qualified-table
@@ -4382,7 +4417,7 @@
     ;~  plug                :: <as-of-time>
       parse-qualified-table
       parse-as-of
-    == 
+    ==
     ;~  plug                  :: AS <alias>
       parse-qualified-table
       ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
@@ -4903,7 +4938,7 @@
 ++  parse-no-params
   |*  [a=*]
     ;~  pfix
-      whitespace 
+      whitespace
       (ifix [pal par] (easy ~))
     ==
 ::
@@ -4919,25 +4954,25 @@
 ++  parse-two-params
   |*  [first-param=rule second-param=rule]
     ;~  pfix
-      whitespace 
+      whitespace
       %+  ifix
         [pal par]
         ;~  (glue com)
           ;~(pfix whitespace ;~(sfix first-param whitespace))
-          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix second-param whitespace))
         ==
     ==
 ::
 ++  parse-three-params
   |*  [first-param=rule second-param=rule third-param=rule]
     ;~  pfix
-      whitespace 
+      whitespace
       %+  ifix
         [pal par]
         ;~  (glue com)
           ;~(pfix whitespace ;~(sfix first-param whitespace))
-          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
-          ;~(pfix whitespace ;~(sfix third-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix second-param whitespace))
+          ;~(pfix whitespace ;~(sfix third-param whitespace))
         ==
     ==
 ::
@@ -5483,7 +5518,7 @@
     ~
   =/  raw-when  ->-.case-when-then-list
   =/  raw-then  ->+>.case-when-then-list
-  =/  cooked-when  
+  =/  cooked-when
     ?:  =(case-type %simple-case)
       (cook-scalar-node raw-when)
     ?:  =(case-type %searched-case)
@@ -5536,7 +5571,7 @@
   ?@  -.remaining.state
     ?:  =(-.remaining.state %par)
       [(flop new-list.state) +.remaining.state]
-    ?:  ?=(%pal -.remaining.state) 
+    ?:  ?=(%pal -.remaining.state)
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
     ?:  ?=(arithmetic-token:ast -.remaining.state)
@@ -5553,7 +5588,7 @@
   ?~  remaining.state
     (flop new-list.state)
   ?@  -.remaining.state
-    ?:  ?=(%pal -.remaining.state) 
+    ?:  ?=(%pal -.remaining.state)
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
     ?:  ?=(arithmetic-token:ast -.remaining.state)
@@ -5712,7 +5747,7 @@
   |=  [parsed=* aliases=alias-maps]
   ^-  arithmetic:ast
   =/  ops-and-operators  (arithmetic-list parsed)
-  =/  nested  (process-arithmetic-list ops-and-operators 0 aliases) 
+  =/  nested  (process-arithmetic-list ops-and-operators 0 aliases)
   =/  op-tree  tree.nested
   ?@  op-tree
     ~|("process-arithmetic-list {<parsed>}" !!)
@@ -5940,7 +5975,7 @@
     %:  cold  %group-by
               ;~(plug whitespace (jester 'group') whitespace (jester 'by'))
               ==
-    %+  more  com 
+    %+  more  com
               (ifix [whitespace whitespace] ;~(pose parse-qualified-column dem))
   ==
 ++  cook-ordering-column
@@ -5999,6 +6034,7 @@
     %drop-view
     %grant
     %insert
+    %upsert
     %merge
     %query
     %revoke

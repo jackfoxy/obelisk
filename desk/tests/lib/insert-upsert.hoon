@@ -1010,6 +1010,408 @@
               ==
       ==
 ::
+:: UPSERT
+::
+::  upsert inserts rows into an empty table
+++  test-upsert-01
+  =|  run=@ud
+  %-  exec-1-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people (id, name, score) ".
+          "VALUES (1, 'alice', 10)"
+      ::
+      [~2012.5.4 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%message 'upserted:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%name [~.t 'alice']]
+                              [%score [~.ud 10]]
+                              ==
+                      ==
+              [%server-time ~2012.5.4]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  upsert overwrites an existing primary-key row
+++  test-upsert-02
+  =|  run=@ud
+  %-  exec-2-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "INSERT INTO db1..people VALUES (1, 'alice', 10)"
+      ::
+      :+  ~2012.5.4
+          %db1
+          "UPSERT INTO db1..people VALUES (1, 'bob', 20)"
+      ::
+      [~2012.5.5 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2012.5.4]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%message 'upserted:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%name [~.t 'bob']]
+                              [%score [~.ud 20]]
+                              ==
+                      ==
+              [%server-time ~2012.5.5]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  multi-row upsert with mixed new and existing keys
+++  test-upsert-03
+  =|  run=@ud
+  %-  exec-2-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "INSERT INTO db1..people VALUES (1, 'alice', 10)"
+      ::
+      :+  ~2012.5.4
+          %db1
+          "UPSERT INTO db1..people VALUES (1, 'alice-updated', 11) ".
+          "(2, 'bob', 20)"
+      ::
+      [~2012.5.5 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2012.5.4]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%message 'upserted:']
+              [%vector-count 2]
+              [%message 'table data:']
+              [%vector-count 2]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%name [~.t 'alice-updated']]
+                              [%score [~.ud 11]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%name [~.t 'bob']]
+                              [%score [~.ud 20]]
+                              ==
+                      ==
+              [%server-time ~2012.5.5]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.4]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  upsert with columns in non-canonical order
+++  test-upsert-04
+  =|  run=@ud
+  %-  exec-1-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people (score, name, id) ".
+          "VALUES (30, 'carol', 3)"
+      ::
+      [~2012.5.4 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%message 'upserted:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%name [~.t 'carol']]
+                              [%score [~.ud 30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.4]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  upsert AS OF uses the selected content state
+++  test-upsert-05
+  =|  run=@ud
+  %-  exec-2-2
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"]
+      ::
+      :+  ~2000.1.2
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2000.1.3
+          %db1
+          "INSERT INTO db1..people VALUES (1, 'alice', 10)"
+      ::
+      :+  ~2000.1.4
+          %db1
+          "UPSERT INTO db1..people AS OF ~2000.1.2 ".
+          "VALUES (2, 'bob', 20)"
+      ::
+      [~2000.1.5 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2000.1.4]
+              [%schema-time ~2000.1.2]
+              [%data-time ~2000.1.2]
+              [%message 'upserted:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%name [~.t 'bob']]
+                              [%score [~.ud 20]]
+                              ==
+                      ==
+              [%server-time ~2000.1.5]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2000.1.2]
+              [%data-time ~2000.1.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  repeated keys in one upsert use the last row
+++  test-upsert-06
+  =|  run=@ud
+  %-  exec-1-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people VALUES (1, 'first', 10) ".
+          "(1, 'last', 20)"
+      ::
+      [~2012.5.4 %db1 "FROM people SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%message 'upserted:']
+              [%vector-count 2]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%name [~.t 'last']]
+                              [%score [~.ud 20]]
+                              ==
+                      ==
+              [%server-time ~2012.5.4]
+              [%relation 'db1.dbo.people']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%vector-count 1]
+              ==
+      ==
+::
+:: UPSERT error messages
+::
+::  upsert fails on bad columns
+++  test-fail-upsert-01
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people (id, nope, score) ".
+          "VALUES (1, 'alice', 10)"
+      ::
+      'UPSERT: invalid column: \'nope\''
+      ==
+::
+::  upsert fails on wrong value type
+++  test-fail-upsert-02
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people VALUES (1, 20, 10)"
+      ::
+      %-  crip
+          "UPSERT: type of column %column name=%name ".
+          "does not match input value type ~.ud"
+      ==
+::
+::  upsert fails on missing table
+++  test-fail-upsert-03
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people ".
+          "(id @ud, name @t, score @ud) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..missing VALUES (1, 'alice', 10)"
+      ::
+      'UPSERT: table [%dbo %missing] does not exist'
+      ==
+::
+::  upsert fails on missing database
+++  test-fail-upsert-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.1.2
+          %db1
+          "CREATE TABLE db1..people (id @ud) PRIMARY KEY (id); ".
+          "UPSERT INTO db..people VALUES (1)"
+      ::
+      'UPSERT: database %db does not exist'
+      ==
+::
+::  upsert fails on changing state after query in script
+++  test-fail-upsert-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.1.2
+          %db1
+          "CREATE TABLE db1..people (id @ud) PRIMARY KEY (id); ".
+          "SELECT 0;".
+          "UPSERT INTO db1..people VALUES (1)"
+      ::
+      'UPSERT: state change after query in script'
+      ==
+::
 :: INSERT error messages
 ::
 :: insert rows without columns, fail on col wrong type

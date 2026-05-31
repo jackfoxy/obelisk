@@ -573,10 +573,13 @@
   ==
 ::
 ++  to-column
-  |=  [p=@t q=(map @tas [aura @])]
+  |=  [op=?(%insert %upsert) p=@t q=(map @tas [aura @])]
   ^-  column:ast
-  ~|  "INSERT: invalid column: {<p>}"
-  [%column p -:(~(got by q) p) 0]
+  ?:  =(%insert op)
+    ~|  "INSERT: invalid column: {<p>}"
+        [%column p -:(~(got by q) p) 0]
+  ~|  "UPSERT: invalid column: {<p>}"
+      [%column p -:(~(got by q) p) 0]
 ::
 ++  update-sys
   |=  [state=server sys-time=@da]
@@ -666,6 +669,14 @@
                                     [%sys %data-log]
                                     ==
     %insert
+      %^  next-view-cache-keys
+                            db
+                            sys-time
+                            %+  weld  %-  limo  :~  [%sys %tables]
+                                                    [%sys %data-log]
+                                                    ==
+                                      (need sys-vws)
+    %upsert
       %^  next-view-cache-keys
                             db
                             sys-time

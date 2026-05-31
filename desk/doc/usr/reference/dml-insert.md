@@ -61,7 +61,7 @@ Timestamp equal to or greater than the table content state upon which to perform
 ```
 +$  insert
   $:
-    %insert
+    op=?(%insert %upsert)
     =qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
@@ -76,6 +76,9 @@ This command mutates the state of the Obelisk agent.
 The `VALUES` or `<crud-txn>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
 
 The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
+
+Use [`UPSERT`](/docs/usr/reference/dml-upsert.md) when rows with existing
+primary keys should be overwritten instead of rejected.
 
 Cord values are represented in single quotes `'this is a cord'`. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
 

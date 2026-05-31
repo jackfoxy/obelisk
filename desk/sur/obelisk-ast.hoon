@@ -316,6 +316,7 @@
   $%  [%query query]
       [%set-query set-query]
       [%insert insert]
+      [%upsert insert]
       [%delete delete]
       [%update update]
       [%merge merge]
@@ -382,7 +383,7 @@
 ::  $insert:
 +$  insert
   $+  insert
-  $:  %insert
+  $:  op=?(%insert %upsert)
     =qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
@@ -1072,6 +1073,7 @@
     %drop-table
     %truncate-table
     %insert
+    %upsert
     %update
     %delete
     ==

@@ -39,6 +39,7 @@ DDL commands define databases, their data tables and other components, data mani
 |DELETE            | |
 |INSERT            | |
 |TRUNCATE TABLE    | |
+|UPSERT            | |
 |UPDATE            | |
 
 
@@ -175,6 +176,21 @@ VALUES
   ('tomorrow', ~2024.9.27, 2)
   ('next day', ~2024.9.28, 3);
 ```
+`UPSERT` uses the same value syntax as `INSERT`, but replaces an existing row
+when the primary key already exists.
+
+```
+UPSERT INTO my-table-2
+VALUES
+  ('today', ~2024.9.26, 4)
+  ('next week', ~2024.10.3, 7);
+```
+
+The row for `'today'` is overwritten because it already exists in
+`my-table-2`. The row for `'next week'` is inserted. If one `UPSERT` command
+contains multiple rows for the same primary key, the last row takes
+precedence.
+
 Notice the difference in the two `INSERT` commands. In the first example we specify the columns associated with the following comma separated data, in the second we do not.
 
 If the data in the `INSERT` command has columns ordered in the same order as the canonical ordering for the table (that is the order in which the columns were defined in the `CREATE TABLE` command), there is no need to specify column order. If the INSERT data rows have the columns in any other order, you do need to specify how the columns match up. In this case there was no need to specify columns in the first example.
@@ -262,7 +278,7 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT` and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
+`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
@@ -1659,7 +1675,7 @@ The common molds used by client code are `action:ast`, `command:ast`,
 data.
 
 Additional molds cover DDL (creating databases and manipulating schemas), DML
-(inserting, updating, and deleting data), and queries.
+(inserting, upserting, updating, and deleting data), and queries.
 
 ## Prefer urQL text over command ASTs
 

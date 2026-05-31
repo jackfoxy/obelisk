@@ -37,7 +37,8 @@
 
 ::
 ++  truncate-tbl
-  ::  Unlike the other data manipulation functions (INSERT, DELETE, UPDATE),
+  ::  Unlike the other data manipulation functions (INSERT, UPSERT, DELETE,
+  ::  UPDATE),
   ::  TRUNCATE TABLE can future date its action. This however effectively locks
   ::  the database for data updates until that time.
   |=  $:  d=truncate-table:ast
@@ -184,6 +185,10 @@
           ::::~&  "{<name.qualified-table.+.body.crud-txn>}"   :: table name
           ::::~>  %bout.[0 %insert]
           (do-insert +.body.crud-txn next-data next-schemas)
+    %upsert
+      ?:  query-has-run  ~|("UPSERT: state change after query in script" !!)
+      :-  %.n
+          (do-upsert +.body.crud-txn next-data next-schemas)
     %query
       =/  q=query:ast  +.body.crud-txn
       :-  %.y
@@ -222,7 +227,23 @@
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
   ^-  [(map @tas @da) server (list result:ast)]
-  =/  txn  %:  common-txn  "INSERT"
+  (do-insert-upsert %insert ins next-data next-schemas)
+::
+++  do-upsert
+  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
+  ^-  [(map @tas @da) server (list result:ast)]
+  (do-insert-upsert %upsert ins next-data next-schemas)
+::
+++  do-insert-upsert
+  |=  $:  op=?(%insert %upsert)
+          ins=insert:ast
+          next-data=(map @tas @da)
+          next-schemas=(map @tas @da)
+      ==
+  ^-  [(map @tas @da) server (list result:ast)]
+  =/  verb=tape  ?:  =(%insert op)  "INSERT"  "UPSERT"
+  =/  message=@t  ?:  =(%insert op)  'inserted:'  'upserted:'
+  =/  txn  %:  common-txn  verb
                            state
                            now.bowl
                            qualified-table.ins
@@ -247,16 +268,23 @@
           columns.table.txn
         ?.  .=  ~(wyt by column-lookup.table.txn)
                 ~(wyt in (silt (need columns.ins)))
-          ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
+          ?:  =(%insert op)
+            ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
+          ~|("UPSERT: incorrect columns specified: {<columns.ins>}" !!)
         %+  turn
             `(list @t)`(need columns.ins)
-            |=(a=@t (to-column a column-lookup.table.txn))
+            |=(a=@t (to-column op a column-lookup.table.txn))
   ::
-  ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
+  ?.  ?=([%data *] values.ins)
+    ?:  =(%insert op)
+      ~|("INSERT: from query not implemented: {<values.ins>}" !!)
+    ~|("UPSERT: from query not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
   ::
   ?.  =((lent cols) (lent -.value-table))
-        ~|("INSERT: incorrect columns specified: {<-.value-table>}" !!)
+        ?:  =(%insert op)
+          ~|("INSERT: incorrect columns specified: {<-.value-table>}" !!)
+        ~|("UPSERT: incorrect columns specified: {<-.value-table>}" !!)
   ::
   =/  i=@ud  0
   =/  key-pick=(list [@tas @])
@@ -270,11 +298,12 @@
   ::
   |-
   ?~  value-table
+    =/  result-rowcount=@ud  ~(wyt by pri-idx.file.txn)
     =/  fks=(list outbound-fk-entry)
           (collect-outbound-fks outbound-fk-index.table.txn)
     =/  dummy
           %:  assert-child-fks
-                %insert
+                op
                 tables.cur-schema
                 content.db.txn
                 effective-time
@@ -309,39 +338,41 @@
                                       content.db.txn
                                       now.bowl
                                       %:  update-file  file.txn
-                                                       nxt-data.txn
-                                                       tbl-key.txn
-                                                       key.pri-indx.table.txn
-                                                       i
-                                                       ==
+                                                      nxt-data.txn
+                                                      tbl-key.txn
+                                                      key.pri-indx.table.txn
+                                                      result-rowcount
+                                                      ==
                               view-cache  %:  upd-view-caches  state
                                                                 db.txn
                                                                 now.bowl
                                             :: to do: get list of effected views
                                                                 [~ ~]
-                                                                %insert
+                                                                op
                                                                 ==
                             ==
       :~  :-  %action
               %-  crip
-                  %+  weld  "INSERT INTO "
+                  %+  weld  (weld verb " INTO ")
                             (trip (qualified-table-to-cord qualified-table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
-          [%message 'inserted:']
+          [%message message]
           [%vector-count i]
           [%message 'table data:']
-          [%vector-count (add rowcount.file.txn i)]
+          [%vector-count result-rowcount]
           ==
-  ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
+  ~|  "{<verb>}: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row=(map @tas @)  (row-cells-and-keys row cols)
+  =/  file-row=(map @tas @)  (row-cells-and-keys op row cols)
   =/  got-fr  ~(got by file-row)
   =/  row-key=(list @)  (turn key-pick |=(a=[@tas @] (got-fr -.a)))
   =/  inserted-row=indexed-row  [%indexed-row row-key file-row]
-  =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
-                          ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
+  =.  pri-idx.file.txn  ?:  =(%insert op)
+                          ?:  (has:primary-key pri-idx.file.txn row-key)
+                            ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
+                          (put:primary-key pri-idx.file.txn row-key file-row)
                         (put:primary-key pri-idx.file.txn row-key file-row)
   %=  $
     i              +(i)
@@ -1988,12 +2019,12 @@
           =data
           tbl-key=[@tas @tas]
           primary-key=(list key-column)
-          inserted=@ud
+          result-rowcount=@ud
           ==
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file    new-indexed-rows
-  =.  rowcount.file        (add rowcount.file inserted)
+  =.  rowcount.file        result-rowcount
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
@@ -2524,6 +2555,8 @@
   ^-  ~
   ?:  =(%insert op)
     ~|("INSERT: FOREIGN KEY parent key not found" !!)
+  ?:  =(%upsert op)
+    ~|("UPSERT: FOREIGN KEY parent key not found" !!)
   ~|("UPDATE: FOREIGN KEY parent key not found" !!)
 ::
 ++  fk-row-values
@@ -3320,25 +3353,25 @@
 ::
 ++  row-cells
   ::  Create the saved row-wise file data.
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  |=  [op=?(%insert %upsert) p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
   =/  cells  *(list [@tas @])
   |-
   ?~  p  (malt cells)
   %=  $
-    cells  [(row-cell -.p -.q) cells]
+    cells  [(row-cell op -.p -.q) cells]
     p  +.p
     q  +.q
   ==
 ::
 ++  row-cells-and-keys
   ::  Build row map incrementally, no intermediate list or key-map.
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  |=  [op=?(%insert %upsert) p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
   =/  cells  *(map @tas @)
   |-
   ?~  p  cells
-  =/  cell=[@tas @]  (row-cell -.p -.q)
+  =/  cell=[@tas @]  (row-cell op -.p -.q)
   %=  $
     cells  (~(put by cells) -.cell +.cell)
     p  +.p
@@ -3346,11 +3379,15 @@
   ==
 ::
 ++  row-cell
-  |=  [p=value-or-default:ast q=column:ast]
+  |=  [op=?(%insert %upsert) p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   ?:  ?=(dime p)
     ?:  =(p.p type.q)  [name.q q.p]
-    ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
+    ?:  =(%insert op)
+      ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
+          "does not match input value type {<p.p>}"
+          !!
+    ~|  "UPSERT: type of column {<-.q>} {<+<.q>} ".
         "does not match input value type {<p.p>}"
         !!
   ?:  =(%default p)
