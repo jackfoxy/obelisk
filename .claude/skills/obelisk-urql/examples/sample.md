@@ -1,19 +1,23 @@
 # urQL examples
 
+Canonical examples drawn from the Obelisk docs. All keywords UPPER CASE (encouraged), object names lower-case `@tas`, aliases title-case.
+
+## DDL — database / namespace
+
 ```urQL
 CREATE DATABASE db1;
 ```
 
 ```urQL
-CREATE DATABASE db1 AS OF ~2023.7.9..22.35.35..7e90
-```
-
-```urQL
-CREATE NAMESPACE ns1 AS OF ~2023.7.9..22.35.35..7e90
+CREATE DATABASE db1 AS OF ~2023.7.9..22.35.35..7e90;
 ```
 
 ```urQL
 ALTER DATABASE db1 RENAME TO db2;
+```
+
+```urQL
+CREATE NAMESPACE ns1 AS OF ~2023.7.9..22.35.35..7e90;
 ```
 
 ```urQL
@@ -27,6 +31,8 @@ CREATE NAMESPACE db2.ns2;
 ALTER NAMESPACE db2.ns2 TRANSFER TABLE db1..my-table AS OF ~2026.5.1;
 ```
 
+## DDL — table
+
 ```urQL
 CREATE TABLE db1..my-table
   (col1 @t, col2 @da, col3 @ud)
@@ -34,13 +40,18 @@ CREATE TABLE db1..my-table
 ```
 
 ```urQL
-CREATE TABLE parent
-  (id @ud, label @t)
-  PRIMARY KEY (id);
+CREATE TABLE order-detail
+  (invoice-nbr @ud, line-item @ud, product-id @ud, message @t)
+  PRIMARY KEY (invoice-nbr ASC, line-item DESC);
+```
+
+```urQL
+CREATE TABLE parent (id @ud, label @t) PRIMARY KEY (id);
 CREATE TABLE child
   (id @ud, parent-id @ud, note @t)
   PRIMARY KEY (id)
-  FOREIGN KEY (parent-id) REFERENCES parent (id);
+  FOREIGN KEY (parent-id) REFERENCES parent (id)
+  ON DELETE CASCADE;
 ```
 
 ```urQL
@@ -56,29 +67,9 @@ CREATE TABLE tenant-items
 ```
 
 ```urQL
-ALTER TABLE my-table RENAME TO renamed-table;
-```
-
-```urQL
-ALTER TABLE my-table COLUMNS (col3, col1, col2);
-```
-
-```urQL
-ALTER TABLE my-table PRIMARY KEY (col1, col3);
-```
-
-```urQL
 ALTER TABLE my-table
   ADD COLUMN (created @da, balance @sd, ratio @rd),
   COLUMNS (col1, col2, col3, created, balance, ratio);
-```
-
-```urQL
-ALTER TABLE my-table
-  DROP COLUMN (old-note),
-  RENAME COLUMN (col1 TO name),
-  ALTER COLUMN (col3 @sd),
-  COLUMNS (name, col2, col3);
 ```
 
 ```urQL
@@ -100,59 +91,66 @@ ALTER TABLE child
 ```
 
 ```urQL
-ALTER TABLE child
-  DROP FOREIGN KEY (parent-id) parent;
+ALTER TABLE child DROP FOREIGN KEY (parent-id) parent;
 ```
+
+```urQL
+DROP TABLE my-table-1;
+DROP TABLE FORCE my-table-2;
+```
+
+## DML
+
+Multiple value rows are NOT comma-separated:
 
 ```urQL
 INSERT INTO calendar
 VALUES
   (~2023.12.21, 2023, 12, 'December', 21, 'Thursday', 355, 5, 51)
   (~2023.12.22, 2023, 12, 'December', 22, 'Friday', 356, 6, 51)
-  (~2023.12.23, 2023, 12, 'December', 23, 'Saturday', 357, 7, 51)
-  (~2023.12.24, 2023, 12, 'December', 24, 'Sunday', 358, 1, 52)
-  (~2023.12.25, 2023, 12, 'December', 25, 'Monday', 359, 2, 52);
+  (~2023.12.23, 2023, 12, 'December', 23, 'Saturday', 357, 7, 51);
 ```
 
 ```urQL
 INSERT INTO db1..my-table AS OF ~2000.1.2..12.12.12
+  (col1, col2, col3)
 VALUES ('cord2', ~2000.1.2, 42);
+```
+
+UPSERT overwrites rows whose primary key already exists:
+
+```urQL
+UPSERT INTO my-table-2
+VALUES
+  ('today', ~2024.9.26, 4)
+  ('next week', ~2024.10.3, 7);
 ```
 
 ```urQL
 DELETE FROM calendar AS OF ~2012.5.1
 WHERE day-name = 'Sunday'
-   OR day-name = 'Monday'
-   OR day-name = 'Tuesday'
-   OR day-name = 'Wednesday'
-   OR day-name = 'Thursday'
-   OR day-name = 'Friday'
-   OR (day-name = 'Saturday'
-       AND day-of-year = 357);
+   OR (day-name = 'Saturday' AND day-of-year = 357);
 ```
 
 ```urQL
-UPDATE my-table-2
-SET col3=99
-WHERE col1 = 'today';
+UPDATE my-table-2 SET col3=99 WHERE col1 = 'today';
 ```
 
 ```urQL
-UPDATE my-table-2
-SET col3=DEFAULT;
+UPDATE my-table-2 SET col3=DEFAULT;
+```
+
+```urQL
+WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1, col3) AS my-cte
+UPDATE my-table SET col1='updated'
+WHERE my-cte.col1 = my-cte.col3;
 ```
 
 ```urQL
 TRUNCATE TABLE my-table;
 ```
 
-```urQL
-DROP TABLE my-table-1;
-```
-
-```urQL
-DROP TABLE FORCE my-table-2;
-```
+## Queries — basics
 
 ```urQL
 SELECT 0;
@@ -163,50 +161,58 @@ SELECT ~2024.10.20, 'hello' AS Greeting, 42 AS Answer;
 ```
 
 ```urQL
-FROM sys.tables
-SELECT ~2024.10.20, tmsp AS Time, ~sampel-palnet AS Home;
-```
-
-```urQL
-FROM my-table AS OF ~2000.1.3
+FROM reference.calendar AS OF ~2000.1.3
 SELECT *;
 ```
 
 ```urQL
-FROM renamed-table
-SELECT *;
+FROM reference.calendar
+WHERE day-name = 'Thursday'
+SELECT date, year, month, day-name;
 ```
 
-```urQL
-FROM my-table AS OF ~2026.4.30
-SELECT *;
-```
+## Queries — scalars
+
+Arithmetic scalars must end with `END`:
 
 ```urQL
 FROM adoptions A
 SCALARS full-label CONCAT(name, ' (', species, ')')
         fee-tier IF adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF
-SELECT name, species, adoption-date, full-label, fee-tier;
+        net-fee  adoption-fee - discount END
+SELECT name, species, adoption-date, full-label, fee-tier, net-fee;
 ```
 
 ```urQL
-FROM calendar T1
-JOIN holiday-calendar T2
-SELECT T1.day-name, T2.*;
+FROM animals A
+SCALARS size-class CASE
+                     WHEN weight > 30 THEN 'large'
+                     WHEN weight > 10 THEN 'medium'
+                     ELSE 'small'
+                   END
+SELECT name, species, size-class;
 ```
 
+## Queries — joins
+
+Natural join (shared name + aura columns, aliases disambiguate):
+
 ```urQL
-FROM calendar T1
-JOIN holiday-calendar T2
+FROM reference.calendar T1
+JOIN reference.calendar-us-fed-holiday T2
 WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
 SELECT T1.date, day-name, us-federal-holiday;
 ```
+
+JOIN ON (equality conditions joined by AND only):
 
 ```urQL
 FROM adoptions A
 JOIN vaccinations V ON A.name = V.name AND A.species = V.species
 SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
+
+CROSS JOIN + WHERE for conditions ON cannot express:
 
 ```urQL
 FROM adoptions A
@@ -217,24 +223,7 @@ WHERE A.name = V.name
 SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
 
-```urQL
-FROM calendar T1
-JOIN holiday-calendar T2
-JOIN tbl3 T3
-SELECT row-name, T1.day-name, T2.*, T3.*;
-```
-
-```urQL
-FROM tbl1
-CROSS JOIN cross-tbl
-SELECT year, month, day, month-name, cross-key, cross-2, cross-3;
-```
-
-```urQL
-FROM tbl1
-CROSS JOIN cross-tbl AS OF ~2000.1.3
-SELECT year, month, day, month-name, cross-key, cross-2, cross-3;
-```
+## Queries — CTEs
 
 ```urQL
 WITH (FROM persons P
@@ -244,6 +233,8 @@ FROM shelter-staff
 WHERE hire-date > ~2018.1.1
 SELECT first-name, last-name, hire-date;
 ```
+
+Chained CTEs:
 
 ```urQL
 WITH (FROM adoptions
@@ -256,15 +247,21 @@ FROM premium-dogs
 SELECT *;
 ```
 
+Single-column CTE as a predicate set:
+
 ```urQL
-WITH (FROM calendar T1
-      JOIN holiday-calendar T2
-      WHERE T1.day-name = 'Monday'
-        AND T2.us-federal-holiday = 'Christmas Day'
-      SELECT T1.day-name, T2.*, T2.us-federal-holiday AS Fed)
-      AS My-Cte
-FROM My-Cte SELECT *;
+WITH (FROM reference.species
+      WHERE species = 'Dog'
+         OR species = 'Cat'
+      SELECT species) AS target-species
+FROM adoptions
+WHERE species IN target-species.species
+SELECT name, species, adoption-date, adoption-fee;
 ```
+
+## Queries — set operations
+
+Evaluated left-to-right; exact-vector equality (column names, order, auras all matter):
 
 ```urQL
 FROM animals
@@ -288,14 +285,6 @@ SELECT name, species;
 ```
 
 ```urQL
-FROM animals
-SELECT name, species
-EXCEPT
-FROM adoptions
-SELECT name, species;
-```
-
-```urQL
 WITH (FROM adoptions
       SELECT name, species
       INTERSECT
@@ -305,28 +294,18 @@ FROM adopted-and-vaccinated
 SELECT *;
 ```
 
+## System views
+
 ```urQL
-WITH (FROM staff-assignments
-      WHERE role = 'Veterinarian'
-      SELECT email) AS vets
-FROM vets
-SELECT email
-UNION
-FROM staff-assignments
-WHERE role = 'Manager'
-SELECT email;
+FROM sys.sys.databases SELECT *;
 ```
 
 ```urQL
-FROM sys.columns
-WHERE name = 'my-table'
-SELECT col-name, col-type;
+FROM sys.columns WHERE name = 'my-table' SELECT col-name, col-type;
 ```
 
 ```urQL
-FROM sys.table-keys
-WHERE name = 'calendar'
-SELECT name AS Table-Name, key-ordinal, key;
+FROM sys.table-keys WHERE name = 'calendar' SELECT name AS Table-Name, key-ordinal, key;
 ```
 
 ```urQL
