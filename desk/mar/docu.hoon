@@ -1,5 +1,3 @@
-/-  *gemtext
-/+  *docu, cram
 |_  dcu=manx
 ++  grab
   |%
@@ -9,12 +7,7 @@
   ++  hymn        |=(a=manx a)
   ++  x-htm       |=(a=manx a)
   ++  x-htm-elem  |=(a=manx a)
-  ++  gmi         |=(gem=(list gmni) (gmi:to-docu gem))
-  ++  html        |=(htm=@t (need (de-xml:^html htm)))
   ++  noun        |=(non=* (manx non))
-  ++  txt         |=(tex=wain (txt:to-docu tex))
-  ++  udon        |=(mud=@t elm:(static:cram (ream mud)))
-  ++  md          |=(tex=wain (txt:to-docu tex))
   --
 ++  grow
   |%
