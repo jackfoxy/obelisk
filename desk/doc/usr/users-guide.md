@@ -135,6 +135,7 @@ All user data resides in user-defined tables, so let's define some tables. Notic
 ```
 CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;
 CREATE TABLE dbo.my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);
+CREATE TABLE dbo.identifiers (id @ud, path @ta, status @tas) PRIMARY KEY (id);
 ```
 
 Database objects like tables and views have names qualified by database and namespace. In standard SQL namespace is called *schema*, which gets confusing because *schema* also refers to the structure of the database. In any event *namespace* is just like *namespace* in any programming environment, a way to organize named objects where any given name may only occur once within each namespace.
@@ -195,7 +196,21 @@ Notice the difference in the two `INSERT` commands. In the first example we spec
 
 If the data in the `INSERT` command has columns ordered in the same order as the canonical ordering for the table (that is the order in which the columns were defined in the `CREATE TABLE` command), there is no need to specify column order. If the INSERT data rows have the columns in any other order, you do need to specify how the columns match up. In this case there was no need to specify columns in the first example.
 
-Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column. 
+Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column.
+
+Text-like literals may be written as single-quoted `@t` cords, `%`-prefixed
+`@tas` terms, or `~.`-prefixed `@ta` knots:
+
+```
+INSERT INTO identifiers
+  (id, path, status)
+VALUES
+  (1, ~.users.alice, %active);
+
+UPDATE identifiers
+SET status=%inactive, path=~.users.alice.archive
+WHERE id=1;
+```
 
 ```
 %obelisk-result:
@@ -452,7 +467,9 @@ SELECT 0;
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 1 ]
 ```
-Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/usr/reference/preliminaries.md)).
+Obelisk supports most hoon aura-formatted literals, including text literals
+written as `'cord'`, `%term`, and `~.knot`. (See the Reference document
+[Preliminaries](/docs/usr/reference/preliminaries.md)).
 
 The system inserted a default name for the literal column. We could have specified an alias:
 

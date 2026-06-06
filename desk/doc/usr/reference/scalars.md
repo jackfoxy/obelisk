@@ -649,6 +649,9 @@ DEGREES(TAU)        :: returns 360 (as @ud)
 
 ### String Functions
 
+String expressions may be `@t`, `@ta`, or `@tas`. String functions interpret
+all three under `@t` text rules and return `@t` unless noted otherwise.
+
 ```
 <string-function> ::=
   LEN ( <string-expression> )

@@ -1339,13 +1339,18 @@
           cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
+  =/  col-map=(map @tas column:ast)
+    (malt (turn cols |=(c=column:ast [name.c c])))
   =/  row-scalars=(list [@tas @])
     %+  turn  scalar-updates
-              |=  [col=@tas sname=@tas]
-              :-  col
-              %-  tail  %+  apply-resolved-scalar
-                              (~(got by rs) sname)
-                              [%indexed-row key.row data.row]
+              |=  [col-name=@tas sname=@tas]
+              =/  val=@
+                %-  tail  %+  apply-resolved-scalar
+                                (~(got by rs) sname)
+                                [%indexed-row key.row data.row]
+              =/  col=column:ast  (~(got by col-map) col-name)
+              :-  col-name
+              (validate-aura-value %update col-name type.col val)
   =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
     ?~  key-columns  :-  :+  %indexed-row
@@ -1384,6 +1389,24 @@
     x        (~(put by x) -.i.updates +.i.updates)
     updates  +.updates
   ==
+::
+++  aura-value-valid
+  |=  [typ=@ta val=@]
+  ^-  ?
+  ?:  =(%ta typ)   ((sane %ta) val)
+  ?:  =(%tas typ)  ((sane %tas) val)
+  %.y
+::
+++  validate-aura-value
+  |=  [op=?(%insert %upsert %update) name=@tas typ=@ta val=@]
+  ^-  @
+  ?:  (aura-value-valid typ val)
+    val
+  ?:  =(%insert op)
+    ~|("INSERT: value of column {<name>} does not match aura {<typ>}" !!)
+  ?:  =(%upsert op)
+    ~|("UPSERT: value of column {<name>} does not match aura {<typ>}" !!)
+  ~|("UPDATE: value of column {<name>} does not match aura {<typ>}" !!)
 ++  mk-updates
   |=  $:  =qualified-table:ast
           columns=(list qualified-column:ast)
@@ -1419,10 +1442,14 @@
           ~|  "UPDATE: {<qualified-table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have ".
-                                "column {<name.i.columns>}"
-                                -:(~(got by +.map-meta) name.i.columns)
-          [[name.i.columns +.i.values] updates]
+        =/  col-type=@ta
+          ~|  "UPDATE: {<qualified-table>} does not have ".
+              "column {<name.i.columns>}"
+              -:(~(got by +.map-meta) name.i.columns)
+        ?:  =(p.i.values col-type)
+          :-  :-  name.i.columns
+                  (validate-aura-value %update name.i.columns col-type +.i.values)
+              updates
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
   ~|("value type not supported: {<i.values>}" !!)
@@ -3382,7 +3409,8 @@
   |=  [op=?(%insert %upsert) p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   ?:  ?=(dime p)
-    ?:  =(p.p type.q)  [name.q q.p]
+    ?:  =(p.p type.q)
+      [name.q (validate-aura-value op name.q type.q q.p)]
     ?:  =(%insert op)
       ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
           "does not match input value type {<p.p>}"

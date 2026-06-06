@@ -21,9 +21,7 @@
 
 * __SELECT TOP n ...__ -- dependent on total ordering
 
-* __@ta and @tas auras__ -- full support would require +sane.
-
-* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith)
+* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
 
 * __@uv aura__ -- requires research: what flavor of RFC 4648 is urbit supporting?
 
@@ -64,8 +62,6 @@
 * __MERGE__ -- a much maligned SQL command that could be better implemented in urQL/%obelisk. (cf. Merge document, which is incomplete)
 
 * __B+ trees__ -- a performance thing.
-
-* __INSERT aura validation__ -- probably as an option, +sane impact on performance unknown. Currently possible to mix-up auras.
 
 * __%quiz__ -- property tests on database, namespace, table, insert, query, etc.
 

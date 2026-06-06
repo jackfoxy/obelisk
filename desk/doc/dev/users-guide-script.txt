@@ -13,7 +13,8 @@
 ## CREATE TABLE
 
 =uql "CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;".
-"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);"
+"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);".
+"CREATE TABLE dbo.identifiers (id @ud, path @ta, status @tas) PRIMARY KEY (id);"
 
 
 # Data Manipulation
@@ -37,6 +38,15 @@
 "VALUES ".
 "  ('today', ~2024.9.26, 4)".
 "  ('next week', ~2024.10.3, 7);"
+
+=uql "INSERT INTO identifiers ".
+"  (id, path, status) ".
+"VALUES ".
+"  (1, ~.users.alice, %active);"
+
+=uql "UPDATE identifiers ".
+"SET status=%inactive, path=~.users.alice.archive ".
+"WHERE id=1;"
 
 ## DELETE
 

@@ -8,6 +8,10 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @da, col3 @t, col4 @t) ".
   "PRIMARY KEY (col1)"
+++  create-ta-tas-table
+  "CREATE TABLE db1..text-table ".
+  "(id @ud, path @ta, term @tas) ".
+  "PRIMARY KEY (id)"
 ++  create-rs-table
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @rs) ".
@@ -175,6 +179,162 @@
                       ==
               [%server-time ~2012.5.3]
               [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <@t column> = <@ta/@tas literal>
+++  test-eq-text-column-ta-tas-literals-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "WHERE col3=~.tuxedo AND col4=%row3 ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              [%col3 [~.t 'tuxedo']]
+                              [%col4 [~.t 'row3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <@ta column> = <@tas literal>
+++  test-eq-ta-column-tas-literal-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ta-tas-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO text-table ".
+          "VALUES ".
+          "  (1, ~.active, %ok) ".
+          "  (2, ~.inactive, %ok)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM text-table WHERE path=%active SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%path [~.ta ~.active]]
+                              [%term [~.tas %ok]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.text-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <@ta/@tas column> = <literal>
+++  test-eq-ta-tas-literals-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ta-tas-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO text-table ".
+          "VALUES ".
+          "  (1, ~.users.alice, %active) ".
+          "  (2, ~.users.bob, %inactive)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM text-table ".
+          "WHERE path=~.users.alice AND term=%active ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%path [~.ta ~.users.alice]]
+                              [%term [~.tas %active]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.text-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <literal> = <@ta/@tas column>
+++  test-eq-ta-tas-literals-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ta-tas-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO text-table ".
+          "VALUES ".
+          "  (1, ~.users.alice, %active) ".
+          "  (2, ~.users.bob, %inactive)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM text-table ".
+          "WHERE ~.users.bob=path AND %inactive=term ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%path [~.ta ~.users.bob]]
+                              [%term [~.tas %inactive]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.text-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]

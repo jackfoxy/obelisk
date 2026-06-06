@@ -354,7 +354,7 @@ query: ms/266.500
 ```
 FROM reference.cities T1
 JOIN reference.city-zip-codes T2
-  ON T1.city = T2.city                 :: cannot use primary key
+  ON T1.city = T2.city
 WHERE T1.population > 500000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```

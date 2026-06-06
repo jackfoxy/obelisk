@@ -565,6 +565,27 @@
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
+:: create table with @ta and @tas columns
+++  test-create-table-ta-tas-00
+  =/  expected
+    :*  %create-table
+        :*  %qualified-table  ship=~
+            database='db1'  namespace='dbo'
+            name='my-table'  ~
+            ==
+        :~  [%column name='id' type=%ud addr=0]
+            [%column name='path' type=%ta addr=0]
+            [%column name='term' type=%tas addr=0]
+            ==
+        ~[[%ordered-column name='id' ascending=%.y]]
+        ~
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create table my-table (id @ud, path @ta, term @tas) primary key (id)"
+::
 :: create table... table ... references  ns.fk-table  on update no action on delete cascade
 ++  test-create-table-02
   =/  my-table
@@ -2388,6 +2409,35 @@
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
+::  select cord-like literal forms
+++  test-select-cord-literal-forms-00
+  =/  query
+    :*  %query  ~  scalars=~  ~
+        group-by=~  having=~
+        :+  %select  top=~
+            :~  [%selected-value [value-type=%t value='foo'] ~]
+                [%selected-value [value-type=%tas value=%foo] ~]
+                [%selected-value [value-type=%ta value=~.foo_bar] ~]
+                ==
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
+    !>  %-  parse:parse(default-database 'db1')
+        "select 'foo', %foo, ~.foo_bar"
+::
+::  fail on malformed term literal
+++  test-fail-cord-literal-forms-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "select %bad!"
+::
+::  fail on malformed knot literal
+++  test-fail-cord-literal-forms-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+      "select ~.bad!"
+::
 ::  star select top, trailing whitespace
 ++  test-select-02
   =/  select  "select top 10   * "
@@ -2865,6 +2915,28 @@
 ++  upd-col3  [%qualified-column foo-table name='col3' alias=~]
 ++  upd-col4  [%qualified-column foo-table name='col4' alias=~]
 ++  unqlf-2   [%unqualified-column name=%col2 alias=~]
+::
+:: update with cord-like literal forms
+++  test-update-cord-literal-forms-00
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col2 upd-col1]
+                            :~  [value-type=%ta value=~.foo-bar]
+                                [value-type=%tas value=%foo]
+                                [value-type=%t value='foo']
+                                ==
+                        predicate=~
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1='foo', col2=%foo, col3=~.foo-bar"
 ::
 :: update one column, no predicate
 ++  test-update-00

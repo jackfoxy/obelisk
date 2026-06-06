@@ -66,6 +66,10 @@ the last row takes precedence.
 The `DEFAULT` keyword may be used instead of a value to specify the column
 type's bunt (default) value.
 
+Text values use Hoon aura notation: `@t` cords are represented in single
+quotes, `@tas` terms with `%`, and `@ta` knots with `~.`. `@ta` and `@tas`
+values are validated before rows are written.
+
 ### Produced Metadata
 
 action: UPSERT INTO <namespace name>.<table name>

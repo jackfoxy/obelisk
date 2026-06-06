@@ -180,8 +180,8 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @sx  | signed hexadecimal   | --0x2004.90fd | --0x2004.90fd |
 |      |                      | -0x2004.90fd | -0x2004.90fd |
 | @t   | UTF-8 text (cord)    | 'cord', 'cord\\\\'s' <sup>1</sup> | 'cord', 'cord\\\\'s' <sup>1</sup> |
-| @ta  | ASCII text (knot)    | *support pending* | *support pending* |
-| @tas | ASCII text (term)    | *support pending* | *support pending* |
+| @ta  | ASCII text (knot)    | ~.foo-bar | ~.foo-bar |
+| @tas | ASCII text (term)    | %foo-bar | %foo-bar |
 | @ub  | unsigned binary      | 10.1011 | 10.1011 |
 | @ud  | unsigned decimal     | 2.222 | 2.222 |
 |      |                      | 2222 | 2222 |
@@ -190,6 +190,11 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @ux  | unsigned hexadecimal | 0x12.6401 | 0x12.6401 |
 
  <sup>1</sup> Example of embedding single quote in @t literal.
+
+Text-like atom literals use their Hoon aura notation: `@t` cords are written
+in single quotes, `@ta` knots are written with `~.`, and `@tas` terms are
+written with `%`. `INSERT`, `UPSERT`, and `UPDATE` reject `@ta` and `@tas`
+atoms that do not satisfy Hoon's text sanity rules.
 
 ## Comments
 Comment syntax in urQL differs from SQL comment syntax. urQL supports two types of comments, line comments and block comments. 

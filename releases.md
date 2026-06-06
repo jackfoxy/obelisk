@@ -9,6 +9,7 @@
 * DROP NAMESPACE
 * Foreign Key Referential Integrity
 * sys.foreign-keys view
+* full @ta and @tas aura support
 * action %tape executes silently, %tape-print prints to dojo
 * fixed bug where system views were not ordered
 * fixed bug where SELECT sub-set of system view columns returned duplicate rows

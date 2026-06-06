@@ -80,7 +80,10 @@ The `DEFAULT` keyword may be used instead of a value to specify the column type'
 Use [`UPSERT`](/docs/usr/reference/dml-upsert.md) when rows with existing
 primary keys should be overwritten instead of rejected.
 
-Cord values are represented in single quotes `'this is a cord'`. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
+Text values use Hoon aura notation: `@t` cords are represented in single
+quotes, `@tas` terms with `%`, and `@ta` knots with `~.`. Single quotes within
+cord values must be escaped with double backslash as `'this is a cor\\'d'`.
+`@ta` and `@tas` values are validated before rows are written.
 
 Note that multiple parentheses enclosed rows of column values are NOT comma separated.
 

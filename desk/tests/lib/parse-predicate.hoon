@@ -63,6 +63,10 @@
   [[%unqualified-column 'foo6' ~] ~ ~]
 ++  foo7
   [[%unqualified-column 'foo7' ~] ~ ~]
+++  path
+  [[%unqualified-column 'path' ~] ~ ~]
+++  term
+  [[%unqualified-column 'term' ~] ~ ~]
 ++  bar
   [[%unqualified-column 'bar' ~] ~ ~]
 ++  t2-bar
@@ -529,6 +533,52 @@
                     [%select top=~ columns=~[[%all %all]]]
                     ~
                     ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  @ta and @tas literals in predicates
+++  test-predicate-ta-tas-literals-00
+  =/  query
+    "FROM foo WHERE path=~.foo-bar AND term=%foo SELECT *"
+  =/  pred=(tree predicate-component:ast)
+    [%and [%eq path [[%ta ~.foo-bar] ~ ~]] [%eq term [[%tas %foo] ~ ~]]]
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %query
+            :*  %query
+                from-foo
+                scalars=~
+                pred
+                group-by=~
+                having=~
+                select-all-columns
+                order-by=~
+                ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  @t-style column names with @ta and @tas predicate literals
+++  test-predicate-ta-tas-literals-01
+  =/  query
+    "FROM foo WHERE foo3=~.tuxedo AND foo4=%row3 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+    [%and [%eq foo3 [[%ta ~.tuxedo] ~ ~]] [%eq foo4 [[%tas %row3] ~ ~]]]
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %query
+            :*  %query
+                from-foo
+                scalars=~
+                pred
+                group-by=~
+                having=~
+                select-all-columns
+                order-by=~
+                ==
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)

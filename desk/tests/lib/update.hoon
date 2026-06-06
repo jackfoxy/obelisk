@@ -1743,6 +1743,53 @@
                               ==
             ==
 ::
+::  update @ta and @tas values
+++  test-update-ta-tas-00
+  =|  run=@ud
+  %-  exec-0-2
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..people-text ".
+                        "(id @ud, term @tas, path @ta) PRIMARY KEY (id);"
+                        "INSERT INTO db1..people-text VALUES (1, %foo, ~.foo);"
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE people-text SET term=%bar, path=~.bar WHERE id=1"
+      ::
+      [~2012.5.3 %db1 "FROM people-text SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPDATE db1.dbo.people-text']
+              [%server-time ~2012.5.1]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%message 'updated:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%term [~.tas %bar]]
+                              [%path [~.ta ~.bar]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.people-text']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  fail on no predicate, create dup key
 ++  test-fail-update-00
   =|  run=@ud
@@ -1812,6 +1859,102 @@
                               "ship=~ database=%db1 namespace=%dbo ".
                               "name=%my-table alias=~] name=%col2 alias=~]"
                     ==
+::
+::  update rejects invalid @ta atom from command API
+++  test-fail-update-ta-sane-00
+  =|  run=@ud
+  %-  failon-c
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..people-text ".
+                        "(id @ud, path @ta) PRIMARY KEY (id);"
+                        "INSERT INTO db1..people-text VALUES (1, ~.foo);"
+                        ==
+      ::
+      :-  ~2012.5.1
+          :-  %commands
+              :~  :*  %crud-txn
+                      ctes=~
+                      :-  %update
+                          :*  %update
+                              scalars=~
+                              :*  %qualified-table
+                                  ship=~
+                                  database=%db1
+                                  namespace=%dbo
+                                  name=%people-text
+                                  alias=~
+                                  ==
+                              as-of=~
+                              :-  :~  :^  %qualified-column
+                                          :*  %qualified-table
+                                              ship=~
+                                              database=%db1
+                                              namespace=%dbo
+                                              name=%people-text
+                                              alias=~
+                                              ==
+                                          name=%path
+                                          alias=~
+                                      ==
+                                  ~[[~.ta 'bad!']]
+                              predicate=~
+                              ==
+                  ==
+              ==
+      ::
+      'UPDATE: value of column %path does not match aura ~.ta'
+      ==
+::
+::  update rejects invalid @tas atom from command API
+++  test-fail-update-tas-sane-00
+  =|  run=@ud
+  %-  failon-c
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..people-text ".
+                        "(id @ud, term @tas) PRIMARY KEY (id);"
+                        "INSERT INTO db1..people-text VALUES (1, %foo);"
+                        ==
+      ::
+      :-  ~2012.5.1
+          :-  %commands
+              :~  :*  %crud-txn
+                      ctes=~
+                      :-  %update
+                          :*  %update
+                              scalars=~
+                              :*  %qualified-table
+                                  ship=~
+                                  database=%db1
+                                  namespace=%dbo
+                                  name=%people-text
+                                  alias=~
+                                  ==
+                              as-of=~
+                              :-  :~  :^  %qualified-column
+                                          :*  %qualified-table
+                                              ship=~
+                                              database=%db1
+                                              namespace=%dbo
+                                              name=%people-text
+                                              alias=~
+                                              ==
+                                          name=%term
+                                          alias=~
+                                      ==
+                                  ~[[~.tas 'bad term']]
+                              predicate=~
+                              ==
+                  ==
+              ==
+      ::
+      'UPDATE: value of column %term does not match aura ~.tas'
+      ==
 ::
 ::  fail on table not matching by column qualifier
 ++  test-fail-update-04

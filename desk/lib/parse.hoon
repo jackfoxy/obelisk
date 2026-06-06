@@ -3697,6 +3697,10 @@
                         ;~(less (just `@`39) (just `@`127) (shim 32 256))
                         ==
               ==
+    :: knot literal
+    (stag %ta ;~(pfix ;~(plug sig dot) urs:ab))
+    :: term literal
+    (stag %tas ;~(pfix cen sym))
     ;~(pose ;~(pfix sig crub-no-text) crub-no-text)  :: @da, @dr, @p
     (stag %f parse-loobean-literal)                                   :: @f
     (stag %is ;~(pfix (just '.') bip:ag))            :: @is
@@ -3734,6 +3738,7 @@
   |=  a=@
   ^-  ?
   ?|  =('\'' a)
+      =('%' a)
       =('~' a)
       =('.' a)
       =('-' a)

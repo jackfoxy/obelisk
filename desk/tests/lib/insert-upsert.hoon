@@ -1010,6 +1010,106 @@
               ==
       ==
 ::
+::  insert @ta and @tas values, with @tas primary-key text ordering
+++  test-insert-ta-tas-00
+  =|  run=@ud
+  %-  exec-1-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..text-keys ".
+          "(term @tas, path @ta) ".
+          "PRIMARY KEY (term)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "INSERT INTO db1..text-keys VALUES (%b, ~.b) (%aa, ~.aa)"
+      ::
+      [~2012.5.4 %db1 "FROM text-keys SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'INSERT INTO db1.dbo.text-keys']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%message 'inserted:']
+              [%vector-count 2]
+              [%message 'table data:']
+              [%vector-count 2]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%term [~.tas %aa]]
+                              [%path [~.ta ~.aa]]
+                              ==
+                      :-  %vector
+                          :~  [%term [~.tas %b]]
+                              [%path [~.ta ~.b]]
+                              ==
+                      ==
+              [%server-time ~2012.5.4]
+              [%relation 'db1.dbo.text-keys']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  insert @ta values, with @ta primary-key text ordering
+++  test-insert-ta-order-00
+  =|  run=@ud
+  %-  exec-1-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..path-keys ".
+          "(path @ta, note @t) ".
+          "PRIMARY KEY (path)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "INSERT INTO db1..path-keys VALUES (~.b, 'b') (~.aa, 'aa')"
+      ::
+      [~2012.5.4 %db1 "FROM path-keys SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'INSERT INTO db1.dbo.path-keys']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%message 'inserted:']
+              [%vector-count 2]
+              [%message 'table data:']
+              [%vector-count 2]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%path [~.ta ~.aa]]
+                              [%note [~.t 'aa']]
+                              ==
+                      :-  %vector
+                          :~  [%path [~.ta ~.b]]
+                              [%note [~.t 'b']]
+                              ==
+                      ==
+              [%server-time ~2012.5.4]
+              [%relation 'db1.dbo.path-keys']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%vector-count 2]
+              ==
+      ==
+::
 :: UPSERT
 ::
 ::  upsert inserts rows into an empty table
@@ -1316,6 +1416,57 @@
               ==
       ==
 ::
+::  upsert @ta and @tas values
+++  test-upsert-ta-tas-00
+  =|  run=@ud
+  %-  exec-2-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..people-text ".
+          "(id @ud, term @tas, path @ta) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "UPSERT INTO db1..people-text VALUES (1, %foo, ~.foo)"
+      ::
+      :+  ~2012.5.4
+          %db1
+          "UPSERT INTO db1..people-text VALUES (1, %bar, ~.bar)"
+      ::
+      [~2012.5.5 %db1 "FROM people-text SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'UPSERT INTO db1.dbo.people-text']
+              [%server-time ~2012.5.4]
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.3]
+              [%message 'upserted:']
+              [%vector-count 1]
+              [%message 'table data:']
+              [%vector-count 1]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%term [~.tas %bar]]
+                              [%path [~.ta ~.bar]]
+                              ==
+                      ==
+              [%server-time ~2012.5.5]
+              [%relation 'db1.dbo.people-text']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.4]
+              [%vector-count 1]
+              ==
+      ==
+::
 :: UPSERT error messages
 ::
 ::  upsert fails on bad columns
@@ -1359,6 +1510,39 @@
       %-  crip
           "UPSERT: type of column %column name=%name ".
           "does not match input value type ~.ud"
+      ==
+::
+::  upsert rejects invalid @tas atom from command API
+++  test-fail-upsert-tas-sane-00
+  =|  run=@ud
+  %-  failon-c
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          "CREATE DATABASE db1; ".
+          "CREATE TABLE db1..people-text ".
+          "(id @ud, term @tas) PRIMARY KEY (id)"
+      ::
+      :-  ~2012.5.3
+          :-  %commands
+              :~  :+  %crud-txn
+                      ctes=~
+                      :-  %upsert
+                          :*  %upsert
+                              :*  %qualified-table
+                                  ship=~
+                                  database=%db1
+                                  namespace=%dbo
+                                  name=%people-text
+                                  alias=~
+                                  ==
+                              as-of=~
+                              :-  [~ ~[%id %term]]
+                                  [%data ~[~[[~.ud 1] [~.tas 'bad term']]]]
+                              ==
+                  ==
+      ::
+      'UPSERT: value of column %term does not match aura ~.tas'
       ==
 ::
 ::  upsert fails on missing table
@@ -1413,6 +1597,39 @@
       ==
 ::
 :: INSERT error messages
+::
+:: insert rejects invalid @ta atom from command API
+++  test-fail-insert-ta-sane-00
+  =|  run=@ud
+  %-  failon-c
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          "CREATE DATABASE db1; ".
+          "CREATE TABLE db1..paths ".
+          "(id @ud, path @ta) PRIMARY KEY (id)"
+      ::
+      :-  ~2012.5.3
+          :-  %commands
+              :~  :+  %crud-txn
+                      ctes=~
+                      :-  %insert
+                          :*  %insert
+                              :*  %qualified-table
+                                  ship=~
+                                  database=%db1
+                                  namespace=%dbo
+                                  name=%paths
+                                  alias=~
+                                  ==
+                              as-of=~
+                              :-  [~ ~[%id %path]]
+                                  [%data ~[~[[~.ud 1] [~.ta 'bad!']]]]
+                              ==
+                  ==
+      ::
+      'INSERT: value of column %path does not match aura ~.ta'
+      ==
 ::
 :: insert rows without columns, fail on col wrong type
 ++  test-fail-insert-01
