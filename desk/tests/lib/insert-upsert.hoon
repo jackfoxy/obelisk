@@ -1025,7 +1025,7 @@
       ::
       :+  ~2012.5.3
           %db1
-          "INSERT INTO db1..text-keys VALUES (%b, ~.b) (%aa, ~.aa)"
+          "INSERT INTO db1..text-keys VALUES (%b, %b) (%aa, %aa)"
       ::
       [~2012.5.4 %db1 "FROM text-keys SELECT *"]
       ::
@@ -1075,7 +1075,7 @@
       ::
       :+  ~2012.5.3
           %db1
-          "INSERT INTO db1..path-keys VALUES (~.b, 'b') (~.aa, 'aa')"
+          "INSERT INTO db1..path-keys VALUES (%b, 'b') (%aa, 'aa')"
       ::
       [~2012.5.4 %db1 "FROM path-keys SELECT *"]
       ::
@@ -1431,11 +1431,11 @@
       ::
       :+  ~2012.5.3
           %db1
-          "UPSERT INTO db1..people-text VALUES (1, %foo, ~.foo)"
+          "UPSERT INTO db1..people-text VALUES (1, %foo, %foo)"
       ::
       :+  ~2012.5.4
           %db1
-          "UPSERT INTO db1..people-text VALUES (1, %bar, ~.bar)"
+          "UPSERT INTO db1..people-text VALUES (1, %bar, %bar)"
       ::
       [~2012.5.5 %db1 "FROM people-text SELECT *"]
       ::
@@ -1629,6 +1629,28 @@
                   ==
       ::
       'INSERT: value of column %path does not match aura ~.ta'
+      ==
+::
+:: insert rejects @ta literal for @tas column
+++  test-fail-insert-tas-type-00
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..terms ".
+          "(id @ud, term @tas) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.5
+          %db1
+          "INSERT INTO db1..terms VALUES (1, ~.foo)"
+      ::
+      %-  crip
+          "INSERT: type of column %column name=%term ".
+          "does not match input value type ~.ta"
       ==
 ::
 :: insert rows without columns, fail on col wrong type

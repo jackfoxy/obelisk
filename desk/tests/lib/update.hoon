@@ -1758,7 +1758,7 @@
       ::
       :+  ~2012.5.1
           %db1
-          "UPDATE people-text SET term=%bar, path=~.bar WHERE id=1"
+          "UPDATE people-text SET term=%bar, path=%bar WHERE id=1"
       ::
       [~2012.5.3 %db1 "FROM people-text SELECT *"]
       ::
@@ -1954,6 +1954,30 @@
               ==
       ::
       'UPDATE: value of column %term does not match aura ~.tas'
+      ==
+::
+::  update rejects @ta literal for @tas column
+++  test-fail-update-tas-type-00
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..people-text ".
+                        "(id @ud, term @tas) PRIMARY KEY (id);"
+                        "INSERT INTO db1..people-text VALUES (1, %foo);"
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE people-text SET term=~.bar WHERE id=1"
+      ::
+      %-  crip
+          "value type: p=~.ta does not match column: ".
+          "[%qualified-column qualifier=[%qualified-table ship=~ ".
+          "database=%db1 namespace=%dbo name=%people-text alias=~] ".
+          "name=%term alias=~]"
       ==
 ::
 ::  fail on table not matching by column qualifier
