@@ -18,27 +18,27 @@ Other than rows and columns the major variable is the table column types; and be
 
 | TABLE | Rows | Columns | Cells | Parse (ms) | Insert (ms) | Parse/Row (ms) | Parse/Cell (ms) | Insert/Row (ms) | Insert/Cell (ms) |
 |-------|------|---------|-------|------------|-------------|----------------|-----------------|-----------------|------------------|
-| adoptions | 70 | 5 | 350 | 43.268 | 8.163 | 0.618 | 0.124 | 0.117 | 0.023 |
+| adoptions | 70 | 5 | 350 | 44.560 | 9.875 | 0.637 | 0.127 | 0.141 | 0.028 |
 |    @t,@t,@t,@da,@ud |
-| vaccinations | 95 | 7 | 665 | 81.239 | 11.397 | 0.855 | 0.122 | 0.120 | 0.017 |
+| vaccinations | 95 | 7 | 665 | 82.597 | 12.117 | 0.869 | 0.124 | 0.128 | 0.018 |
 | @t,@t,@da,@t,@t,@t,@t |
-| animals | 100 | 8 | 800 | 81.000 | 14.216 | 0.810 | 0.101 | 0.142 | 0.018 |
+| animals | 100 | 8 | 800 | 83.516 | 15.536 | 0.835 | 0.104 | 0.155 | 0.019 |
 | @t,@t,@t,@t,@t,@da,@t,@da |
-| common-person-names | 100 | 4 | 400 | 39.041 | 7.041 | 0.390 | 0.098 | 0.070 | 0.018 |
+| common-person-names | 100 | 4 | 400 | 37.000 | 8.242 | 0.370 | 0.093 | 0.082 | 0.021 |
 | @ud,@t,@t,@t |
-| persons | 120 | 8 | 960 | 107.424 | 27.985 | 0.895 | 0.112 | 0.233 | 0.029 |
+| persons | 120 | 8 | 960 | 107.879 | 29.721 | 0.899 | 0.112 | 0.248 | 0.031 |
 | @t,@t,@t,@da,@t,@t,@t,@t |
-| common-animal-names | 300 | 4 | 1,200 | 106.006 | 26.669 | 0.353 | 0.088 | 0.089 | 0.022 |
+| common-animal-names | 300 | 4 | 1,200 | 104.573 | 28.557 | 0.349 | 0.087 | 0.095 | 0.024 |
 | @t,@ud,@t,@t |
-| breeds | 469 | 3 | 1,407 | 268.252 | 125.968 | 0.572 | 0.191 | 0.269 | 0.090 |
+| breeds | 469 | 3 | 1,407 | 260.003 | 123.296 | 0.554 | 0.185 | 0.263 | 0.088 |
 | @t,@t,@t |
-| calendar-us-fed-holiday | 601 | 2 | 1,202 | 172.648 | 39.468 | 0.287 | 0.144 | 0.066 | 0.033 |
+| calendar-us-fed-holiday | 601 | 2 | 1,202 | 179.495 | 47.804 | 0.299 | 0.149 | 0.080 | 0.040 |
 | @da,@t |
-| cities | 4,065 | 4 | 16,260 | 1,862.969 | 763.885 | 0.458 | 0.115 | 0.188 | 0.047 |
+| cities | 4,065 | 4 | 16,260 | 1,975.128 | 803.725 | 0.486 | 0.122 | 0.198 | 0.049 |
 | @t,@t,@t,@ud |
-| city-zip-codes | 15,503 | 3 | 46,509 | 4,050.402 | 2,977.670 | 0.261 | 0.087 | 0.192 | 0.064 |
+| city-zip-codes | 15,503 | 3 | 46,509 | 3,798.088 | 3,126.709 | 0.245 | 0.082 | 0.202 | 0.067 |
 | @t,@t,@t  |
-| calendar | 21,916 | 9 | 197,244 | 25,116.182 | 2,430.198 | 1.146 | 0.127 | 0.111 | 0.012 |
+| calendar | 21,916 | 9 | 197,244 | 25,635.685 | 3,123.573 | 1.170 | 0.130 | 0.142 | 0.016 |
 | @da,@ud,@ud,@t,@ud,@t,@ud,@ud,@ud |
 
 #### Conclusions
@@ -56,7 +56,7 @@ SELECT *
 ```
 
 parse: ms/6.093
-query: s/2.043
+query: s/2.834
 
 ```
 %obelisk-result:
@@ -90,7 +90,7 @@ SELECT day-name
 ```
 
 parse: ms/4.822
-query: s/1.067
+query: s/1.876
 
 ```
 %obelisk-result:
@@ -121,7 +121,7 @@ SELECT rando, *
 ```
 
 parse: ms/12.547
-query: s/6.592.039
+query: s/7.252
 
 ```
 %obelisk-result:
@@ -156,7 +156,7 @@ SELECT namespace, name, agent, tmsp, row-count
 ```
 
 parse: ms/17.520
-query: ms/8.371
+query: ms/6.229
 
 ```
 %obelisk-result:
@@ -194,7 +194,7 @@ SELECT T1.date, day-name, us-federal-holiday
 ```
 
 parse: ms/12.915
-query: ms/122.265
+query: ms/142.850
 
 ```
 %obelisk-result:
@@ -233,7 +233,7 @@ SELECT date, month-name, day-name, holiday, day-of-month
 ```
 
 parse: ms/11.037
-query: ms/432.952
+query: ms/433.152
 
 ```
 %obelisk-result:
@@ -276,7 +276,7 @@ SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
 
 parse: ms/26.533
-query: ms/663.616
+query: ms/625.443
 
 ```
 %obelisk-result:
@@ -318,7 +318,7 @@ SELECT T1.date, T1.year, T1.month-name, T1.day, T1.day-name, T2.holiday
 ```
 
 parse: ms/15.577
-query: ms/266.500
+query: ms/260.837
 
 ```
 %obelisk-result:
@@ -360,7 +360,7 @@ SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
 
 parse: ms/12.018
-query: ms/589.860
+query: ms/568.113
 
 ```
 %obelisk-result:
