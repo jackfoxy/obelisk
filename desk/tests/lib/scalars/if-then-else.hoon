@@ -1,4 +1,4 @@
-/-  ast, *obelisk
+/-  ast=obelisk-ast, *obelisk
 /+  *scalars,  *test,  *main,  *test-helpers
 ::
 |%
@@ -72,6 +72,7 @@
               rowcount=1
               map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
               pri-indx=~
+              ordered=%.n
               pri-indexed=*(tree [(list @) (map @tas @)])
               indexed-rows=~[row]
               joined-rows=~
@@ -1214,6 +1215,62 @@
               [%if-then-else true-predicate u-col-4 [~.ud 0]]
               table-named-ctes
               multi-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-then-missing-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate [%scalar-name %missing] q-col-2]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-else-missing-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else false-predicate q-col-2 [%scalar-name %missing]]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-then-missing-embedded-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate [%abs [%scalar-name %missing]] q-col-2]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-if-else-missing-embedded-scalar-alias
+  %+  expect-fail-message
+    'scalar %missing not found'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else false-predicate q-col-2 [%abs [%scalar-name %missing]]]
+              table-named-ctes
+              qual-lookup
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])

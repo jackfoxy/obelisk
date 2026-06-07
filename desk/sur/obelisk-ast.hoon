@@ -55,6 +55,7 @@
 +$  command
   $+  command
   $%
+    alter-database
     alter-index
     alter-namespace
     alter-table
@@ -76,7 +77,12 @@
 ::
 ::  simple union types
 ::
-+$  referential-integrity-action  ?(%delete-cascade %update-cascade)
++$  referential-integrity-action
+  $?  %delete-cascade
+      %delete-set-default
+      %update-cascade
+      %update-set-default
+      ==
 +$  index-action                  ?(%rebuild %disable %resume)
 +$  all-or-any                    ?(%all %any)
 +$  bool-conjunction              ?(%and %or)
@@ -123,14 +129,24 @@
 +$  foreign-key
   $+  foreign-key
   $:  %foreign-key
-    name=@tas
     =qualified-table
-    columns=(list ordered-column)                    :: the source columns
-    reference-table=qualified-table                 :: reference (target) table
-    reference-columns=(list @t)                      :: and columns
+    columns=(list @tas)                :: the source columns
+    reference-table=qualified-table    :: reference (target) table
+    reference-columns=(list @tas)      :: and columns
                   :: what to do when referenced item deletes or updates
     referential-integrity=(list referential-integrity-action)
     ==
++$  fk-graph-edge
+  $:  child-key=[@tas @tas]
+      parent-key=[@tas @tas]
+      actions=constraints
+      ==
++$  key-constraint  ?(%cascade %restrict %set-default)
++$  constraints
+  $:  %constraints
+      on-delete=key-constraint
+      on-update=key-constraint
+      ==
 ::
 ::  expressions
 ::
@@ -300,6 +316,7 @@
   $%  [%query query]
       [%set-query set-query]
       [%insert insert]
+      [%upsert insert]
       [%delete delete]
       [%update update]
       [%merge merge]
@@ -313,8 +330,12 @@
     tail=(list [op=set-op =query])
     ==
 +$  set-op
-    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder
-    ==
+    $?  %union
+        %except
+        %intersect
+        %divided-by
+        %divide-with-remainder
+        ==
 ::
 ::  $cte-body: body of a CTE (queries only; no DML to avoid circular type)
 +$  cte-body
@@ -362,7 +383,7 @@
 ::  $insert:
 +$  insert
   $+  insert
-  $:  %insert
+  $:  op=?(%insert %upsert)
     =qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
@@ -456,22 +477,6 @@
     as-of=(unit as-of)
     ==
 ::
-::  $create-trigger: TBD
-+$  create-trigger
-  $+  create-trigger
-  $:  %create-trigger
-    name=@tas
-    =qualified-table
-    enabled=?
-    ==
-::
-::  $create-type: TBD
-+$  create-type
-  $+  create-type
-  $:  %create-type
-    name=@tas
-    ==
-::
 ::  $create-view: persist a crud-txn as a view
 +$  create-view
   $+  create-view
@@ -518,21 +523,6 @@
     as-of=(unit as-of)
     ==
 ::
-::  $drop-trigger: TBD
-+$  drop-trigger
-  $+  drop-trigger
-  $:  %drop-trigger
-    name=@tas
-    =qualified-table
-    ==
-::
-::  $drop-type: TBD
-+$  drop-type
-  $+  drop-type
-  $:  %drop-type
-    name=@tas
-    ==
-::
 ::  $drop-view: view=qualified-table force=?
 +$  drop-view
   $+  drop-view
@@ -544,6 +534,50 @@
 ::  ALTER SCHEMA
 ::
 ::
+::  $alter-database: change database name
++$  alter-database
+  $+  alter-database
+  $:  %alter-database
+    name=@tas
+    new-name=@tas
+    ==
+::
+::  $alter-namespace: move an object from one namespace to another
++$  alter-namespace
+  $+  alter-namespace
+  $:  %alter-namespace
+    database-name=@tas
+    target-namespace=@tas
+    =table-or-view
+    =qualified-table
+    as-of=(unit as-of)
+    ==
+::
+::  $alter-table: to do - this could be simpler
++$  alter-table
+  $+  alter-table
+  $:  %alter-table
+    =qualified-table
+    new-name=(unit @tas)
+    columns=(list @tas)
+    pri-indx=(list ordered-column)
+    add-columns=(list column)
+    drop-columns=(list @tas)
+    rename-columns=(list [@tas @tas])
+    alter-columns=(list column)
+    add-foreign-keys=(list foreign-key)
+    drop-foreign-keys=(unit [(list @tas) =qualified-table])
+    as-of=(unit as-of)
+    ==
+::
+::  $alter-view: view=qualified-table crud-txn
++$  alter-view
+  $+  alter-view
+  $:  %alter-view
+    view=qualified-table
+    =crud-txn
+    ==
+::
 ::  $alter-index: change an index
 +$  alter-index
   $+  alter-index
@@ -553,48 +587,6 @@
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)
-    ==
-::
-::  $alter-namespace: move an object from one namespace to another
-+$  alter-namespace
-  $+  alter-namespace
-  $:  %alter-namespace
-    database-name=@tas
-    source-namespace=@tas
-    object-type=table-or-view
-    target-namespace=@tas
-    target-name=@tas
-    as-of=(unit as-of)
-    ==
-::
-::  $alter-table: to do - this could be simpler
-+$  alter-table
-  $+  alter-table
-  $:  %alter-table
-    =qualified-table
-    alter-columns=(list column)
-    add-columns=(list column)
-    drop-columns=(list @tas)
-    add-foreign-keys=(list foreign-key)
-    drop-foreign-keys=(list @tas)
-    as-of=(unit as-of)
-    ==
-::
-::  $alter-trigger: TBD
-+$  alter-trigger
-  $+  alter-trigger
-  $:  %alter-trigger
-    name=@tas
-    =qualified-table
-    enabled=?
-    ==
-::
-::  $alter-view: view=qualified-table crud-txn
-+$  alter-view
-  $+  alter-view
-  $:  %alter-view
-    view=qualified-table
-    =crud-txn
     ==
 ::
 ::  SCALARS
@@ -1051,6 +1043,40 @@
   $:  %upper
     string-expression=scalar-node
   ==
+::
+::  $action
+::    [%tape @tas tape]          - execute urQL script, parse and runtime
+::    [%tape-print @tas tape]    - execute urQL script, prints result to dojo
+::    [%commands (list command)] - execute API commands in runtime
+::    [%test @tas tape]          - supports expect-fail-message in unit tests
+::    [%parse tape]              - parse urQL script, returns (list command)
+::  
++$  action
+  $%
+    [%tape default-database=@tas urql=tape]
+    [%tape-print default-database=@tas urql=tape]
+    [%commands cmds=(list command)]
+    [%test default-database=@tas urql=tape]
+    [%parse default-database=@tas urql=tape]
+    ==
+::
++$  db-cmd
+  $?
+    %alter-database
+    %create-database
+    %drop-database
+    %create-namespace
+    %alter-namespace
+    %drop-namespace
+    %create-table
+    %alter-table
+    %drop-table
+    %truncate-table
+    %insert
+    %upsert
+    %update
+    %delete
+    ==
 ::
 ::  OUTPUT
 ::

@@ -1,4 +1,4 @@
-/-  ast
+/-  ast=obelisk-ast
 !:
 :: a library for parsing urQL tapes
 :: use (parse:parse(default-database '<db>') "<script>")
@@ -45,6 +45,9 @@
   =/  script=tape  (block-cmnts raw-script)
   =/  commands  `(list command:ast)`~
   =/  parse-command  ;~  pose
+    %:  cold  %alter-database
+              ;~(plug whitespace (jester 'alter') whitespace (jester 'database'))
+              ==
     %:  cold  %alter-index
               ;~(plug whitespace (jester 'alter') whitespace (jester 'index'))
               ==
@@ -117,6 +120,9 @@
     %:  cold  %insert
               ;~(plug whitespace (jester 'insert') whitespace (jester 'into'))
               ==
+    %:  cold  %upsert
+              ;~(plug whitespace (jester 'upsert') whitespace (jester 'into'))
+              ==
     %:  cold  %merge
               ;~(plug whitespace (jester 'merge') whitespace (jester 'into'))
               ==
@@ -176,9 +182,25 @@
   =/  command-nail  u.+3:q.+3:(parse-command [[1 1] script])
   ~|  "PARSER: "
   ?-  `urql-command`p.command-nail
+    %alter-database
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail
+                                    ~|  "alter database parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-alter-database
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "alter database parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  (alter-database:ast %alter-database -.parsed +.parsed)
+                          commands
+          ==
     %alter-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "alter index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -247,7 +269,7 @@
       ==
     %alter-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "alter namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -265,8 +287,7 @@
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
-                                          +>->+>-.parsed
-                                          +>->+>+<.parsed
+                                          +>-.parsed
                                           ~
                                           ==
                 ?:  ?=([@ @] +>+>.parsed)
@@ -274,16 +295,14 @@
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
-                                          +>->+>-.parsed
-                                          +>->+>+<.parsed
+                                          +>-.parsed
                                           [~ +>+>.parsed]
                                           ==
                 %:  alter-namespace:ast  %alter-namespace
                                         -<.parsed
                                         ->.parsed
                                         +<.parsed
-                                        +>->+>-.parsed
-                                        +>->+>+<.parsed
+                                        +>-.parsed
                                         :-  ~
                                             %:  as-of-offset:ast  %as-of-offset
                                                                   +>+>-.parsed
@@ -295,15 +314,14 @@
                                       -<.parsed
                                       ->.parsed
                                       +<.parsed
-                                      +>+>+<.parsed
-                                      +>+>+>-.parsed
+                                      +>.parsed
                                       ~
                                       ==
         commands
       ==
     %alter-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "alter table parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -312,289 +330,22 @@
                                 [(wonk nail) nail]
       ~|  "alter table parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
-          ?:  =(+<.parsed %alter-column)
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  :-  %:  alter-table:ast  %alter-table
-                                                 -.parsed
-                                                 +>.parsed
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ==
-                            commands
-            ==
-          ?:  =(+<.parsed %add-column)
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  :-  %:  alter-table:ast  %alter-table
-                                                 -.parsed
-                                                 ~
-                                                 +>.parsed
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ==
-                            commands
-            ==
-          ?:  =(+<.parsed %drop-column)
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  :-  %:  alter-table:ast  %alter-table
-                                                 -.parsed
-                                                 ~
-                                                 ~
-                                                 +>.parsed
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ==
-                            commands
-            ==
-          ?:  =(+<.parsed %add-fk)
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  :-  %:  alter-table:ast  %alter-table
-                                                 -.parsed
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 %-  build-foreign-keys
-                                                      [-.parsed +>.parsed]
-                                                 ~
-                                                 ~
-                                                 ==
-                            commands
-            ==
-          ?:  =(+<.parsed %drop-fk)
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  :-  %:  alter-table:ast  %alter-table
-                                                 -.parsed
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 ~
-                                                 +>.parsed
-                                                 ~
-                                                 ==
-                            commands
-            ==
-          ?:  ?&(=(+<-.parsed %alter-column) ?=([* [* %as-of *]] parsed))
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands
-                ?:  =(%now +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           ==
-                      commands
-                ?:  ?=([@ @] +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           [~ +>+.parsed]
-                                           ==
-                      commands
-                :-  %:  alter-table:ast  %alter-table
-                                         -.parsed
-                                         +<+.parsed
-                                         ~
-                                         ~
-                                         ~
-                                         ~
-                                         :-  ~
-                                             %:  as-of-offset:ast  %as-of-offset
-                                                                 +>+<.parsed
-                                                                 +>+>-.parsed
-                                                                 ==
-                                         ==
-                    commands
-            ==
-          ?:  ?&(=(+<-.parsed %add-column) ?=([* [* %as-of *]] parsed))
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands
-                ?:  =(%now +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           ==
-                      commands
-                ?:  ?=([@ @] +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           [~ +>+.parsed]
-                                           ==
-                      commands
-                :-  %:  alter-table:ast  %alter-table
-                                         -.parsed
-                                         ~
-                                         +<+.parsed
-                                         ~
-                                         ~
-                                         ~
-                                         :-  ~
-                                             %:  as-of-offset:ast  %as-of-offset
-                                                                   +>+<.parsed
-                                                                   +>+>-.parsed
-                                                                   ==
-                                         ==
-                    commands
-            ==
-          ?:  ?&(=(+<-.parsed %drop-column) ?=([* [* %as-of *]] parsed))
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands
-                ?:  =(%now +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ==
-                      commands
-                ?:  ?=([@ @] +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           +<+.parsed
-                                           ~
-                                           ~
-                                           [~ +>+.parsed]
-                                           ==
-                      commands
-                :-  %:  alter-table:ast  %alter-table
-                                         -.parsed
-                                         ~
-                                         ~
-                                         +<+.parsed
-                                         ~
-                                         ~
-                                         :-  ~
-                                             %:  as-of-offset:ast  %as-of-offset
-                                                                   +>+<.parsed
-                                                                   +>+>-.parsed
-                                                                   ==
-                                         ==
-                    commands
-            ==
-          ?:  ?&(=(+<-.parsed %add-fk) ?=([* [* %as-of *]] parsed))
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands
-                ?:  =(%now +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           %-  build-foreign-keys
-                                                 [-.parsed +<+.parsed]
-                                           ~
-                                           ~
-                                           ==
-                      commands
-                ?:  ?=([@ @] +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           ~
-                                          %-  build-foreign-keys
-                                                [-.parsed +<+.parsed]
-                                           ~
-                                           [~ +>+.parsed]
-                                           ==
-                      commands
-                :-  %:  alter-table:ast  %alter-table
-                                         -.parsed
-                                         ~
-                                         ~
-                                         ~
-                                        %-  build-foreign-keys
-                                              [-.parsed +<+.parsed]
-                                         ~
-                                         :-  ~
-                                             %:  as-of-offset:ast  %as-of-offset
-                                                                   +>+<.parsed
-                                                                   +>+>-.parsed
-                                                                   ==
-                                         ==
-                    commands
-            ==
-          ?:  ?&(=(+<-.parsed %drop-fk) ?=([* [* %as-of *]] parsed))
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands
-                ?:  =(%now +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           +<+.parsed
-                                           ~
-                                           ==
-                      commands
-                ?:  ?=([@ @] +>+.parsed)
-                  :-  %:  alter-table:ast  %alter-table
-                                           -.parsed
-                                           ~
-                                           ~
-                                           ~
-                                           ~
-                                           +<+.parsed
-                                           [~ +>+.parsed]
-                                           ==
-                      commands
-                :-  %:  alter-table:ast  %alter-table
-                                         -.parsed
-                                         ~
-                                         ~
-                                         ~
-                                         ~
-                                         +<+.parsed
-                                         :-  ~
-                                             %:  as-of-offset:ast  %as-of-offset
-                                                                   +>+<.parsed
-                                                                   +>+>-.parsed
-                                                                   ==
-                                         ==
-                    commands
-            ==
-          !!
+          =/  qt  -.parsed
+          ::  with as-of, +.parsed = [clauses [%as-of body]]
+          ::  without,    +.parsed = clauses
+          =/  has-as-of  ?=([* [%as-of *]] +.parsed)
+          =/  clauses    ?:(has-as-of +<.parsed +.parsed)
+          =/  raw-as-of  ?:(has-as-of +>.parsed ~)
+          =/  as-of-cooked  (cook-as-of raw-as-of)
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands
+              :-  ;;(alter-table:ast (build-alter-table qt clauses as-of-cooked))
+                  commands
+          ==
     %create-database
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create database parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -645,7 +396,7 @@
           !!
     %create-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -683,7 +434,7 @@
           !!
     %create-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -772,7 +523,7 @@
           ==
     %create-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "create table parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -896,7 +647,7 @@
       !!
     %delete
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "delete parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -911,7 +662,7 @@
           ==
     %drop-database
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop database parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -934,7 +685,7 @@
           !!
     %drop-index
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop index parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -950,7 +701,7 @@
           ==
     %drop-namespace
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop namespace parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1061,7 +812,7 @@
                                             ->.parsed
                                             %.n
                                             :-  ~
-                                                %:  as-of-offset:ast  
+                                                %:  as-of-offset:ast
                                                       %as-of-offset
                                                       +>-.parsed
                                                       +>+<.parsed
@@ -1138,7 +889,7 @@
           !!
     %drop-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop intabledex parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1200,7 +951,7 @@
           !!
     %drop-view
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "drop view parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1222,7 +973,7 @@
           !!
     %grant
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "grant parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1243,22 +994,39 @@
           ==
     %insert
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "insert parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
-                                        ::~>  %bout.[0 %parse-insert]  
+                                        ::~>  %bout.[0 %parse-insert]
                                         %-  parse-insert
                                               [[1 1] q.q.command-nail]
                                 [(wonk nail) nail]
       ~|  "insert parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  ins
-            ::~>  %bout.[0 %parse-produce-insert]  
-            (produce-insert parsed)
+            ::~>  %bout.[0 %parse-produce-insert]
+            (produce-insert %insert parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
+                      commands
+      ==
+    %upsert
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail
+                                    ~|  "upsert parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-insert
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "upsert parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+      =/  ups  (produce-insert %upsert parsed)
+      %=  $
+        script    q.q.u.+3.q:nail
+        commands  :-  (crud-txn:ast %crud-txn ~ [%upsert ups])
                       commands
       ==
     %merge
@@ -1307,7 +1075,7 @@
           ==
     %revoke
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "revoke parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1328,7 +1096,7 @@
           ==
     %truncate-table
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "truncate table parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1358,14 +1126,14 @@
                                             ~
                   ?:  ?=([qualified-table:ast %as-of [@ @]] parsed)
                     %^  truncate-table:ast  %truncate-table
-                                            -.parsed  
+                                            -.parsed
                                             [~ +>.parsed]
                   !!
                   commands
           ==
     %update
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "update parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1380,7 +1148,7 @@
       ==
     %with
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "with parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1400,7 +1168,17 @@
               commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
                                               :-  %insert
-                                                  (produce-insert +>.parsed)
+                                                  (produce-insert %insert +>.parsed)
+                                              ==
+                            commands
+            ==
+          ?:  =(+<.parsed %upsert)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  crud-txn:ast  %crud-txn
+                                              (produce-ctes -.parsed)
+                                              :-  %upsert
+                                                  (produce-insert %upsert +>.parsed)
                                               ==
                             commands
             ==
@@ -1445,13 +1223,24 @@
               ==
     ;~(sfix ;~(pose ;~(plug columns action) columns action) end-or-next-command)
   ==
+++  parse-alter-database  ~+
+  ;~  sfix
+    ;~  plug
+      parse-face
+      ;~  pfix
+        ;~(plug whitespace (jester 'rename') whitespace (jester 'to'))
+        parse-face
+        ==
+      ==
+    end-or-next-command
+  ==
 ++  parse-alter-namespace  ~+
   ;~  plug
     %:  cook  |=(a=* (qualified-namespace [a default-database]))
               parse-qualified-2-name
               ==
     ;~  pfix  ;~(plug whitespace (jester 'transfer'))
-              ;~(pfix whitespace ;~(pose (jester 'table') (jester 'view')))
+              ;~(pfix whitespace (jester 'table'))
               ==
     ;~  sfix
       ;~  pose
@@ -1461,30 +1250,56 @@
       end-or-next-command
     ==
   ==
++$  alter-table-clause
+  $%  [%rename-to @tas]
+      [%columns (list @tas)]
+      [%pri-indx (list ordered-column:ast)]
+      [%add-column (list column:ast)]
+      [%drop-column (list @tas)]
+      [%rename-columns (list [@tas @tas])]
+      [%alter-column (list column:ast)]
+      [%add-fk *]
+      [%drop-fk [(list @tas) qualified-table:ast]]
+      ==
+++  parse-alter-table-clause
+  ::  one ALTER TABLE clause
+  ;~  pose
+    rename-clause
+    columns-clause
+    primary-key-clause
+    alter-columns
+    add-columns
+    drop-columns
+    add-foreign-key
+    drop-foreign-key
+  ==
+++  check-alter-table-clauses
+  ::  parser-level enforcement: at least one clause; no duplicates of single-occurrence tags
+  |=  raw=*
+  ^-  (list alter-table-clause)
+  =/  clauses  ;;((list alter-table-clause) raw)
+  ?~  clauses
+    ~|("ALTER TABLE: at least one clause is required" !!)
+  =/  seen=(set @tas)  ~
+  =/  loop  ;;((list alter-table-clause) clauses)
+  |-
+  ?~  loop  clauses
+  =/  tag=@tas  -.-.loop
+  ?:  =(tag %add-fk)
+    $(loop +.loop)
+  ?:  (~(has in seen) tag)
+    ~|("ALTER TABLE: duplicate {<tag>} clause" !!)
+  $(loop +.loop, seen (~(put in seen) tag))
 ++  parse-alter-table  ~+
   ;~  plug
     ;~(pfix whitespace parse-qualified-3object)
     ;~  sfix
       ;~  pose
         ;~  plug
-          ;~  pfix  whitespace
-                    ;~  pose  alter-columns
-                              add-columns
-                              drop-columns
-                              add-foreign-key
-                              drop-foreign-key
-                              ==
-                    ==
+          (cook check-alter-table-clauses (more com parse-alter-table-clause))
           parse-as-of
         ==
-        ;~  pfix  whitespace
-                  ;~  pose  alter-columns
-                            add-columns
-                            drop-columns
-                            add-foreign-key
-                            drop-foreign-key
-                            ==
-                  ==
+        (cook check-alter-table-clauses (more com parse-alter-table-clause))
       ==
       end-or-next-command
     ==
@@ -1718,7 +1533,7 @@
     whitespace
     ;~  pfix
       (jester 'on')
-      %+  more  com  
+      %+  more  com
                 ;~  pose  ;~  pfix  whitespace
                                     ;~(sfix parse-grant-object whitespace)
                                     ==
@@ -2057,6 +1872,10 @@
         parse-insert
         ==
       ;~  plug
+        (cold %upsert ;~(plug (jester 'upsert') whitespace (jester 'into')))
+        parse-insert
+        ==
+      ;~  plug
         (cold %merge ;~(plug (jester 'merge') whitespace (jester 'into')))
         parse-merge
         ==
@@ -2091,6 +1910,7 @@
     ;~(plug (jester 'merge') whitespace)
     ;~(plug (jester 'query') whitespace)
     ;~(plug (jester 'select') whitespace)
+    ;~(plug (jester 'upsert') whitespace)
     ;~(plug (jester 'update') whitespace)
   ==
 ++  parse-cte  ~+
@@ -2140,9 +1960,9 @@
           whitespace
           ;~  pfix
             (jester 'on')
-            %+  more  com  
+            %+  more  com
                       ;~  pose  ;~  pfix  whitespace
-                                          ;~  sfix  parse-revoke-object 
+                                          ;~  sfix  parse-revoke-object
                                                     whitespace
                                                     ==
                                           ==
@@ -2153,7 +1973,7 @@
           ==
         ==
     ;~(sfix parse-grant-duration end-or-next-command)
-  == 
+  ==
 ++  parse-revoke-object
   ;~  pose  (jester 'all')
             (jester 'server')
@@ -2319,69 +2139,69 @@
   [%qualified-column obj name.a alias.a]
 ::
 ++  produce-insert
-  |=  a=*
+  |=  [op=?(%insert %upsert) a=*]
   ~+
   ^-  insert:ast
   =/  table  -<.a
   =/  c      ->.a
   ::
   ?:  ?=([~ %values *] c)            :: insert rows
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([~ [* %values] *] c)        :: insert column names rows
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ ->.c]
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     ~
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     ~
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ ->.c]
                     `+<-.c
                     [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
-    %:  insert:ast  %insert
+    %:  insert:ast  op
                     table
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     `+<-.c
                     [%data +>.c]
                     ==
-  ~|("Cannot parse insert {<a>}" !!)
+  ~|("Cannot parse insert/upsert {<a>}" !!)
 ++  produce-matching-profile
   |=  a=*
   ^-  (list [@t datum:ast])
@@ -2956,14 +2776,14 @@
     ?~  target.cooked-case
       ~
     (some (finalize-scalar-node (need target.cooked-case) aliases))
-  =/  finalized-cases 
+  =/  finalized-cases
     |-
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
     =/  cwt=case-when-then-helper  i.cases.cooked-case
     =/  when-cwt  when.cwt
-    =/  finalized-when  
+    =/  finalized-when
       ?:  ?=(scalar-node-helper when-cwt)
         (finalize-scalar-node when-cwt aliases)
       %:  finalize-predicate  when-cwt
@@ -3370,7 +3190,7 @@
     ?:  ?=([@ @] -.a)
       ?:  ?=([%all-columns @] -.a)
         %=  $
-          columns  :-  %+  selected-all-table:ast  
+          columns  :-  %+  selected-all-table:ast
                             %all-object
                             ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
                               (~(got by alias-map) (crip (cass (trip ->.a))))
@@ -3877,6 +3697,10 @@
                         ;~(less (just `@`39) (just `@`127) (shim 32 256))
                         ==
               ==
+    :: knot literal
+    (stag %ta ;~(pfix ;~(plug sig dot) urs:ab))
+    :: term literal
+    (stag %tas ;~(pfix cen sym))
     ;~(pose ;~(pfix sig crub-no-text) crub-no-text)  :: @da, @dr, @p
     (stag %f parse-loobean-literal)                                   :: @f
     (stag %is ;~(pfix (just '.') bip:ag))            :: @is
@@ -3914,6 +3738,7 @@
   |=  a=@
   ^-  ?
   ?|  =('\'' a)
+      =('%' a)
       =('~' a)
       =('.' a)
       =('-' a)
@@ -3974,7 +3799,7 @@
     parse-insert-value-core
     insert-value
   ==
-::  
+::
 ::  used for various commands
 ::
 ++  cook-column
@@ -3993,29 +3818,44 @@
       [%ordered-column -.a %.n]
     ~|("cannot parse ordered-column  {<a>}" !!)
 ++  cook-referential-integrity
+  ::  input is one or two [type=?(%delete %update) verb=?(%cascade %restrict %set-default)] pairs
   |=  a=*
-  ?:  ?=([[@ @] @ @] [a])                  :: <type> cascade, <type> cascade
-    ~|  "cook-referential-integrity {<a>}"
-    ?:  =(%delete -<.a)
-      ?:  =(%update +<.a)
-        ~[%delete-cascade %update-cascade]
-      !!
-    ?:  =(%update -<.a)
-      ?:  =(%delete +<.a)
-        ~[%delete-cascade %update-cascade]
-      !!
-    !!
-  ?:  ?=([@ @] [a])                        :: <type> cascade
-    ?:  =(-.a %delete)  [%delete-cascade ~]  [%update-cascade ~]
-  ?:  ?=([[@ @] @ @ [@ %~] @] [a])         :: <type> cascade, <type> no action
-    ?:  =(-<.a %delete)  [%delete-cascade ~]  [%update-cascade ~]
-  ?:  ?=([[@ @ [@ %~] @] @ @] [a])         :: <type> no action, <type> cascade
-    ?:  =(+<.a %delete)  [%delete-cascade ~]  [%update-cascade ~]
-  ?:  ?=([@ [@ %~]] a)                     :: <type> no action
-    ~
-  ?:  ?=([[@ @ [@ %~] @] @ @ [@ %~] @] a)  :: <type> no action, <type> no action
-    ~
-  ~|("cannot parse ordered-column  {<a>}" !!)
+  ^-  (list referential-integrity-action:ast)
+  =/  one
+    |=  pair=*
+    ^-  (unit referential-integrity-action:ast)
+    ?.  ?=([@ @] pair)
+      ~|("cook-referential-integrity bad pair {<pair>}" !!)
+    =/  type=@  -.pair
+    =/  verb=@  +.pair
+    ?:  =(verb %restrict)  ~
+    ?:  =(verb %cascade)
+      ?:  =(type %delete)  `%delete-cascade
+      ?:  =(type %update)  `%update-cascade
+      ~|("cook-referential-integrity bad type {<type>}" !!)
+    ?:  =(verb %set-default)
+      ?:  =(type %delete)  `%delete-set-default
+      ?:  =(type %update)  `%update-set-default
+      ~|("cook-referential-integrity bad type {<type>}" !!)
+    ~|("cook-referential-integrity bad verb {<verb>}" !!)
+  ::  one pair
+  ?:  ?=([@ @] a)
+    =/  u  (one a)
+    ?~  u  ~
+    ~[u.u]
+  ::  two pairs
+  ?:  ?=([[@ @] [@ @]] a)
+    =/  p1  ;;([@ @] -.a)
+    =/  p2  ;;([@ @] +.a)
+    =/  u1  (one p1)
+    =/  u2  (one p2)
+    ?:  =(-.p1 -.p2)
+      ~|("cook-referential-integrity duplicate {<-.p1>}" !!)
+    =/  out=(list referential-integrity-action:ast)  ~
+    =.  out  ?~(u1 out [u.u1 out])
+    =.  out  ?~(u2 out [u.u2 out])
+    (flop out)
+  ~|("cook-referential-integrity unexpected shape {<a>}" !!)
 ++  end-or-next-command  ~+
   ;~  plug  (cold %end-command ;~(pose ;~(plug whitespace mic) whitespace mic))
             (easy ~)
@@ -4087,9 +3927,9 @@
     (jest '@sv')             ::  signed base32
     (jest '@sw')             ::  signed base64
     (jest '@sx')             ::  signed hexadecimal
-    (jest '@t')              ::  UTF-8 text (cord)
-    (jest '@ta')             ::  ASCII text (knot)
     (jest '@tas')            ::  ASCII text symbol (term)
+    (jest '@ta')             ::  ASCII text (knot)
+    (jest '@t')              ::  UTF-8 text (cord)
     (jest '@ub')             ::  unsigned binary
     (jest '@ud')             ::  unsigned decimal
     (jest '@uv')             ::  unsigned base32
@@ -4162,17 +4002,22 @@
     ==
   ==
 ++  referential-integrity
+  ::  produces [type=?(%delete %update) verb=?(%cascade %restrict %set-default)]
   ;~  plug
     ;~  pfix
       ;~(plug whitespace (jester 'on') whitespace)
-      ;~(pose (jester 'update') (jester 'delete'))
+      ;~  pose
+        (cold %update (jester 'update'))
+        (cold %delete (jester 'delete'))
+        ==
     ==
     ;~  pfix
       whitespace
       ;~  pose
-        (jester 'cascade')
-        ;~(plug (jester 'no') whitespace (jester 'action'))
-      ==
+        (cold %cascade (jester 'cascade'))
+        (cold %restrict (jester 'restrict'))
+        (cold %set-default ;~(plug (jester 'set') whitespace (jester 'default')))
+        ==
     ==
   ==
 ++  column-definitions
@@ -4197,6 +4042,49 @@
               ;~(plug whitespace (jester 'drop') whitespace (jester 'column'))
               ==
     face-list
+  ==
+++  columns-clause
+  ::  COLUMNS ( c1, c2, ... )    canonical reorder
+  ;~  plug
+    (cold %columns ;~(plug whitespace (jester 'columns')))
+    face-list
+  ==
+++  primary-key-clause
+  ::  PRIMARY KEY ( c1 [ASC|DESC], ... )
+  ;~  plug
+    %:  cold  %pri-indx
+              ;~(plug whitespace (jester 'primary') whitespace (jester 'key'))
+              ==
+    ordered-column-list
+  ==
+++  rename-pair
+  ::  c1 TO c2
+  ;~  plug
+    parse-face
+    ;~  pfix
+      ;~(plug whitespace (jester 'to'))
+      parse-face
+    ==
+  ==
+++  rename-clause
+  ::  RENAME TO <new-name> | RENAME COLUMN ( c1 TO c1a [, c2 TO c2a]... )
+  ;~  pfix
+    ;~(plug whitespace (jester 'rename') whitespace)
+    ;~  pose
+      ;~  plug
+        (cold %rename-to (jester 'to'))
+        parse-face
+        ==
+      ;~  plug
+        (cold %rename-columns (jester 'column'))
+        ;~  pfix
+          whitespace
+          %:  ifix  [pal par]
+                    (more com rename-pair)
+                    ==
+        ==
+      ==
+    ==
   ==
 ::
 ++  literal-leading-char
@@ -4343,46 +4231,110 @@
     (interim-key %interim-key +.a)
   (interim-key %interim-key a)
 ::
+++  build-alter-table
+  ::  fold ALTER TABLE clauses into a positional alter-table AST
+  ::  inputs:  qt=qualified-table  clauses=(list clause)  as-of=(unit as-of)
+  |=  [qt=* clauses=* as-of=*]
+  ^-  alter-table:ast
+  =/  table  ;;(qualified-table:ast qt)
+  =/  cooked-as-of  ;;((unit as-of:ast) as-of)
+  =/  new-name=(unit @tas)  ~
+  =/  columns=(list @tas)  ~
+  =/  pri-indx=(list ordered-column:ast)  ~
+  =/  add-columns=(list column:ast)  ~
+  =/  drop-columns=(list @tas)  ~
+  =/  rename-columns=(list [@tas @tas])  ~
+  =/  alter-columns=(list column:ast)  ~
+  =/  add-fks=(list foreign-key:ast)  ~
+  =/  drop-fks=(unit [(list @tas) qualified-table:ast])  ~
+  =/  loop  ;;((list alter-table-clause) clauses)
+  |-
+  ?~  loop
+    :*  %alter-table  table
+        new-name
+        columns
+        pri-indx
+        add-columns
+        drop-columns
+        rename-columns
+        alter-columns
+        (flop add-fks)
+        drop-fks
+        cooked-as-of
+        ==
+  =/  clause=alter-table-clause  -.loop
+  ?-  -.clause
+    %rename-to
+      $(loop +.loop, new-name [~ +.clause])
+    %columns
+      $(loop +.loop, columns +.clause)
+    %pri-indx
+      $(loop +.loop, pri-indx +.clause)
+    %alter-column
+      $(loop +.loop, alter-columns +.clause)
+    %add-column
+      $(loop +.loop, add-columns +.clause)
+    %drop-column
+      $(loop +.loop, drop-columns +.clause)
+    %rename-columns
+      $(loop +.loop, rename-columns +.clause)
+    %add-fk
+      =/  fks=(list foreign-key:ast)  (build-foreign-keys [table +.clause])
+      $(loop +.loop, add-fks (weld (flop fks) add-fks))
+    %drop-fk
+      =/  drop=[(list @tas) qualified-table:ast]  +.clause
+      =/  parsed-ref=qualified-table:ast  +.drop
+      =/  reference-table
+        :*  %qualified-table
+            ~
+            database.table
+            namespace.parsed-ref
+            name.parsed-ref
+            ~
+            ==
+      $(loop +.loop, drop-fks [~ [-.drop reference-table]])
+  ==
+++  cook-as-of
+  ::  convert parse-as-of payload to (unit as-of); accepts ~ if no as-of given
+  |=  a=*
+  ^-  (unit as-of:ast)
+  ?:  ?=(~ a)  ~
+  ?:  ?=([%as-of %now] a)  ~
+  ?:  ?=([%as-of @ @] a)  [~ ;;(as-of:ast +.a)]
+  ?:  ?=([%as-of @ @ @] a)
+    :-  ~
+        %:  as-of-offset:ast  %as-of-offset
+                              +<.a
+                              +>-.a
+                              ==
+  ~|("cook-as-of unexpected shape {<a>}" !!)
 ++  build-foreign-keys
   |=  a=*  ::a=[table=qualified-table:ast f-keys=*]
+  =/  table  ;;(qualified-table:ast -.a)
   =/  f-keys  +.a
   =/  foreign-keys  `(list foreign-key:ast)`~
   |-
   ?:  =(~ f-keys)
     (flop foreign-keys)
-  ?@  -<.f-keys
-    %=  $                       :: foreign key table must be in same DB as table
-      foreign-keys
-        :-  %:  foreign-key:ast  %foreign-key
-                                  -<.f-keys
-                                  -.a
-                                  ->-.f-keys
-                                  :*  %qualified-table
-                                      ~
-                                      ->+<.a
-                                      ->+<+>+<.f-keys
-                                      ->+<+>+>.f-keys
-                                      ==
-                                  ->+>.f-keys
-                                  ~
-                                  ==
-            foreign-keys
-      f-keys        +.f-keys
-    ==
+  =/  item  -.f-keys
+  =/  spec  -.item
+  =/  parsed-ref  ;;(qualified-table:ast +<.spec)
+  =/  reference-table
+    :*  %qualified-table
+        ~
+        database.table
+        namespace.parsed-ref
+        name.parsed-ref
+        ~
+        ==
   %=  $                         :: foreign key table must be in same DB as table
     foreign-keys
       :-  %:  foreign-key:ast  %foreign-key
-                                -<-.f-keys
-                                -.a
-                                -<+<.f-keys
-                                :*  %qualified-table
-                                    ~
-                                    ->+<.a
-                                    -<+>->+>-.f-keys
-                                    -<+>->+>+.f-keys
-                                    ==
-                                -<+>+.f-keys
-                                ->.f-keys
+                                table
+                                ;;((list @tas) -.spec)
+                                reference-table
+                                ;;((list @tas) +>.spec)
+                                ;;((list referential-integrity-action:ast) +.item)
                                 ==
           foreign-keys
     f-keys        +.f-keys
@@ -4391,8 +4343,7 @@
   ;~(plug whitespace (jester 'foreign') whitespace (jester 'key'))
 ++  foreign-key
   ;~  plug
-    parse-face
-    ordered-column-list
+    face-list
     ;~  pfix
       ;~(plug whitespace (jester 'references'))
       ;~(plug (cook cook-qualified-2object parse-qualified-2-name) face-list)
@@ -4406,13 +4357,9 @@
                         ==
               ==
     ;~  plug  foreign-key
-              %:  cook  cook-referential-integrity
-                        ;~(plug referential-integrity referential-integrity)
-                        ==
+              (cook cook-referential-integrity referential-integrity)
               ==
-    ;~(plug foreign-key (cook cook-referential-integrity referential-integrity))
-    ;~(plug foreign-key (cook cook-referential-integrity referential-integrity))
-    foreign-key
+    ;~(plug foreign-key (easy ~))
   ==
 ++  add-foreign-key
   ;~  plug
@@ -4430,7 +4377,10 @@
                         (jester 'key')
                         ==
               ==
-    face-list
+    ;~  plug
+      face-list
+      (cook cook-qualified-2object parse-qualified-2-name)
+      ==
   ==
 ++  primary-key
    %:  cook
@@ -4462,7 +4412,7 @@
     ;~  plug                :: AS <alias> <as-of-time>
       parse-qualified-table
       parse-as-of
-      ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)) 
+      ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
     ==
     ;~  plug                :: <alias> <as-of-time>
       parse-qualified-table
@@ -4472,7 +4422,7 @@
     ;~  plug                :: <as-of-time>
       parse-qualified-table
       parse-as-of
-    == 
+    ==
     ;~  plug                  :: AS <alias>
       parse-qualified-table
       ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
@@ -4993,7 +4943,7 @@
 ++  parse-no-params
   |*  [a=*]
     ;~  pfix
-      whitespace 
+      whitespace
       (ifix [pal par] (easy ~))
     ==
 ::
@@ -5009,25 +4959,25 @@
 ++  parse-two-params
   |*  [first-param=rule second-param=rule]
     ;~  pfix
-      whitespace 
+      whitespace
       %+  ifix
         [pal par]
         ;~  (glue com)
           ;~(pfix whitespace ;~(sfix first-param whitespace))
-          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix second-param whitespace))
         ==
     ==
 ::
 ++  parse-three-params
   |*  [first-param=rule second-param=rule third-param=rule]
     ;~  pfix
-      whitespace 
+      whitespace
       %+  ifix
         [pal par]
         ;~  (glue com)
           ;~(pfix whitespace ;~(sfix first-param whitespace))
-          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
-          ;~(pfix whitespace ;~(sfix third-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix second-param whitespace))
+          ;~(pfix whitespace ;~(sfix third-param whitespace))
         ==
     ==
 ::
@@ -5066,10 +5016,22 @@
   ::  unary builtin functions
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
+  ?:  =(%hour fn-name)
+    [%hour (finalize-param raw-scalar-body aliases)]
+  ?:  =(%minute fn-name)
+    [%minute (finalize-param raw-scalar-body aliases)]
   ?:  =(%month fn-name)
     [%month (finalize-param raw-scalar-body aliases)]
+  ?:  =(%second fn-name)
+    [%second (finalize-param raw-scalar-body aliases)]
   ?:  =(%year fn-name)
     [%year (finalize-param raw-scalar-body aliases)]
+  ?:  =(%add-time fn-name)
+    :+  %add-time  (finalize-param -.raw-scalar-body aliases)
+                  (finalize-param +.raw-scalar-body aliases)
+  ?:  =(%subtract-time fn-name)
+    :+  %subtract-time  (finalize-param -.raw-scalar-body aliases)
+                       (finalize-param +.raw-scalar-body aliases)
   ?:  =(%abs fn-name)
     [%abs (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
@@ -5248,7 +5210,9 @@
 :: TODO: replace params with parse-scalar-param
 ++  parse-builtin-scalar-name
   ;~  pose
+    (cold %subtract-time (jester 'subtract-time'))
     (cold %getutcdate (jester %getutcdate))
+    (cold %add-time (jester 'add-time'))
     (cold %degrees (jester %degrees))
     (cold %ceiling (jester %ceiling))
     (cold %substring (jester %substring))
@@ -5260,6 +5224,7 @@
     (cold %reverse (jester %reverse))
     (cold %atan2 (jester %atan2))
     (cold %floor (jester %floor))
+    (cold %minute (jester %minute))
     (cold %month (jester %month))
     (cold %right (jester %right))
     (cold %round (jester %round))
@@ -5270,8 +5235,10 @@
     (cold %stuff (jester %stuff))
     (cold %concat (jester %concat))
     (cold %string (jester %string))
+    (cold %second (jester %second))
     (cold %sign (jester %sign))
     (cold %sqrt (jester %sqrt))
+    (cold %hour (jester %hour))
     (cold %left (jester %left))
     (cold %trim (jester %trim))
     (cold %year (jester %year))
@@ -5292,6 +5259,36 @@
     (cold %tau (jester %tau))
     (cold %pi (jester %pi))
     (cold %e (jester %e))
+  ==
+++  parse-builtin-scalar-constant
+  |=  tub=nail
+  ^-  (like *)
+  =/  constant-follow
+    ;~  pose
+      gah
+      (just '\09')
+      (just '\0d')
+      par
+      com
+    ==
+  =/  parsed
+    %+  cook
+      |=  a=[@tas *]
+      -.a
+    ;~  plug
+      ;~  pose
+        (cold %phi (jester %phi))
+        (cold %tau (jester %tau))
+        (cold %pi (jester %pi))
+        (cold %e (jester %e))
+      ==
+      (peek constant-follow)
+    ==
+  =/  result  (parsed tub)
+  ?~  q.result
+    result
+  :*  p.result
+      [~ u=[p=[%builtin-fn [p.u.q.result [%no-params ~]]] q=q.u.q.result]]
   ==
 ++  parse-builtin-scalar-params
   |=  [fn-name=@tas tub=nail]
@@ -5332,8 +5329,13 @@
     %pi          ((stag %no-params (parse-no-params ~)) tub)
     %tau         ((stag %no-params (parse-no-params ~)) tub)
     %day         (scalar-one-param tub)
+    %hour        (scalar-one-param tub)
+    %minute      (scalar-one-param tub)
     %month       (scalar-one-param tub)
+    %second      (scalar-one-param tub)
     %year        (scalar-one-param tub)
+    %add-time    (scalar-two-param tub)
+    %subtract-time  (scalar-two-param tub)
     %abs         (scalar-one-param tub)
     %floor       (scalar-one-param tub)
     %ceiling     (scalar-one-param tub)
@@ -5445,6 +5447,7 @@
     parse-coalesce
     parse-standalone-builtin-scalar-fn
     parse-builtin-scalar-fn
+    parse-builtin-scalar-constant
     parse-scalar-param
   ==
 ++  parse-scalar-node  ~+
@@ -5520,7 +5523,7 @@
     ~
   =/  raw-when  ->-.case-when-then-list
   =/  raw-then  ->+>.case-when-then-list
-  =/  cooked-when  
+  =/  cooked-when
     ?:  =(case-type %simple-case)
       (cook-scalar-node raw-when)
     ?:  =(case-type %searched-case)
@@ -5573,7 +5576,7 @@
   ?@  -.remaining.state
     ?:  =(-.remaining.state %par)
       [(flop new-list.state) +.remaining.state]
-    ?:  ?=(%pal -.remaining.state) 
+    ?:  ?=(%pal -.remaining.state)
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
     ?:  ?=(arithmetic-token:ast -.remaining.state)
@@ -5590,7 +5593,7 @@
   ?~  remaining.state
     (flop new-list.state)
   ?@  -.remaining.state
-    ?:  ?=(%pal -.remaining.state) 
+    ?:  ?=(%pal -.remaining.state)
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
     ?:  ?=(arithmetic-token:ast -.remaining.state)
@@ -5610,6 +5613,10 @@
     [%ceiling (finalize-param raw-scalar-body aliases)]
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
+  ?:  =(%hour fn-name)
+    [%hour (finalize-param raw-scalar-body aliases)]
+  ?:  =(%minute fn-name)
+    [%minute (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
     [%floor (finalize-param raw-scalar-body aliases)]
   ?:  =(%len fn-name)
@@ -5624,6 +5631,8 @@
     ~|("finalize-math-builtin-fn: %log requires one or two params" !!)
   ?:  =(%month fn-name)
     [%month (finalize-param raw-scalar-body aliases)]
+  ?:  =(%second fn-name)
+    [%second (finalize-param raw-scalar-body aliases)]
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
       :+  %round
@@ -5743,7 +5752,7 @@
   |=  [parsed=* aliases=alias-maps]
   ^-  arithmetic:ast
   =/  ops-and-operators  (arithmetic-list parsed)
-  =/  nested  (process-arithmetic-list ops-and-operators 0 aliases) 
+  =/  nested  (process-arithmetic-list ops-and-operators 0 aliases)
   =/  op-tree  tree.nested
   ?@  op-tree
     ~|("process-arithmetic-list {<parsed>}" !!)
@@ -5770,6 +5779,7 @@
     ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     parse-coalesce
     parse-builtin-scalar-fn
+    parse-builtin-scalar-constant
     parse-scalar-param
   ==
 ++  arithmetic-token
@@ -5885,6 +5895,7 @@
     parse-coalesce
     parse-standalone-builtin-scalar-fn
     parse-scalar-node-arithmetic
+    parse-builtin-scalar-constant
     parse-arithmetic
     parse-builtin-scalar-fn
   ==
@@ -5969,7 +5980,7 @@
     %:  cold  %group-by
               ;~(plug whitespace (jester 'group') whitespace (jester 'by'))
               ==
-    %+  more  com 
+    %+  more  com
               (ifix [whitespace whitespace] ;~(pose parse-qualified-column dem))
   ==
 ++  cook-ordering-column
@@ -6011,6 +6022,7 @@
 ::
 +$  urql-command
   $%
+    %alter-database
     %alter-index
     %alter-namespace
     %alter-table
@@ -6027,6 +6039,7 @@
     %drop-view
     %grant
     %insert
+    %upsert
     %merge
     %query
     %revoke

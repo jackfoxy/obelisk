@@ -1,4 +1,4 @@
-/-  *ast, *obelisk, *server-state-0
+/-  *obelisk-ast, *obelisk, *server-state-1
 /+  *utils, mip   :: *mip does not build
 |%
 ::
@@ -66,7 +66,7 @@
           ==
   ^-  $-(data-row ?)
   ?~  p  ~|("prepare-predicate can't get here 1" !!) 
-  ?.  ?=(ops-and-conjs n.p)  ~|("prepare-predicate can't get here 2" !!)
+  ?.  ?=(ops-and-conjs n.p)  ~|("predicate root must be an operator or conjunction" !!)
   ?-  n.p
     ::
     ternary-op

@@ -1,5 +1,6 @@
 ::  unit tests on %obelisk library simulating pokes
 ::
+/-  *server-state-1
 /+  *test-helpers, utils
 |%
 ::
@@ -194,8 +195,8 @@
 ::
 ++  printable-ascii  "0123456789:;<=>?@ABCDEFGHIJK !#$%&'()*+,-./".
                      "LMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz|}~\{\"\\"
-++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_`AaBbCcDdEeFfGgHhIiJjKk".
-                    "LlMmNnOoPpQqRrSsTtUuVvWwXxYyZz\{|}~"
+++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_`aAbBcCdDeEfFgG".
+                    "hHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ\{|}~"
 ++  aor-ordering    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW".
                     "XYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~"
 ::
@@ -225,7 +226,7 @@
   %+  expect-eq
     !>  alpha-ordering
     !>  (sort alpha-ordering alpha:utils)
-++  test-alpha-06
+  ++  test-alpha-06
   =/  the-list  :~  'abc'
                     'aBc'
                     'ab'
@@ -244,20 +245,20 @@
                     'ABc'
                     'AB'
                     ==
-  =/  expected  :~  'A'
-                    'a'
-                    'AB'
-                    'Ab'
-                    'aB'
+  =/  expected  :~  'a'
+                    'A'
                     'ab'
-                    'ABC'
-                    'ABc'
-                    'AbC'
-                    'Abc'
-                    'aBC'
-                    'aBc'
-                    'abC'
+                    'aB'
+                    'Ab'
+                    'AB'
                     'abc'
+                    'abC'
+                    'aBc'
+                    'aBC'
+                    'Abc'
+                    'AbC'
+                    'ABc'
+                    'ABC'
                     'b'
                     'bac'
                     'bb'
@@ -647,26 +648,26 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+::        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "INSERT INTO db1..my-table (col1) VALUES ('cord') "
 ::  =.  run  +(run)
 ::  =^  mov4  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db2"])
+::        !>([%tape %sys "CREATE DATABASE db2"])
 ::  ::
 ::  %+  expect-fail-message
 ::        'DROP DATABASE: database must be dropped by local agent'
@@ -831,7 +832,7 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1"])
+::        !>([%tape %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message
@@ -1542,19 +1543,19 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1"])
+::        !>([%tape %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape2
+::        !>  :+  %tape
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+::        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message
@@ -1842,4 +1843,126 @@
       ::
       'CREATE TABLE: %my-table-2 as-of data time out of order'
       ==
+::
+++  fk-test-constraint
+  |=  vals=constrained-values
+  ^-  foreign-constraint
+  :*  [%dbo %child]
+      [%constraints %restrict %restrict]
+      ~[%id]
+      ~[%parent-id]
+      vals
+      ==
+::
+++  fk-test-file
+  |=  constraints=(list foreign-constraint)
+  ^-  file
+  :*  %file
+      ~zod
+      `path`/test-agent
+      ~2000.1.1
+      0
+      ~
+      ~
+      constraints
+      ==
+::
+++  fk-test-child-file
+  ^-  file
+  :*  %file
+      ~zod
+      `path`/test-agent
+      ~2000.1.1
+      2
+      ~
+      :~  :*  %indexed-row
+              ~[10]
+              (malt `(list [@tas @])`~[[%id 10] [%parent-id 1]])
+              ==
+          :*  %indexed-row
+              ~[11]
+              (malt `(list [@tas @])`~[[%id 11] [%parent-id 1]])
+              ==
+          ==
+      ~
+      ==
+::
+::  constrained-values add creates and extends child-key sets
+++  test-ri-helper-add-constrained-value
+  =/  c0=foreign-constraint  (fk-test-constraint *constrained-values)
+  =/  c1=foreign-constraint
+        (add-constrained-value-reference:utils c0 ~[1] ~[10])
+  =/  c2=foreign-constraint
+        (add-constrained-value-reference:utils c1 ~[1] ~[11])
+  =/  c3=foreign-constraint
+        (add-constrained-value-reference:utils c2 ~[1] ~[11])
+  =/  expected=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[10] ~[11]])]])
+  %+  expect-eq
+    !>  expected
+    !>  constrained-values.c3
+::
+::  constrained-values remove prunes an empty parent-key entry
+++  test-ri-helper-remove-prunes
+  =/  vals=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[10]])]])
+  =/  c0=foreign-constraint  (fk-test-constraint vals)
+  =/  c1=foreign-constraint
+        (remove-constrained-value-reference:utils c0 ~[1] ~[10])
+  %+  expect-eq
+    !>  *constrained-values
+    !>  constrained-values.c1
+::
+::  constrained-values move within same FK key replaces child PK
+++  test-ri-helper-move-same-key
+  =/  vals=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[10]])]])
+  =/  c0=foreign-constraint  (fk-test-constraint vals)
+  =/  c1=foreign-constraint
+        (move-constrained-value-reference:utils c0 ~[1] ~[1] ~[10] ~[12])
+  =/  expected=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[12]])]])
+  %+  expect-eq
+    !>  expected
+    !>  constrained-values.c1
+::
+::  constrained-values move across FK keys prunes old and creates new
+++  test-ri-helper-move-cross-key
+  =/  vals=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[10]])]])
+  =/  c0=foreign-constraint  (fk-test-constraint vals)
+  =/  c1=foreign-constraint
+        (move-constrained-value-reference:utils c0 ~[1] ~[2] ~[10] ~[10])
+  =/  expected=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[2] (silt ~[~[10]])]])
+  %+  expect-eq
+    !>  expected
+    !>  constrained-values.c1
+::
+::  constrained-values seeding from existing child rows
+++  test-ri-helper-seed-existing-rows
+  =/  seeded=foreign-constraint
+        %:  seed-constrained-values-from-rows:utils
+              (fk-test-constraint *constrained-values)
+              fk-test-child-file
+              ~[%parent-id]
+              ==
+  =/  expected=constrained-values
+        (malt `(list [(list @) (set (list @))])`~[[~[1] (silt ~[~[10] ~[11]])]])
+  %+  expect-eq
+    !>  expected
+    !>  constrained-values.seeded
+::
+::  canonical incoming lookup fails when missing
+++  test-ri-helper-missing-constraint-fails
+  %+  expect-fail-message
+    'FOREIGN KEY invariant: incoming constraint not found'
+  |.  (find-canonical-incoming-fk:utils ~ [%dbo %child] ~[%parent-id])
+::
+::  canonical incoming lookup fails when duplicate metadata exists
+++  test-ri-helper-duplicate-constraint-fails
+  =/  incoming=foreign-constraint  (fk-test-constraint *constrained-values)
+  %+  expect-fail-message
+    'FOREIGN KEY invariant: duplicate incoming constraint'
+  |.  (find-canonical-incoming-fk:utils ~[incoming incoming] [%dbo %child] ~[%parent-id])
 --

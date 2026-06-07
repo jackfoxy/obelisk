@@ -1,4 +1,4 @@
-/-  *ast, *server-state-0
+/-  *obelisk-ast, *server-state-1
 /+  *mip
 ^?
 |%
@@ -36,38 +36,6 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  $action
-::    [%tape @tas tape]          - prints result to dodjo
-::    [%tape2 @tas tape]         - suppresses printing result to dojo
-::    [%commands (list command)] - prints result to dojo
-::    [%test @tas tape]          - supports expect-fail-message in unit tests
-::    [%parse tape]              - returns (list command)
-::  
-+$  action
-  $%
-    [%tape default-database=@tas urql=tape]
-    [%tape2 default-database=@tas urql=tape]
-    [%commands cmds=(list command)]
-    [%test default-database=@tas urql=tape]
-    [%parse default-database=@tas urql=tape]
-    ==
-::
-+$  db-cmd
-  $?
-    %create-database
-    %drop-database
-    %create-namespace
-    %alter-namespace
-    %drop-namespace
-    %create-table
-    %alter-table
-    %drop-table
-    %truncate-table
-    %insert
-    %update
-    %delete
-    ==
-::
 +$  set-table
   $+  set-table
   $:  %set-table
@@ -80,6 +48,7 @@
     rowcount=@
     =map-meta
     pri-indx=(unit index)
+    ordered=?
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
     joined-rows=(list joined-row)
@@ -162,7 +131,7 @@
 ::
 +$  seed  @uvJ
 ::
-::  common metadata for DELETE, INSERT, UPDATE
+::  common metadata for DELETE, INSERT, UPSERT, UPDATE
 +$  txn-meta
   $+  txn-meta
   $:  %txn-meta
@@ -180,5 +149,22 @@
       changed-schemas=(map @tas @da)
       changed-data=(map @tas @da)
       state=server
+      ==
+::
++$  constrained-value-edit
+  $%  [%add parent-key=(list @) child-pk=(list @)]
+      [%remove parent-key=(list @) child-pk=(list @)]
+      $:  %move
+          old-parent-key=(list @)
+          new-parent-key=(list @)
+          old-child-pk=(list @)
+          new-child-pk=(list @)
+          ==
+      ==
++$  constrained-value-row-tuples
+  $:  old-parent-key=(list @)
+      new-parent-key=(list @)
+      old-child-pk=(list @)
+      new-child-pk=(list @)
       ==
 --

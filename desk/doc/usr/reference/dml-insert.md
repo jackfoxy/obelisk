@@ -61,7 +61,7 @@ Timestamp equal to or greater than the table content state upon which to perform
 ```
 +$  insert
   $:
-    %insert
+    op=?(%insert %upsert)
     =qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
@@ -77,13 +77,19 @@ The `VALUES` or `<crud-txn>` must provide data for all columns in the expected o
 
 The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
-Cord values are represented in single quotes `'this is a cord'`. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
+Use [`UPSERT`](/docs/usr/reference/dml-upsert.md) when rows with existing
+primary keys should be overwritten instead of rejected.
+
+Text values use Hoon aura notation: `@t` cords are represented in single
+quotes, `@tas` terms with `%`, and `@ta` knots with `~.`. Single quotes within
+cord values must be escaped with double backslash as `'this is a cor\\'d'`.
+`@ta` and `@tas` values are validated before rows are written.
 
 Note that multiple parentheses enclosed rows of column values are NOT comma separated.
 
 ### Produced Metadata
 
-message: INSERT INTO <namespace name>.<table name>
+action: INSERT INTO <namespace name>.<table name>
 server time: <timestamp>
 schema time: <timestamp>   The most current table schema time
 data time: <timestamp>     The source content time upon which the INSERT acted

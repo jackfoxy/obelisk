@@ -1,17 +1,22 @@
-/-  *server-state-0, server-state-0, *obelisk, ast
-/+  default-agent, dbug, *main, *print
+/-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
+/+  default-agent, dbug, *main, *migration, *print
 |%
 +$  versioned-state
   $%  state-0
+      state-1
   ==
 +$  state-0
   $:  %0
+      server=server:server-state-0
+  ==
++$  state-1
+  $:  %1
       =server
   ==
 +$  card  card:agent:gall
 --
 %-  agent:dbug
-=|  state-0
+=|  state-1
 =*  state  -
 ^-  agent:gall
 |_  =bowl:gall
@@ -20,20 +25,18 @@
 ++  on-init
   ^-  (quip card _this)
   =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
-  =+  .^(dudes=(set [dude:gall ?]) %ge our %base now /$)
-  =/  install-hawk=card
-    :*  %pass
-        /init/hawk/install
-        %agent
-        [our.bowl %hood]
-        %poke
-        %kiln-install
-        !>([%hawk ~dister-migrev-dolseg %hawk])
-    ==
-  =/  hawk-cards=(list card)
-    ?:  |((~(has in dudes) [%hawk &]) (~(has in dudes) [%hawk |]))
-      ~
-    [install-hawk ~]
+  =+  .^(desks=(set desk) %cd /=//=)
+  =/  install-hawk=card  :*  %pass
+                             /init/hawk/install
+                             %agent
+                             [our.bowl %hood]
+                             %poke
+                             %kiln-install
+                             !>([%hawk ~dister-migrev-dolseg %hawk])
+                             ==
+  =/  hawk-cards=(list card)  ?:  (~(has in desks) %hawk)
+                                ~
+                              [install-hawk ~]
   =/  animal-cards=(list card)
     :~  :*  %pass
             /init/animal-shelter
@@ -47,9 +50,9 @@
             %x
             da+now.bowl
             /gen/animal-shelter/all-animal-shelter/txt
+            ==
         ==
-    ==
-  :_  this(state *state-0)
+  :_  this(state *state-1)
   (weld hawk-cards animal-cards)
 ++  on-save
   !>(state)
@@ -58,20 +61,20 @@
   ^-  (quip card _this)
   ::  attempt state reload/migration
   ::
-  =/  r=(each state-0 tang)
+  =/  r=(each state-1 tang)
     %-  mule  |.
-    =/  old  !<(versioned-state old-state)
-    ?-  -.old
-      %0  old
-      :: %1
-    ==
+              =/  old  !<(versioned-state old-state)
+              ?-  -.old
+                %0  [%1 (migrate-server-0-to-1 server.old)]
+                %1  old
+                ==
   ::  if it succeeded, use the old state
   ::
   ?:  ?=(%.y -.r)  `this(state p.r)
   ::  if it failed, bunt the correct state type
   ::
   %-  (slog 'old state corrupt, unable to migrate data' ~)
-  `this(state *state-0)
+  `this(state *state-1)
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
@@ -83,24 +86,24 @@
   ?-    -.act
   ::
   ::  prints results
-  %tape
+  %tape-print
     =/  virtualized
-        ^-  (each (pair (list cmd-result) server:server-state-0) tang)
+        ^-  (each (pair (list cmd-result) server:server-state-1) tang)
         %-  mule
           |.
           %:  state-server
-          ::::~>  %bout.[0 %parse-cmds]
           (parse-urql +<.act +>.act)
           ==
     ?-  -.virtualized
       %.n
+        =/  dummy  (print-crash p.virtualized)
         :_  this
         :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
             [%give %kick ~[/server] ~]
         ==
       %.y
         =/  res  p.virtualized
-        =/  x  (print -.res)
+        =/  dummy  (print -.res)
         :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>([& -.res])]
             [%give %kick ~[/server] ~]
@@ -108,9 +111,9 @@
     ==
   ::
   ::  action without printing results
-  %tape2
+  %tape
     =/  virtualized
-      ^-  (each (pair (list cmd-result) server:server-state-0) tang)
+      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
       %-  mule
       |.
       %:  state-server
@@ -214,7 +217,7 @@
                 [our.bowl dap.bowl]
                 %poke
                 %obelisk-action
-                !>([%tape2 %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+                !>([%tape %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
             ==
         ==
       ==

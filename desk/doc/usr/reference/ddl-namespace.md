@@ -64,14 +64,12 @@ namespace `<namespace>` already exists
 
 ## ALTER NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
-
-Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
+Transfer an existing user `<table>` to another `<namespace>`.
 
 ```
 <alter-namespace> ::=
   ALTER NAMESPACE [ <database>. ] <namespace>
-    TRANSFER { TABLE | VIEW } [ <db-qualifier> ]{ <table> | <view> }
+    TRANSFER TABLE [ <db-qualifier> ] <table>
     [ <as-of> ]
 ```
 
@@ -80,10 +78,10 @@ Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
 **`<namespace>`**
 Name of the target namespace into which the object is to be transferred. 
 
-**`TABLE | VIEW`**
+**`TABLE`**
 Indicates the type of the target object.
 
-**`<table> | <view>`**
+**`<table>`**
 Name of the object to be transferred to the target namespace.
 
 **`<as-of>`**
@@ -94,21 +92,28 @@ Timestamp of namespace update. Defaults to NOW (current time). When specified, t
 +$  alter-namespace
   $:  %alter-namespace
     database-name=@tas
-    source-namespace=@tas
-    object-type=table-or-view
     target-namespace=@tas
-    target-name=@tas
+    =table-or-view
+    =qualified-table
     as-of=(unit as-of)
-  ==
+    ==
 ```
 
 ### Remarks
 This command mutates the state of the Obelisk agent.
 
+`ALTER NAMESPACE ... TRANSFER TABLE` may move a table between namespaces in the same database, or between namespaces in different user databases. When the transferred table participates in any foreign key (as parent or child), cross-database transfer is rejected; in that case the source table's database and the target namespace's database must match. Foreign-key references involving the transferred table remain valid and are updated to the table's new namespace-qualified identity.
+
+Objects cannot be transferred in or out of database *sys*.
+
 Objects cannot be transferred in or out of namespace *sys*.
 
 ### Produced Metadata
-Schema timestamp
+
+action: ALTER NAMESPACE TRANSFER TABLE <table>
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
 
 ### Exceptions
 
@@ -118,13 +123,12 @@ namespace `<namespace>` as-of schema time out of order
 namespace `<namespace>` as-of content time out of order
 namespace `<namespace>` does not exist
 alter namespace state change after query in script
-`<table>` or `<view>` does not exist
+`<table>` does not exist
+`<table>` already exists in target namespace
 
 ## DROP NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
-
-Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
+Deletes a `<namespace>` and all tables in that namespace.
 
 ```
 <drop-namespace> ::= 
@@ -135,7 +139,7 @@ Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
 ### Arguments
 
 **`FORCE`**
-Optionally force deletion of `<namespace>`, dropping all objects associated with the namespace.
+Optionally force deletion of `<namespace>`, dropping all tables associated with the namespace.
 
 **`<namespace>`**
 The name of `<namespace>` to delete.
@@ -159,19 +163,40 @@ Timestamp of namespace deletion. Defaults to `NOW` (current time). When specifie
 
 This command mutates the state of the Obelisk agent.
 
-Only succeeds when no *populated* `<table>`s are in the namespace, unless `FORCE` is specified, possibly resulting in cascading object drops described in `DROP TABLE`.
+Without `FORCE`, the namespace can be dropped only when all tables in the namespace are empty and dropping those tables would not orphan any foreign keys. An orphan foreign key is a constraint whose parent table is in the dropped namespace while the child table is outside the dropped namespace.
+
+Foreign keys wholly contained within the dropped namespace do not block a non-`FORCE` drop, provided the involved tables are empty. Foreign keys where only the child table is in the dropped namespace also do not block a non-`FORCE` drop, provided the child table is empty.
+
+With `FORCE`, all tables in the namespace are dropped regardless of row counts or foreign-key participation. Foreign-key metadata is cleaned up for all affected surviving tables:
+
+- if parent and child are both dropped, both sides are removed with the tables
+- if the parent is dropped and the child remains, the child's outbound foreign-key metadata is removed
+- if the child is dropped and the parent remains, the parent's incoming foreign-key metadata is removed
+
+Dropped tables remain available to historical queries when selected with an `AS OF` time before the namespace drop. The same namespace name, and the same table names within that namespace, may be created again after the drop time.
 
 The namespaces *dbo* and *sys* cannot be dropped.
 
 ### Produced Metadata
 
-Schema timestamp
+action: DROP NAMESPACE <namespace>
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
+
+The result also includes a message for each table dropped by the namespace drop.
 
 ### Exceptions
 
 schema changes must be by local agent
+database `<database>` does not exist
 namespace `<namespace>` does not exist
 namespace `<namespace>` as-of schema time out of order
 namespace `<namespace>` as-of content time out of order
 drop namespace state change after query in script
-`<namespace>` has populated tables and `FORCE` was not specified.
+namespace `<namespace>` cannot be dropped
+`<namespace>` has populated tables and `FORCE` was not specified
+`<namespace>` would orphan foreign keys and `FORCE` was not specified
+`<namespace>` has populated tables and would orphan foreign keys, and `FORCE` was not specified
+
+When the drop would orphan foreign keys, the error message names at least one affected foreign key relationship. If more than one relationship would be orphaned, the message also includes the total count.

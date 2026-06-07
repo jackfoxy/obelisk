@@ -1,5 +1,5 @@
 :: this file  will contain code that handles scalars in the engine
-/-  ast, *obelisk
+/-  ast=obelisk-ast, *obelisk
 /+  *predicate, *utils, mip, math
 |%
 :: inventory:
@@ -15,6 +15,14 @@
       resolved-scalar
     =/  f=$-(data-row dime)  +>.resolved-scalar
     (f row)
+::
+++  text-aura
+  |=  typ=@ta
+  ^-  ?
+  ?|  =(~.t typ)
+      =(~.ta typ)
+      =(~.tas typ)
+      ==
 ++  prepare-scalar
   |=  $:  scalar=scalar-function:ast
           =named-ctes
@@ -1099,7 +1107,7 @@
                                     seed
                                     ==
         +.ps
-      ?>  (levy exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
+      ?>  (levy exprs |=(e=resolved-scalar (text-aura ?:(?=(dime e) -.e type.e))))
       ?:  (levy exprs |=(e=resolved-scalar ?=(dime e)))
         :-  seed
         :-  ~.t
@@ -1138,7 +1146,7 @@
                                   -.ps
                                   ==
       =/  int-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "LEFT: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1171,7 +1179,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+      ?.  (text-aura ?:(?=(dime expr) -.expr type.expr))
         ~|  "LEN: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
@@ -1195,7 +1203,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+      ?.  (text-aura ?:(?=(dime expr) -.expr type.expr))
         ~|  "LOWER: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
@@ -1220,7 +1228,7 @@
                                   seed
                                   ==
       =/  str-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "LTRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1264,7 +1272,7 @@
                                   -.ps
                                   ==
       =/  pat-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+      ?.  (text-aura ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "LTRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
@@ -1302,11 +1310,11 @@
                                   -.ps
                                   ==
       =/  pat-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "PATINDEX: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
-      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+      ?.  (text-aura ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "PATINDEX: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
@@ -1340,7 +1348,7 @@
                                   seed
                                   ==
       =/  str-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "QUOTESTRING: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1376,11 +1384,11 @@
                                   -.ps
                                   ==
       =/  close-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime open-expr) -.open-expr type.open-expr))
+      ?.  (text-aura ?:(?=(dime open-expr) -.open-expr type.open-expr))
         ~|  "QUOTESTRING: expected @t open, got ".
             "{<?:(?=(dime open-expr) -.open-expr type.open-expr)>}"
             !!
-      ?.  =(~.t ?:(?=(dime close-expr) -.close-expr type.close-expr))
+      ?.  (text-aura ?:(?=(dime close-expr) -.close-expr type.close-expr))
         ~|  "QUOTESTRING: expected @t close, got ".
             "{<?:(?=(dime close-expr) -.close-expr type.close-expr)>}"
             !!
@@ -1429,15 +1437,15 @@
                                   -.ps
                                   ==
       =/  rep-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "REPLACE: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
-      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+      ?.  (text-aura ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "REPLACE: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
-      ?.  =(~.t ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
+      ?.  (text-aura ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
         ~|  "REPLACE: expected @t replacement, got ".
             "{<?:(?=(dime rep-expr) -.rep-expr type.rep-expr)>}"
             !!
@@ -1491,7 +1499,7 @@
                                   -.ps
                                   ==
       =/  int-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "REPLICATE: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1532,7 +1540,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+      ?.  (text-aura ?:(?=(dime expr) -.expr type.expr))
         ~|  "REVERSE: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
@@ -1565,7 +1573,7 @@
                                   -.ps
                                   ==
       =/  int-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "RIGHT: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1604,7 +1612,7 @@
                                   seed
                                   ==
       =/  str-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "RTRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1648,7 +1656,7 @@
                                   -.ps
                                   ==
       =/  pat-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+      ?.  (text-aura ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "RTRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
@@ -1709,8 +1717,8 @@
                                   seed
                                   ==
       =/  delim-expr=resolved-scalar  +.ps
-      ?>  (levy arg-exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
-      ?.  =(~.t ?:(?=(dime delim-expr) -.delim-expr type.delim-expr))
+      ?>  (levy arg-exprs |=(e=resolved-scalar (text-aura ?:(?=(dime e) -.e type.e))))
+      ?.  (text-aura ?:(?=(dime delim-expr) -.delim-expr type.delim-expr))
         ~|  "STRING-CONCAT: expected @t delimiter, got ".
             "{<?:(?=(dime delim-expr) -.delim-expr type.delim-expr)>}"
             !!
@@ -1785,7 +1793,7 @@
                                   -.ps
                                   ==
       =/  rep-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "STUFF: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1797,7 +1805,7 @@
         ~|  "STUFF: expected @ud length, got ".
             "{<?:(?=(dime len-expr) -.len-expr type.len-expr)>}"
             !!
-      ?.  =(~.t ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
+      ?.  (text-aura ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
         ~|  "STUFF: expected @t replacement, got ".
             "{<?:(?=(dime rep-expr) -.rep-expr type.rep-expr)>}"
             !!
@@ -1854,7 +1862,7 @@
                                   -.ps
                                   ==
       =/  start-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "SUBSTRING: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1922,7 +1930,7 @@
                                   seed
                                   ==
       =/  str-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+      ?.  (text-aura ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "TRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
             !!
@@ -1969,7 +1977,7 @@
                                   -.ps
                                   ==
       =/  pat-expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+      ?.  (text-aura ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "TRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
@@ -1997,7 +2005,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+      ?.  (text-aura ?:(?=(dime expr) -.expr type.expr))
         ~|  "UPPER: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
@@ -2288,8 +2296,7 @@
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
-  ::  build (predicate resolved-scalar) pairs for the simple CASE form;
-  ::  each predicate compares target against a when-value at runtime.
+  ::  build (predicate resolved-scalar) pairs for the searched CASE form.
   ::  if else.scalar is present, appends a catch-all entry whose predicate
   ::  always returns %.y.
   |=  $:  scalar=case:ast
@@ -2306,6 +2313,8 @@
     =/  items  cases.scalar
     |-  ^-  [@uvJ (list [$-(data-row ?) resolved-scalar])]
     ?~  items  [seed (flop acc)]
+    ?.  ?=([ops-and-conjs:ast * *] when.i.items)
+      ~|("when scalar not allowed in searched case" !!)
     =/  qualified-pred
           %+  normalize-predicate  ;;(predicate:ast when.i.items)
                                    qualifier-lookup
@@ -2901,6 +2910,19 @@
     :-  seed
     ~|  "scalar {<name.datum>} not found"
         (~(got by resolved-scalars) name.datum)
+  ?:  ?|  ?=([%e ~] datum)
+          ?=([%phi ~] datum)
+          ?=([%pi ~] datum)
+          ?=([%tau ~] datum)
+          ==
+    %:  prepare-scalar  ;;(scalar-function:ast datum)
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        bowl
+                        seed
+                        ==
   ?:  ?=(dime datum)
     [seed datum]
   ?:  ?=(cte-column:ast datum)

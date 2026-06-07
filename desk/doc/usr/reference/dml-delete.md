@@ -24,7 +24,7 @@ WHERE col1 = 'tomorrow';
 ### Arguments
 
 **`<table>`**
-The target of the `DELETE` operation.tal
+The target of the `DELETE` operation.
 
 **`<predicate>`**
 Any valid `<predicate>`, including predicates on CTEs and/or scalar names determining rows to delete.

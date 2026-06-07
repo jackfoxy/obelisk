@@ -9,19 +9,23 @@
 
 * __GROUP BY...HAVING__ -- as in SQL.
 
-* __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(*).
+* __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
 
 * __ORDER BY ...__ -- order result set
 
-* __path column type__ -- support path and pith types.
-
 * __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
-* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems
+* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
 * __INSERT FROM...SELECT... INTO table__ -- INSERT data defined by a query.
 
 * __SELECT TOP n ...__ -- dependent on total ordering
+
+* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
+
+* __@uv aura__ -- requires research: what flavor of RFC 4648 is urbit supporting?
+
+* __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
 
 ## other planned functionality
 
@@ -31,19 +35,13 @@
 
 * __Additional system views__ -- security, views, etc.
 
-* __UPSERT__ -- INSERT that does not fail on duplicate key, but rather updates the row.
-
 * __Support column cells and/or jammed nouns__ -- currently only aura-typed atoms supported.
-
-* __Foreign Keys__ -- enforce referential integrity and allow natural join even when names do not match.
 
 * __@rh, @rs, @rq arithmetic__ -- @rh, @rs, @rq 
 
-* __Suppport Paths__  -- %hawk compatibility support path to select server components.
-
 * __Regex__ -- predicate matching and scalar support
 
-* __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
+* __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will. %hawk/%oxal compatibility via path?.
 
 * __Stored procedures__ -- Parameterized queries, to be designed (TBD). Possibly urQL + inlined hoon...who knows.
 
@@ -53,7 +51,7 @@
 
 * __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
 
-* __String formatting__ -- date formatting, other string formatting
+* __String formatting__ -- date formatting, other string formatting (extension of STRING())
 
 * __Pivoting__ -- similar to SQL.
 
@@ -65,14 +63,8 @@
 
 * __B+ trees__ -- a performance thing.
 
-* __Aura @uc__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
-
-* __INSERT aura validation__ -- probably as an option, +sane impact on performance unknown. Currently possible to mix-up auras.
-
-* __Support @ta and @tas auras__ -- would require +sane.
-
 * __%quiz__ -- property tests on database, namespace, table, insert, query, etc.
 
-* __alternate urQL grammar__ -- row tuple in square brackets and/or pith for from.
+* __alternate urQL grammar__ -- row tuple in square brackets and/or pith for from...maybe in SPROCs?
 
 * __CLONE DATABASE__ -- copy schema and data to a new database with optional effective <as-of-time>.

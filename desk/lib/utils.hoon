@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast=obelisk-ast, *obelisk, *server-state-1
 /+  mip
 |%
 ::
@@ -49,9 +49,20 @@
     =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k ~.t)  (alpha -.q -.p)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
+    ?:  ?|  =(-<.k ~.t)
+            =(-<.k ~.ta)
+            =(-<.k ~.tas)
+            ==
+      ?:  ->.k  (alpha -.p -.q)
+      (alpha -.q -.p)
+    ?:  =(-<.k ~.rd)
+      ?:  ->.k  (lth:rd -.p -.q)
+      (gth:rd -.p -.q)
+    ?:  =(-<.k ~.sd)
+      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
+      =((cmp:si `@s`-.p `@s`-.q) --1)
+    ?:  ->.k  (lth -.p -.q)
+    (gth -.p -.q)
   --
 ::
 ++  pri-key
@@ -565,10 +576,13 @@
   ==
 ::
 ++  to-column
-  |=  [p=@t q=(map @tas [aura @])]
+  |=  [op=?(%insert %upsert) p=@t q=(map @tas [aura @])]
   ^-  column:ast
-  ~|  "INSERT: invalid column: {<p>}"
-  [%column p -:(~(got by q) p) 0]
+  ?:  =(%insert op)
+    ~|  "INSERT: invalid column: {<p>}"
+        [%column p -:(~(got by q) p) 0]
+  ~|  "UPSERT: invalid column: {<p>}"
+      [%column p -:(~(got by q) p) 0]
 ::
 ++  update-sys
   |=  [state=server sys-time=@da]
@@ -584,10 +598,16 @@
           db=database
           sys-time=@da
           sys-vws=(unit (list [@tas @tas]))
-          caller=db-cmd
+          caller=db-cmd:ast
           ==
   ^-  view-cache
   ?-  caller
+    %alter-database
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %databases]
+                                    [%sys %sys-log]
+                                    ==
     %create-database
       (next-view-cache-keys db sys-time ~[[%sys %databases]])
     %drop-database
@@ -595,25 +615,52 @@
     %create-namespace
       (next-view-cache-keys db sys-time ~[[%sys %namespaces]])
     %alter-namespace
-      ~|("%alter-namespace not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %foreign-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %drop-namespace
-      ~|("%drop-namespace not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %namespaces]
+                                    [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %foreign-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %create-table
       %^  next-view-cache-keys  db
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
                                     ==
     %alter-table
-      ~|("%alter-table not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %foreign-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %drop-table
       %^  next-view-cache-keys  db
                                 sys-time
                                 :~  [%sys %tables]
                                     [%sys %table-keys]
+                                    [%sys %foreign-keys]
                                     [%sys %columns]
                                     [%sys %sys-log]
                                     [%sys %data-log]
@@ -625,6 +672,14 @@
                                     [%sys %data-log]
                                     ==
     %insert
+      %^  next-view-cache-keys
+                            db
+                            sys-time
+                            %+  weld  %-  limo  :~  [%sys %tables]
+                                                    [%sys %data-log]
+                                                    ==
+                                      (need sys-vws)
+    %upsert
       %^  next-view-cache-keys
                             db
                             sys-time
@@ -695,6 +750,47 @@
       tmsp.f
       ==
 ::
+++  mk-work-state
+  |=  $:  =bowl:gall
+          state=server
+          =qualified-table:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          as-of=(unit as-of:ast)
+          action=tape
+          ==
+  ^-  [=database @da =schema =data]
+  =/  db  ~|  %+  weld  action
+                        " TABLE: database {<database.qualified-table>} ".
+                        "does not exist"
+             (~(got by state) database.qualified-table)
+  =/  sys-time  (set-tmsp as-of now.bowl)
+  =/  nxt-schema=schema
+        ~|  %+  weld  action
+                      " TABLE: {<name.qualified-table>} as-of schema time ".
+                      "out of order"
+            %:  get-next-schema  sys.db
+                                next-schemas
+                                sys-time
+                                database.qualified-table
+                                ==
+  =/  nxt-data=data
+        ~|  %+  weld  action
+                      " TABLE: {<name.qualified-table>} as-of data time ".
+                      "out of order"
+            %:  get-next-data  content.db
+                                next-data
+                                sys-time
+                                database.qualified-table
+                                ==
+  ::
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table)
+    ~|  %+  weld  action
+                  " TABLE: namespace {<namespace.qualified-table>} ".
+                  "does not exist"
+        !!
+  [db sys-time nxt-schema nxt-data]
+::
 ++  content-key  ((on @da data) gth)
 ::
 ++  get-content
@@ -703,6 +799,355 @@
   ~|  "data for {<tbl-key>} does not exist for time {<sys-time>}"
   =/  d=data  ->:(tab:content-key content ``@da`(add `@`sys-time 1) 1)
   (~(got by files.d) tbl-key)
+::
+++  ri-actions-to-constraints
+  |=  ri=(list referential-integrity-action:ast)
+  ^-  constraints:ast
+  =/  on-delete=key-constraint:ast  %restrict
+  =/  on-update=key-constraint:ast  %restrict
+  |-
+  ?~  ri  [%constraints on-delete on-update]
+  ?-  i.ri
+    %delete-cascade      $(ri t.ri, on-delete %cascade)
+    %delete-set-default  $(ri t.ri, on-delete %set-default)
+    %update-cascade      $(ri t.ri, on-update %cascade)
+    %update-set-default  $(ri t.ri, on-update %set-default)
+  ==
+::
+++  make-fk-graph-edge
+  |=  $:  child-key=[@tas @tas]
+          parent-key=[@tas @tas]
+          ri=(list referential-integrity-action:ast)
+          ==
+  ^-  fk-graph-edge:ast
+  :*  child-key
+      parent-key
+      (ri-actions-to-constraints ri)
+      ==
+::
+++  fk-graph-with-candidate
+  |=  [=files candidate=fk-graph-edge:ast]
+  ^-  (list fk-graph-edge:ast)
+  [candidate (fk-graph-from-files files)]
+::
+++  fk-graph-from-files
+  |=  =files
+  ^-  (list fk-graph-edge:ast)
+  =/  pairs=(list [[@tas @tas] file])  ~(tap by files)
+  =/  edges=(list fk-graph-edge:ast)  ~
+  |-
+  ?~  pairs  (flop edges)
+  =/  parent-key=[@tas @tas]  -.i.pairs
+  =/  parent-file=file        +.i.pairs
+  =.  edges  %:  fk-graph-edges-from-parent
+                 parent-key
+                 foreign-constraints.parent-file
+                 edges
+                 ==
+  $(pairs t.pairs)
+::
+++  fk-graph-edges-from-parent
+  |=  $:  parent-key=[@tas @tas]
+          constraints=(list foreign-constraint)
+          edges=(list fk-graph-edge:ast)
+          ==
+  ^-  (list fk-graph-edge:ast)
+  |-
+  ?~  constraints  edges
+  =/  incoming=foreign-constraint  i.constraints
+  =/  edge=fk-graph-edge:ast  :*  constrained-table.incoming
+                              parent-key
+                              actions.incoming
+                              ==
+  $(constraints t.constraints, edges [edge edges])
+::
+++  fk-graph-candidate-has-cycle
+  |=  [graph=(list fk-graph-edge:ast) candidate=fk-graph-edge:ast]
+  ^-  ?
+  %:  fk-graph-path-has-cycle  graph
+                               parent-key.candidate
+                               child-key.candidate
+                               ~
+                               ==
+::
+++  fk-graph-candidate-has-cascading-cycle
+  |=  [graph=(list fk-graph-edge:ast) candidate=fk-graph-edge:ast]
+  ^-  ?
+  %:  fk-graph-path-has-cascading-cycle  graph
+                                         parent-key.candidate
+                                         child-key.candidate
+                                         ~
+                                         (fk-edge-cascading candidate)
+                                         ==
+::
+++  fk-graph-path-has-cycle
+  |=  $:  graph=(list fk-graph-edge:ast)
+          current=[@tas @tas]
+          target=[@tas @tas]
+          visited=(list [@tas @tas])
+          ==
+  ^-  ?
+  ?:  =(current target)  %.y
+  ?:  (table-key-in-list current visited)  %.n
+  =/  edges=(list fk-graph-edge:ast)  (fk-graph-outgoing-edges graph current)
+  |-
+  ?~  edges  %.n
+  ?:  %:  fk-graph-path-has-cycle  graph
+                                   parent-key.i.edges
+                                   target
+                                   [current visited]
+                                   ==
+    %.y
+  $(edges t.edges)
+::
+++  fk-graph-path-has-cascading-cycle
+  |=  $:  graph=(list fk-graph-edge:ast)
+          current=[@tas @tas]
+          target=[@tas @tas]
+          visited=(list [@tas @tas])
+          cascading=?
+          ==
+  ^-  ?
+  ?:  =(current target)  cascading
+  ?:  (table-key-in-list current visited)  %.n
+  =/  edges=(list fk-graph-edge:ast)  (fk-graph-outgoing-edges graph current)
+  |-
+  ?~  edges  %.n
+  =/  edge=fk-graph-edge:ast  i.edges
+    ?:  %:  fk-graph-path-has-cascading-cycle
+              graph
+              parent-key.edge
+              target
+              [current visited]
+              ?|(cascading (fk-edge-cascading edge))
+              ==
+    %.y
+  $(edges t.edges)
+::
+++  fk-graph-outgoing-edges
+  |=  [graph=(list fk-graph-edge:ast) source=[@tas @tas]]
+  ^-  (list fk-graph-edge:ast)
+  =/  out=(list fk-graph-edge:ast)  ~
+  |-
+  ?~  graph  (flop out)
+  %=  $
+    graph  t.graph
+    out    ?:  =(child-key.i.graph source)
+             [i.graph out]
+           out
+  ==
+::
+++  fk-edge-cascading
+  |=  edge=fk-graph-edge:ast
+  ^-  ?
+  ?|  !=(on-delete.actions.edge %restrict)
+      !=(on-update.actions.edge %restrict)
+      ==
+::
+++  table-key-in-list
+  |=  [needle=[@tas @tas] haystack=(list [@tas @tas])]
+  ^-  ?
+  ?~  haystack  %.n
+  ?:  =(needle i.haystack)  %.y
+  $(haystack t.haystack)
+::
+++  find-canonical-incoming-fk
+  |=  $:  constraints=(list foreign-constraint)
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          ==
+  ^-  foreign-constraint
+  =/  found=(unit foreign-constraint)  ~
+  |-
+  ?~  constraints
+    ?~  found
+      ~|("FOREIGN KEY invariant: incoming constraint not found" !!)
+    u.found
+  =/  item=foreign-constraint  i.constraints
+  ?:  ?&  =(constrained-table.item child-key)
+          =(constrained-columns.item source-cols)
+          ==
+    ?~  found
+      $(constraints t.constraints, found [~ item])
+    ~|("FOREIGN KEY invariant: duplicate incoming constraint" !!)
+  $(constraints t.constraints)
+::
+++  add-constrained-value-reference
+  |=  $:  incoming=foreign-constraint
+          parent-key=(list @)
+          child-pk=(list @)
+          ==
+  ^-  foreign-constraint
+  =/  current=(unit (set (list @)))
+        (~(get by constrained-values.incoming) parent-key)
+  =/  child-keys=(set (list @))
+        ?~  current
+          *(set (list @))
+        u.current
+  =.  constrained-values.incoming
+        %+  ~(put by constrained-values.incoming)
+          parent-key
+        (~(put in child-keys) child-pk)
+  incoming
+::
+++  remove-constrained-value-reference
+  |=  $:  incoming=foreign-constraint
+          parent-key=(list @)
+          child-pk=(list @)
+          ==
+  ^-  foreign-constraint
+  =/  current=(unit (set (list @)))
+        (~(get by constrained-values.incoming) parent-key)
+  ?~  current
+    ~|("FOREIGN KEY invariant: constrained parent key not found" !!)
+  ?.  (~(has in u.current) child-pk)
+    ~|("FOREIGN KEY invariant: constrained child key not found" !!)
+  =/  child-keys=(set (list @))  (~(del in u.current) child-pk)
+  =.  constrained-values.incoming
+        ?:  =(0 ~(wyt in child-keys))
+          (~(del by constrained-values.incoming) parent-key)
+        %+  ~(put by constrained-values.incoming)
+          parent-key
+        child-keys
+  incoming
+::
+++  move-constrained-value-reference
+  |=  $:  incoming=foreign-constraint
+          old-parent-key=(list @)
+          new-parent-key=(list @)
+          old-child-pk=(list @)
+          new-child-pk=(list @)
+          ==
+  ^-  foreign-constraint
+  =/  removed=foreign-constraint
+        %^  remove-constrained-value-reference  incoming
+                                                old-parent-key
+                                                old-child-pk
+  (add-constrained-value-reference removed new-parent-key new-child-pk)
+::
+++  apply-constrained-value-edit
+  |=  [incoming=foreign-constraint edit=constrained-value-edit]
+  ^-  foreign-constraint
+  ?-  -.edit
+    %add
+      (add-constrained-value-reference incoming parent-key.edit child-pk.edit)
+    %remove
+      %^  remove-constrained-value-reference  incoming
+                                              parent-key.edit
+                                              child-pk.edit
+    %move
+      %:  move-constrained-value-reference
+            incoming
+            old-parent-key.edit
+            new-parent-key.edit
+            old-child-pk.edit
+            new-child-pk.edit
+            ==
+  ==
+::
+++  replace-canonical-incoming-fk
+  |=  $:  constraints=(list foreign-constraint)
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          edited=foreign-constraint
+          ==
+  ^-  (list foreign-constraint)
+  =/  out=(list foreign-constraint)  ~
+  =/  replaced=?  %.n
+  |-
+  ?~  constraints
+    ?.  replaced
+      ~|("FOREIGN KEY invariant: incoming constraint not found" !!)
+    (flop out)
+  =/  item=foreign-constraint  i.constraints
+  ?:  ?&  =(constrained-table.item child-key)
+          =(constrained-columns.item source-cols)
+          ==
+    ?:  replaced
+      ~|("FOREIGN KEY invariant: duplicate incoming constraint" !!)
+    $(constraints t.constraints, out [edited out], replaced %.y)
+  $(constraints t.constraints, out [item out])
+::
+++  apply-constrained-value-edit-to-parent-file
+  |=  $:  parent-file=file
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          edit=constrained-value-edit
+          edit-time=@da
+          ==
+  ^-  file
+  =/  incoming=foreign-constraint
+        %^  find-canonical-incoming-fk  foreign-constraints.parent-file
+                                        child-key
+                                        source-cols
+  =/  edited=foreign-constraint
+        (apply-constrained-value-edit incoming edit)
+  =.  foreign-constraints.parent-file
+        %:  replace-canonical-incoming-fk
+              foreign-constraints.parent-file
+              child-key
+              source-cols
+              edited
+              ==
+  =.  tmsp.parent-file  edit-time
+  parent-file
+::
+++  row-column-values
+  |=  [row=(map @tas @) cols=(list @tas)]
+  ^-  (list @)
+  =/  values=(list @)  ~
+  |-
+  ?~  cols  (flop values)
+  %=  $
+    cols    t.cols
+    values  [(~(got by row) i.cols) values]
+  ==
+::
+++  row-key-values
+  |=  [row=(map @tas @) key-cols=(list @tas)]
+  ^-  (list @)
+  (row-column-values row key-cols)
+::
+++  outbound-fk-row-tuples
+  |=  $:  row=(map @tas @)
+          child-key-cols=(list @tas)
+          fk=outbound-fk-entry
+          ==
+  ^-  [parent-key=(list @) child-pk=(list @)]
+  :-  (row-column-values row constrained-columns.fk)
+      (row-key-values row child-key-cols)
+::
+++  outbound-fk-row-move-tuples
+  |=  $:  old-row=(map @tas @)
+          new-row=(map @tas @)
+          child-key-cols=(list @tas)
+          fk=outbound-fk-entry
+          ==
+  ^-  constrained-value-row-tuples
+  :*  (row-column-values old-row constrained-columns.fk)
+      (row-column-values new-row constrained-columns.fk)
+      (row-key-values old-row child-key-cols)
+      (row-key-values new-row child-key-cols)
+      ==
+::
+++  seed-constrained-values-from-rows
+  |=  $:  incoming=foreign-constraint
+          child-file=file
+          source-cols=(list @tas)
+          ==
+  ^-  foreign-constraint
+  =.  constrained-values.incoming  *constrained-values
+  =/  rows=(list indexed-row)  indexed-rows.child-file
+  |-
+  ?~  rows  incoming
+  =/  row=indexed-row  i.rows
+  =/  parent-key=(list @)  (row-column-values data.row source-cols)
+  =/  child-pk=(list @)
+        (row-key-values data.row constrained-primary-key.incoming)
+  %=  $
+    rows      t.rows
+    incoming  (add-constrained-value-reference incoming parent-key child-pk)
+  ==
 ::
 ++  fold
   ::  Applies a function to each element of the list, threading an
@@ -731,7 +1176,7 @@
   =/  a-cass  (cass a)
   =/  b-cass  (cass b)
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
-  (aor a b)
+  (aor b a)
 ::
 ::  tree engine
 ::

@@ -2,7 +2,7 @@
 
 If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend. If you are unfamiliar with relational database design we recommend a quick guide to [database design/normalization](https://www.splunk.com/en_us/blog/learn/data-normalization.html).
 
-It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.md) chapter of the Reference document before proceeding.
+It is recommended to read the [Preliminaries](/docs/usr/reference/preliminaries.md) chapter of the Reference document before proceeding.
 
 Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
 
@@ -11,16 +11,17 @@ Use the %hawk Obelisk UI for a SQL Studio-like experience: write and run scripts
 
 # Commands
 
-Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
+Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. Once a query returning results appears in a script, all following commands must also be queries; no further schema or data changes are allowed in that script.
 
 DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and `SELECT` performs queries.
 
 ### DDL
 | | |
 |:------------ |:-------------------- |
+|ALTER DATABASE    | |
 |ALTER INDEX       |*not implemented*|
-|ALTER NAMESPACE   |*not implemented*|
-|ALTER TABLE       |*not implemented*|
+|ALTER NAMESPACE   | |
+|ALTER TABLE       | |
 |CREATE DATABASE   | |
 |CREATE INDEX      |*not implemented*|
 |CREATE NAMESPACE  | |
@@ -28,7 +29,7 @@ DDL commands define databases, their data tables and other components, data mani
 |CREATE VIEW       |*not implemented*|
 |DROP DATABASE     | |
 |DROP INDEX        |*not implemented*|
-|DROP NAMESPACE    |*not implemented*|
+|DROP NAMESPACE    | |
 |DROP TABLE        | |
 |DROP VIEW         |*not implemented*|
 
@@ -38,6 +39,7 @@ DDL commands define databases, their data tables and other components, data mani
 |DELETE            | |
 |INSERT            | |
 |TRUNCATE TABLE    | |
+|UPSERT            | |
 |UPDATE            | |
 
 
@@ -51,12 +53,14 @@ SELECT
 The first thing to do is define a database. In the dojo enter the following poke:
 
 ```
-:obelisk &obelisk-action [%tape %sys "CREATE DATABASE db1"]
+:obelisk &obelisk-action [%tape-print %sys "CREATE DATABASE db1"]
 ```
 
 Let's review the obelisk-action:
 
-**%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/ast/hoon*.
+**%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
+
+`%tape-print` same as %tape and prints result messages and up to 10 rows of SELECT results to the dojo. If you prefer to execute quietly use `%tape`, but be aware you will not be notified of errors resulting in crash in the dojo.
 
 **%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in `CREATE DATABASE`, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
 
@@ -73,7 +77,7 @@ Submitting this poke will print to the dojo:
 ```
 %obelisk-result:
   %results
-    [ %action 'created database %db1' ]
+    [ %message 'created database %db1' ]
     [ %server-time ~2024.9.26..21.14.00..7fc8 ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
 ```
@@ -83,7 +87,7 @@ Every successful command returns metadata about the state of the server and effe
 
 **%server-time** -- The time, according to the server, the script executed. This corresponds to `now.bowl` in the agent. Unless the command was submitted with an `AS OF` clause (which overrides server time) Obelisk will record this time to any internal timestamps. In this case the time of database creation.
 
-**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands).<sup>1</sup>
+**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands). `%schema-time` is generally the time of the Table or View schema (structure definition) creation or last alteration.
 
 Let's look at the state of our server by querying a system view on the database schema.
 
@@ -120,7 +124,7 @@ The first atom is the column label or alias, and the *dime* is the data aura and
 
 We will talk more about crud-txn (querying) later.
 
-*sys.sys.databases* records a row for every event that mutates the state of the server, in other words every event that changes the state of a database's schema or data contents.
+*sys.sys.databases* shows the database schema and data state history. Use *sys.sys-log* for schema events and *sys.data-log* for data events.
 
 All the other system views describing database schemas are in the *%sys* namespace of each user database and documented in the Appendix of this article.
 
@@ -131,6 +135,7 @@ All user data resides in user-defined tables, so let's define some tables. Notic
 ```
 CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;
 CREATE TABLE dbo.my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);
+CREATE TABLE dbo.identifiers (id @ud, path @ta, status @tas) PRIMARY KEY (id);
 ```
 
 Database objects like tables and views have names qualified by database and namespace. In standard SQL namespace is called *schema*, which gets confusing because *schema* also refers to the structure of the database. In any event *namespace* is just like *namespace* in any programming environment, a way to organize named objects where any given name may only occur once within each namespace.
@@ -154,8 +159,6 @@ The table's columns are defined by pairs of name/aura separated by comma, and fi
 ```
 Two commands and two %results blocks, all recorded at the same time.
 
-<sup>1</sup> `%schema-time` is generally the time of the Table or View schema (structure definition) creation.
-
 # Data Manipulation
 ## INSERT
 
@@ -174,16 +177,45 @@ VALUES
   ('tomorrow', ~2024.9.27, 2)
   ('next day', ~2024.9.28, 3);
 ```
+`UPSERT` uses the same value syntax as `INSERT`, but replaces an existing row
+when the primary key already exists.
+
+```
+UPSERT INTO my-table-2
+VALUES
+  ('today', ~2024.9.26, 4)
+  ('next week', ~2024.10.3, 7);
+```
+
+The row for `'today'` is overwritten because it already exists in
+`my-table-2`. The row for `'next week'` is inserted. If one `UPSERT` command
+contains multiple rows for the same primary key, the last row takes
+precedence.
+
 Notice the difference in the two `INSERT` commands. In the first example we specify the columns associated with the following comma separated data, in the second we do not.
 
 If the data in the `INSERT` command has columns ordered in the same order as the canonical ordering for the table (that is the order in which the columns were defined in the `CREATE TABLE` command), there is no need to specify column order. If the INSERT data rows have the columns in any other order, you do need to specify how the columns match up. In this case there was no need to specify columns in the first example.
 
-Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column. 
+Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column.
+
+Text-like literals may be written as single-quoted `@t` cords, `%`-prefixed
+`@tas` terms, or `~.`-prefixed `@ta` knots:
+
+```
+INSERT INTO identifiers
+  (id, path, status)
+VALUES
+  (1, ~.users.alice, %active);
+
+UPDATE identifiers
+SET status=%inactive, path=~.users.alice.archive
+WHERE id=1;
+```
 
 ```
 %obelisk-result:
   %results
-    [ %action 'INSERT INTO %my-table-1' ]
+    [ %action 'INSERT INTO db1.dbo.my-table-1' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -192,7 +224,7 @@ Provide the comma separated data according to the hoon format for the column's a
     [ %message 'table data:' ]
     [ %vector-count 3 ]
   %results
-    [ %action 'INSERT INTO %my-table-2' ]
+    [ %action 'INSERT INTO db1.dbo.my-table-2' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -217,7 +249,7 @@ WHERE col1 = 'tomorrow';
 ```
 %obelisk-result:
   %results
-    [ %action 'DELETE FROM db2.dbo.my-table-2' ]
+    [ %action 'DELETE FROM db1.dbo.my-table-2' ]
     [ %server-time ~2025.3.31..16.28.20..063c ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -249,7 +281,7 @@ WHERE col1 = 'today';
     [ %vector-count 2 ]
 ```
 
-The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'` and no data-time is recorded.
+The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'`.
 
 Use the `DEFAULT` keyword in `SET` to reset a column to its aura bunt value.
 
@@ -261,11 +293,11 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/update.md) for full syntax and examples.
+`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
-Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
+Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`. It clears the target table directly, but for referential-integrity purposes it behaves like `DELETE FROM <table>` without a `WHERE` clause: foreign-key `ON DELETE` actions are still enforced, so tables with related rows may require work proportional to the affected foreign-key relationships and rows.
 
 ```
 TRUNCATE TABLE my-table-1;
@@ -273,7 +305,7 @@ TRUNCATE TABLE my-table-1;
 ```
 %obelisk-result:
   %results
-    [ %action 'TRUNCATE TABLE %my-table-1' ]
+    [ %action 'TRUNCATE TABLE db1.dbo.my-table-1' ]
     [ %server-time ~2024.9.27..17.03.38..92af ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -306,6 +338,108 @@ Attempting to drop the still-populated `my-table-2` without `FORCE` results in a
 DROP TABLE FORCE my-table-2;
 ```
 
+# Referential Integrity
+
+Referential integrity keeps relationships between tables valid. A foreign key
+declares that values in a child table must match the primary key of a parent
+table, and Obelisk enforces that rule when rows are inserted, updated, deleted,
+or truncated. This lets you model normalized data, where facts are stored once
+in the table that owns them and other tables refer to those facts by key,
+without leaving dangling references when the parent data changes.
+
+Foreign keys must reference a table in the same database. The referenced columns
+must exactly match the parent table's complete `PRIMARY KEY`, in primary-key
+order, and each child/source column aura must match the corresponding
+parent/referenced column aura.
+
+Here is a small parent/child example. `authors` owns each author identity, and
+`books` stores only the author key.
+
+```
+CREATE DATABASE ri-demo;
+CREATE TABLE ri-demo..authors
+  (id @ud, name @t)
+  PRIMARY KEY (id);
+CREATE TABLE ri-demo..books
+  (id @ud, author-id @ud, title @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (author-id) REFERENCES authors (id);
+```
+
+Now insert parent rows first, then child rows that reference them.
+
+```
+INSERT INTO ri-demo..authors
+VALUES
+  (1, 'Ursula K. Le Guin')
+  (2, 'Octavia Butler');
+INSERT INTO ri-demo..books
+VALUES
+  (10, 1, 'The Dispossessed')
+  (11, 2, 'Parable of the Sower');
+```
+
+The foreign key rejects child rows whose parent key does not exist.
+
+```
+INSERT INTO ri-demo..books
+VALUES (12, 99, 'Orphaned Book');
+```
+
+```
+INSERT: FOREIGN KEY parent key not found
+INSERT: [%dbo %books] row 1
+```
+
+That command fails because there is no author with `id = 99`. The same
+relationship also protects parent rows: since the default action is
+`RESTRICT`, Obelisk will reject deleting an author while books still reference
+that author.
+
+```
+DELETE FROM ri-demo..authors
+WHERE id = 1;
+```
+
+```
+DELETE: FOREIGN KEY restrict violation
+```
+
+You can choose a different action when defining the foreign key. This example
+uses `ON DELETE CASCADE`, so deleting a book also deletes its dependent reviews.
+
+```
+CREATE TABLE ri-demo..reviews
+  (id @ud, book-id @ud, body @t)
+  PRIMARY KEY (id)
+  FOREIGN KEY (book-id) REFERENCES books (id)
+  ON DELETE CASCADE;
+INSERT INTO ri-demo..reviews
+VALUES (100, 10, 'Essential reading');
+DELETE FROM ri-demo..books
+WHERE id = 10;
+FROM ri-demo..reviews
+SELECT *;
+```
+
+`ON UPDATE` supports the same actions: `RESTRICT`, `CASCADE`, and
+`SET DEFAULT`. `SET DEFAULT` changes the child column to its aura bunt value, so
+the referenced parent table must contain that default key when the action runs.
+
+To inspect declared foreign keys, query `sys.foreign-keys`.
+
+```
+FROM ri-demo.sys.foreign-keys
+SELECT parent-table, child-table, ordinal,
+       parent-column, child-column, on-delete, on-update;
+```
+
+| parent-table | child-table | ordinal | parent-column | child-column | on-delete | on-update |
+|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+|%authors|%books|1|%id|%author-id|%restrict|%restrict|
+|%books|%reviews|1|%id|%book-id|%cascade|%restrict|
+
+
 # Sample Database
 
 Before we get into queries, let's load some more interesting data to work with. The Obelisk distribution comes with a sample "animal-shelter" database adapted from Ami Levin's [Animal Shelter](https://github.com/ami-levin/Animal_Shelter) database for learning SQL. Ami is a SQL educator and you can find his [advanced SQL courses here](https://www.linkedin.com/learning/instructors/ami-levin).
@@ -313,7 +447,7 @@ Before we get into queries, let's load some more interesting data to work with. 
 Execute the following in the dojo to load the database. It will take a little over a minute to load.
 
 ```
-:obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+:obelisk &obelisk-action [%tape-print %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 ```
 
 # Query
@@ -333,7 +467,9 @@ SELECT 0;
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 1 ]
 ```
-Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/reference/01-preliminaries.md)).
+Obelisk supports most hoon aura-formatted literals, including text literals
+written as `'cord'`, `%term`, and `~.knot`. (See the Reference document
+[Preliminaries](/docs/usr/reference/preliminaries.md)).
 
 The system inserted a default name for the literal column. We could have specified an alias:
 
@@ -359,7 +495,7 @@ Set the default database to animal-shelter and submit the following script:
 FROM reference.calendar
 SELECT *;
 ```
-Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` clauses before `SELECT`.
+Unlike the syntax in standard SQL, when present the `FROM` and `WHERE` clauses must precede `SELECT`.
 ```
 %obelisk-result:
   %results
@@ -384,7 +520,7 @@ Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` c
 ```
 According to the %vector-count there are nearly 22,000 rows in this table, but the print utility only prints the first 9 and the last one.
 
-`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release `ALTER TABLE` can add or remove columns, in effect altering saved scripts using `SELECT *`.
+`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. `ALTER TABLE` can add, remove, and/or re-order columns, in effect altering saved scripts using `SELECT *`.
 ```
 FROM reference.calendar
 SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week;
@@ -416,7 +552,7 @@ SELECT day-name AS Day;
 ```
 Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
-Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order.
+Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order. `GROUP BY`, `ORDER BY`, and `TOP` are supported by the urQL parser but not by the Obelisk runtime in the current release.
 
 ## SCALARS
 
@@ -431,13 +567,74 @@ SELECT name, species, adoption-date, full-label, fee-tier;
 
 Scalar function categories:
 
-- **Arithmetic** — `col1 + col2 * 3 END` — supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd`; must end with `END`
-- **String** — `CONCAT(...)`, `TRIM(...)`, `UPPER(...)`, `LOWER(...)`, `REPLACE(...)`, `SUBSTRING(...)`
-- **DateTime** — `YEAR(...)`, `MONTH(...)`, `DAY(...)`, `HOUR(...)`, `MINUTE(...)`, `GETUTCDATE()`
-- **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
-- **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
+- **Control flow**
+  - `IF <predicate> THEN <scalar-node> ELSE <scalar-node> ENDIF`
+  - `CASE [ <scalar-node> ] WHEN { <scalar-node> | <predicate> } THEN <scalar-node> [ ...n ] [ ELSE <scalar-node> ] END`
+  - `COALESCE(<scalar-node> [ ,...n ])`
 
-A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/reference/scalars.md) for full syntax.
+- **Arithmetic**
+  - `col1 + col2 * 3 END`
+  - must end with `END`
+  - supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd` data auras
+
+- **DateTime**
+  - `GETUTCDATE()`
+  - `YEAR(<time-expression>)`
+  - `MONTH(<time-expression>)`
+  - `DAY(<time-expression>)`
+  - `HOUR(<time-expression>)`
+  - `MINUTE(<time-expression>)`
+  - `SECOND(<time-expression>)`
+  - `ADD-TIME(<time-expression>, <time-expression>)`
+  - `SUBTRACT-TIME(<time-expression>, <time-expression>)`
+
+- **Mathematical**
+  - `ABS(<numeric-expression>)`
+  - `LOG(<numeric-expression>)`
+  - `FLOOR(<numeric-expression>)`
+  - `CEILING(<numeric-expression>)`
+  - `ROUND(<numeric-expression>, <numeric-expression>)`
+  - `SIGN(<numeric-expression>)`
+  - `SQRT(<numeric-expression>)`
+  - `MAX(<numeric-expression>, <numeric-expression>)`
+  - `MIN(<numeric-expression>, <numeric-expression>)`
+  - `RAND(<numeric-expression>, <numeric-expression>)`
+  - `DEGREES(<numeric-expression>)`
+  - `SIN(<numeric-expression>)`
+  - `COS(<numeric-expression>)`
+  - `TAN(<numeric-expression>)`
+  - `ASIN(<numeric-expression>)`
+  - `ACOS(<numeric-expression>)`
+  - `ATAN(<numeric-expression>)`
+  - `ATAN2(<numeric-expression>, <numeric-expression>)`
+
+- **Mathematical constants**
+  - `PI`
+  - `TAU`
+  - `E`
+  - `PHI`
+
+- **String**
+  - `LEN(<string-expression>)`
+  - `LEFT(<string-expression>, <numeric-expression>)`
+  - `RIGHT(<string-expression>, <numeric-expression>)`
+  - `SUBSTRING(<string-expression>, <numeric-expression> [ , <numeric-expression> ])`
+  - `LOWER(<string-expression>)`
+  - `UPPER(<string-expression>)`
+  - `LTRIM(<string-expression> [ , <string-expression> ])`
+  - `RTRIM(<string-expression> [ , <string-expression> ])`
+  - `TRIM(<string-expression> [ , <string-expression> ])`
+  - `CONCAT(<string-expression> [ ,...n ])`
+  - `REPLACE(<string-expression>, <string-expression>, <string-expression>)`
+  - `REPLICATE(<string-expression>, <numeric-expression>)`
+  - `REVERSE(<string-expression>)`
+  - `STRING(<numeric-expression>)`
+  - `STRING-CONCAT(<string-expression> [ ,...n ], <string-expression>)`
+  - `PATINDEX(<string-expression>, <string-expression>)`
+  - `QUOTESTRING(<string-expression> [ , <string-expression>, <string-expression> ])`
+  - `STUFF(<string-expression>, <numeric-expression>, <numeric-expression>, <string-expression>)`
+
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full documentation.
 
 ## WHERE clause
 
@@ -463,7 +660,7 @@ SELECT *;
   ...
   ~2049.12.30  2.049  12  December  30  Thursday  364  5  53
 ```
-Logical operators *AND*, *OR*, and *NOT*<sup>2</sup> provide for compound predicates as with SQL.
+Logical operators *AND*, *OR*, and *NOT* provide for compound predicates as with SQL.
 ```
 FROM reference.calendar
 WHERE day-name = 'nonsense'
@@ -485,9 +682,9 @@ SELECT *;
   ...
   ~2049.12.3  2.049  12  December  3  Friday  337  6  49
 ```
-As would be expected the *OR* conjunction operator take precedence over *AND*.
+As would be expected the *AND* conjunction operator take precedence over *OR*.
 
-Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/reference/10-select.md) for the full syntax available for predicates.
+Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/usr/reference/select.md) for the full syntax available for predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'nonsense'
@@ -500,8 +697,6 @@ SELECT *;
 %result-set
   result set empty
 ```
-
-<sup>2</sup> The *NOT* operator currently does not parse in all expected configurations due to a bug.
 
 ## WITH clause
 
@@ -538,15 +733,27 @@ FROM premium-dogs
 SELECT *;
 ```
 
+A single-column CTE used as a predicate set — find all adoptions whose species is in a chosen list:
+
+```
+WITH (FROM reference.species
+      WHERE species = 'Dog'
+         OR species = 'Cat'
+      SELECT species) AS target-species
+FROM adoptions
+WHERE species IN target-species.species
+SELECT name, species, adoption-date, adoption-fee;
+```
+
 # Time Travel
 
-Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/reference/01-preliminaries.md) reference document.)
+Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/usr/reference/preliminaries.md) reference document.)
 
-Almost all urQL commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*).
+Most schema and data commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*). Notable exceptions include `ALTER DATABASE` and `DROP DATABASE`; security commands use separate timing semantics.
 
 In terms of DDL commands, this is most useful for *back dating* new database schemas, or even future dating. Just be aware you may end up making your database unalterable by future dating.
 
-WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
 For example future dating a new database
 
@@ -557,7 +764,7 @@ CREATE DATABASE db2 AS OF ~2030.1.1;
 ```
 %obelisk-result:
   %results
-    [ %action 'created database %db2' ]
+    [ %message 'created database %db2' ]
     [ %server-time ~2024.9.29..21.14.00..7fc8 ]
     [ %schema-time ~2030.1.1 ]
 ```
@@ -632,7 +839,7 @@ DROP DATABASE db2;
 
 This time let's create the database in the past and populate it.
 
-All data manipulation commands other than `TRUNCATE TABLE` -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, *NOW*. Use `<as-of-time>` to apply the change to any prior version of the data, thus discarding subsequent content changes for the new data context.
+All data manipulation commands other than `TRUNCATE TABLE` -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, *NOW*. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes for the new data context.
 
 
  Let's make one `INSERT` operating on the present content state followed by one operating on the past.
@@ -733,17 +940,23 @@ We did not need to specify the exact time of the content state, only a time equa
     [ %vector-count 3 ]
 ```
 
-As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of-time>` documentation in [Preliminaries](/docs/reference/01-preliminaries.md).
+As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of>` documentation in [Preliminaries](/docs/usr/reference/preliminaries.md).
 
 # Joins
 
 A `JOIN` is a query clause that combines rows from two or more data objects, possibly based on a related column or columns between them. It allows you to retrieve and manipulate data from multiple tables as if they were a single table. Any number of tables, views, or CTEs can be joined.
+
+Joined objects may live in different databases on the same ship, but cross-ship joins are not permitted.
 
 ## Natural Joins
 
 *Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk joins on all columns that share the same name and aura type between the two objects. Any matching column names and aura types qualify — the columns need not be primary keys.
 
 Joining on full primary key columns is the most efficient, as the data is indexed on primary keys. Joining on a partial primary key (the leading columns of the key) or on non-key columns requires a scan and is less efficient. A partial key must be the leading columns of the primary key — trailing-only subsets are not valid.
+
+If no columns match by both name and aura type, the natural join crashes rather
+than producing a cartesian product. Use `CROSS JOIN` when you intentionally need
+all row combinations.
 
 Let's use the system view *sys.table-keys* to find like primary keys.
 
@@ -792,7 +1005,7 @@ SELECT T1.date, day-name, us-federal-holiday;
 
 ## JOIN ON predicate
 
-The `ON` predicate in a join is restricted to equality conditions between columns, combined with `AND`. No other operators or `OR` conjunctions are permitted.
+The `ON` predicate in a join is restricted to equality conditions between columns from different relations, combined with `AND`. No other operators or `OR` conjunctions are permitted.
 
 ```
 FROM adoptions A
@@ -819,7 +1032,7 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 ## Outer Joins
 
-While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, but not the Obelisk runtime in the current release, the same result can be obtaind by a `UNION` of `JOIN` followed by a `CROSS JOIN` filtered by a `WHERE` predicate, or just a `CROSS JOIN` with `WHERE` predicate filtering.
+While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, they are not supported by the Obelisk runtime in the current release. Some outer-join-style questions can be rewritten with `UNION`, regular `JOIN`, and `CROSS JOIN` filtered by a `WHERE` predicate, but this is not a complete substitute for runtime outer joins.
 
 # SET OPERATIONS
 
@@ -1019,7 +1232,7 @@ CREATE DATABASE db3; :: this is a line comment
 :: and comment out the remainder of the line
 /* this is a block comment
 
-everyting within /* and */
+everything within /* and */
 (begin and end symbols must be in columns 1 and 2)
 is a comment
 
@@ -1037,138 +1250,204 @@ CREATE TABLE db3..my-table-1
     [ %schema-time ~2024.12.10..20.18.34..3c25 ]
 ```
 
+# Altering the Schema
+
+Schema changes are ordinary Obelisk commands. They are recorded in the same
+history model as `CREATE TABLE` and `DROP TABLE`, so current queries see the new
+shape of the database while `AS OF` queries can still read older schema states.
+
+The most common schema changes are renaming a database, moving a table to a
+different namespace, and changing the columns or name of a table.
+
+## ALTER DATABASE
+
+`ALTER DATABASE` renames a user database.
+
+```
+CREATE DATABASE schema-lab;
+ALTER DATABASE schema-lab RENAME TO schema-work;
+```
+
+After the rename, use the new database name in later commands:
+
+```
+FROM sys.sys.databases
+SELECT database, sys-tmsp, data-tmsp;
+```
+
+The `sys` database cannot be renamed, and a database cannot be renamed over an
+existing database. Database renames are visible in `sys.sys.databases` and are
+also recorded in `sys.sys-log` with the target database populated.
+
+## ALTER NAMESPACE
+
+`ALTER NAMESPACE` moves a table into another namespace. It does not rename the
+table. Use `ALTER TABLE ... RENAME TO ...` when you want to change the table
+name.
+
+First create the target namespace:
+
+```
+CREATE NAMESPACE schema-work.archive;
+```
+
+Then transfer a table:
+
+```
+ALTER NAMESPACE schema-work.archive
+TRANSFER TABLE schema-work..tasks;
+```
+
+The table is now addressed through its new namespace:
+
+```
+FROM schema-work.archive.tasks
+SELECT *;
+```
+
+Transfers can also cross user databases when both databases and namespaces
+exist, but tables participating in foreign keys can only move between
+namespaces in the same database. Tables cannot be moved into or out of the
+`sys` database or `sys` namespace.
+
+## ALTER TABLE
+
+`ALTER TABLE` changes one table. It can rename the table, reorder columns,
+change the primary key, add columns, drop columns, rename columns, and change a
+column aura. Foreign-key behavior is covered in the `Referential Integrity`
+section; alteration syntax is in the `ALTER TABLE` reference.
+
+Foreign-key participation constrains some table alterations. A primary key
+cannot be changed while another table references it; drop the foreign keys first
+if you need to redefine the key. Columns that participate in a foreign key,
+either as child/source columns or referenced primary-key columns, cannot be
+dropped or aura-altered. Renaming a foreign-key column is allowed; Obelisk
+rewrites the affected foreign-key metadata to the new column name.
+
+Start with a small table:
+
+```
+CREATE TABLE schema-work..tasks
+  (id @ud, title @t, status-code @t)
+PRIMARY KEY (id);
+
+INSERT INTO schema-work..tasks
+VALUES
+  (1, 'water plants', 'open')
+  (2, 'file receipts', 'done');
+```
+
+Add columns, rename a column, and set the canonical column order:
+
+```
+ALTER TABLE schema-work..tasks
+  ADD COLUMN (status @t, priority @ud),
+  RENAME COLUMN (title TO task),
+  COLUMNS (id, task, status-code, status, priority);
+```
+
+Existing rows receive the aura's default value for newly added columns. New
+inserts must use the current table shape:
+
+```
+INSERT INTO schema-work..tasks
+VALUES (3, 'write notes', 'open', 'started', 1);
+```
+
+Querying the current table shows the altered schema:
+
+```
+FROM schema-work..tasks
+SELECT *;
+```
+
+An `AS OF` query can still read the old table definition:
+
+```
+FROM schema-work..tasks AS OF <timestamp-before-the-alter>
+SELECT *;
+```
+
+Use the concrete schema or data timestamp returned by the earlier command in
+place of `<timestamp-before-the-alter>`.
+
+Change the primary key only when the proposed key is unique over the existing
+rows and the table is not referenced by a foreign key:
+
+```
+ALTER TABLE schema-work..tasks
+PRIMARY KEY (status-code, id);
+```
+
+Rename the table with `RENAME TO`:
+
+```
+ALTER TABLE schema-work..tasks
+RENAME TO active-tasks;
+```
+
+The old name is no longer valid for current queries, but remains available for
+historical `AS OF` reads before the rename.
+
+Multiple table clauses can be combined in one statement:
+
+```
+ALTER TABLE schema-work..active-tasks
+  ADD COLUMN (owner @t),
+  DROP COLUMN (priority),
+  RENAME COLUMN (task TO description),
+  COLUMNS (status-code, id, description, status, owner);
+```
+
+`sys.sys-log` records `ALTER TABLE` events with action `alter-table`. Rename
+events populate `target-database`, `target-namespace`, and `target-relation`.
+Other table alterations populate `message` with the clause names, such as
+`ADD COLUMN; RENAME COLUMN; COLUMNS`.
+
+
 # Parsing urQL
 
 The urQL parser in Obelisk is separable from the rest of the system.
 
-When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *crud-txn*.
+When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/obelisk-ast.hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *crud-txn*.
 
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
 ```
-=uql "WITH (FROM staff-assignments ".
-"          WHERE role = 'Veterinarian' ".
-"          SELECT email) AS vets ".
-"FROM vets ".
-"SELECT email ".
-"UNION ".
-"FROM staff-assignments ".
-"WHERE role = 'Manager' ".
-"SELECT email;"
+WITH (FROM staff-assignments
+      WHERE role = 'Veterinarian'
+      SELECT email) AS vets
+FROM vets
+SELECT email
+UNION
+FROM staff-assignments
+WHERE role = 'Manager'
+SELECT email;
+```
+
+Click the `Parse` button in the Obelisk UI or in the dojo:
+
+```
 (parse:parse(default-database 'animal-shelter') uql)
 ```
 
 ```
-~[
-  [ %crud-txn
-      ctes
-    ~[
-      [ %cte
-        name=%vets
-          body
-        [ %query
-          [ %query
-              from
-            [ ~
-              [ %from
-                  relation
-                [ %qualified-table
-                  ship=~
-                  database=%animal-shelter
-                  namespace=%dbo
-                  name=%staff-assignments
-                  alias=~
-                ]
-                as-of=~
-                joins=~
-              ]
-            ]
-            scalars=~
-              predicate
-            { [%unqualified-column name=%role alias=~]
-              %eq
-              [p=~.t q=34.161.114.843.280.767.114.475.234.646]
-            }
-            group-by=~
-            having={}
-              select
-            [ %select
-              top=~
-              columns=~[[%unqualified-column name=%email alias=~]]
-            ]
-            order-by=~
-          ]
-        ]
-      ]
-    ]
-      body
-    [ %set-query
-      [ %set-query
-          head
-        [ %query
-            from
-          [~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]]
-          scalars=~
-          predicate={}
-          group-by=~
-          having={}
-            select
-          [%select top=~ columns=~[[%unqualified-column name=%email alias=~]]]
-          order-by=~
-        ]
-          tail
-        ~[
-          [ op=%union
-              query
-            [ %query
-                from
-              [ ~
-                [ %from
-                    relation
-                  [ %qualified-table
-                    ship=~
-                    database=%animal-shelter
-                    namespace=%dbo
-                    name=%staff-assignments
-                    alias=~
-                  ]
-                  as-of=~
-                  joins=~
-                ]
-              ]
-              scalars=~
-                predicate
-              { [%unqualified-column name=%role alias=~]
-                %eq
-                [p=~.t q=32.199.642.035.675.469]
-              }
-              group-by=~
-              having={}
-                select
-              [ %select
-                top=~
-                columns=~[[%unqualified-column name=%email alias=~]]
-              ]
-              order-by=~
-            ]
-          ]
-        ]
-      ]
-    ]
-  ]
-]
+~[[%crud-txn ctes=~[[%cte name=%vets body=[%query [%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=34.161.114.843.280.767.114.475.234.646]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]] body=[%set-query [%set-query head=[%query from=[~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]] scalars=~ predicate={} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~] tail=~[[op=%union query=[%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=32.199.642.035.675.469]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]]]]]
 ```
 The structure is wrapped in a list because a script potentially consists of multiple commands which the engine will execute in order.
 
 The last two column structures are unqualified. The parser does not have the table definition information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
 
-# APPENDIX: System Views
+# APPENDIX I: System Views
 
-Views on database schema metadata available in every database.
+Views on database schema, data, and history metadata. `sys.sys.databases` is
+only available in database `sys`; the remaining system views are in the `sys`
+namespace of each user database.
 
 ## sys.sys.databases
 
-Lists all databases on an Obelisk server and every event that caused a schema or data state change. Only available in database "sys".
+Lists all databases on an Obelisk server and the schema/data state history for
+each database. Only available in database `sys`.
 
 This is the only query in Obelisk that is not idempotent. This is because dropping a database results in permanently clearing all references to that database on the server.
 
@@ -1176,15 +1455,15 @@ This is the only query in Obelisk that is not idempotent. This is because droppi
 
 **database @tas** Database name.
 
-**sys-agent @tas** Agent responsible for the latest database schema state.
+**sys-agent @ta** Provenance path for the database schema state.
 
-**sys-tmsp @da** Timestamp of latest database schema state.
+**sys-tmsp @da** Timestamp of database schema state.
 
-**data-ship @p** Ship making the latest database user data state
+**data-ship @p** Ship making the database user data state.
 
-**data-agent @tas** Agent responsible for the latest user data state.
+**data-agent @ta** Provenance path for the user data state.
 
-**data-tmsp @da** Timestamp of latest user data state.
+**data-tmsp @da** Timestamp of user data state.
 
 ### Default Ordering
 
@@ -1192,7 +1471,7 @@ database, sys-tmsp, data-tmsp
 
 ## sys.namespaces
 
-Lists the namespaces in a database. Available in every database except "sys".
+Lists the namespaces in a user database.
 
 ### Columns
 
@@ -1202,7 +1481,7 @@ Lists the namespaces in a database. Available in every database except "sys".
 
 ### Default Ordering
 
-tmsp, namespace 
+namespace 
 
 ## sys.tables
 
@@ -1214,9 +1493,9 @@ Lists tables and administrative information.
 
 **name @tas** Table name.
 
-**agent @tas** Agent responsible for the latest table schema change.
+**agent @ta** Provenance path for the table schema state.
 
-**tmsp @da** Timestamp of latest table schema change.
+**tmsp @da** Timestamp of table schema state.
 
 **row-count @ud** Count of rows in table. Use *sys.data-log* system view to get data provenance.
 
@@ -1238,11 +1517,58 @@ Lists tables and their primary keys.
 
 **key @tas** Column in primary key.
 
-**key-ascending @f** Indicates whether the column in the primary key is ascending or descending
+**key-ascending @f** Indicates whether the column in the primary key is ascending or descending.
 
 ### Default Ordering
 
 namespace, name, key-ordinal
+
+## sys.foreign-keys
+
+Lists declared foreign keys. This view describes foreign-key schema only; it
+does not expose current referencing row counts, referenced key values, or other
+runtime referential-integrity state.
+
+Each row represents one ordered parent/child column pair in a declared foreign
+key. Composite foreign keys therefore produce multiple rows that share the same
+parent and child table identity and differ by `ordinal`. Empty tables still
+show their declared foreign keys.
+
+Foreign keys reference the complete primary key of the parent table in primary
+key order. `parent-column` is included so composite foreign-key order can be
+inspected directly from this view without joining to `sys.table-keys`.
+
+### Columns
+
+**parent-namespace @tas** Namespace of the referenced parent table.
+
+**parent-table @tas** Referenced parent table.
+
+**child-namespace @tas** Namespace of the constrained child table.
+
+**child-table @tas** Constrained child table.
+
+**ordinal @ud** One-based ordinal of this column pair within the foreign key.
+
+**parent-column @tas** Parent/referenced primary-key column at `ordinal`.
+
+**child-column @tas** Child/source column at `ordinal`.
+
+**on-delete @tas** Delete action: `restrict`, `cascade`, or `set-default`.
+
+**on-update @tas** Update action: `restrict`, `cascade`, or `set-default`.
+
+### Default Ordering
+
+parent-namespace, parent-table, child-namespace, child-table, ordinal
+
+### Example
+
+```
+FROM sys.foreign-keys
+SELECT parent-namespace, parent-table, child-namespace, child-table,
+       ordinal, parent-column, child-column, on-delete, on-update;
+```
 
 ## sys.columns
 
@@ -1266,35 +1592,52 @@ namespace, name, col-ordinal
 
 ## sys.sys-log
 
-This view records the times and events that effected the state of the database schema.
-
-DROPs are not recorded.
+This view records persisted events that affected the state of the database
+schema. `DROP TABLE` events are recorded even after the table no longer appears
+in schema views such as `sys.tables`.
 
 ### Columns
 
-**tmsp @da** Timestamp of database schema change of state.
+**tmsp @da** Timestamp of database schema state change.
 
-**agent @tas** Agent responsible for the state change.
+**agent @ta** Provenance path for the state change.
 
-**component @tas** (To do: 2 columns, component and namespace along with view rewrite)
+**action @tas** Event action, such as `create` or `drop`.
 
-**name @tas** Added or altered component.
+**component @tas** Event component, such as `database`, `namespace`, or `table`.
+
+**database @tas** Database affected by the event, when applicable.
+
+**namespace @tas** Namespace affected by the event, when applicable.
+
+**relation @tas** Component name.
+
+**target-database @tas** Target database for rename-style events, when
+applicable. Empty when unused.
+
+**target-namespace @tas** Target namespace for rename-style events, when
+applicable. Empty when unused.
+
+**target-relation @tas** Target name for rename-style events, when applicable. Empty
+when unused.
+
+**message @t** Human-readable event message. Empty when unused.
 
 ### Default Ordering
 
-tmsp descending, component, name
+component, database, namespace, relation, tmsp
 
 ## sys.data-log
 
-This view records the times and events that effected the state of the database data.
+This view records the times and events that affected the state of the database data.
 
 ### Columns
 
-**tmsp @da**  Timestamp of table data change of state.
+**tmsp @da**  Timestamp of table data state change.
 
 **ship @p** Ship making the state change.
 
-**agent @tas** Agent responsible for the state change.
+**agent @ta** Provenance path for the state change.
 
 **namespace @tas** Table namespace.
 
@@ -1316,4 +1659,293 @@ List views and whether their caches are populated/not populated. *not implemente
 
 **name @tas** View name.
 
-...
+# APPENDIX II: Using Obelisk in a Hoon Program
+
+This appendix describes how to use the `%obelisk` agent from your own Hoon
+code. It is concerned with the Gall API surface, not urQL syntax. The dojo
+pokes used throughout this guide already exercise the same interface; here we
+spell out the molds, the poke shapes, the `/server` response protocol, and the
+shape of the returned data.
+
+The reference template in `templates/obelisk-template.hoon` is the canonical
+client of this API. The arms `query-obelisk`, `parse-obelisk`, `call-obelisk`,
+`query-result-set`, `poke-result-vectors`, `result-vectors`,
+`print-poke-result`, and `print-parse-output` in that template are good
+starting points for your own client code.
+
+Most programs should send urQL text and let Obelisk parse it. Building command
+ASTs by hand is possible, but it is more work, more fragile, and usually not
+worth skipping the parser.
+
+## Importing the API molds
+
+The molds you need live in `/sur/obelisk-ast.hoon`. Import them with an alias:
+
+```hoon
+/-  ast=obelisk-ast
+```
+
+The common molds used by client code are `action:ast`, `command:ast`,
+`cmd-result:ast`, and `result:ast`.
+
+`vector:ast` and `vector-cell:ast` are response molds for receiving query
+data.
+
+Additional molds cover DDL (creating databases and manipulating schemas), DML
+(inserting, upserting, updating, and deleting data), and queries.
+
+## Prefer urQL text over command ASTs
+
+Obelisk accepts both urQL source text and pre-parsed command ASTs. Almost all
+client code should send urQL text with `%tape` (or `%tape-print`). The parser
+is the first step in the `%tape` pipeline, is quite efficient for most
+purposes, and keeps your code readable. Constructing a `(list command:ast)`
+programmatically and submitting it with `%commands` is supported but advanced;
+prefer urQL unless you have a specific reason to skip parsing, such as a
+generator that already produced an AST or a test that wants to exercise the
+runtime in isolation.
+
+## Choosing an Action
+
+`action:ast` selects which operation `%obelisk` performs. The script variants
+take a default database (used to qualify unqualified table references in the
+script) and a urQL tape.
+
+```hoon
++$  action
+  $%  [%tape default-database=@tas urql=tape]
+      [%tape-print default-database=@tas urql=tape]
+      [%commands cmds=(list command)]
+      [%parse default-database=@tas urql=tape]
+  ==
+```
+
+- `%tape` — parse and execute a urQL script. Results are sent on `/server`.
+- `%tape-print` — same as `%tape`, and additionally prints formatted output to
+  the dojo via the `print` library in `desk/lib/print.hoon`.
+- `%parse` — parse a urQL script and return the resulting `(list command)`
+  without executing it. Useful for inspection and debugging.
+- `%commands` — submit a custom-built list of commands. Bypasses the parser.
+
+There is also a `%test` action used by the Obelisk test code. Client programs
+should use the four actions above.
+
+The mark for the poke is always `%obelisk-action`.
+
+```hoon
+[%tape %sys "FROM sys.databases SELECT database;"]
+```
+
+## Result molds
+
+The template defines two thin `each` wrappers around the agent's response
+shapes:
+
+```hoon
++$  poke-result   (each (list cmd-result:ast) tang)
++$  parse-result  (each (list command:ast) tang)
++$  parse-output  (each (list command:ast) tang)
+```
+
+`poke-result` is what comes back from `%tape` and `%tape-print`. `parse-result`
+is what comes back from `%parse`. `parse-output` is an alias of `parse-result`;
+the template defines it as a separate name so parse rendering can stay
+independent of query rendering without coupling the two through one mold.
+
+Success is `[%.y ...]` (head `&`); failure is `[%.n tang]` (head `|`), where
+`tang` contains the crash trace or parser error. Inspect the head before
+unwrapping the payload.
+
+## Calling %obelisk
+
+DDL and DML commands transparently mutate the state of the `%obelisk` desk.
+SELECT queries can also make silent caching mutations, so `%obelisk` does not
+support scrying.
+
+Every poke that returns data uses the same flow:
+
+1. Open a `/server` watch on a wire that uniquely identifies this request.
+2. Poke `%obelisk` with mark `%obelisk-action` and the `action` vase.
+3. Read one `%fact` from the wire. Its vase contains an `each` cell whose head
+   is `%.y` on success and `%.n` on failure.
+4. Consume the matching `%kick`.
+5. Decode the returned vase using the expected mold (`poke-result` for
+   `%tape`, `%tape-print`, and `%commands`; `parse-result` for `%parse`).
+
+The wire only needs to be unique per outstanding request. The template uses
+`/query/[id]` for `%tape` and `/parse/[id]` for `%parse`, where `id` is a
+caller-supplied tag.
+
+## Example
+
+This mirrors `call-obelisk`, `query-obelisk`, and `parse-obelisk` from the
+template. It depends on the standard `strandio` library.
+
+```hoon
+/-  ast=obelisk-ast
+/+  *strandio
+|%
++$  poke-result   (each (list cmd-result:ast) tang)
++$  parse-result  (each (list command:ast) tang)
+::
+++  call-obelisk
+  |=  [id=@ta kind=?(%tape %parse) default=@tas query=tape]
+  =/  m  (strand ,vase)
+  ^-  form:m
+  ;<  our=@p     bind:m  get-our
+  =/  dock    [our %obelisk]
+  =/  action  ;;(action:ast [kind default query])
+  =/  cage    obelisk-action/!>(action)
+  =/  wire=path
+    ?-  kind
+      %tape   /query/[id]
+      %parse  /parse/[id]
+    ==
+  ;<  ~                  bind:m  (watch wire dock /server)
+  ;<  ~                  bind:m  (poke dock cage)
+  ;<  [mark=@tas =vase]  bind:m  (take-fact wire)
+  ;<  ~                  bind:m  (take-kick wire)
+  (pure:m vase)
+::
+++  query-obelisk
+  |=  [id=@ta default=@tas query=tape]
+  =/  m  (strand ,poke-result)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %tape default query)
+  (pure:m ;;(poke-result +:response))
+::
+++  parse-obelisk
+  |=  [id=@ta default=@tas query=tape]
+  =/  m  (strand ,parse-result)
+  ^-  form:m
+  ;<  response=vase  bind:m  (call-obelisk id %parse default query)
+  (pure:m ;;(parse-result +:response))
+--
+```
+
+The `id` is only used to make the wire unique. The fact mark is not needed in
+this pattern because the vase is decoded with the expected mold.
+
+The cast on `+:response` is the decode step: the fact's vase carries the
+`each`-wrapped payload as a noun, and you cast it to the expected mold before
+inspecting it.
+
+## Reading `cmd-result` and `result`
+
+A successful `%tape` poke returns `(list cmd-result:ast)`. One `cmd-result`
+corresponds to one command in the script. Each `cmd-result` is just a tagged
+list of `result` entries:
+
+```hoon
++$  cmd-result  [%results (list result)]
++$  result
+  $%  [%action @t]
+      [%relation @t]
+      [%message msg=@t]
+      [%vector-count count=@ud]
+      [%server-time date=@da]
+      [%security-time date=@da]
+      [%schema-time date=@da]
+      [%data-time date=@da]
+      [%result-set (list vector)]
+  ==
+```
+
+A `%result-set` carries the rows of a SELECT as a `(list vector)`. A `vector`
+is a tagged non-empty list of `vector-cell`:
+
+```hoon
++$  vector-cell  [p=@tas q=dime]
++$  vector       [%vector (lest vector-cell)]
+```
+
+Each cell pairs a column name or alias (`p`) with a dime carrying the value's
+aura and atom (`q`). Column order in the vector matches the SELECT column order.
+
+## Printing Results
+
+Use `%tape-print` exactly as you would use `%tape` in your code. It runs the
+script and then walks the result list through `desk/lib/print.hoon`. For each
+`result` it prints a labeled line to the dojo; for each
+`%result-set` it prints the heading row followed by data rows. If a result set
+has eleven or more rows, the first ten are printed and an ellipsis (`...`)
+stands in for the remainder, followed by the last row. This is purely a
+display convenience — the `%fact` on `/server` always contains the full result
+list. Use `%tape` for programmatic consumers and reserve `%tape-print` for
+interactive debugging.
+
+Failures are formatted by `print-crash`, which prints `%obelisk-crash:`, any
+pertinent error messages bubbled to the top of the crash, and then the `tang`.
+
+## Extracting Result Rows
+
+For clients that only care about result-set rows, the template provides
+`poke-result-vectors` and `result-vectors`. They drop the per-command and
+per-result envelopes and concatenate every `%result-set` payload across the
+script:
+
+```hoon
+++  poke-result-vectors
+  |=  results=(list cmd-result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  (weld (result-vectors +.i.results) $(results t.results))
+::
+++  result-vectors
+  |=  results=(list result:ast)
+  ^-  (list vector:ast)
+  ?~  results  ~
+  ?+  -.i.results  $(results t.results)
+    %result-set  (weld +.i.results $(results t.results))
+  ==
+```
+
+Chained with `query-obelisk`, this gives a strand that returns a flat
+`(list vector:ast)`:
+
+```hoon
+++  query-result-set
+  |=  [id=@ta default=@tas query=tape]
+  =/  m  (strand ,(list vector:ast))
+  ^-  form:m
+  ;<  res=poke-result  bind:m  (query-obelisk id default query)
+  ?-  -.res
+    %.n  (pure:m ~)
+    %.y  (pure:m (poke-result-vectors p.res))
+  ==
+```
+
+To pull a named field out of one row, walk its cells and return `q` when `p`
+matches the column you want.
+
+## Parse-only example
+
+`%parse` is the same poke shape but returns AST instead of results. It is the
+right choice when you want to inspect or transform commands without touching
+the runtime:
+
+```hoon
+;<  res=parse-result  bind:m  (parse-obelisk %inspect %animal-shelter script)
+?-  -.res
+  %.n  (pure:m ~)              :: tang in p.res describes the parse error
+  %.y  (pure:m p.res)          :: (list command:ast)
+==
+```
+
+A successful parse returns one `command:ast` per top-level urQL command in the
+script, in source order. Failures return a `tang` describing where parsing
+stopped. Be aware that parser syntax errors are notoriously difficult to debug.
+This is common to all SQL parsers: they are designed for efficient parsing, and
+the trade-off is often a lack of useful debug information. Sometimes the urQL
+parser will provide a useful crash message, and sometimes it will not. You
+might have to inspect your script closely to find the syntax problem.
+
+## When to use `%commands`
+
+`%commands` skips parsing and submits a `(list command:ast)` directly. It is
+the lowest-level entry point and is useful for generators that already build
+ASTs, or for unit tests that want to exercise the runtime independently of the
+parser. The trade-off is that you become responsible for producing a
+well-formed AST: every `command` variant, every nested mold, every `dime`
+aura. Bugs in the AST surface as runtime crashes rather than parser errors.
+For application code, prefer `%tape` and let the parser do this work.

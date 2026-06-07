@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast=obelisk-ast, *obelisk, *server-state-1
 /+  *utils, *selections, *predicate, mip
 |_  [state=server =bowl:gall]
 ::
@@ -37,7 +37,8 @@
 
 ::
 ++  truncate-tbl
-  ::  Unlike the other data manipulation functions (INSERT, DELETE, UPDATE),
+  ::  Unlike the other data manipulation functions (INSERT, UPSERT, DELETE,
+  ::  UPDATE),
   ::  TRUNCATE TABLE can future date its action. This however effectively locks
   ::  the database for data updates until that time.
   |=  $:  d=truncate-table:ast
@@ -45,44 +46,31 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  =/  db  ~|  "TRUNCATE TABLE: database ".
-              "{<database.qualified-table.d>} does not exist"
-             (~(got by state) database.qualified-table.d)
-  =/  sys-time  (set-tmsp as-of.d now.bowl)
-  =/  nxt-schema=schema
-        ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
-            "as-of schema time out of order"
-          %:  get-next-schema  sys.db
-                              next-schemas
-                              sys-time
-                              database.qualified-table.d
-                              ==
-  =/  nxt-data=data
-        ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
-            "as-of data time out of order"
-            %:  get-next-data  content.db
-                               next-data
-                               sys-time
-                               database.qualified-table.d
-                               ==
+  =/  work-state  %:  mk-work-state  bowl
+                                     state
+                                     qualified-table.d
+                                     next-schemas
+                                     next-data
+                                     as-of.d
+                                     "TRUNCATE"
+                                     ==
+  =/  db=database        -.work-state
+  =/  sys-time=@da       +<.work-state
+  =/  nxt-schema=schema  +>-.work-state
+  =/  nxt-data=data      +>+.work-state
   ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.d)
-    ~|  "TRUNCATE TABLE: namespace ".
-        "{<namespace.qualified-table.d>} does not exist"
-        !!
-  ::
-  =/  tables
+  =/  tbl=table
     ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
         "does not exists in {<namespace.qualified-table.d>}"
     %-  ~(got by tables:nxt-schema)
         [namespace.qualified-table.d name.qualified-table.d]
   ::
-  =/  file
+  =/  parent-file=file
     ~|  "TRUNCATE TABLE: {<namespace.qualified-table.d>}".
         ".{<name.qualified-table.d>} does not exist"
     %-  ~(got by files.nxt-data)
     [namespace.qualified-table.d name.qualified-table.d]
-  ?.  (gth rowcount.file 0)  :: don't bother if table is empty
+  ?.  (gth rowcount.parent-file 0)  :: don't bother if table is empty
     :^  :-  %results
             :~  :-  %action
                     %-  crip
@@ -95,14 +83,71 @@
         state
 
   ::
-  =/  dropped-rows  rowcount.file
-  =.  pri-idx.file         ~
-  =.  indexed-rows.file    ~
-  =.  rowcount.file        0
-  =.  tmsp.file            sys-time
+  =/  tbl-key=[@tas @tas]  [namespace.qualified-table.d name.qualified-table.d]
+  =/  deleted-parent-rows=(list indexed-row)  indexed-rows.parent-file
+  =/  dummy
+        %:  assert-delete-restrict
+              "TRUNCATE TABLE"
+              content.db
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              deleted-parent-rows
+              ==
+  =/  cascaded=[data file]
+        %:  apply-truncate-cascades
+              tables.nxt-schema
+              content.db
+              sys-time
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              nxt-data
+              ==
+  =.  nxt-data  -.cascaded
+  =.  parent-file  +.cascaded
+  =/  defaulted=[data file]
+        %:  apply-delete-set-defaults
+              "TRUNCATE TABLE"
+              tables.nxt-schema
+              content.db
+              sys-time
+              sys-time
+              tbl-key
+              parent-file
+              foreign-constraints.parent-file
+              deleted-parent-rows
+              nxt-data
+              ==
+  =.  nxt-data  -.defaulted
+  =.  parent-file  +.defaulted
+  ::
+  =/  tbl-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.tbl)
+  =/  cleared=[data file]
+        %:  clear-outbound-constrained-values
+              content.db
+              sys-time
+              tbl-key
+              parent-file
+              tbl-fks
+              nxt-data
+              sys-time
+              ==
+  =.  nxt-data     -.cleared
+  =.  parent-file  +.cleared
+  =.  parent-file  (clear-all-incoming-constrained-values parent-file sys-time)
+  ::
+  =/  dropped-rows  rowcount.parent-file
+  =.  pri-idx.parent-file         ~
+  =.  indexed-rows.parent-file    ~
+  =.  rowcount.parent-file        0
+  =.  tmsp.parent-file            sys-time
   =/  files  %+  ~(put by files.nxt-data)
                  [namespace.qualified-table.d name.qualified-table.d]
-             file
+             parent-file
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
@@ -140,6 +185,10 @@
           ::::~&  "{<name.qualified-table.+.body.crud-txn>}"   :: table name
           ::::~>  %bout.[0 %insert]
           (do-insert +.body.crud-txn next-data next-schemas)
+    %upsert
+      ?:  query-has-run  ~|("UPSERT: state change after query in script" !!)
+      :-  %.n
+          (do-upsert +.body.crud-txn next-data next-schemas)
     %query
       =/  q=query:ast  +.body.crud-txn
       :-  %.y
@@ -178,13 +227,36 @@
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
   ^-  [(map @tas @da) server (list result:ast)]
-  =/  txn  %:  common-txn  "INSERT"
+  (do-insert-upsert %insert ins next-data next-schemas)
+::
+++  do-upsert
+  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
+  ^-  [(map @tas @da) server (list result:ast)]
+  (do-insert-upsert %upsert ins next-data next-schemas)
+::
+++  do-insert-upsert
+  |=  $:  op=?(%insert %upsert)
+          ins=insert:ast
+          next-data=(map @tas @da)
+          next-schemas=(map @tas @da)
+      ==
+  ^-  [(map @tas @da) server (list result:ast)]
+  =/  verb=tape  ?:  =(%insert op)  "INSERT"  "UPSERT"
+  =/  message=@t  ?:  =(%insert op)  'inserted:'  'upserted:'
+  =/  txn  %:  common-txn  verb
                            state
                            now.bowl
                            qualified-table.ins
                            as-of.ins
                            next-schemas
                            ==
+  =/  cur-schema=schema
+        %:  get-next-schema  sys.db.txn
+                             next-schemas
+                             now.bowl
+                             database.qualified-table.ins
+                             ==
+  =/  effective-time=@da  (set-tmsp as-of.ins now.bowl)
   ::
   =.  tmsp.file.txn            now.bowl
   =.  ship.nxt-data.txn        src.bowl
@@ -196,16 +268,23 @@
           columns.table.txn
         ?.  .=  ~(wyt by column-lookup.table.txn)
                 ~(wyt in (silt (need columns.ins)))
-          ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
+          ?:  =(%insert op)
+            ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
+          ~|("UPSERT: incorrect columns specified: {<columns.ins>}" !!)
         %+  turn
             `(list @t)`(need columns.ins)
-            |=(a=@t (to-column a column-lookup.table.txn))
+            |=(a=@t (to-column op a column-lookup.table.txn))
   ::
-  ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
+  ?.  ?=([%data *] values.ins)
+    ?:  =(%insert op)
+      ~|("INSERT: from query not implemented: {<values.ins>}" !!)
+    ~|("UPSERT: from query not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
   ::
   ?.  =((lent cols) (lent -.value-table))
-        ~|("INSERT: incorrect columns specified: {<-.value-table>}" !!)
+        ?:  =(%insert op)
+          ~|("INSERT: incorrect columns specified: {<-.value-table>}" !!)
+        ~|("UPSERT: incorrect columns specified: {<-.value-table>}" !!)
   ::
   =/  i=@ud  0
   =/  key-pick=(list [@tas @])
@@ -213,11 +292,43 @@
             key.pri-indx.table.txn
             |=(a=key-column (make-key-pick name.a column-lookup.table.txn))
   =/  primary-key  (pri-key key.pri-indx.table.txn)
+  =/  inserted-rows=(list indexed-row)  ~
   ::
   =.  state          (update-sys state now.bowl)
   ::
   |-
   ?~  value-table
+    =/  result-rowcount=@ud  ~(wyt by pri-idx.file.txn)
+    =/  fks=(list outbound-fk-entry)
+          (collect-outbound-fks outbound-fk-index.table.txn)
+    =/  dummy
+          %:  assert-child-fks
+                op
+                tables.cur-schema
+                content.db.txn
+                effective-time
+                tbl-key.txn
+                file.txn
+                inserted-rows
+                fks
+                ==
+    =/  child-key-cols=(list @tas)
+          %+  turn  key.pri-indx.table.txn
+          |=(col=key-column name.col)
+    =/  constrained=[data file]
+          %:  apply-insert-constrained-values
+                content.db.txn
+                effective-time
+                tbl-key.txn
+                child-key-cols
+                file.txn
+                inserted-rows
+                fks
+                nxt-data.txn
+                now.bowl
+                ==
+    =.  nxt-data.txn  -.constrained
+    =.  file.txn      +.constrained
     :+  (~(put by next-data) database.qualified-table.ins now.bowl)
       :: %:  upd-indices-views to do: revisit when there are views & indices
       %+  ~(put by state)  name.db.txn
@@ -227,40 +338,47 @@
                                       content.db.txn
                                       now.bowl
                                       %:  update-file  file.txn
-                                                       nxt-data.txn
-                                                       tbl-key.txn
-                                                       key.pri-indx.table.txn
-                                                       i
-                                                       ==
+                                                      nxt-data.txn
+                                                      tbl-key.txn
+                                                      key.pri-indx.table.txn
+                                                      result-rowcount
+                                                      ==
                               view-cache  %:  upd-view-caches  state
                                                                 db.txn
                                                                 now.bowl
                                             :: to do: get list of effected views
                                                                 [~ ~]
-                                                                %insert
+                                                                op
                                                                 ==
                             ==
       :~  :-  %action
               %-  crip
-                  %+  weld  "INSERT INTO "
+                  %+  weld  (weld verb " INTO ")
                             (trip (qualified-table-to-cord qualified-table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
-          [%message 'inserted:']
+          [%message message]
           [%vector-count i]
           [%message 'table data:']
-          [%vector-count (add rowcount.file.txn i)]
+          [%vector-count result-rowcount]
           ==
-  ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
+  ~|  "{<verb>}: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row=(map @tas @)  (row-cells-and-keys row cols)
+  =/  file-row=(map @tas @)  (row-cells-and-keys op row cols)
   =/  got-fr  ~(got by file-row)
   =/  row-key=(list @)  (turn key-pick |=(a=[@tas @] (got-fr -.a)))
-  =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
-                          ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
+  =/  inserted-row=indexed-row  [%indexed-row row-key file-row]
+  =.  pri-idx.file.txn  ?:  =(%insert op)
+                          ?:  (has:primary-key pri-idx.file.txn row-key)
+                            ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
+                          (put:primary-key pri-idx.file.txn row-key file-row)
                         (put:primary-key pri-idx.file.txn row-key file-row)
-  $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
+  %=  $
+    i              +(i)
+    value-table    `(list (list value-or-default:ast))`+.value-table
+    inserted-rows  [inserted-row inserted-rows]
+  ==
 ::
 ++  do-delete
   |=  $:  d=delete:ast
@@ -276,6 +394,13 @@
                            as-of.d
                            next-schemas
                            ==
+  =/  cur-schema=schema
+        %:  get-next-schema  sys.db.txn
+                             next-schemas
+                             now.bowl
+                             database.qualified-table.d
+                             ==
+  =/  effective-time=@da  (set-tmsp as-of.d now.bowl)
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
     :+  next-data
         state
@@ -312,6 +437,69 @@
               named-ctes
               resolved-scalars
               ==
+  =/  deleted-parent-rows=(list indexed-row)
+        ?~  filter
+          indexed-rows.file.txn
+        %+  skim  indexed-rows.file.txn
+                  |=(a=indexed-row ((need filter) a))
+  =/  dummy
+        %:  assert-delete-restrict
+              "DELETE"
+              content.db.txn
+              effective-time
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              deleted-parent-rows
+              ==
+  =/  cascaded=[data file]
+        %:  apply-delete-cascades
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              now.bowl
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              deleted-parent-rows
+              nxt-data.txn
+              ==
+  =.  nxt-data.txn  -.cascaded
+  =.  file.txn      +.cascaded
+  =/  defaulted=[data file]
+        %:  apply-delete-set-defaults
+              "DELETE"
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              now.bowl
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              deleted-parent-rows
+              nxt-data.txn
+              ==
+  =.  nxt-data.txn  -.defaulted
+  =.  file.txn      +.defaulted
+  =/  fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.table.txn)
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.table.txn
+        |=(col=key-column name.col)
+  =/  constrained=[data file]
+        %:  apply-delete-constrained-values
+              content.db.txn
+              effective-time
+              tbl-key.txn
+              child-key-cols
+              file.txn
+              deleted-parent-rows
+              fks
+              nxt-data.txn
+              now.bowl
+              ==
+  =.  nxt-data.txn  -.constrained
+  =.  file.txn      +.constrained
   =.  indexed-rows.file.txn  ?~  filter  ~
                              %+  skim  indexed-rows.file.txn
                                        |=(a=indexed-row !((need filter) a))
@@ -369,7 +557,11 @@
           ==
 ::
 ++  do-update
-  |=  [u=update:ast =named-ctes next-schemas=(map @tas @da) next-data=(map @tas @da)]
+  |=  $:  u=update:ast
+          =named-ctes
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
   ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "UPDATE"
                            state
@@ -378,6 +570,13 @@
                            as-of.u
                            next-schemas
                            ==
+  =/  cur-schema=schema
+        %:  get-next-schema  sys.db.txn
+                             next-schemas
+                             now.bowl
+                             database.qualified-table.u
+                             ==
+  =/  effective-time=@da  (set-tmsp as-of.u now.bowl)
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
     :+  next-data
         state
@@ -432,7 +631,12 @@
               %+  weld
                   (turn static-updates |=(a=[@tas @] -.a))
                   (turn scalar-updates |=(a=[@tas @tas] -.a))
-  =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
+  =/  pk-updated=?  (gth ~(wyt in (~(int in aa) bb)) 0)
+  =/  updated-cols=(list @tas)
+        %+  weld
+          (turn static-updates |=(a=[@tas @] -.a))
+          (turn scalar-updates |=(a=[@tas @tas] -.a))
+  =/  xx  ?:  pk-updated  :: update key column?
             :*  filter
                 static-updates
                 scalar-updates
@@ -478,6 +682,90 @@
   ?.  =(idx fil)
     ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
+  =/  changed-parent-rows=(list indexed-row)
+        ?:  pk-updated
+          (changed-parent-key-rows indexed-rows.file.txn -.rows-count)
+        ~
+  =/  changed-parent-pairs=(list [old=indexed-row new=indexed-row])
+        ?:  pk-updated
+          (changed-parent-key-pairs indexed-rows.file.txn -.rows-count)
+        ~
+  =/  dummy
+        %:  assert-update-restrict
+              content.db.txn
+              effective-time
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              changed-parent-rows
+              ==
+  ::
+  =/  cascaded=[data file]
+        %:  apply-update-cascades
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              now.bowl
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              changed-parent-pairs
+              nxt-data.txn
+              ==
+  =.  nxt-data.txn  -.cascaded
+  =.  file.txn      +.cascaded
+  ::
+  =/  defaulted=[data file]
+        %:  apply-update-set-defaults
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              now.bowl
+              tbl-key.txn
+              file.txn
+              foreign-constraints.file.txn
+              changed-parent-pairs
+              nxt-data.txn
+              ==
+  =.  nxt-data.txn  -.defaulted
+  =.  file.txn      +.defaulted
+  ::
+  =/  fks=(list outbound-fk-entry)
+        ?:  pk-updated
+          (collect-outbound-fks outbound-fk-index.table.txn)
+        (outbound-fks-for-columns outbound-fk-index.table.txn updated-cols)
+  =/  dummy
+        %:  assert-child-fks
+              %update
+              tables.cur-schema
+              content.db.txn
+              effective-time
+              tbl-key.txn
+              file.txn
+              -.rows-count
+              fks
+              ==
+  ::
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.table.txn
+        |=(col=key-column name.col)
+  =/  child-row-pairs=(list [old=indexed-row new=indexed-row])
+        (changed-row-pairs indexed-rows.file.txn -.rows-count)
+  =/  constrained=[data file]
+        %:  apply-update-constrained-values
+              content.db.txn
+              effective-time
+              tbl-key.txn
+              child-key-cols
+              file.txn
+              child-row-pairs
+              fks
+              nxt-data.txn
+              now.bowl
+              ==
+  =.  nxt-data.txn  -.constrained
+  =.  file.txn      +.constrained
+  ::
   =/  new-indexed-rows  %+  turn  (tap:primary-key pri-idx.file.txn)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file.txn    new-indexed-rows
@@ -512,8 +800,26 @@
           ==
 ::
 ++  do-query
-  ::  state may be updated by insertion into view-cache, which does not effect
-  ::  any other part of the state
+  ::  Execute one query AST and return updated relation metadata plus vectors.
+  ::
+  ::  Paths:
+  ::  - No FROM: resolve scalar context and delegate to +select-literals.
+  ::    Literal-only results have no source rows to deduplicate.
+  ::  - FROM with no joins: delegate to +select-relation.  That path eventually
+  ::    uses +relation-vectors, which deduplicates projected vectors in both
+  ::    ordered and unordered relation paths.
+  ::  - FROM with joins in a CTE: delegate to +join-all.  If there is no
+  ::    predicate, return the joined relation without vectors so the CTE can be
+  ::    materialized later.  If there is a predicate, filter joined rows here,
+  ::    but still return no vectors.
+  ::  - FROM with joins in a normal SELECT: delegate to +join-all, qualify the
+  ::    selected columns, prepare the predicate, then delegate to +joined-result.
+  ::    +joined-result uses a set to deduplicate projected vectors.
+  ::  - Set queries are handled by +do-set-query, which calls +do-query for each
+  ::    operand and deduplicates vectors through set operations.
+  ::
+  ::  State may be updated by insertion into view-cache, which does not affect
+  ::  any other part of the state.
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [join-return (list vector)]
   :: literal/scalar only
@@ -593,24 +899,27 @@
 ++  do-set-query
   |=  [sq=set-query:ast =named-ctes]
   ^-  [join-return (list vector)]
-  =/  head-rt  (do-query head.sq named-ctes %.n)
-  =/  head-jr=join-return  -.head-rt
+  =/  head-rt                     (do-query head.sq named-ctes %.n)
+  =/  head-jr=join-return         -.head-rt
   =/  head-vectors=(list vector)  +.head-rt
-  =.  state     server.head-jr
-  =/  out-cols  (query-output-columns head.sq head-jr head-vectors named-ctes)
-  =/  has-union  (set-query-has-union sq)
-  =.  out-cols
-    ?:  has-union  (check-union-output-names out-cols)
-    out-cols
-  =/  out-metas
-    %+  turn  out-cols
-    |=  c=column:ast
-    :+  [%qualified-column *qualified-table:ast name.c ~]
-        type.c
-        addr.c
-  =/  rows=(set vector)  (vectors-to-set head-vectors)
+  =.  state                       server.head-jr
+  =/  out-cols                    %:  query-output-columns  head.sq
+                                                            head-jr
+                                                            head-vectors
+                                                            named-ctes
+                                                            ==
+  =/  has-union                   (set-query-has-union sq)
+  =.  out-cols                    ?:  has-union
+                                    (check-union-output-names out-cols)
+                                  out-cols
+  =/  out-metas  %+  turn  out-cols
+                           |=  c=column:ast
+                           :+  [%qualified-column *qualified-table:ast name.c ~]
+                               type.c
+                               addr.c
+  =/  rows=(set vector)         (vectors-to-set head-vectors)
   =/  sources=(list set-table)  set-tables.head-jr
-  =/  rest  tail.sq
+  =/  rest                      tail.sq
   |-
   ?~  rest
     :-  :*  %join-return
@@ -620,20 +929,22 @@
             out-metas
             ==
         ~(tap in rows)
-  =/  next-rt  (do-query query.i.rest named-ctes %.n)
-  =/  next-jr=join-return  -.next-rt
+  =/  next-rt                     (do-query query.i.rest named-ctes %.n)
+  =/  next-jr=join-return         -.next-rt
   =/  next-vectors=(list vector)  +.next-rt
-  =.  state     server.next-jr
-  =/  next-cols
-    (query-output-columns query.i.rest next-jr next-vectors named-ctes)
-  =.  next-cols
-    ?:  has-union  (check-union-output-names next-cols)
-    next-cols
+  =.  state                       server.next-jr
+  =/  next-cols                   %:  query-output-columns  query.i.rest
+                                                            next-jr
+                                                            next-vectors
+                                                            named-ctes
+                                                            ==
+  =.  next-cols  ?:  has-union  (check-union-output-names next-cols)
+                 next-cols
   %=  $
     rows     %:  apply-set-op  op.i.rest
-                              rows
-                              (vectors-to-set next-vectors)
-                              ==
+                               rows
+                               (vectors-to-set next-vectors)
+                               ==
     sources  (weld sources set-tables.next-jr)
     rest     t.rest
   ==
@@ -943,6 +1254,7 @@
                                 1
                                 map-meta
                                 ~
+                                %.n
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
                                 *(list joined-row)
@@ -964,6 +1276,7 @@
                     1
                     map-meta
                     ~
+                    %.n
                     *(tree [(list @) (map @tas @)])
                     ~[[%indexed-row ~ indexed-cols]]
                     *(list joined-row)
@@ -1026,13 +1339,24 @@
           cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
+  =/  col-map=(map @tas column:ast)
+    (malt (turn cols |=(c=column:ast [name.c c])))
   =/  row-scalars=(list [@tas @])
     %+  turn  scalar-updates
-              |=  [col=@tas sname=@tas]
-              :-  col
-              %-  tail  %+  apply-resolved-scalar
-                              (~(got by rs) sname)
-                              [%indexed-row key.row data.row]
+              |=  [col-name=@tas sname=@tas]
+              =/  d=dime
+                %+  apply-resolved-scalar
+                  (~(got by rs) sname)
+                [%indexed-row key.row data.row]
+              =/  col=column:ast  (~(got by col-map) col-name)
+              ?:  (value-type-compatible type.col -.d)
+                :-  col-name
+                ?:  ?|  =(%ta type.col)
+                        =(%tas type.col)
+                        ==
+                  (validate-aura-value %update col-name type.col +.d)
+                +.d
+              ~|("value type: {<-.d>} does not match column: {<col-name>}" !!)
   =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
     ?~  key-columns  :-  :+  %indexed-row
@@ -1071,6 +1395,35 @@
     x        (~(put by x) -.i.updates +.i.updates)
     updates  +.updates
   ==
+::
+++  value-type-compatible
+  |=  [col-type=@ta val-type=@ta]
+  ^-  ?
+  ?:  =(%ta col-type)
+    ?|  =(%ta val-type)
+        =(%tas val-type)
+        ==
+  ?:  =(%tas col-type)
+    =(%tas val-type)
+  =(col-type val-type)
+::
+++  aura-value-valid
+  |=  [col-type=@ta val=@]
+  ^-  ?
+  ?:  =(%ta col-type)   ((sane %ta) val)
+  ?:  =(%tas col-type)  ((sane %tas) val)
+  %.y
+::
+++  validate-aura-value
+  |=  [op=?(%insert %upsert %update) name=@tas col-type=@ta val=@]
+  ^-  @
+  ?:  (aura-value-valid col-type val)
+    val
+  ?:  =(%insert op)
+    ~|("INSERT: value of column {<name>} does not match aura {<col-type>}" !!)
+  ?:  =(%upsert op)
+    ~|("UPSERT: value of column {<name>} does not match aura {<col-type>}" !!)
+  ~|("UPDATE: value of column {<name>} does not match aura {<col-type>}" !!)
 ++  mk-updates
   |=  $:  =qualified-table:ast
           columns=(list qualified-column:ast)
@@ -1106,10 +1459,22 @@
           ~|  "UPDATE: {<qualified-table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have ".
-                                "column {<name.i.columns>}"
-                                -:(~(got by +.map-meta) name.i.columns)
-          [[name.i.columns +.i.values] updates]
+        =/  col-type=@ta
+          ~|  "UPDATE: {<qualified-table>} does not have ".
+              "column {<name.i.columns>}"
+              -:(~(got by +.map-meta) name.i.columns)
+        ?:  (value-type-compatible col-type p.i.values)
+          :-  :-  name.i.columns
+                  ?:  ?|  =(%ta col-type)
+                          =(%tas col-type)
+                          ==
+                    %:  validate-aura-value  %update
+                                             name.i.columns
+                                             col-type
+                                             +.i.values
+                                             ==
+                  +.i.values
+              updates
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
   ~|("value type not supported: {<i.values>}" !!)
@@ -1239,6 +1604,7 @@
         (lent row-data)
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup cols)]
         ~
+        %.n
         *(tree [(list @) (map @tas @)])
         row-data
         *(list joined-row)
@@ -1705,36 +2071,1359 @@
           =data
           tbl-key=[@tas @tas]
           primary-key=(list key-column)
-          inserted=@ud
+          result-rowcount=@ud
           ==
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file    new-indexed-rows
-  =.  rowcount.file        (add rowcount.file inserted)
+  =.  rowcount.file        result-rowcount
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
+++  collect-outbound-fks
+  |=  idx=outbound-fk-index
+  ^-  (list outbound-fk-entry)
+  =/  pairs=(list [@tas (list outbound-fk-entry)])  ~(tap by idx)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  pairs  (flop out)
+  =.  out  (add-unique-outbound-entries +.i.pairs out)
+  $(pairs t.pairs)
+::
+++  apply-insert-constrained-values
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          rows=(list indexed-row)
+          fks=(list outbound-fk-entry)
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  fks  [acc-data child-file]
+  =/  updated=[data file]
+        %:  apply-insert-constrained-value-fk  content
+                                               effective-time
+                                               child-key
+                                               child-key-cols
+                                               child-file
+                                               rows
+                                               i.fks
+                                               acc-data
+                                               edit-time
+                                               ==
+  %=  $
+    fks         t.fks
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  apply-insert-constrained-value-fk
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          rows=(list indexed-row)
+          fk=outbound-fk-entry
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  rows  [acc-data child-file]
+  =/  tuples=[parent-key=(list @) child-pk=(list @)]
+        %:  outbound-fk-row-tuples  data.i.rows
+                                    child-key-cols
+                                    fk
+                                    ==
+  =/  updated=[data file]
+        %:  add-insert-constrained-value-reference  content
+                                                    effective-time
+                                                    child-key
+                                                    child-file
+                                                    fk
+                                                    parent-key.tuples
+                                                    child-pk.tuples
+                                                    acc-data
+                                                    edit-time
+                                                    ==
+  %=  $
+    rows        t.rows
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  add-insert-constrained-value-reference
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          fk=outbound-fk-entry
+          parent-row-key=(list @)
+          child-pk=(list @)
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  =/  parent-table-key=[@tas @tas]  reference-table.fk
+  =/  edit=constrained-value-edit  [%add parent-row-key child-pk]
+  ?:  =(parent-table-key child-key)
+    =.  child-file
+      %:  apply-constrained-value-edit-to-parent-file  child-file
+                                                       child-key
+                                                       constrained-columns.fk
+                                                       edit
+                                                       edit-time
+                                                       ==
+    [acc-data child-file]
+  =/  parent-file=file
+        ?:  (~(has by files.acc-data) parent-table-key)
+          (~(got by files.acc-data) parent-table-key)
+        (get-content content effective-time parent-table-key)
+  =.  parent-file
+    %:  apply-constrained-value-edit-to-parent-file  parent-file
+                                                     child-key
+                                                     constrained-columns.fk
+                                                     edit
+                                                     edit-time
+                                                     ==
+  =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
+  [acc-data child-file]
+::
+++  apply-update-constrained-values
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          pairs=(list [old=indexed-row new=indexed-row])
+          fks=(list outbound-fk-entry)
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  fks  [acc-data child-file]
+  =/  updated=[data file]
+        %:  apply-update-constrained-value-fk  content
+                                               effective-time
+                                               child-key
+                                               child-key-cols
+                                               child-file
+                                               pairs
+                                               i.fks
+                                               acc-data
+                                               edit-time
+                                               ==
+  %=  $
+    fks         t.fks
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  apply-update-constrained-value-fk
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          pairs=(list [old=indexed-row new=indexed-row])
+          fk=outbound-fk-entry
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  pairs  [acc-data child-file]
+  =/  pair=[old=indexed-row new=indexed-row]  i.pairs
+  =/  tuples=constrained-value-row-tuples
+        %:  outbound-fk-row-move-tuples
+              data.old.pair
+              data.new.pair
+              child-key-cols
+              fk
+              ==
+  =/  updated=[data file]
+        ?:  ?&  =(old-parent-key.tuples new-parent-key.tuples)
+                =(old-child-pk.tuples new-child-pk.tuples)
+                ==
+          [acc-data child-file]
+        %:  move-update-constrained-value-reference  content
+                                                     effective-time
+                                                     child-key
+                                                     child-file
+                                                     fk
+                                                     tuples
+                                                     acc-data
+                                                     edit-time
+                                                     ==
+  %=  $
+    pairs       t.pairs
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  move-update-constrained-value-reference
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          fk=outbound-fk-entry
+          tuples=constrained-value-row-tuples
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  =/  parent-table-key=[@tas @tas]  reference-table.fk
+  =/  edit=constrained-value-edit  :*  %move
+                                       old-parent-key.tuples
+                                       new-parent-key.tuples
+                                       old-child-pk.tuples
+                                       new-child-pk.tuples
+                                       ==
+  ?:  =(parent-table-key child-key)
+    =.  child-file
+      %:  apply-constrained-value-edit-to-parent-file  child-file
+                                                       child-key
+                                                       constrained-columns.fk
+                                                       edit
+                                                       edit-time
+                                                       ==
+    [acc-data child-file]
+  =/  parent-file=file
+        ?:  (~(has by files.acc-data) parent-table-key)
+          (~(got by files.acc-data) parent-table-key)
+        (get-content content effective-time parent-table-key)
+  =.  parent-file
+    %:  apply-constrained-value-edit-to-parent-file  parent-file
+                                                     child-key
+                                                     constrained-columns.fk
+                                                     edit
+                                                     edit-time
+                                                     ==
+  =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
+  [acc-data child-file]
+::
+++  apply-delete-constrained-values
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          rows=(list indexed-row)
+          fks=(list outbound-fk-entry)
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  fks  [acc-data child-file]
+  =/  updated=[data file]
+        %:  apply-delete-constrained-value-fk  content
+                                               effective-time
+                                               child-key
+                                               child-key-cols
+                                               child-file
+                                               rows
+                                               i.fks
+                                               acc-data
+                                               edit-time
+                                               ==
+  %=  $
+    fks         t.fks
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  apply-delete-constrained-value-fk
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-key-cols=(list @tas)
+          child-file=file
+          rows=(list indexed-row)
+          fk=outbound-fk-entry
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  ?~  rows  [acc-data child-file]
+  =/  tuples=[parent-key=(list @) child-pk=(list @)]
+        %:  outbound-fk-row-tuples  data.i.rows
+                                    child-key-cols
+                                    fk
+                                    ==
+  =/  updated=[data file]
+        %:  remove-delete-constrained-value-reference  content
+                                                       effective-time
+                                                       child-key
+                                                       child-file
+                                                       fk
+                                                       parent-key.tuples
+                                                       child-pk.tuples
+                                                       acc-data
+                                                       edit-time
+                                                       ==
+  %=  $
+    rows        t.rows
+    child-file  +.updated
+    acc-data    -.updated
+  ==
+::
+++  remove-delete-constrained-value-reference
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          fk=outbound-fk-entry
+          parent-row-key=(list @)
+          child-pk=(list @)
+          acc-data=data
+          edit-time=@da
+          ==
+  ^-  [data file]
+  =/  parent-table-key=[@tas @tas]  reference-table.fk
+  =/  edit=constrained-value-edit  [%remove parent-row-key child-pk]
+  ?:  =(parent-table-key child-key)
+    =.  child-file
+      %:  apply-constrained-value-edit-to-parent-file  child-file
+                                                       child-key
+                                                       constrained-columns.fk
+                                                       edit
+                                                       edit-time
+                                                       ==
+    [acc-data child-file]
+  =/  parent-file=file
+        ?:  (~(has by files.acc-data) parent-table-key)
+          (~(got by files.acc-data) parent-table-key)
+        (get-content content effective-time parent-table-key)
+  =.  parent-file
+    %:  apply-constrained-value-edit-to-parent-file  parent-file
+                                                     child-key
+                                                     constrained-columns.fk
+                                                     edit
+                                                     edit-time
+                                                     ==
+  =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
+  [acc-data child-file]
+::
+++  clear-constrained-values-on-parent-file
+  |=  $:  parent-file=file
+          child-key=[@tas @tas]
+          source-cols=(list @tas)
+          clear-time=@da
+          ==
+  ^-  file
+  =/  incoming=foreign-constraint
+        %^  find-canonical-incoming-fk  foreign-constraints.parent-file
+                                        child-key
+                                        source-cols
+  =.  constrained-values.incoming  *constrained-values
+  =.  foreign-constraints.parent-file
+        %:  replace-canonical-incoming-fk
+              foreign-constraints.parent-file
+              child-key
+              source-cols
+              incoming
+              ==
+  =.  tmsp.parent-file  clear-time
+  parent-file
+::
+++  clear-all-incoming-constrained-values
+  |=  [parent-file=file clear-time=@da]
+  ^-  file
+  =.  foreign-constraints.parent-file
+    %+  turn  foreign-constraints.parent-file
+    |=  incoming=foreign-constraint
+    =.  constrained-values.incoming  *constrained-values
+    incoming
+  =.  tmsp.parent-file  clear-time
+  parent-file
+::
+++  clear-outbound-constrained-values
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          fks=(list outbound-fk-entry)
+          acc-data=data
+          clear-time=@da
+          ==
+  ^-  [data file]
+  ?~  fks  [acc-data child-file]
+  =/  cleared=[data file]  %:  clear-outbound-constrained-value  content
+                                                                 effective-time
+                                                                 child-key
+                                                                 child-file
+                                                                 i.fks
+                                                                 acc-data
+                                                                 clear-time
+                                                                 ==
+  %=  $
+    fks         t.fks
+    child-file  +.cleared
+    acc-data    -.cleared
+  ==
+::
+++  clear-outbound-constrained-value
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          fk=outbound-fk-entry
+          acc-data=data
+          clear-time=@da
+          ==
+  ^-  [data file]
+  =/  parent-table-key=[@tas @tas]  reference-table.fk
+  ?:  =(parent-table-key child-key)
+    =.  child-file
+      %:  clear-constrained-values-on-parent-file  child-file
+                                                   child-key
+                                                   constrained-columns.fk
+                                                   clear-time
+                                                   ==
+    [acc-data child-file]
+  =/  parent-file=file
+        ?:  (~(has by files.acc-data) parent-table-key)
+          (~(got by files.acc-data) parent-table-key)
+        (get-content content effective-time parent-table-key)
+  =.  parent-file
+    %:  clear-constrained-values-on-parent-file
+          parent-file
+          child-key
+          constrained-columns.fk
+          clear-time
+          ==
+  =.  files.acc-data  (~(put by files.acc-data) parent-table-key parent-file)
+  [acc-data child-file]
+::
+++  outbound-fks-for-columns
+  |=  [idx=outbound-fk-index cols=(list @tas)]
+  ^-  (list outbound-fk-entry)
+  =/  out=(list outbound-fk-entry)  ~
+  |-
+  ?~  cols  (flop out)
+  =/  found=(unit (list outbound-fk-entry))  (~(get by idx) i.cols)
+  =.  out
+    ?~  found
+      out
+    (add-unique-outbound-entries u.found out)
+  $(cols t.cols)
+::
+++  add-unique-outbound-entries
+  |=  [entries=(list outbound-fk-entry) out=(list outbound-fk-entry)]
+  ^-  (list outbound-fk-entry)
+  |-
+  ?~  entries  out
+  %=  $
+    entries  t.entries
+    out      ?:  (outbound-entry-exists out i.entries)  out
+              [i.entries out]
+  ==
+::
+++  outbound-entry-exists
+  |=  [entries=(list outbound-fk-entry) entry=outbound-fk-entry]
+  ^-  ?
+  ?~  entries  %.n
+  ?:  ?&  =(reference-table.i.entries reference-table.entry)
+          =(constrained-columns.i.entries constrained-columns.entry)
+          =(reference-columns.i.entries reference-columns.entry)
+          ==
+    %.y
+  $(entries t.entries)
+::
+++  assert-child-fks
+  |=  $:  op=@tas
+          tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          rows=(list indexed-row)
+          fks=(list outbound-fk-entry)
+          ==
+  ^-  ~
+  ?~  fks  ~
+  |-
+  ?~  rows  ~
+  =/  dummy  %:  assert-row-child-fks  op
+                                       tbls
+                                       content
+                                       effective-time
+                                       child-key
+                                       child-file
+                                       data.i.rows
+                                       fks
+                                       ==
+  $(rows t.rows)
+::
+++  assert-row-child-fks
+  |=  $:  op=@tas
+          tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          row=(map @tas @)
+          fks=(list outbound-fk-entry)
+          ==
+  ^-  ~
+  ?~  fks  ~
+  =/  dummy  %:  assert-one-child-fk  op
+                                      tbls
+                                      content
+                                      effective-time
+                                      child-key
+                                      child-file
+                                      row
+                                      i.fks
+                                      ==
+  $(fks t.fks)
+::
+++  assert-one-child-fk
+  |=  $:  op=@tas
+          tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          child-key=[@tas @tas]
+          child-file=file
+          row=(map @tas @)
+          fk=outbound-fk-entry
+          ==
+  ^-  ~
+  =/  parent-key=[@tas @tas]  reference-table.fk
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  parent-file=file  ?:  =(parent-key child-key)
+                          child-file
+                        (get-content content effective-time parent-key)
+  =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
+  =/  fk-key=(list @)  (fk-row-values row constrained-columns.fk)
+  ?.  (has:parent-primary-key pri-idx.parent-file fk-key)
+    (fk-parent-not-found op)
+  ~
+::
+++  fk-parent-not-found
+  |=  op=@tas
+  ^-  ~
+  ?:  =(%insert op)
+    ~|("INSERT: FOREIGN KEY parent key not found" !!)
+  ?:  =(%upsert op)
+    ~|("UPSERT: FOREIGN KEY parent key not found" !!)
+  ~|("UPDATE: FOREIGN KEY parent key not found" !!)
+::
+++  fk-row-values
+  |=  [row=(map @tas @) cols=(list @tas)]
+  ^-  (list @)
+  =/  values=(list @)  ~
+  |-
+  ?~  cols  (flop values)
+  %=  $
+    cols    t.cols
+    values  [(~(got by row) i.cols) values]
+  ==
+::
+++  assert-delete-restrict
+  |=  $:  op=tape
+          content=((mop @da data) gth)
+          effective-time=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          deleted-rows=(list indexed-row)
+          ==
+  ^-  ~
+  ?~  deleted-rows  ~
+  |-
+  ?~  constraints  ~
+  ?.  =(on-delete.actions.i.constraints %restrict)
+    $(constraints t.constraints)
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        (get-content content effective-time child-key)
+  =/  dummy  %:  assert-delete-restrict-constraint
+                 op
+                 child-file
+                 constrained-columns.i.constraints
+                 deleted-rows
+                 ==
+  $(constraints t.constraints)
+::
+++  assert-delete-restrict-constraint
+  |=  $:  op=tape
+          child-file=file
+          source-cols=(list @tas)
+          deleted-rows=(list indexed-row)
+          ==
+  ^-  ~
+  ?~  deleted-rows  ~
+  ?:  %^  child-has-fk-reference  indexed-rows.child-file
+                                  source-cols
+                                  key.i.deleted-rows
+    ~|  %+  weld  op  ": FOREIGN KEY restrict violation"
+        !!
+  $(deleted-rows t.deleted-rows)
+::
+++  assert-update-restrict
+  |=  $:  content=((mop @da data) gth)
+          effective-time=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          changed-rows=(list indexed-row)
+          ==
+  ^-  ~
+  ?~  changed-rows  ~
+  |-
+  ?~  constraints  ~
+  ?.  =(on-update.actions.i.constraints %restrict)
+    $(constraints t.constraints)
+  =/  child-key=[@tas @tas]  constrained-table.i.constraints
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        (get-content content effective-time child-key)
+  =/  dummy
+        %:  assert-update-restrict-constraint
+              child-file
+              constrained-columns.i.constraints
+              changed-rows
+              ==
+  $(constraints t.constraints)
+::
+++  assert-update-restrict-constraint
+  |=  $:  child-file=file
+          source-cols=(list @tas)
+          changed-rows=(list indexed-row)
+          ==
+  ^-  ~
+  ?~  changed-rows  ~
+  ?:  %^  child-has-fk-reference  indexed-rows.child-file
+                                  source-cols
+                                  key.i.changed-rows
+    ~|("UPDATE: FOREIGN KEY restrict violation" !!)
+  $(changed-rows t.changed-rows)
+::
+++  changed-parent-key-rows
+  |=  [old-rows=(list indexed-row) new-rows=(list indexed-row)]
+  ^-  (list indexed-row)
+  =/  changed=(list indexed-row)  ~
+  |-
+  ?~  old-rows
+    (flop changed)
+  ?~  new-rows
+    (flop changed)
+  %=  $
+    old-rows  t.old-rows
+    new-rows  t.new-rows
+    changed   ?:  =(key.i.old-rows key.i.new-rows)
+                changed
+              [i.old-rows changed]
+  ==
+::
+++  changed-parent-key-pairs
+  |=  [old-rows=(list indexed-row) new-rows=(list indexed-row)]
+  ^-  (list [old=indexed-row new=indexed-row])
+  =/  changed=(list [old=indexed-row new=indexed-row])  ~
+  |-
+  ?~  old-rows
+    (flop changed)
+  ?~  new-rows
+    (flop changed)
+  %=  $
+    old-rows  t.old-rows
+    new-rows  t.new-rows
+    changed   ?:  =(key.i.old-rows key.i.new-rows)
+                changed
+              [[i.old-rows i.new-rows] changed]
+  ==
+::
+++  changed-row-pairs
+  |=  [old-rows=(list indexed-row) new-rows=(list indexed-row)]
+  ^-  (list [old=indexed-row new=indexed-row])
+  =/  changed=(list [old=indexed-row new=indexed-row])  ~
+  |-
+  ?~  old-rows
+    (flop changed)
+  ?~  new-rows
+    (flop changed)
+  %=  $
+    old-rows  t.old-rows
+    new-rows  t.new-rows
+    changed   ?:  =(i.old-rows i.new-rows)
+                changed
+              [[i.old-rows i.new-rows] changed]
+  ==
+::
+++  child-has-fk-reference
+  |=  $:  child-rows=(list indexed-row)
+          source-cols=(list @tas)
+          parent-row-key=(list @)
+          ==
+  ^-  ?
+  ?~  child-rows  %.n
+  ?:  =((fk-row-values data.i.child-rows source-cols) parent-row-key)
+    %.y
+  $(child-rows t.child-rows)
+::
+++  apply-update-cascades
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  ?~  changed-pairs  [cur-data parent-file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-update.actions.i.constraints %cascade)
+    $(constraints t.constraints)
+  =/  cascaded=[data file]
+        %:  apply-update-cascade-constraint  tbls
+                                             content
+                                             effective-time
+                                             now
+                                             parent-key
+                                             parent-file
+                                             i.constraints
+                                             changed-pairs
+                                             cur-data
+                                             ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.cascaded
+    parent-file  +.cascaded
+  ==
+::
+++  apply-update-cascade-constraint
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        ?:  (~(has by files.cur-data) child-key)
+          (~(got by files.cur-data) child-key)
+        (get-content content effective-time child-key)
+  =/  old-child-rows=(list indexed-row)  indexed-rows.child-file
+  =.  indexed-rows.child-file
+        %+  turn  indexed-rows.child-file
+        |=  row=indexed-row
+        =/  updates=(list [@tas @])  %:  update-cascade-row-updates
+                                         row
+                                         constrained-columns.constraint
+                                         changed-pairs
+                                         ==
+        ?~  updates
+          row
+        (update-key row updates key.pri-indx.child-table columns.child-table)
+  =/  child-row-pairs=(list [old=indexed-row new=indexed-row])
+        (changed-row-pairs old-child-rows indexed-rows.child-file)
+  =.  files.cur-data
+        ?:  =(child-key parent-key)
+          files.cur-data
+        (~(put by files.cur-data) parent-key parent-file)
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.child-table
+        |=(col=key-column name.col)
+  =/  child-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.child-table)
+  =/  constrained=[data file]
+        %:  apply-update-constrained-values  content
+                                             effective-time
+                                             child-key
+                                             child-key-cols
+                                             child-file
+                                             child-row-pairs
+                                             child-fks
+                                             cur-data
+                                             now
+                                             ==
+  =.  cur-data    -.constrained
+  =.  child-file  +.constrained
+  =.  parent-file
+        ?:  =(child-key parent-key)
+          child-file
+        (~(got by files.cur-data) parent-key)
+  =.  tmsp.child-file  now
+  =.  child-file       (rebuild-primary-index child-table child-file)
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  update-cascade-row-updates
+  |=  $:  child-row=indexed-row
+          source-cols=(list @tas)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          ==
+  ^-  (list [@tas @])
+  =/  child-fk-key=(list @)  (fk-row-values data.child-row source-cols)
+  |-
+  ?~  changed-pairs  ~
+  =/  pair=[old=indexed-row new=indexed-row]  i.changed-pairs
+  ?:  =(child-fk-key key.old.pair)
+    (pair-cols-values source-cols key.new.pair)
+  $(changed-pairs t.changed-pairs)
+::
+++  pair-cols-values
+  |=  [cols=(list @tas) values=(list @)]
+  ^-  (list [@tas @])
+  =/  out=(list [@tas @])  ~
+  |-
+  ?~  cols  (flop out)
+  ?~  values  (flop out)
+  %=  $
+    cols    t.cols
+    values  t.values
+    out     [[i.cols i.values] out]
+  ==
+::
+++  apply-update-set-defaults
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  ?~  changed-pairs  [cur-data parent-file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-update.actions.i.constraints %set-default)
+    $(constraints t.constraints)
+  =/  defaulted=[data file]
+        %:  apply-update-set-default-constraint  tbls
+                                                 content
+                                                 effective-time
+                                                 now
+                                                 parent-key
+                                                 parent-file
+                                                 i.constraints
+                                                 changed-pairs
+                                                 cur-data
+                                                 ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.defaulted
+    parent-file  +.defaulted
+  ==
+::
+++  apply-update-set-default-constraint
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        ?:  (~(has by files.cur-data) child-key)
+          (~(got by files.cur-data) child-key)
+        (get-content content effective-time child-key)
+  =/  updates=(list [@tas @])
+        (default-updates constrained-columns.constraint columns.child-table)
+  =/  default-key=(list @)  (turn updates |=(u=[@tas @] +.u))
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  dummy  %^  assert-update-set-default-parent  parent-table
+                                                   parent-file
+                                                   default-key
+  =/  old-child-rows=(list indexed-row)  indexed-rows.child-file
+  =.  indexed-rows.child-file
+        %+  turn  indexed-rows.child-file
+        |=  row=indexed-row
+        ?:  %^  child-row-matches-changed  row
+                                           constrained-columns.constraint
+                                           changed-pairs
+          (update-key row updates key.pri-indx.child-table columns.child-table)
+        row
+  =/  child-row-pairs=(list [old=indexed-row new=indexed-row])
+        (changed-row-pairs old-child-rows indexed-rows.child-file)
+  =.  files.cur-data
+        ?:  =(child-key parent-key)
+          files.cur-data
+        (~(put by files.cur-data) parent-key parent-file)
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.child-table
+        |=(col=key-column name.col)
+  =/  child-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.child-table)
+  =/  constrained=[data file]
+        %:  apply-update-constrained-values  content
+                                             effective-time
+                                             child-key
+                                             child-key-cols
+                                             child-file
+                                             child-row-pairs
+                                             child-fks
+                                             cur-data
+                                             now
+                                             ==
+  =.  cur-data    -.constrained
+  =.  child-file  +.constrained
+  =.  parent-file
+        ?:  =(child-key parent-key)
+          child-file
+        (~(got by files.cur-data) parent-key)
+  =.  tmsp.child-file  now
+  =.  child-file       (rebuild-primary-index child-table child-file)
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  child-row-matches-changed
+  |=  $:  child-row=indexed-row
+          source-cols=(list @tas)
+          changed-pairs=(list [old=indexed-row new=indexed-row])
+          ==
+  ^-  ?
+  =/  child-fk-key=(list @)  (fk-row-values data.child-row source-cols)
+  |-
+  ?~  changed-pairs  %.n
+  =/  pair=[old=indexed-row new=indexed-row]  i.changed-pairs
+  ?:  =(child-fk-key key.old.pair)  %.y
+  $(changed-pairs t.changed-pairs)
+::
+++  assert-update-set-default-parent
+  |=  [parent-table=table parent-file=file default-key=(list @)]
+  ^-  ~
+  =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
+  ?.  (has:parent-primary-key pri-idx.parent-file default-key)
+    ~|("UPDATE: FOREIGN KEY SET DEFAULT parent bunt key not found" !!)
+  ~
+::
+++  apply-truncate-cascades
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          cur-data=data
+          ==
+  ^-  [data file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-delete.actions.i.constraints %cascade)
+    $(constraints t.constraints)
+  =/  cascaded=[data file]
+        %:  apply-truncate-cascade-constraint  tbls
+                                               content
+                                               effective-time
+                                               now
+                                               parent-key
+                                               parent-file
+                                               i.constraints
+                                               cur-data
+                                               ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.cascaded
+    parent-file  +.cascaded
+  ==
+::
+++  apply-truncate-cascade-constraint
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file  ?:  =(child-key parent-key)
+                         parent-file
+                       ?:  (~(has by files.cur-data) child-key)
+                         (~(got by files.cur-data) child-key)
+                       (get-content content effective-time child-key)
+  ?:  =(rowcount.child-file 0)
+    [cur-data parent-file]
+  =.  files.cur-data
+        ?:  =(child-key parent-key)
+          files.cur-data
+        (~(put by files.cur-data) parent-key parent-file)
+  =/  child-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.child-table)
+  =/  cleared=[data file]
+        %:  clear-outbound-constrained-values  content
+                                               effective-time
+                                               child-key
+                                               child-file
+                                               child-fks
+                                               cur-data
+                                               now
+                                               ==
+  =.  cur-data    -.cleared
+  =.  child-file  +.cleared
+  =.  parent-file
+        ?:  =(child-key parent-key)
+          child-file
+        (~(got by files.cur-data) parent-key)
+  =.  pri-idx.child-file       ~
+  =.  indexed-rows.child-file  ~
+  =.  rowcount.child-file      0
+  =.  tmsp.child-file          now
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  apply-delete-cascades
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          deleted-rows=(list indexed-row)
+          cur-data=data
+          ==
+  ^-  [data file]
+  ?~  deleted-rows  [cur-data parent-file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-delete.actions.i.constraints %cascade)
+    $(constraints t.constraints)
+  =/  cascaded=[data file]
+        %:  apply-delete-cascade-constraint  tbls
+                                             content
+                                             effective-time
+                                             now
+                                             parent-key
+                                             parent-file
+                                             i.constraints
+                                             deleted-rows
+                                             cur-data
+                                             ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.cascaded
+    parent-file  +.cascaded
+  ==
+::
+++  apply-delete-cascade-constraint
+  |=  $:  tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          deleted-rows=(list indexed-row)
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        ?:  (~(has by files.cur-data) child-key)
+          (~(got by files.cur-data) child-key)
+        (get-content content effective-time child-key)
+  =/  matching-rows=(list indexed-row)
+        %+  skim  indexed-rows.child-file
+                  |=  a=indexed-row
+                  %:  child-row-matches-deleted
+                        a
+                        constrained-columns.constraint
+                        deleted-rows
+                        ==
+  =/  kept-rows=(list indexed-row)
+        %+  skim  indexed-rows.child-file
+                  |=  a=indexed-row
+                  =/  matches=?
+                        %:  child-row-matches-deleted
+                            a
+                            constrained-columns.constraint
+                            deleted-rows
+                            ==
+                  !matches
+  ?:  =((lent kept-rows) rowcount.child-file)
+    [cur-data parent-file]
+  =.  files.cur-data
+        ?:  =(child-key parent-key)
+          files.cur-data
+        (~(put by files.cur-data) parent-key parent-file)
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.child-table
+        |=(col=key-column name.col)
+  =/  child-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.child-table)
+  =/  constrained=[data file]
+        %:  apply-delete-constrained-values  content
+                                             effective-time
+                                             child-key
+                                             child-key-cols
+                                             child-file
+                                             matching-rows
+                                             child-fks
+                                             cur-data
+                                             now
+                                             ==
+  =.  cur-data    -.constrained
+  =.  child-file  +.constrained
+  =.  parent-file
+        ?:  =(child-key parent-key)
+          child-file
+        (~(got by files.cur-data) parent-key)
+  =.  indexed-rows.child-file  kept-rows
+  =.  rowcount.child-file      (lent kept-rows)
+  =.  tmsp.child-file          now
+  =.  child-file               (rebuild-primary-index child-table child-file)
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  apply-delete-set-defaults
+  |=  $:  op=tape
+          tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraints=(list foreign-constraint)
+          deleted-rows=(list indexed-row)
+          cur-data=data
+          ==
+  ^-  [data file]
+  ?~  deleted-rows  [cur-data parent-file]
+  |-
+  ?~  constraints  [cur-data parent-file]
+  ?.  =(on-delete.actions.i.constraints %set-default)
+    $(constraints t.constraints)
+  =/  defaulted=[data file]
+        %:  apply-delete-set-default-constraint  op
+                                                 tbls
+                                                 content
+                                                 effective-time
+                                                 now
+                                                 parent-key
+                                                 parent-file
+                                                 i.constraints
+                                                 deleted-rows
+                                                 cur-data
+                                                 ==
+  %=  $
+    constraints  t.constraints
+    cur-data     -.defaulted
+    parent-file  +.defaulted
+  ==
+::
+++  apply-delete-set-default-constraint
+  |=  $:  op=tape
+          tbls=tables
+          content=((mop @da data) gth)
+          effective-time=@da
+          now=@da
+          parent-key=[@tas @tas]
+          parent-file=file
+          constraint=foreign-constraint
+          deleted-rows=(list indexed-row)
+          cur-data=data
+          ==
+  ^-  [data file]
+  =/  child-key=[@tas @tas]  constrained-table.constraint
+  =/  child-table=table      (~(got by tbls) child-key)
+  =/  child-file=file
+        ?:  =(child-key parent-key)
+          parent-file
+        ?:  (~(has by files.cur-data) child-key)
+          (~(got by files.cur-data) child-key)
+        (get-content content effective-time child-key)
+  =/  matching-rows=(list indexed-row)
+        %+  skim  indexed-rows.child-file
+                  |=  a=indexed-row
+                  %:  child-row-matches-deleted
+                        a
+                        constrained-columns.constraint
+                        deleted-rows
+                        ==
+  ?~  matching-rows  [cur-data parent-file]
+  =/  updates=(list [@tas @])
+        (default-updates constrained-columns.constraint columns.child-table)
+  =/  default-key=(list @)  (turn updates |=(u=[@tas @] +.u))
+  =/  parent-table=table  (~(got by tbls) parent-key)
+  =/  dummy
+        %:  assert-delete-set-default-parent  op
+                                              parent-table
+                                              parent-file
+                                              default-key
+                                              deleted-rows
+                                              ==
+  =/  old-child-rows=(list indexed-row)  indexed-rows.child-file
+  =.  indexed-rows.child-file
+        %+  turn  indexed-rows.child-file
+        |=  row=indexed-row
+        =/  matches=?
+              %:  child-row-matches-deleted  row
+                                             constrained-columns.constraint
+                                             deleted-rows
+                                             ==
+        ?:  matches
+          (update-key row updates key.pri-indx.child-table columns.child-table)
+        row
+  =/  changed-pairs=(list [old=indexed-row new=indexed-row])
+        (changed-row-pairs old-child-rows indexed-rows.child-file)
+  =.  files.cur-data
+        ?:  =(child-key parent-key)
+          files.cur-data
+        (~(put by files.cur-data) parent-key parent-file)
+  =/  child-key-cols=(list @tas)
+        %+  turn  key.pri-indx.child-table
+        |=(col=key-column name.col)
+  =/  child-fks=(list outbound-fk-entry)
+        (collect-outbound-fks outbound-fk-index.child-table)
+  =/  constrained=[data file]
+        %:  apply-update-constrained-values
+              content
+              effective-time
+              child-key
+              child-key-cols
+              child-file
+              changed-pairs
+              child-fks
+              cur-data
+              now
+              ==
+  =.  cur-data    -.constrained
+  =.  child-file  +.constrained
+  =.  parent-file
+        ?:  =(child-key parent-key)
+          child-file
+        (~(got by files.cur-data) parent-key)
+  =.  tmsp.child-file  now
+  =.  child-file       (rebuild-primary-index child-table child-file)
+  ?:  =(child-key parent-key)
+    [cur-data child-file]
+  =.  files.cur-data  (~(put by files.cur-data) child-key child-file)
+  [cur-data parent-file]
+::
+++  default-updates
+  |=  [source-cols=(list @tas) cols=(list column:ast)]
+  ^-  (list [@tas @])
+  =/  cmap=(map @tas column:ast)  (malt (turn cols |=(c=column:ast [name.c c])))
+  =/  updates=(list [@tas @])  ~
+  |-
+  ?~  source-cols  (flop updates)
+  =/  col=column:ast  (~(got by cmap) i.source-cols)
+  %=  $
+    source-cols  t.source-cols
+    updates      [[i.source-cols (default-column-value col)] updates]
+  ==
+::
+++  default-column-value
+  |=  col=column:ast
+  ^-  @
+  ?:  =(%da type.col)  *@da
+  0
+::
+++  assert-delete-set-default-parent
+  |=  $:  op=tape
+          parent-table=table
+          parent-file=file
+          default-key=(list @)
+          deleted-rows=(list indexed-row)
+          ==
+  ^-  ~
+  =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
+  ?.  (has:parent-primary-key pri-idx.parent-file default-key)
+    ~|  %+  weld  op  ": FOREIGN KEY SET DEFAULT parent bunt key not found"
+        !!
+  ?:  (deleted-row-key-exists deleted-rows default-key)
+    ~|  %+  weld  op  ": FOREIGN KEY SET DEFAULT parent bunt key not found"
+        !!
+  ~
+::
+++  deleted-row-key-exists
+  |=  [deleted-rows=(list indexed-row) row-key=(list @)]
+  ^-  ?
+  ?~  deleted-rows  %.n
+  ?:  =(key.i.deleted-rows row-key)  %.y
+  $(deleted-rows t.deleted-rows)
+::
+++  child-row-matches-deleted
+  |=  $:  child-row=indexed-row
+          source-cols=(list @tas)
+          deleted-rows=(list indexed-row)
+          ==
+  ^-  ?
+  =/  child-fk-key=(list @)  (fk-row-values data.child-row source-cols)
+  |-
+  ?~  deleted-rows  %.n
+  ?:  =(child-fk-key key.i.deleted-rows)
+    %.y
+  $(deleted-rows t.deleted-rows)
+::
+++  rebuild-primary-index
+  |=  [tbl=table f=file]
+  ^-  file
+  =/  primary-key  (pri-key key.pri-indx.tbl)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.tbl))
+  =.  pri-idx.f
+      %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                           (turn indexed-rows.f |=(a=indexed-row +.a))
+  f
+::
 ++  row-cells
   ::  Create the saved row-wise file data.
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  |=  [op=?(%insert %upsert) p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
   =/  cells  *(list [@tas @])
   |-
   ?~  p  (malt cells)
   %=  $
-    cells  [(row-cell -.p -.q) cells]
+    cells  [(row-cell op -.p -.q) cells]
     p  +.p
     q  +.q
   ==
 ::
 ++  row-cells-and-keys
   ::  Build row map incrementally, no intermediate list or key-map.
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  |=  [op=?(%insert %upsert) p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
   =/  cells  *(map @tas @)
   |-
   ?~  p  cells
-  =/  cell=[@tas @]  (row-cell -.p -.q)
+  =/  cell=[@tas @]  (row-cell op -.p -.q)
   %=  $
     cells  (~(put by cells) -.cell +.cell)
     p  +.p
@@ -1742,11 +3431,21 @@
   ==
 ::
 ++  row-cell
-  |=  [p=value-or-default:ast q=column:ast]
+  |=  [op=?(%insert %upsert) p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   ?:  ?=(dime p)
-    ?:  =(p.p type.q)  [name.q q.p]
-    ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
+    ?:  (value-type-compatible type.q p.p)
+      :-  name.q
+      ?:  ?|  =(%ta type.q)
+              =(%tas type.q)
+              ==
+        (validate-aura-value op name.q type.q q.p)
+      q.p
+    ?:  =(%insert op)
+      ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
+          "does not match input value type {<p.p>}"
+          !!
+    ~|  "UPSERT: type of column {<-.q>} {<+<.q>} ".
         "does not match input value type {<p.p>}"
         !!
   ?:  =(%default p)
@@ -1884,4 +3583,3 @@
       ~[string-expression.sn -.u.quote.sn +.u.quote.sn]
   ==
 --
- 

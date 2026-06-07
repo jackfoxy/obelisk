@@ -13,7 +13,8 @@
 ## CREATE TABLE
 
 =uql "CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;".
-"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);"
+"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);".
+"CREATE TABLE dbo.identifiers (id @ud, path @ta, status @tas) PRIMARY KEY (id);"
 
 
 # Data Manipulation
@@ -30,6 +31,22 @@
 "  ('today', ~2024.9.26, 1)".
 "  ('tomorrow', ~2024.9.27, 2)".
 "  ('next day', ~2024.9.28, 3);"
+
+## UPSERT
+
+=uql "UPSERT INTO my-table-2 ".
+"VALUES ".
+"  ('today', ~2024.9.26, 4)".
+"  ('next week', ~2024.10.3, 7);"
+
+=uql "INSERT INTO identifiers ".
+"  (id, path, status) ".
+"VALUES ".
+"  (1, ~.users.alice, %active);"
+
+=uql "UPDATE identifiers ".
+"SET status=%inactive, path=~.users.alice.archive ".
+"WHERE id=1;"
 
 ## DELETE
 
@@ -54,6 +71,49 @@
 =uql "DROP TABLE my-table-1;"
 
 =uql "DROP TABLE FORCE my-table-2;"
+
+
+# Referential Integrity
+
+=uql "CREATE DATABASE ri-demo; ".
+"CREATE TABLE ri-demo..authors ".
+"  (id @ud, name @t) ".
+"  PRIMARY KEY (id); ".
+"CREATE TABLE ri-demo..books ".
+"  (id @ud, author-id @ud, title @t) ".
+"  PRIMARY KEY (id) ".
+"  FOREIGN KEY (author-id) REFERENCES authors (id);"
+
+=uql "INSERT INTO ri-demo..authors ".
+"VALUES ".
+"  (1, 'Ursula K. Le Guin') ".
+"  (2, 'Octavia Butler'); ".
+"INSERT INTO ri-demo..books ".
+"VALUES ".
+"  (10, 1, 'The Dispossessed') ".
+"  (11, 2, 'Parable of the Sower');"
+
+=uql "INSERT INTO ri-demo..books ".
+"VALUES (12, 99, 'Orphaned Book');"
+
+=uql "DELETE FROM ri-demo..authors ".
+"WHERE id = 1;"
+
+=uql "CREATE TABLE ri-demo..reviews ".
+"  (id @ud, book-id @ud, body @t) ".
+"  PRIMARY KEY (id) ".
+"  FOREIGN KEY (book-id) REFERENCES books (id) ".
+"  ON DELETE CASCADE; ".
+"INSERT INTO ri-demo..reviews ".
+"VALUES (100, 10, 'Essential reading'); ".
+"DELETE FROM ri-demo..books ".
+"WHERE id = 10; ".
+"FROM ri-demo..reviews ".
+"SELECT *;"
+
+=uql "FROM ri-demo.sys.foreign-keys ".
+"SELECT parent-table, child-table, ordinal, ".
+"       parent-column, child-column, on-delete, on-update;"
 
 
 # Sample Database
@@ -119,6 +179,14 @@
 "FROM premium-dogs ".
 "SELECT *;"
 
+=uql "WITH (FROM reference.species ".
+"      WHERE species = 'Dog' ".
+"         OR species = 'Cat' ".
+"      SELECT species) AS target-species ".
+"FROM adoptions ".
+"WHERE species IN target-species.species ".
+"SELECT name, species, adoption-date, adoption-fee;"
+
 
 # Time Travel
 
@@ -156,6 +224,59 @@
 =uql "FROM db2..my-table-1 ".
 "  AS OF ~2024.10.3 ".
 "SELECT *;"
+
+
+# Altering the Schema
+
+=uql "CREATE DATABASE schema-lab;"
+
+=uql "ALTER DATABASE schema-lab RENAME TO schema-work;"
+
+=uql "CREATE NAMESPACE schema-work.archive;"
+
+=uql "CREATE TABLE schema-work..tasks ".
+"(id @ud, title @t, status-code @t) ".
+"PRIMARY KEY (id); ".
+"INSERT INTO schema-work..tasks ".
+"VALUES ".
+"  (1, 'water plants', 'open') ".
+"  (2, 'file receipts', 'done');"
+
+=uql "ALTER TABLE schema-work..tasks ".
+"ADD COLUMN (status @t, priority @ud), ".
+"RENAME COLUMN (title TO task), ".
+"COLUMNS (id, task, status-code, status, priority);"
+
+=uql "INSERT INTO schema-work..tasks ".
+"VALUES (3, 'write notes', 'open', 'started', 1);"
+
+=uql "FROM schema-work..tasks ".
+"SELECT *;"
+
+=uql "ALTER TABLE schema-work..tasks ".
+"PRIMARY KEY (status-code, id);"
+
+=uql "ALTER TABLE schema-work..tasks ".
+"RENAME TO active-tasks;"
+
+=uql "ALTER NAMESPACE schema-work.archive ".
+"TRANSFER TABLE schema-work..active-tasks;"
+
+=uql "FROM schema-work.archive.active-tasks ".
+"SELECT *;"
+
+=uql "ALTER TABLE schema-work.archive.active-tasks ".
+"ADD COLUMN (owner @t), ".
+"DROP COLUMN (priority), ".
+"RENAME COLUMN (task TO description), ".
+"COLUMNS (status-code, id, description, status, owner);"
+
+=uql "FROM schema-work.sys.tables ".
+"SELECT namespace, name, row-count;"
+
+=uql "FROM schema-work.sys.sys-log ".
+"SELECT tmsp, action, component, database, namespace, relation, ".
+"target-database, target-namespace, target-relation, message;"
 
 
 # Joins

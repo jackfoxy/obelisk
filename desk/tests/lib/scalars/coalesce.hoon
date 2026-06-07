@@ -1,4 +1,4 @@
-/-  ast, *obelisk
+/-  ast=obelisk-ast, *obelisk
 /+  *scalars, *test, *main, *utils,  *test-helpers
 ::
 |%

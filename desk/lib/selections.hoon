@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast=obelisk-ast, *obelisk, *server-state-1
 /+  *sys-views, *utils, *predicate, *scalars, mip
 |_  [state=server =bowl:gall]
 ::
@@ -90,6 +90,7 @@
           selected
           resolved-scalars
           named-ctes
+          ordered.i.set-tables.full-relation
           ==
 ::
 ++  join-all
@@ -860,6 +861,7 @@
           selected=(list selected-column:ast)
           =resolved-scalars
           =named-ctes
+          ordered=?
           ==
   ^-  (list vector)
   ?~  rows         *(list vector)
@@ -870,89 +872,126 @@
   ::
   ?~  templ-cells  ~|("relation-vectors can't get here" !!)
   =/  non-lit  %-  |=  a=(list templ-cell)
-                   |-  ^-  (unit templ-cell) 
+                   |-  ^-  (unit templ-cell)
                    ?~  a  ~
                    ?~  column.i.a  $(a t.a)  [~ i.a]
                    templ-cells
   ?~  non-lit
     ?-  -.i.rows
-      %joined-row 
-        (joined-results filter ;;((list joined-row) rows) templ-cells)
+      %joined-row
+        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
       %indexed-row
-        (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+        (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
     ==
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
-  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
-  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
+  (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
 ::
 ++  indexed-results
   |=  $:  filter=(unit $-(data-row ?))
           rows=(list indexed-row)
           templ-cells=(list templ-cell)
+          ordered=?
           ==
   ^-  (list vector)
-  =/  out-rows   *(set vector)
-  |-
-  ?~  rows  ~(tap in out-rows)
-  =/  include-row=?
-    ?~  filter
-      %.y
-    ((need filter) i.rows)
-  ?.  include-row
-    $(rows t.rows)
-  =/  row                     *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector row))
-      rows      t.rows
-    ==
-  ?^  scalar.i.cols
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-  ?~  column.i.cols    :: literal
-    $(cols t.cols, row [vc.i.cols row])
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.i.cols
-                  [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
-              row
-  ==
+  ?:  ordered
+    (filter-ordered filter ;;((list data-row) rows) templ-cells)
+  (filter-unordered filter ;;((list data-row) rows) templ-cells)
 ::
 ++  joined-results
   |=  $:  filter=(unit $-(data-row ?))
           rows=(list joined-row)
           templ-cells=(list templ-cell)
+          ordered=?
           ==
   ^-  (list vector)
-  =/  out-rows   *(set vector)
+  ?:  ordered
+    (filter-ordered filter ;;((list data-row) rows) templ-cells)
+  (filter-unordered filter ;;((list data-row) rows) templ-cells)
+::
+++  filter-ordered
+  ::  Filter ordered result rows into vectors.
+  ::
+  ::  Uses a set to prevent duplicate rows while preserving the existing
+  ::  ordered output path.
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list data-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
+  =/  out   *(list vector)
+  =/  seen  *(set vector)
+  |-
+  ?~  rows  out
+  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
+  ?.  ?~  filter
+        %.y
+      ((need filter) i.rows)
+    $(rows t.rows)
+  =/  cells                  *(list vector-cell:ast)
+  =/  cols=(list templ-cell)  templ-cells
+  |-
+  ?~  cols
+    =/  result-vector=vector  (vector %vector cells)
+    ?:  (~(has in seen) result-vector)
+      ^$(rows t.rows)
+    %=  ^$
+      seen  (~(put in seen) result-vector)
+      out   [result-vector out]
+      rows  t.rows
+    ==
+  ?^  scalar.i.cols                                           :: resolved scalar
+    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
+  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
+  =/  value          ?:  is-indexed-row                       :: value
+                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
+                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
+  %=  $
+    cols   t.cols
+    cells  :-  :-  p.vc.i.cols
+                   [p.q.vc.i.cols value]
+               cells
+  ==
+::
+++  filter-unordered
+  ::  Filter unordered result rows into vectors.
+  ::
+  ::  Uses a set to prevent duplicate rows while preserving the distinct
+  ::  indexed-row and joined-row data-addressing semantics.
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list data-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
+  =/  out-rows  *(set vector)
   |-
   ?~  rows  ~(tap in out-rows)
-  =/  include-row=?
-    ?~  filter
-      %.y
-    ((need filter) i.rows)
-  ?.  include-row
+  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
+  ?.  ?~  filter
+        %.y
+      ((need filter) i.rows)
     $(rows t.rows)
-  =/  row                     *(list vector-cell:ast)
+  =/  cells                  *(list vector-cell:ast)
   =/  cols=(list templ-cell)  templ-cells
   |-
   ?~  cols
     %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector row))
+      out-rows  (~(put in out-rows) (vector %vector cells))
       rows      t.rows
     ==
-  ?^  scalar.i.cols
+  ?^  scalar.i.cols                                           :: resolved scalar
     =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
-  ?~  column.i.cols    :: literal
-    $(cols t.cols, row [vc.i.cols row])
+    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
+  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
+  =/  value          ?:  is-indexed-row                       :: value  
+                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
+                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
   %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.i.cols
-                  [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
-              row
+    cols   t.cols
+    cells  :-  :-  p.vc.i.cols
+                   [p.q.vc.i.cols value]
+               cells
   ==
 ::
 ++  recalc-addr
@@ -1087,6 +1126,7 @@
               rowcount.view-content
               [%unqualified-map-meta typ-addr-lookup.vw2]
               ~
+              %.y
               ~
               %+  turn  rows.view-content
                    |=(a=(map @tas @) [%indexed-row ~ a])
@@ -1139,6 +1179,7 @@
               rowcount.file
               [%unqualified-map-meta typ-addr-lookup.tbl2]
               [~ pri-indx.tbl2]
+              %.n
               pri-idx.file
               indexed-rows.file
               *(list joined-row)
@@ -1304,15 +1345,17 @@
     =/  k=(list [@tas ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  =(-<.k %t)
+      ?:  ->.k  (alpha -.p -.q)
+      (alpha -.q -.p)
     ?:  =(-<.k %rd)
-      ?:  ->.k  (gth:rd -.p -.q)
-      (lth:rd -.p -.q)
+      ?:  ->.k  (lth:rd -.p -.q)
+      (gth:rd -.p -.q)
     ?:  =(-<.k %sd)
-      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) --1)
-      =((cmp:si `@s`-.p `@s`-.q) -1)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
+      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
+      =((cmp:si `@s`-.p `@s`-.q) --1)
+    ?:  ->.k  (lth -.p -.q)
+    (gth -.p -.q)
   --
 ++  prefix-row-comp
   ::
@@ -1326,15 +1369,17 @@
     |-  ^-  ?
     ?~  p  %.n
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  =(-<.k %t)
+      ?:  ->.k  (alpha -.p -.q)
+      (alpha -.q -.p)
     ?:  =(-<.k %rd)
-      ?:  ->.k  (gth:rd -.p -.q)
-      (lth:rd -.p -.q)
+      ?:  ->.k  (lth:rd -.p -.q)
+      (gth:rd -.p -.q)
     ?:  =(-<.k %sd)
-      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) --1)
-      =((cmp:si `@s`-.p `@s`-.q) -1)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
+      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
+      =((cmp:si `@s`-.p `@s`-.q) --1)
+    ?:  ->.k  (lth -.p -.q)
+    (gth -.p -.q)
   --
 ::
 ++  joined-set-table-pk

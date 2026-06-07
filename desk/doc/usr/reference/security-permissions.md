@@ -225,12 +225,8 @@ Revokes update permission.
 Revokes delete permission.
 *not implemented in parser*
 
-
 **PARENT [ <path> ]**
-Revokes rights from all foreign ships currently granted rights, optionally restricted to a path or agent.
-
-**PARENT [ <path> ]**
-Revokes right from the parent of the ship on which the Obelisk agent is running, optionally restricted to a path or agent.
+Revokes rights from the parent of the ship on which the Obelisk agent is running, optionally restricted to a path or agent.
 
 **SIBLINGS [ <path> ]**
 Revokes right from all other moons of the parent of the ship on which the Obelisk agent is running, which is also a moon, optionally restricted to a path or agent.

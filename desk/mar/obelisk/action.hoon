@@ -1,4 +1,4 @@
-/-  *obelisk
+/-  *obelisk-ast
 |_  act=action
 ++  grow
   |%
@@ -6,7 +6,7 @@
   --
 ++  grab             :: convert mark (in this case noun) to agent type
   |%
-  ++  noun action
+  ++  noun  action
   --
 ++  grad  %noun      :: revision control
 --

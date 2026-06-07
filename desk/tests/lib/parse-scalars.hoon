@@ -1,4 +1,4 @@
-/-  ast
+/-  ast=obelisk-ast
 /+  parse,  *test
 ::
 |%
@@ -3749,6 +3749,53 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: arithmetic expressions with bare constants and datetime extractors
+++  test-arithmetic-8
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1 TAU / 2 END ".
+    "        foo2 E ^ .~2.0 END ".
+    "        foo3 DEGREES(TAU) + HOUR(~h3) END ".
+    "        foo4 MINUTE(~h1.m30) - SECOND(~s30) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-2       [p=~.ud q=2]
+  =/  literal-rd-20   [p=~.rd q=.~2.0]
+  =/  literal-h3      [p=~.dr q=~h3]
+  =/  literal-h1-m30  [p=~.dr q=~h1.m30]
+  =/  literal-s30     [p=~.dr q=~s30]
+  =/  tau-div
+    [%arithmetic operator=%fas left=[%tau ~] right=literal-2]
+  =/  e-pow
+    [%arithmetic operator=%ket left=[%e ~] right=literal-rd-20]
+  =/  degrees-plus-hour
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%degrees [%tau ~]]
+      right=[%hour literal-h3]
+    ==
+  =/  minute-minus-second
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%minute literal-h1-m30]
+      right=[%second literal-s30]
+    ==
+  =/  scalars
+    :~
+      [%scalar 'foo1' tau-div]
+      [%scalar 'foo2' e-pow]
+      [%scalar 'foo3' degrees-plus-hour]
+      [%scalar 'foo4' minute-minus-second]
+    ==
+  =/  expected
+    %-  mk-crud-txn-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: arithmetic expressions with scalar-name operands
 ++  test-arithmetic-scalar-node-01
   ::
@@ -4350,6 +4397,144 @@
       alias=[~ 'MyTable']
     ==
   =/  expected  (mk-crud-txn scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: datetime scalar builtins beyond DAY/MONTH/YEAR
+++  test-builtins-13
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt-hour-date HOUR(~2024.10.27..15.30.45) ".
+    "        dt-hour-duration HOUR(~d1.h3) ".
+    "        dt-minute-date MINUTE(~2024.10.27..15.30.45) ".
+    "        dt-minute-duration MINUTE(~h1.m30) ".
+    "        dt-second-date SECOND(~2024.10.27..15.30.45) ".
+    "        dt-second-duration SECOND(~m1.s45) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date        [p=~.da q=~2024.10.27..15.30.45]
+  =/  literal-dur-hour    [p=~.dr q=~d1.h3]
+  =/  literal-dur-minute  [p=~.dr q=~h1.m30]
+  =/  literal-dur-second  [p=~.dr q=~m1.s45]
+  =/  scalars
+    :~
+      [%scalar 'dt-hour-date' [%hour literal-date]]
+      [%scalar 'dt-hour-duration' [%hour literal-dur-hour]]
+      [%scalar 'dt-minute-date' [%minute literal-date]]
+      [%scalar 'dt-minute-duration' [%minute literal-dur-minute]]
+      [%scalar 'dt-second-date' [%second literal-date]]
+      [%scalar 'dt-second-duration' [%second literal-dur-second]]
+    ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: datetime arithmetic scalar builtins
+++  test-builtins-14
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt-add-date ADD-TIME(~2024.10.27,~d1) ".
+    "        dt-add-duration ADD-TIME(~d5,~d3) ".
+    "        dt-sub-date SUBTRACT-TIME(~2024.10.27,~d1) ".
+    "        dt-sub-duration SUBTRACT-TIME(~d10,~d3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date  [p=~.da q=~2024.10.27]
+  =/  literal-d1    [p=~.dr q=~d1]
+  =/  literal-d3    [p=~.dr q=~d3]
+  =/  literal-d5    [p=~.dr q=~d5]
+  =/  literal-d10   [p=~.dr q=~d10]
+  =/  scalars
+    :~
+      [%scalar 'dt-add-date' [%add-time literal-date literal-d1]]
+      [%scalar 'dt-add-duration' [%add-time literal-d5 literal-d3]]
+      [%scalar 'dt-sub-date' [%subtract-time literal-date literal-d1]]
+      [%scalar 'dt-sub-duration' [%subtract-time literal-d10 literal-d3]]
+    ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: documented @rd literal syntax
+++  test-builtins-15
+  =/  query-string
+    "FROM foo ".
+    "SCALARS rd-abs ABS(.~-3.7) ".
+    "        rd-round ROUND(.~123.4,-1) ".
+    "        rd-max MAX(.~3.5,.~2.1) ".
+    "        rd-rand RAND(.~1.5,.~10.8) ".
+    "        rd-sign SIGN(.~0.0) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-rd-neg37  [p=~.rd q=.~-3.7]
+  =/  literal-rd-1234   [p=~.rd q=.~123.4]
+  =/  literal-rd-35     [p=~.rd q=.~3.5]
+  =/  literal-rd-21     [p=~.rd q=.~2.1]
+  =/  literal-rd-15     [p=~.rd q=.~1.5]
+  =/  literal-rd-108    [p=~.rd q=.~10.8]
+  =/  literal-rd-zero   [p=~.rd q=.~0.0]
+  =/  literal-neg1      [p=~.sd q=-1]
+  =/  scalars
+    :~
+      [%scalar 'rd-abs' [%abs literal-rd-neg37]]
+      [%scalar 'rd-round' [%round literal-rd-1234 literal-neg1]]
+      [%scalar 'rd-max' [%max literal-rd-35 literal-rd-21]]
+      [%scalar 'rd-rand' [%rand literal-rd-15 literal-rd-108]]
+      [%scalar 'rd-sign' [%sign literal-rd-zero]]
+    ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: documented bare math constants
+++  test-builtins-16
+  =/  query-string
+    "FROM foo ".
+    "SCALARS mt-e E ".
+    "        mt-phi PHI ".
+    "        mt-pi PI ".
+    "        mt-tau TAU ".
+    "SELECT foo2,foo3"
+  ::
+  =/  scalars
+    :~
+      [%scalar 'mt-e' [%e ~]]
+      [%scalar 'mt-phi' [%phi ~]]
+      [%scalar 'mt-pi' [%pi ~]]
+      [%scalar 'mt-tau' [%tau ~]]
+    ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: variadic string scalar builtins beyond the minimum arity
+++  test-builtins-17
+  =/  query-string
+    "FROM foo ".
+    "SCALARS st-concat CONCAT('hello',' ','world') ".
+    "        st-string-concat STRING-CONCAT('red','green','blue',',') ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-space  [p=~.t q=' ']
+  =/  literal-world  [p=~.t q='world']
+  =/  literal-red    [p=~.t q='red']
+  =/  literal-green  [p=~.t q='green']
+  =/  literal-blue   [p=~.t q='blue']
+  =/  literal-comma  [p=~.t q=',']
+  =/  scalars
+    :~
+      [%scalar 'st-concat' [%concat ~[literal-hello literal-space literal-world]]]
+      :+  %scalar
+          'st-string-concat'
+          [%string-concat ~[literal-red literal-green literal-blue] literal-comma]
+    ==
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)

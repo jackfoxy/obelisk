@@ -8,7 +8,7 @@ If you don't find your question here, open an issue or contact us directly.
 
 2) Mash-up your app's data with data from other apps and personal data. Obelisk allows for cross-database queries and someday even cross-server (cross-ship) queries.
 
-3) Reliance on a data store that provides for good data hygiene. Obelisk provides not only for storing data using the relational model, but unlike other SQL databases, Obelisk data sets are always proper sets. Full relational integrity is on [the roadmap](roadmap.md).
+3) Reliance on a data store that provides for good data hygiene. Obelisk provides not only for storing data using the relational model, but unlike other SQL databases, Obelisk data sets are always proper sets. Relational integrity is via foreign keys is fully supported.
 
 4) Never lose your data. Obelisk's unique time traveling capability means if you delete or overwrite the wrong data you can always recover.
 

@@ -32,7 +32,7 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Predicates can reference CTEs for certain use cases.
 
-* Relational division is supported with a DIVIDED BY operator. (not yet implemented in the urQL parser or Obelisk)
+* Relational division is supported with a DIVIDED BY operator. (parsed but not yet implemented in the Obelisk runtime)
 
 * Reading and/or updating data on foreign ships is permissible if the ship's pilot has granted permission. Cross database joins are allowed, but cross ship joins are not. (Not yet implemented in Obelisk.)
 
@@ -137,7 +137,7 @@ Specifying **\<as-of>** overrides setting the schema and/or content timestamps i
 
 ## Literals
 
-urQL supports most aura types implemented in Urbit as literals for the INSERT command and SELECT statement and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
+urQL supports most aura types implemented in Urbit as literals for the INSERT and UPSERT commands, SELECT statement, and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT and UPSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
 
 Column types (auras) not supported for INSERT can only be inserted into tables through the API.
 
@@ -180,8 +180,8 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @sx  | signed hexadecimal   | --0x2004.90fd | --0x2004.90fd |
 |      |                      | -0x2004.90fd | -0x2004.90fd |
 | @t   | UTF-8 text (cord)    | 'cord', 'cord\\\\'s' <sup>1</sup> | 'cord', 'cord\\\\'s' <sup>1</sup> |
-| @ta  | ASCII text (knot)    | *support pending* | *support pending* |
-| @tas | ASCII text (term)    | *support pending* | *support pending* |
+| @ta  | ASCII text (knot)    | ~.foo-bar | ~.foo-bar |
+| @tas | ASCII text (term)    | %foo-bar | %foo-bar |
 | @ub  | unsigned binary      | 10.1011 | 10.1011 |
 | @ud  | unsigned decimal     | 2.222 | 2.222 |
 |      |                      | 2222 | 2222 |
@@ -190,6 +190,11 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @ux  | unsigned hexadecimal | 0x12.6401 | 0x12.6401 |
 
  <sup>1</sup> Example of embedding single quote in @t literal.
+
+Text-like atom literals use their Hoon aura notation: `@t` cords are written
+in single quotes, `@ta` knots are written with `~.`, and `@tas` terms are
+written with `%`. `INSERT`, `UPSERT`, and `UPDATE` reject `@ta` and `@tas`
+atoms that do not satisfy Hoon's text sanity rules.
 
 ## Comments
 Comment syntax in urQL differs from SQL comment syntax. urQL supports two types of comments, line comments and block comments. 
@@ -290,7 +295,7 @@ And since there is ordering involved in typing rows, `<row-type>` is technically
 <sup>2</sup> Much RDBMS literature refers to all these initial, interim, and final data representations as _tables_. We reserve that term for what others refer to as _user-defined tables_.
 
 ### Api Types
-All static types in the Obelisk API are defined in `sur/ast/hoon`.
+All static types in the Obelisk API are defined in `sur/obelisk-ast.hoon`.
 
 ### Remarks
 
@@ -314,6 +319,6 @@ Among the metadata returned by queries is the schema and content times (labelled
 
 Creating a new `NAMESPACE` or `TABLE` may be back-dated to anytime subsequent to the latest of schema time or content time. The same applies to `TRUNCATE TABLE` which is a special case of zeroing-out the content of a table.
 
-WARNING: It is possible to future date a `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
 All other data manipulation commands -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, `NOW`. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes.

@@ -1,5 +1,5 @@
-/-  ast, *server-state-0, *obelisk
-/+  *sys-views, *ddl, *crud, parse
+/-  ast=obelisk-ast, *server-state-1, *obelisk
+/+  *sys-views, *ddl, *crud, parse, *utils
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -63,6 +63,20 @@
   ?~  cmds  :-  (flop results)
                 state
   ?-  -<.cmds
+    %alter-database
+      ?.  =(our.bowl src.bowl)
+            ~|("ALTER DATABASE: database must be renamed by local agent" !!)
+      ?:  query-has-run
+            ~|("ALTER DATABASE: state change after query in script" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-db i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %alter-index
       ?.  =(our.bowl src.bowl)
             ~|("ALTER INDEX: schema changes must be by local agent" !!)
@@ -71,16 +85,32 @@
       ~|("%alter-index not implemented" !!)
     %alter-namespace
       ?.  =(our.bowl src.bowl)
-            ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
+            ~|("ALTER NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("ALTER NAMESPACE: state change after query in script" !!)
-      ~|("%alter-namespace not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-ns(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %alter-table
       ?.  =(our.bowl src.bowl)
             ~|("ALTER TABLE: schema changes must be by local agent" !!)
       ?:  query-has-run
             ~|("ALTER TABLE: state change after query in script" !!)
-      ~|("%alter-table not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %create-database
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)
@@ -160,7 +190,15 @@
             ~|("DROP NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("DROP NAMESPACE: state change after query in script" !!)
-      ~|("%drop-namespace not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (drop-ns(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %drop-table
       ?.  =(our.bowl src.bowl)
             ~|("DROP TABLE: table must be dropped by local agent" !!)
@@ -236,6 +274,9 @@
                       :-  [%sys %table-keys sys-time]
                           %-  apply-ordering
                               (sys-table-keys-view +<.c sap.bowl sys-time)
+                      :-  [%sys %foreign-keys sys-time]
+                          %-  apply-ordering
+                              (sys-foreign-keys-view +<.c sap.bowl sys-time)
                       :-  [%sys %columns sys-time]
                           %-  apply-ordering
                               (sys-columns-view +<.c sap.bowl sys-time)
@@ -258,6 +299,22 @@
                                 (sys-sys-dbs-view sap.bowl sys-time)
                         ==
                     ==
+  =.  event-log.sys-db
+        ^-  (list sys-log-event)
+        :-  :*  %sys-log-event
+                sys-time
+                sap.bowl
+                %create
+                %database
+                name.c
+                ~
+                ~
+                ~
+                ~
+                ~
+                ~
+                    ==
+            event-log.sys-db
   =.  sys-db  ?:  =(created-tmsp.sys-db sys-time)  sys-db
   sys-db(view-cache (upd-view-caches state sys-db sys-time ~ %create-database))
   =.  state  (~(put by state) %sys sys-db)
@@ -270,6 +327,102 @@
       :+  (~(put by next-schemas) name.c sys-time)
           (~(put by next-data) name.c sys-time)
           (~(put by state) name.c (mk-db name.c ns sys-time db-views))
+::
+++  alter-db
+  |=  $:  c=alter-database:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  =(%sys name.c)          ~|("database %sys cannot be renamed" !!)
+  =/  db  ~|  "database {<name.c>} does not exist"
+              (~(got by state) name.c)
+  ?:  (~(has by state) new-name.c)
+    ~|("database {<new-name.c>} already exists" !!)
+  =/  sys-time=@da  now.bowl
+  =/  nxt-schema=schema
+        ~|  "ALTER DATABASE: {<name.c>} schema time out of order"
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 name.c
+                                 ==
+  =.  name.db  new-name.c
+  =/  db-views
+        %-  limo  :~  :-  [%sys %namespaces sys-time]
+                          %-  apply-ordering
+                              (sys-namespaces-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %tables sys-time]
+                          %-  apply-ordering
+                              (sys-tables-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %table-keys sys-time]
+                          %-  apply-ordering
+                              (sys-table-keys-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %foreign-keys sys-time]
+                          %-  apply-ordering
+                              %^  sys-foreign-keys-view  new-name.c
+                                                         sap.bowl
+                                                         sys-time
+                      :-  [%sys %columns sys-time]
+                          %-  apply-ordering
+                              (sys-columns-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %sys-log sys-time]
+                          %-  apply-ordering
+                              (sys-sys-log-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %data-log sys-time]
+                          %-  apply-ordering
+                              (sys-data-log-view new-name.c sap.bowl sys-time)
+                      ==
+  =.  views.nxt-schema       (gas:view-key views.nxt-schema db-views)
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  =.  sys.db                 (put:schema-key sys.db sys-time nxt-schema)
+  =.  view-cache.db
+        %^  next-view-cache-keys
+            db
+            sys-time
+            :~  [%sys %namespaces]
+                [%sys %tables]
+                [%sys %table-keys]
+                [%sys %columns]
+                [%sys %sys-log]
+                [%sys %data-log]
+                ==
+  =/  sys-db  (~(got by state) %sys)
+  =.  event-log.sys-db
+        ^-  (list sys-log-event)
+        :-  :*  %sys-log-event
+                sys-time
+                sap.bowl
+                %alter
+                %database
+                name.c
+                ~
+                ~
+                `new-name.c
+                ~
+                ~
+                `(crip "renamed database {<name.c>} to {<new-name.c>}")
+                ==
+            event-log.sys-db
+  =.  view-cache.sys-db  %:  upd-view-caches  state
+                                              sys-db
+                                              sys-time
+                                              ~
+                                              %alter-database
+                                              ==
+  =.  state  (~(put by (~(del by state) name.c)) new-name.c db)
+  =.  state  (~(put by state) %sys sys-db)
+  :^  :-  %results
+          :~  :-  %action
+                  (crip "ALTER DATABASE {<name.c>} RENAME TO {<new-name.c>}")
+              [%server-time sys-time]
+              [%schema-time sys-time]
+              [%message (crip "database {<name.c>} renamed to {<new-name.c>}")]
+              ==
+      (~(put by (~(del by next-schemas) name.c)) new-name.c sys-time)
+      (~(put by (~(del by next-data) name.c)) new-name.c sys-time)
+      state
 ::
 ++  mk-db
   |=  $:  name=@tas
@@ -285,25 +438,47 @@
               %+  turn  db-views
                         |=([p=ns-rel-key q=view] [p [%cache time.p ~]])
   ::
+  =/  db-schemas=((mop @da schema) gth)  :+  :-  sys-time
+                                                 :*  %schema
+                                                     sap.bowl
+                                                     sys-time
+                                                     namespaces
+                                                     ~
+                                                     vws
+                                                     ==
+                                             ~
+                                             ~
   :*  %database
       name
       sap.bowl
       sys-time
-      :+  :-  sys-time
-              :*  %schema
-                  sap.bowl
-                  sys-time
-                  namespaces
-                  ~
-                  vws
-                  ==
-          ~
-          ~
+      db-schemas
       :+  :-  sys-time
               [%data src.bowl sap.bowl sys-time ~]
           ~
           ~
       vw-cache
+      ?:  =(%sys name)  ~[(namespace-event sys-time sap.bowl name %sys)]
+      :~  (namespace-event sys-time sap.bowl name %dbo)
+          (namespace-event sys-time sap.bowl name %sys)
+          ==
+      ==
+::
+++  namespace-event
+  |=  [sys-time=@da provenance=path db=@tas namespace=@tas]
+  ^-  sys-log-event
+  :*  %sys-log-event
+      sys-time
+      provenance
+      %create
+      %namespace
+      db
+      `namespace
+      ~
+      ~
+      ~
+      ~
+      ~
       ==
 ::
 ++  drop-db

@@ -2196,6 +2196,123 @@
               ==
       ==
 ::
+::  shrinking duplicate joined rows to one vector
+++  test-shrinking-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..shrink-a ".
+          "(id @ud, join-key @t, label @t) ".
+          "PRIMARY KEY (id); ".
+          "CREATE TABLE db1..shrink-b ".
+          "(id @ud, join-key @t, label @t) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO shrink-a VALUES ".
+          "(1, 'dupe', 'same') ".
+          "(2, 'dupe', 'same'); ".
+          "INSERT INTO shrink-b VALUES ".
+          "(10, 'dupe', 'same')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM shrink-a T1 ".
+          "JOIN shrink-b T2 ON T1.join-key = T2.join-key ".
+          "SELECT T1.label AS left-label, T2.label AS right-label"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%left-label [~.t 'same']]
+                              [%right-label [~.t 'same']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.shrink-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%relation 'db1.dbo.shrink-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  shrinking sys.sys.databases history rows to one row per database
+++  test-shrinking-08
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..my-table ".
+          "(id @ud, label @t) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table VALUES (1, 'row-one')"
+      ::
+      :+  ~2012.5.3
+          %sys
+          "FROM sys.sys.databases SELECT database"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  [%vector ~[[%database [~.tas %db1]]]]
+                      [%vector ~[[%database [~.tas %sys]]]]
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'sys.sys.databases']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  shrinking sys.columns rows from multiple columns to one table row
+++  test-shrinking-09
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..wide-table ".
+          "(id @ud, col1 @t, col2 @da, col3 @p) ".
+          "PRIMARY KEY (id)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.columns SELECT namespace, name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %wide-table]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.sys.columns']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  joins
 ++  create-calendar
   "CREATE TABLE calendar ".
