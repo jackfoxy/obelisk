@@ -4,6 +4,8 @@ Project-specific guidance for Obelisk, an RDBMS Gall agent implementing urQL.
 
 ## Style
 
+/hoon-style-guide
+
 Minimize tokens. Keep correctness.
 Start with answer. No filler, no preamble, no postamble, no meta-commentary, no sign-off.
 If code asked: give code.
@@ -39,4 +41,4 @@ Built dynamically during query execution, discarded when complete. Accumulates r
 ### Builds and Tests
 
 All builds done manually.
-All tests run manyually.
+All tests run manually.
