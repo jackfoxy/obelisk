@@ -63,8 +63,25 @@
   =/  m  (strand ,vase)
   ;<  our=@p  bind:m  get-our
   ;<  now=@da  bind:m  get-time
-  ;<  has=?    bind:m  (check-for-file [our %obelisk da+now] /sys/kelvin)
-  ?.  has  (pure:m !>(;/("obelisk not installed")))
+  ;<  =rock:tire:clay  bind:m  (scry rock:tire:clay /cx//tire) ::  ^(rock:tire:clay %cx /=//=/tire)
+  =/  has=?
+    .=  %live
+    -:(fall (~(get by rock) %obelisk) [%dead ~])
+  :: ;<  has=?    bind:m  (check-for-file [our %obelisk da+now] /sys/kelvin)
+  ?.  has
+    %-  pure:m  !>
+    ;form.wf.hf.fc.ac.jc.g2
+      =hx-post  "/apps/hawk/code/~/obelisk"
+      =hx-swap  "outerHTML"
+      =hx-select  ".refresher"
+      =hx-target  "find #obelisk-installed"
+      ;div: %obelisk not installed
+      ;input(type "hidden", name "protocol", value "/text/hawk-500");
+      ;input(type "hidden", name "code", value "obelisk stub");
+      ;button#obelisk-installed.p2.br1.bd1.b1.hover
+        ; refresh
+      ==
+    ==
   ?+  (rib:c /)
       ::
       %:  print
