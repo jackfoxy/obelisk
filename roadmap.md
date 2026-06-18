@@ -17,7 +17,7 @@
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
-* __INSERT FROM...SELECT... INTO table__ -- INSERT data defined by a query.
+* __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
 
 * __SELECT TOP n ...__ -- dependent on total ordering
 
