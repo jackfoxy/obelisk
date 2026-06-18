@@ -4,6 +4,7 @@
 ## v0.8.1-beta
 
 * fix CTE aliased column bug
+* UPSERT
 
 ## v0.8-beta
 
