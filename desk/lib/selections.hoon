@@ -823,7 +823,7 @@
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
-      ~|("{<selected-column>} not supported" !!)
+     ~[(~(got by col-map) name.selected-column)]
     unqualified-column:ast
       ~[(~(got by col-map) name.selected-column)]
     selected-aggregate:ast

@@ -7912,6 +7912,215 @@
               ==
       ==
 ::
+::  animal shelter CTE chain with joined base query
+++  test-bugz-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2024.8.22..15.31.46
+          %animal-shelter
+          %-  zing  :~
+            "CREATE DATABASE animal-shelter;"
+            "CREATE NAMESPACE reference;"
+            "CREATE TABLE reference.species-vaccines "
+            "(species @t, vaccine @t) PRIMARY KEY (species, vaccine);"
+            "CREATE TABLE animals "
+            "(name @t, species @t, primary-color @t, implant-chip-id @t, "
+            "gender @t, birth-date @da, pattern @t, admission-date @da) "
+            "PRIMARY KEY (name, species);"
+            "CREATE TABLE animals-breed "
+            "(name @t, species @t, breed @t) PRIMARY KEY (name, species);"
+            "CREATE TABLE adoptions "
+            "(name @t, species @t, adopter-email @t, adoption-date @da, "
+            "adoption-fee @ud) PRIMARY KEY (name, species, adopter-email);"
+            "CREATE TABLE vaccinations "
+            "(name @t, species @t, vaccination-time @da, vaccine @t, "
+            "batch @t, comments @t, email @t) "
+            "PRIMARY KEY (name, species, vaccine, vaccination-time);"
+            "CREATE TABLE staff "
+            "(email @t, hire-date @da) PRIMARY KEY (email);"
+            "CREATE TABLE persons "
+            "(email @t, first-name @t, last-name @t, birth-date @da, "
+            "address @t, state @t, city @t, zip-code @t) "
+            "PRIMARY KEY (email);"
+            "INSERT INTO reference.species-vaccines VALUES "
+            "('Dog', 'Adenovirus') "
+            "('Dog', 'Rabies') "
+            "('Cat', 'Calicivirus');"
+            "INSERT INTO animals VALUES "
+            "('Abby', 'Dog', 'Black', 'chip-abby', 'F', ~2016.1.1, "
+            "'Tricolor', ~2018.1.1) "
+            "('Benji', 'Dog', 'Gray', 'chip-benji', 'M', ~2012.5.21, "
+            "'Bicolor', ~2018.10.2) "
+            "('Archie', 'Cat', 'Ginger', 'chip-archie', 'M', ~2009.8.26, "
+            "'Tricolor', ~2016.7.10);"
+            "INSERT INTO animals-breed VALUES "
+            "('Abby', 'Dog', 'Schnauzer') "
+            "('Benji', 'Dog', 'English setter') "
+            "('Archie', 'Cat', 'Persian');"
+            "INSERT INTO adoptions VALUES "
+            "('Abby', 'Dog', 'owner1@test.com', ~2019.1.15, 58) "
+            "('Benji', 'Dog', 'owner2@test.com', ~2018.11.18, 97) "
+            "('Archie', 'Cat', 'owner3@test.com', ~2018.8.30, 82);"
+            "INSERT INTO staff VALUES "
+            "('vet1@test.com', ~2015.1.1) "
+            "('vet2@test.com', ~2016.1.1);"
+            "INSERT INTO persons VALUES "
+            "('vet1@test.com', 'Wanda', 'Myers', ~1980.1.1, "
+            "'1 Main', 'CA', 'Irvine', '92602') "
+            "('vet2@test.com', 'Robin', 'Murphy', ~1981.1.1, "
+            "'2 Main', 'CA', 'Irvine', '92602');"
+            "INSERT INTO vaccinations VALUES "
+            "('Abby', 'Dog', ~2018.2.1..9.0.0, 'Adenovirus', "
+            "'A.1', 'no comment', 'vet1@test.com') "
+            "('Abby', 'Dog', ~2018.3.1..9.0.0, 'Rabies', "
+            "'R.1', 'no comment', 'vet2@test.com') "
+            "('Benji', 'Dog', ~2018.4.1..9.0.0, 'Rabies', "
+            "'R.2', 'no comment', 'vet1@test.com') "
+            "('Benji', 'Dog', ~2018.5.1..9.0.0, 'Bordetella', "
+            "'B.1', 'no comment', 'vet1@test.com') "
+            "('Archie', 'Cat', ~2018.6.1..9.0.0, 'Calicivirus', "
+            "'C.1', 'no comment', 'vet2@test.com');"
+            ==
+      ::
+      :+  ~2024.8.22..16.11.26
+          %animal-shelter
+          %-  zing  :~
+            "WITH (FROM reference.species-vaccines SV "
+            "      WHERE SV.species = 'Dog' "
+            "      SELECT SV.vaccine AS vaccine) AS dog-required-vaccines, "
+            "     (FROM animals A "
+            "      JOIN adoptions D "
+            "        ON A.name = D.name "
+            "       AND A.species = D.species "
+            "      JOIN animals-breed B "
+            "        ON A.name = B.name "
+            "       AND A.species = B.species "
+            "      SCALARS animal-label CONCAT(A.name, ' the ', B.breed) "
+            "              age-at-adoption YEAR(D.adoption-date) - "
+            "YEAR(A.birth-date) END "
+            "              fee-tier IF D.adoption-fee >= 80 THEN 'premium' "
+            "ELSE 'standard' ENDIF "
+            "      WHERE A.species = 'Dog' "
+            "      SELECT A.name AS name, "
+            "             A.species AS species, "
+            "             B.breed AS breed, "
+            "             D.adopter-email AS adopter-email, "
+            "             D.adoption-date AS adoption-date, "
+            "             D.adoption-fee AS adoption-fee, "
+            "             animal-label, "
+            "             age-at-adoption, "
+            "             fee-tier) AS adopted-dog-profiles, "
+            "     (FROM vaccinations V "
+            "      JOIN staff S "
+            "        ON V.email = S.email "
+            "      JOIN persons P "
+            "        ON S.email = P.email "
+            "      SCALARS staff-name CONCAT(P.first-name, ' ', P.last-name) "
+            "              shot-year YEAR(V.vaccination-time) "
+            "      WHERE V.species = 'Dog' "
+            "      SELECT V.name AS name, "
+            "             V.species AS species, "
+            "             V.vaccine AS vaccine, "
+            "             V.vaccination-time AS vaccination-time, "
+            "             staff-name, "
+            "             shot-year) AS dog-vaccination-log, "
+            "     (FROM adopted-dog-profiles AD "
+            "      JOIN dog-vaccination-log VL "
+            "        ON AD.name = VL.name "
+            "       AND AD.species = VL.species "
+            "      JOIN reference.species-vaccines RV "
+            "        ON VL.species = RV.species "
+            "       AND VL.vaccine = RV.vaccine "
+            "      SELECT AD.name AS name, "
+            "             AD.species AS species, "
+            "             AD.breed AS breed, "
+            "             AD.adopter-email AS adopter-email, "
+            "             AD.adoption-date AS adoption-date, "
+            "             AD.adoption-fee AS adoption-fee, "
+            "             AD.animal-label AS animal-label, "
+            "             AD.age-at-adoption AS age-at-adoption, "
+            "             AD.fee-tier AS fee-tier, "
+            "             RV.vaccine AS vaccine) AS base-dog-vaccine-status "
+            "FROM base-dog-vaccine-status "
+            "SELECT name, "
+            "       species, "
+            "       breed, "
+            "       adopter-email, "
+            "       adoption-date, "
+            "       adoption-fee, "
+            "       animal-label, "
+            "       age-at-adoption, "
+            "       fee-tier, "
+            "       vaccine"
+            ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%name [~.t 'Abby']]
+                              [%species [~.t 'Dog']]
+                              [%breed [~.t 'Schnauzer']]
+                              [%adopter-email [~.t 'owner1@test.com']]
+                              [%adoption-date [~.da ~2019.1.15]]
+                              [%adoption-fee [~.ud 58]]
+                              [%animal-label [~.t 'Abby the Schnauzer']]
+                              [%age-at-adoption [~.ud 3]]
+                              [%fee-tier [~.t 'standard']]
+                              [%vaccine [~.t 'Adenovirus']]
+                              ==
+                      :-  %vector
+                          :~  [%name [~.t 'Abby']]
+                              [%species [~.t 'Dog']]
+                              [%breed [~.t 'Schnauzer']]
+                              [%adopter-email [~.t 'owner1@test.com']]
+                              [%adoption-date [~.da ~2019.1.15]]
+                              [%adoption-fee [~.ud 58]]
+                              [%animal-label [~.t 'Abby the Schnauzer']]
+                              [%age-at-adoption [~.ud 3]]
+                              [%fee-tier [~.t 'standard']]
+                              [%vaccine [~.t 'Rabies']]
+                              ==
+                      :-  %vector
+                          :~  [%name [~.t 'Benji']]
+                              [%species [~.t 'Dog']]
+                              [%breed [~.t 'English setter']]
+                              [%adopter-email [~.t 'owner2@test.com']]
+                              [%adoption-date [~.da ~2018.11.18]]
+                              [%adoption-fee [~.ud 97]]
+                              [%animal-label [~.t 'Benji the English setter']]
+                              [%age-at-adoption [~.ud 6]]
+                              [%fee-tier [~.t 'premium']]
+                              [%vaccine [~.t 'Rabies']]
+                              ==
+                      ==
+              [%server-time ~2024.8.22..16.11.26]
+              [%relation 'animal-shelter.dbo.adoptions']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.dbo.animals']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.dbo.animals-breed']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.dbo.persons']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.dbo.staff']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.dbo.vaccinations']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%relation 'animal-shelter.reference.species-vaccines']
+              [%schema-time ~2024.8.22..15.31.46]
+              [%data-time ~2024.8.22..15.31.46]
+              [%vector-count 3]
+              ==
+      ==
+::
 :: SELECT error messages
 ::
 ::  fail on prior to table existence

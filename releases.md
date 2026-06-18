@@ -1,6 +1,10 @@
 # Releases
 
 
+## v0.8.1-beta
+
+* fix CTE aliased column bug
+
 ## v0.8-beta
 
 * ALTER DATABASE
