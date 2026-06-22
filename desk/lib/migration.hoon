@@ -1,4 +1,4 @@
-/-  *server-state-1
+/-  *server-state-1, *obelisk-ast
 /+  *utils
 /=  oldstate  /sur/server-state-0
 |%

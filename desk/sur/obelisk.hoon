@@ -76,14 +76,6 @@
 ::
 +$  qualifier  $%(qualified-table cte-name)
 ::
-+$  joined-row
-  $+  joined-row
-  $:  %joined-row
-    key=(list @)
-    data=(mip qualified-table @tas @)
-    ==
-+$  data-row  $%(joined-row indexed-row)
-::
 +$  join-return
   $+  join-return
   $:  %join-return

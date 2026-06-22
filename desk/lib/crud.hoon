@@ -290,7 +290,7 @@
   =/  key-pick=(list [@tas @])
         %+  turn
             key.pri-indx.table.txn
-            |=(a=key-column (make-key-pick name.a column-lookup.table.txn))
+            |=(a=key-column:ast (make-key-pick name.a column-lookup.table.txn))
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  inserted-rows=(list indexed-row)  ~
   ::
@@ -314,7 +314,7 @@
                 ==
     =/  child-key-cols=(list @tas)
           %+  turn  key.pri-indx.table.txn
-          |=(col=key-column name.col)
+          |=(col=key-column:ast name.col)
     =/  constrained=[data file]
           %:  apply-insert-constrained-values
                 content.db.txn
@@ -485,7 +485,7 @@
         (collect-outbound-fks outbound-fk-index.table.txn)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.table.txn
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  constrained=[data file]
         %:  apply-delete-constrained-values
               content.db.txn
@@ -626,7 +626,7 @@
   =/  aa  %-  silt
               %+  turn
                   key.pri-indx.table.txn
-                  |=(a=key-column name.a)
+                  |=(a=key-column:ast name.a)
   =/  bb  %-  silt
               %+  weld
                   (turn static-updates |=(a=[@tas @] -.a))
@@ -748,7 +748,7 @@
   ::
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.table.txn
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-row-pairs=(list [old=indexed-row new=indexed-row])
         (changed-row-pairs indexed-rows.file.txn -.rows-count)
   =/  constrained=[data file]
@@ -1335,7 +1335,7 @@
           updates=(list [@tas @])
           scalar-updates=(list [@tas @tas])
           rs=resolved-scalars
-          key-columns=(list key-column)
+          key-columns=(list key-column:ast)
           cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
@@ -1373,7 +1373,7 @@
 ++  update-key
   |=  $:  r=indexed-row
           updates=(list [@tas @])
-          key-columns=(list key-column)
+          key-columns=(list key-column:ast)
           cols=(list column:ast)
           ==
   ^-  indexed-row
@@ -1926,7 +1926,7 @@
   =/  templ-cells
     %-  mk-rel-vect-templ
     [column-metas selected -.rows map-meta resolved-scalars named-ctes]
-  =/  key-cols=(unit (list key-column))  ?~(pri ~ [~ key.u.pri])
+  =/  key-cols=(unit (list key-column:ast))  ?~(pri ~ [~ key.u.pri])
   =/  out=(list indexed-row)  ~
   =/  rows=(list data-row)  rows
   |-
@@ -1934,7 +1934,7 @@
   =/  data  (materialize-cte-row i.rows templ-cells)
   =/  key   ?~  key-cols
               ~
-            (turn u.key-cols |=(a=key-column (~(got by data) name.a)))
+            (turn u.key-cols |=(a=key-column:ast (~(got by data) name.a)))
   %=  $
     rows  t.rows
     out   :-  [%indexed-row key data]  out
@@ -2070,7 +2070,7 @@
   |=  $:  =file
           =data
           tbl-key=[@tas @tas]
-          primary-key=(list key-column)
+          primary-key=(list key-column:ast)
           result-rowcount=@ud
           ==
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
@@ -2841,7 +2841,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -2973,7 +2973,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -3182,7 +3182,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -3308,7 +3308,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]

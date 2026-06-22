@@ -194,8 +194,8 @@
   ?:  =(prior-key this-key)
     (joined-set-table this -.count-and-rows +.count-and-rows)
   ::  key is same column sequence, but different ordering
-  ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
-              (turn this-key |=(a=key-column [name.a aura.a]))
+  ?:  ?!  .=  (turn prior-key |=(a=key-column:ast [name.a aura.a]))
+              (turn this-key |=(a=key-column:ast [name.a aura.a]))
     ::  partial key match
     =/  plen  (leading-prefix-len prior-key this-key)
     ?:  =(0 plen)
@@ -234,9 +234,9 @@
           !!
     ::  check if prefix needs re-sort (different ASC/DESC)
     =/  needs-resort  ?!  .=  %+  turn  prior-prefix
-                                  |=(a=key-column ascending.a)
+                                  |=(a=key-column:ast ascending.a)
                               %+  turn  this-prefix
-                                  |=(a=key-column ascending.a)
+                                  |=(a=key-column:ast ascending.a)
     =/  sort-prefix   ?:  (gth rowcount.this rowcount.prior)
                         this-prefix
                       prior-prefix
@@ -759,7 +759,7 @@
                       =/  st-key  key:(need pri-indx.i.set-tables)
                       =/  count-key-cols
                             %^  fold  st-key
-                                      *(pair @ud (list key-column))
+                                      *(pair @ud (list key-column:ast))
                                       (cury count-keys selected-cols)
                       ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
@@ -774,8 +774,8 @@
   ::  If key exists in selected columns then count, emit, and potentially rename
   ::  to alias.
   |=  $:  key-lookup=(map @tas (pair @tas (unit @t)))
-          a=key-column
-          b=(pair @ud (list key-column))
+          a=key-column:ast
+          b=(pair @ud (list key-column:ast))
           ==
   =/  found  (~(get by key-lookup) name.a)
   ?~  found  b
@@ -1297,7 +1297,7 @@
           a-qual=qualified-table:ast
           b=(list indexed-row)
           b-qual=qualified-table:ast
-          key=(list key-column)
+          key=(list key-column:ast)
           ==
   ^-  [@ud (list joined-row)]
   =/  c  *(list joined-row)
@@ -1387,7 +1387,7 @@
   |=  $:  st=set-table
           row-count=@ud
           joined-rows=(list joined-row)
-          pk=(list key-column)
+          pk=(list key-column:ast)
           ==
   ^-  set-table
   =.  rowcount.st     row-count
@@ -1397,7 +1397,7 @@
 ::
 ++  leading-prefix-len
   ::  count leading columns matching by name+aura
-  |=  [a=(list key-column) b=(list key-column)]
+  |=  [a=(list key-column:ast) b=(list key-column:ast)]
   ^-  @ud
   =/  i  0
   |-
@@ -1409,8 +1409,8 @@
 ++  find-noncontig-matches
   ::  find key column matches beyond the leading prefix
   ::  returns (list [prior-key-pos this-key-pos])
-  |=  $:  prior-key=(list key-column)
-          this-key=(list key-column)
+  |=  $:  prior-key=(list key-column:ast)
+          this-key=(list key-column:ast)
           plen=@ud
           ==
   ^-  (list [@ud @ud])
@@ -1440,12 +1440,12 @@
   ::  prior-cols: accumulated columns from all prior source tables
   |=  $:  prior-cols=(list column:ast)
           this=set-table
-          prior-key=(list key-column)
-          this-key=(list key-column)
+          prior-key=(list key-column:ast)
+          this-key=(list key-column:ast)
           ==
   ^-  (list @tas)
-  =/  prior-key-names  (silt (turn prior-key |=(a=key-column name.a)))
-  =/  this-key-names   (silt (turn this-key |=(a=key-column name.a)))
+  =/  prior-key-names  (silt (turn prior-key |=(a=key-column:ast name.a)))
+  =/  this-key-names   (silt (turn this-key |=(a=key-column:ast name.a)))
   =/  prior-nonkey  %+  skip  prior-cols
                     |=(c=column:ast (~(has in prior-key-names) name.c))
   =/  this-nonkey   %+  skip  columns.this
@@ -1572,7 +1572,7 @@
           a-qual=qualified-table:ast
           b=(list data-row)
           b-qual=qualified-table:ast
-          prefix-key=(list key-column)
+          prefix-key=(list key-column:ast)
           nonkey-cols=(list @tas)
           noncontig=(list [@ud @ud])
           ==

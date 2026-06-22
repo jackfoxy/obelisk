@@ -36,9 +36,9 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ++  reduce-key
-  |=  key=(list key-column)
+  |=  key=(list key-column:ast)
   ^-  (list [@ta ?])
-  (turn key |=(a=key-column [aura.a ascending.a]))
+  (turn key |=(a=key-column:ast [aura.a ascending.a]))
 ::
 ++  idx-comp
   ::  comparator for index mops
@@ -66,7 +66,7 @@
   --
 ::
 ++  pri-key
-  |=  key=(list key-column)
+  |=  key=(list key-column:ast)
   =/  comparator  ~(order idx-comp (reduce-key key))
   ((on (list [@tas ?]) (map @tas @)) comparator)
 ::
@@ -288,13 +288,13 @@
   =/  ta=typ-addr
         %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected ~]
                                              name.selected
-  =/  row=data-row  ?~  joined-rows.cte-st
-                      ?~  indexed-rows.cte-st
-                        ~|  "resolve selected-cte-column: no rows in cte ".
-                            "{<cte.selected>}"
-                            !!
-                      i.indexed-rows.cte-st
-                    i.joined-rows.cte-st
+  =/  row=data-row:ast  ?~  joined-rows.cte-st
+                          ?~  indexed-rows.cte-st
+                            ~|  "resolve selected-cte-column: no rows in cte ".
+                                "{<cte.selected>}"
+                                !!
+                          i.indexed-rows.cte-st
+                        i.joined-rows.cte-st
   =/  x  .*(data.row [%0 addr.ta])
   [type.ta ?@(x x ;;(@ +.x))]
 ::
@@ -305,17 +305,17 @@
   type.rs
 ::
 ++  resolve-selected-scalar
-  |=  [row=data-row rs=resolved-scalar]
+  |=  [row=data-row:ast rs=resolved-scalar]
   ^-  dime
   ?:  ?=(dime rs)  rs
-  =/  f=$-(data-row dime)  +>.rs
+  =/  f=$-(data-row:ast dime)  +>.rs
   (f row)
 ::
 ++  mk-rel-vect-templ
   ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
-          row=data-row 
+          row=data-row:ast 
           =map-meta
           =resolved-scalars
           =named-ctes
@@ -1137,13 +1137,12 @@
           ==
   ^-  foreign-constraint
   =.  constrained-values.incoming  *constrained-values
-  =/  rows=(list indexed-row)  indexed-rows.child-file
+  =/  rows=(list indexed-row:ast)  indexed-rows.child-file
   |-
   ?~  rows  incoming
-  =/  row=indexed-row  i.rows
-  =/  parent-key=(list @)  (row-column-values data.row source-cols)
+  =/  parent-key=(list @)  (row-column-values data.i.rows source-cols)
   =/  child-pk=(list @)
-        (row-key-values data.row constrained-primary-key.incoming)
+        (row-key-values data.i.rows constrained-primary-key.incoming)
   %=  $
     rows      t.rows
     incoming  (add-constrained-value-reference incoming parent-key child-pk)

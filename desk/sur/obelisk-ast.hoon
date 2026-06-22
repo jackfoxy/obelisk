@@ -224,6 +224,44 @@
 ::  $relation-id:
 +$  relation-id  $%(qualified-table cte-name)
 ::
+::  $relation
++$  relation
+  $+  relation
+  $:  %relation
+  columns=(list column)
+  pri-indx=(unit index)
+  ordered=?
+  pri-indexed=(tree [(list @) (map @tas @)])
+  data-rows=(list data-row)
+  ==
+::
++$  indexed-row
+  $:  %indexed-row
+    key=(list @)
+    data=(map @tas @)
+    ==
+::
++$  joined-row
+  $+  joined-row
+  $:  %joined-row
+    key=(list @)
+    ::data=(mip qualified-table @tas @)
+    data=(map qualified-table (map @tas @))
+    ==
++$  data-row  $%(joined-row indexed-row)
+::
++$  index
+  $:  %index
+    unique=?
+    key=(list key-column)
+    ==
++$  key-column
+  $:  %key-column
+    name=@tas
+    =aura
+    ascending=?
+    ==
+::
 ::  $select:
 +$  select
   $+  select
