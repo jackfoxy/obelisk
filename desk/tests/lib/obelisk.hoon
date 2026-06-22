@@ -298,7 +298,7 @@
           [%action 'SELECT'] 
           [%result-set expected-db-rows]
           [%server-time ~2000.1.2]
-          [%relation-id 'sys.sys.databases']
+          [%relation-name 'sys.sys.databases']
           [%schema-time ~2000.1.1]
           [%data-time ~2000.1.1]
           [%vector-count 2]
@@ -409,7 +409,7 @@
                               ==
                       ==
               [%server-time ~2000.1.3]
-              [%relation-id 'sys.sys.databases']
+              [%relation-name 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 1]
@@ -456,7 +456,7 @@
                               ==
                       ==
               [%server-time ~2000.1.4]
-              [%relation-id 'sys.sys.databases']
+              [%relation-name 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.2]
               [%vector-count 2]
@@ -511,7 +511,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%relation-id 'sys.sys.databases']
+              [%relation-name 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 2]
@@ -562,7 +562,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%relation-id 'sys.sys.databases']
+              [%relation-name 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 2]

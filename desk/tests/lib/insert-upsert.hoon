@@ -56,7 +56,7 @@
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -98,7 +98,7 @@
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -140,7 +140,7 @@
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -182,7 +182,7 @@
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -250,7 +250,7 @@
                               ==
                       ==
               [%server-time ~2012.5.5]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 4]
@@ -294,7 +294,7 @@
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation-id 'db2.dbo.my-table']
+              [%relation-name 'db2.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -392,7 +392,7 @@
                                   ==
                           ==
                   [%server-time ~2000.1.4]
-                  [%relation-id 'db1.dbo.my-table']
+                  [%relation-name 'db1.dbo.my-table']
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
                   [%vector-count 1]
@@ -405,7 +405,7 @@
                                   ==
                           ==
                   [%server-time ~2000.1.4]
-                  [%relation-id 'db1.dbo.my-table']
+                  [%relation-name 'db1.dbo.my-table']
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
                   [%vector-count 1]
@@ -563,7 +563,7 @@
                               ==
                       ==
               [%server-time ~2000.1.5]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.4]
               [%vector-count 3]
@@ -709,7 +709,7 @@
           :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.1]
-              [%relation-id 'db2.dbo.my-table-1']
+              [%relation-name 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 0]
@@ -761,7 +761,7 @@
                               ==
                       ==
               [%server-time ~2012.5.1]
-              [%relation-id 'db2.dbo.my-table-1']
+              [%relation-name 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2005.2.2]
               [%vector-count 3]
@@ -816,7 +816,7 @@
                               ==
                       ==
               [%server-time ~2012.5.2]
-              [%relation-id 'db2.dbo.my-table-1']
+              [%relation-name 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -866,7 +866,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%relation-id 'db1.dbo.my-table']
+              [%relation-name 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1003,7 +1003,7 @@
                               ==
                       ==
               [%server-time ~2012.5.1]
-              [%relation-id 'db2.dbo.my-table-1']
+              [%relation-name 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 8]
@@ -1053,7 +1053,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.text-keys']
+              [%relation-name 'db1.dbo.text-keys']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -1103,7 +1103,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.path-keys']
+              [%relation-name 'db1.dbo.path-keys']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -1153,7 +1153,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -1204,7 +1204,7 @@
                               ==
                       ==
               [%server-time ~2012.5.5]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 1]
@@ -1261,7 +1261,7 @@
                               ==
                       ==
               [%server-time ~2012.5.5]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 2]
@@ -1309,7 +1309,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -1361,7 +1361,7 @@
                               ==
                       ==
               [%server-time ~2000.1.5]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.4]
               [%vector-count 1]
@@ -1409,7 +1409,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation-id 'db1.dbo.people']
+              [%relation-name 'db1.dbo.people']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -1460,7 +1460,7 @@
                               ==
                       ==
               [%server-time ~2012.5.5]
-              [%relation-id 'db1.dbo.people-text']
+              [%relation-name 'db1.dbo.people-text']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 1]

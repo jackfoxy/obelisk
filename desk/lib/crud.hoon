@@ -1181,7 +1181,7 @@
     $(raw t.raw)
   %=  $
     raw  t.raw
-    out  :-  :~  [%relation-id (qualified-table-to-cord -.i.raw)]
+    out  :-  :~  [%relation-name (qualified-table-to-cord -.i.raw)]
                  [%schema-time +<.i.raw]
                  [%data-time +>.i.raw]
                  ==

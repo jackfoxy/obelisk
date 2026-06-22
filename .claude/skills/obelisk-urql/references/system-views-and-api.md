@@ -35,7 +35,7 @@ Every command returns `cmd-result` (`sur/obelisk-ast.hoon`); one per command in 
 +$  cmd-result  [%results (list result)]
 +$  result
   $%  [%action @t]              :: command/query executed
-      [%relation-id @t]            :: source table/view used or affected
+      [%relation-name @t]            :: source table/view used or affected
       [%message msg=@t]
       [%vector-count count=@ud] :: rows affected or returned
       [%server-time date=@da]   :: wall clock (now.bowl)
@@ -60,7 +60,7 @@ Query with CTEs/joins — each real source table is emitted first (sorted by shi
 
 ```
 :: per source table (non-CTE, non-sys):
-[%relation-id '<db>.<ns>.<table>'] [%schema-time] [%data-time]
+[%relation-name '<db>.<ns>.<table>'] [%schema-time] [%data-time]
 :: then:
 [%action 'SELECT'] [%result-set ...] [%server-time] [%vector-count]
 ```
