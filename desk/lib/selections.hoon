@@ -40,7 +40,7 @@
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
-  =/  =full-relation  %:  source-full-relation  relation.from
+  =/  =full-relation  %:  source-full-relation  relation-id.from
                                                 named-ctes
                                                 as-of.from
                                                 ~
@@ -101,14 +101,14 @@
   =/  joined-relations=(list joined-relat)
         %+  cross-joins-to-end  :*  %joined-relat
                                      ~
-                                     relation.from
+                                     relation-id.from
                                      as-of.from
                                      ~
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
   =.  joined-relations    +.joined-relations
-  =/  =full-relation  %:  source-full-relation  relation.relat
+  =/  =full-relation  %:  source-full-relation  relation-id.relat
                                                 named-ctes
                                                 as-of.relat
                                                 ~
@@ -120,7 +120,7 @@
   =/  from-objects        (limo ~[prior-join])
   |-
   ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  full-relation  %:  source-full-relation  relation.i.joined-relations
+  =.  full-relation  %:  source-full-relation  relation-id.i.joined-relations
                                                 named-ctes
                                                 as-of.i.joined-relations
                                                 join.i.joined-relations
@@ -1027,7 +1027,7 @@
                     ==
 ::
 ++  source-full-relation
-  |=  $:  rel=relation:ast
+  |=  $:  rel=relation-id:ast
           =named-ctes
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
@@ -1245,7 +1245,7 @@
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
                            `join-type.i.joins
-                            relation.i.joins
+                            relation-id.i.joins
                             as-of.i.joins
                             predicate.i.joins
                             ==
@@ -1255,7 +1255,7 @@
     joins  t.joins
     joined-relations  :-  :*  %joined-relat
                               `join-type.i.joins
-                              relation.i.joins
+                              relation-id.i.joins
                               as-of.i.joins
                               predicate.i.joins
                               ==

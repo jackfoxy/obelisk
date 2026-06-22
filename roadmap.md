@@ -3,6 +3,8 @@
 
 ##  V1.0
 
+* __`INSERT INTO [ FORCE ] \<table>__ -- (complete in dev) INSERT data defined by a query.
+
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __Outer JOINs__ -- LEFT JOIN, RIGHT JOIN, OUTER JOIN,
@@ -16,8 +18,6 @@
 * __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
-
-* __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
 
 * __SELECT TOP n ...__ -- dependent on total ordering
 

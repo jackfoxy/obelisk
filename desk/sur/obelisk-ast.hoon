@@ -208,7 +208,7 @@
 +$  from
   $+  from
   $:  %from
-    =relation
+    =relation-id
     as-of=(unit as-of)
     joins=(list joined-relation)
     ==
@@ -216,13 +216,13 @@
   $+  joined-relation
   $:  %joined-relation
     =join-type
-    =relation
+    =relation-id
     as-of=(unit as-of)
     =predicate
     ==
 ::
-::  $relation:
-+$  relation  $%(qualified-table cte-name)
+::  $relation-id:
++$  relation-id  $%(qualified-table cte-name)
 ::
 ::  $select:
 +$  select
@@ -395,9 +395,9 @@
 +$  merge
   $+  merge
   $:  %merge
-    target-table=relation
-    new-table=(unit relation)
-    source-table=relation
+    target-table=relation-id
+    new-table=(unit relation-id)
+    source-table=relation-id
     =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)

@@ -2318,9 +2318,9 @@
   |=  a=*
   ^-  merge:ast
   =/  into          %.y
-  =/  target-table  *(unit relation:ast)
-  =/  new-table     *(unit relation:ast)
-  =/  source-table  *(unit relation:ast)
+  =/  target-table  *(unit relation-id:ast)
+  =/  new-table     *(unit relation-id:ast)
+  =/  source-table  *(unit relation-id:ast)
   =/  predicate     *predicate:ast
   =/  matching      *matching-lists:ast
   |-
@@ -2360,7 +2360,7 @@
   ?:  ?=([%using qualified-table:ast %as @] -.a)
     %=  $
       a  +.a
-      source-table  `(relation:ast ->-.a `->+>.a)
+      source-table  `(relation-id:ast ->-.a `->+>.a)
     ==
   ?:  =(%on -<.a)
     %=  $
@@ -2454,11 +2454,11 @@
     =/  f  (produce-from -.a)
     =.  alias-map  (mk-alias-map f)
     =.  f
-      ?.  ?&  ?=(qualified-table:ast relation.f)
-              (~(has by cte-map) name.relation.f)
+      ?.  ?&  ?=(qualified-table:ast relation-id.f)
+              (~(has by cte-map) name.relation-id.f)
               ==
         f
-      f(relation [%cte-name name.relation.f alias.relation.f])
+      f(relation-id [%cte-name name.relation-id.f alias.relation-id.f])
     $(a +.a, from `f)
   ?:  =(-<-<.a %qualified-table)
     ~|  "make-query produce-from nested qualified-table: {<-.a>}"
@@ -2489,7 +2489,7 @@
   |=  a=*
   ~+
   ^-  from:ast
-  =/  from-object=relation:ast  (make-query-object -.a)
+  =/  from-object=relation-id:ast  (make-query-object -.a)
   =/  from-as-of=(unit as-of:ast)
         ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
@@ -2682,14 +2682,14 @@
   =/  finalized-joins
     %+  turn  joins.f
     |=  j=joined-relation:ast
-    =/  rel=relation:ast
-      ?:  ?&  ?=(qualified-table:ast relation.j)
-              (~(has by cte-map) name.relation.j)
+    =/  rel=relation-id:ast
+      ?:  ?&  ?=(qualified-table:ast relation-id.j)
+              (~(has by cte-map) name.relation-id.j)
           ==
-        [%cte-name name.relation.j alias.relation.j]
-      relation.j
+        [%cte-name name.relation-id.j alias.relation-id.j]
+      relation-id.j
     ?~  predicate.j
-      j(relation rel)
+      j(relation-id rel)
     :*  %joined-relation
           join-type.j
           rel
@@ -2701,7 +2701,7 @@
                                   cte-col-map
                                   ==
           ==
-  [%from relation.f as-of.f finalized-joins]
+  [%from relation-id.f as-of.f finalized-joins]
 +$  alias-maps
   $:  table=(map @t qualified-table:ast)
       scalar=(map @tas scalar-function:ast)
@@ -2967,12 +2967,12 @@
   ~+
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-alias-map-joins ~ joins.f)
-  ?.  ?=(qualified-table:ast relation.f)
+  ?.  ?=(qualified-table:ast relation-id.f)
     n
-  ?~  alias.relation.f
+  ?~  alias.relation-id.f
     n
-  %+  ~(put by n)  (fold-key (need alias.relation.f))
-                   relation.f
+  %+  ~(put by n)  (fold-key (need alias.relation-id.f))
+                   relation-id.f
 ::
 ++  mk-alias-map-joins
   |=  [m=(map @t qualified-table:ast) js=(list joined-relation:ast)]
@@ -2981,12 +2981,12 @@
   |-
   ?~  js  m
   =/  j=joined-relation:ast  -.js
-  ?.  ?=(qualified-table:ast relation.j)
-    ~|("not implemented {<relation.j>}" !!)
+  ?.  ?=(qualified-table:ast relation-id.j)
+    ~|("not implemented {<relation-id.j>}" !!)
   %=  $
-    m   ?~  alias.relation.j  m
-        %+  ~(put by m)  (fold-key (need alias.relation.j))
-                         relation.j
+    m   ?~  alias.relation-id.j  m
+        %+  ~(put by m)  (fold-key (need alias.relation-id.j))
+                         relation-id.j
     js  +.js
   ==
 ::
@@ -3072,10 +3072,10 @@
   ~+
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-obj-name-map-joins ~ joins.f)
-  ?.  ?=(qualified-table:ast relation.f)
-    ~|("not implemented {<relation.f>}" !!)
-  %+  ~(put by n)  (fold-key name.relation.f)
-                   relation.f
+  ?.  ?=(qualified-table:ast relation-id.f)
+    ~|("not implemented {<relation-id.f>}" !!)
+  %+  ~(put by n)  (fold-key name.relation-id.f)
+                   relation-id.f
 ::
 ++  mk-obj-name-map-joins
   |=  [m=(map @t qualified-table:ast) js=(list joined-relation:ast)]
@@ -3084,11 +3084,11 @@
   |-
   ?~  js  m
   =/  j=joined-relation:ast  -.js
-  ?.  ?=(qualified-table:ast relation.j)
-    ~|("not implemented {<relation.j>}" !!)
+  ?.  ?=(qualified-table:ast relation-id.j)
+    ~|("not implemented {<relation-id.j>}" !!)
   %=  $
-    m   %+  ~(put by m)  (fold-key name.relation.j)
-                         relation.j
+    m   %+  ~(put by m)  (fold-key name.relation-id.j)
+                         relation-id.j
     js  +.js
   ==
 ++  produce-select
@@ -4453,9 +4453,9 @@
   ==
 ++  build-query-object  ~+
   |=  parsed=*
-  ^-  $?  relation:ast
-          [relation:ast as-of-offset:ast]
-          [relation:ast as-of:ast]
+  ^-  $?  relation-id:ast
+          [relation-id:ast as-of-offset:ast]
+          [relation-id:ast as-of:ast]
           ==
    ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] @] parsed)
     :*  %qualified-table
@@ -4483,11 +4483,11 @@
   ::
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago]]
           parsed
-    :-  (relation:ast -.parsed)
+    :-  (relation-id:ast -.parsed)
         (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago] @]
           parsed
-    :-  %:  relation:ast  %qualified-table
+    :-  %:  relation-id:ast  %qualified-table
                           ->-.parsed
                           ->+<.parsed
                           ->+>-.parsed
@@ -4549,7 +4549,7 @@
 ++  make-query-object
   |=  a=*
   ~+
-  ^-  relation:ast
+  ^-  relation-id:ast
   ?:  ?=(qualified-table:ast a)
     a
   ?:  ?=(qualified-table:ast -.a)

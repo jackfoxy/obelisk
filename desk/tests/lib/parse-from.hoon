@@ -286,7 +286,7 @@
 ::
 ++  simple-from-foo
   :*  %query
-      [~ [%from relation=foo-table as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -296,7 +296,7 @@
       ==
 ++  simple-from-foo-ns1
   :*  %query
-      [~ [%from relation=foo-table-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -306,7 +306,7 @@
       ==
 ++  simple-from-foo-db2
   :*  %query
-      [~ [%from relation=foo-table-db2 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -316,7 +316,7 @@
       ==
 ++  simple-from-foo-db2-ns1
   :*  %query
-      [~ [%from relation=foo-table-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -326,7 +326,7 @@
       ==
 ++  simple-from-foo-nec-db2
   :*  %query
-      [~ [%from relation=foo-table-nec-db2 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-nec-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -336,7 +336,7 @@
       ==
 ++  simple-from-foo-nec-db2-ns1
   :*  %query
-      [~ [%from relation=foo-table-nec-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-nec-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -346,7 +346,7 @@
       ==
 ++  aliased-from-foo
   :*  %query
-      [~ [%from relation=foo-table-f1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -356,7 +356,7 @@
       ==
 ++  aliased-from-foo-ns1
   :*  %query
-      [~ [%from relation=foo-table-f1-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -366,7 +366,7 @@
       ==
 ++  aliased-from-foo-db2
   :*  %query
-      [~ [%from relation=foo-table-f1-db2 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -376,7 +376,7 @@
       ==
 ++  aliased-from-foo-db2-ns1
   :*  %query
-      [~ [%from relation=foo-table-f1-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -386,7 +386,7 @@
       ==
 ++  aliased-from-foo-nec-db2
   :*  %query
-      [~ [%from relation=foo-table-f1-nec-db2 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1-nec-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -396,7 +396,7 @@
       ==
 ++  aliased-from-foo-nec-db2-ns1
   :*  %query
-      [~ [%from relation=foo-table-f1-nec-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation-id=foo-table-f1-nec-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -406,7 +406,7 @@
       ==
 ++  simple-from-foo-join-bar
   :*  %query
-      [~ [%from relation=foo-table as-of=~ joins=join-bar]]
+      [~ [%from relation-id=foo-table as-of=~ joins=join-bar]]
       scalars=~
       ~
       group-by=~
@@ -426,7 +426,7 @@
       ==
 ++  simple-from-foo-join-bar-db2
   :*  %query
-      [~ [%from relation=foo-table-db2 as-of=~ joins=join-bar-db2]]
+      [~ [%from relation-id=foo-table-db2 as-of=~ joins=join-bar-db2]]
       scalars=~
       ~
       group-by=~
@@ -436,7 +436,7 @@
       ==
 ++  simple-from-foo-join-bar-db2-ns1
   :*  %query
-      [~ [%from relation=foo-table-db2-ns1 as-of=~ joins=join-bar-db2-ns1]]
+      [~ [%from relation-id=foo-table-db2-ns1 as-of=~ joins=join-bar-db2-ns1]]
       scalars=~
       ~
       group-by=~
@@ -446,7 +446,7 @@
       ==
 ++  simple-from-foo-join-bar-nec-db2
   :*  %query
-      [~ [%from relation=foo-table-nec-db2 as-of=~ joins=join-bar-nec-db2]]
+      [~ [%from relation-id=foo-table-nec-db2 as-of=~ joins=join-bar-nec-db2]]
       scalars=~
       ~
       group-by=~
@@ -457,7 +457,7 @@
 ++  simple-from-foo-join-bar-nec-db2-ns1
   :*  %query
       :-  ~
-      [%from relation=foo-table-nec-db2-ns1 as-of=~ joins=join-bar-nec-db2-ns1]
+      [%from relation-id=foo-table-nec-db2-ns1 as-of=~ joins=join-bar-nec-db2-ns1]
       scalars=~
       ~
       group-by=~
@@ -467,7 +467,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased
   :*  %query
-      [~ [%from relation=foo-table as-of=~ joins=join-bar-aliased]]
+      [~ [%from relation-id=foo-table as-of=~ joins=join-bar-aliased]]
       scalars=~
       ~
       group-by=~
@@ -477,7 +477,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased-ns1
   :*  %query
-      [~ [%from relation=foo-table-ns1 as-of=~ joins=join-bar-aliased-ns1]]
+      [~ [%from relation-id=foo-table-ns1 as-of=~ joins=join-bar-aliased-ns1]]
       scalars=~
       ~
       group-by=~
@@ -487,7 +487,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased-db2
   :*  %query
-      [~ [%from relation=foo-table-db2 as-of=~ joins=join-bar-aliased-db2]]
+      [~ [%from relation-id=foo-table-db2 as-of=~ joins=join-bar-aliased-db2]]
       scalars=~
       ~
       group-by=~
@@ -499,7 +499,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2-ns1
+              relation-id=foo-table-db2-ns1
               as-of=~
               joins=join-bar-aliased-db2-ns1
       scalars=~
@@ -513,7 +513,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2
+              relation-id=foo-table-nec-db2
               as-of=~
               joins=join-bar-aliased-nec-db2
       scalars=~
@@ -527,7 +527,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2-ns1
+              relation-id=foo-table-nec-db2-ns1
               as-of=~
               joins=join-bar-aliased-nec-db2-ns1
       scalars=~
@@ -543,7 +543,7 @@
 ++  join-bar
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased
+          relation-id=bar-unaliased
           as-of=~
           predicate=one-eq-1
           ==
@@ -551,7 +551,7 @@
 ++  join-bar-ns1
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased-ns1
+          relation-id=bar-unaliased-ns1
           as-of=~
           predicate=one-eq-1
           ==
@@ -559,7 +559,7 @@
 ++  join-bar-db2
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased-db2
+          relation-id=bar-unaliased-db2
           as-of=~
           predicate=one-eq-1
           ==
@@ -567,7 +567,7 @@
 ++  join-bar-db2-ns1
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased-db2-ns1
+          relation-id=bar-unaliased-db2-ns1
           as-of=~
           predicate=one-eq-1
           ==
@@ -575,7 +575,7 @@
 ++  join-bar-nec-db2
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased-nec-db2
+          relation-id=bar-unaliased-nec-db2
           as-of=~
           predicate=one-eq-1
           ==
@@ -583,7 +583,7 @@
 ++  join-bar-nec-db2-ns1
   :~  :*  %joined-relation
           join=%join
-          relation=bar-unaliased-nec-db2-ns1
+          relation-id=bar-unaliased-nec-db2-ns1
           as-of=~
           predicate=one-eq-1
           ==
@@ -1123,7 +1123,7 @@
 ++  simple-from
   |=  time=as-of
   :*  %query 
-      [~ [%from relation=foo-table as-of=[~ time] joins=~]]
+      [~ [%from relation-id=foo-table as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1134,7 +1134,7 @@
 ++  simple-from-aliased
   |=  time=as-of
   :*  %query
-      [~ [%from relation=foo-aliased as-of=[~ time] joins=~]]
+      [~ [%from relation-id=foo-aliased as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1145,7 +1145,7 @@
 ++  simple-from-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from relation=foo-table as-of=[~ time] joins=(join-bar-as-of time)]]
+      [~ [%from relation-id=foo-table as-of=[~ time] joins=(join-bar-as-of time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1158,7 +1158,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-ns1
+              relation-id=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-ns1 time)
       ~      ::scalars
@@ -1173,7 +1173,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2
+              relation-id=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-as-of-db2 time)
       ~      ::scalars
@@ -1188,7 +1188,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2-ns1
+              relation-id=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1203,7 +1203,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2
+              relation-id=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-as-of-nec-db2 time)
       ~      ::scalars
@@ -1218,7 +1218,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2-ns1
+              relation-id=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1233,7 +1233,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table
+              relation-id=foo-table
               as-of=[~ time]
               joins=(join-bar-aliased-as-of time)
       ~      ::scalars
@@ -1248,7 +1248,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-ns1
+              relation-id=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-ns1 time)
       ~      ::scalars
@@ -1263,7 +1263,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2
+              relation-id=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2 time)
       ~      ::scalars
@@ -1278,7 +1278,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2-ns1
+              relation-id=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1293,7 +1293,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2
+              relation-id=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2 time)
       ~      ::scalars
@@ -1308,7 +1308,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2-ns1
+              relation-id=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1323,7 +1323,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased
+              relation-id=foo-aliased
               as-of=[~ time]
               joins=(join-bar-aliased-as-of time)
       ~      ::scalars
@@ -1338,7 +1338,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-ns1
+              relation-id=foo-aliased-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-ns1 time)
       ~      ::scalars
@@ -1353,7 +1353,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-db2
+              relation-id=foo-aliased-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2 time)
       ~      ::scalars
@@ -1368,7 +1368,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-db2-ns1
+              relation-id=foo-aliased-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1383,7 +1383,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-nec-db2
+              relation-id=foo-aliased-nec-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2 time)
       ~      ::scalars
@@ -1398,7 +1398,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-nec-db2-ns1
+              relation-id=foo-aliased-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1411,7 +1411,7 @@
 ++  simple-from-join-bar-baz
   |=  time=as-of
   :*  %query
-      [~ [%from relation=foo-table as-of=[~ time] joins=(join-bar-baz time)]]
+      [~ [%from relation-id=foo-table as-of=[~ time] joins=(join-bar-baz time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1424,7 +1424,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-ns1
+              relation-id=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-baz-ns1 time)
       ~      ::scalars
@@ -1439,7 +1439,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2
+              relation-id=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-baz-db2 time)
       ~      ::scalars
@@ -1454,7 +1454,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-db2-ns1
+              relation-id=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-baz-db2-ns1 time)
       ~      ::scalars
@@ -1469,7 +1469,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2
+              relation-id=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-baz-nec-db2 time)
       ~      ::scalars
@@ -1484,7 +1484,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table-nec-db2-ns1
+              relation-id=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-baz-nec-db2-ns1 time)
       ~      ::scalars
@@ -1500,7 +1500,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased
+              relation-id=foo-aliased
               as-of=[~ time]
               joins=(aliased-join-bar-baz time)
       ~      ::scalars
@@ -1515,7 +1515,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-ns1
+              relation-id=foo-aliased-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-ns1 time)
       ~      ::scalars
@@ -1530,7 +1530,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-db2
+              relation-id=foo-aliased-db2
               as-of=[~ time]
               joins=(aliased-join-bar-baz-db2 time)
       ~      ::scalars
@@ -1545,7 +1545,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-db2-ns1
+              relation-id=foo-aliased-db2-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-db2-ns1 time)
       ~      ::scalars
@@ -1560,7 +1560,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-nec-db2
+              relation-id=foo-aliased-nec-db2
               as-of=[~ time]
               joins=(aliased-join-bar-baz-nec-db2 time)
       ~      ::scalars
@@ -1575,7 +1575,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased-nec-db2-ns1
+              relation-id=foo-aliased-nec-db2-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-nec-db2-ns1 time)
       ~      ::scalars
@@ -1588,7 +1588,7 @@
 ++  simple-from-cross-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from relation=foo-table as-of=[~ time] joins=(cross-join-bar time)]]
+      [~ [%from relation-id=foo-table as-of=[~ time] joins=(cross-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1689,7 +1689,7 @@
 ++  natural-from-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from relation=foo-table as-of=[~ time] joins=(natural-join-bar time)]]
+      [~ [%from relation-id=foo-table as-of=[~ time] joins=(natural-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1702,7 +1702,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-table
+              relation-id=foo-table
               as-of=[~ time]
               joins=(natural-join-bar-aliased time)
       ~      ::scalars
@@ -1717,7 +1717,7 @@
   :*  %query
       :-  ~
           :^  %from
-              relation=foo-aliased
+              relation-id=foo-aliased
               as-of=[~ time]
               joins=(natural-join-bar-aliased time)
       ~      ::scalars
@@ -2062,7 +2062,7 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-table-f1-low
+                                    relation-id=foo-table-f1-low
                                     as-of=~
                                     joins=join-bar-aliased
                             scalars=~
@@ -2085,11 +2085,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-table
+                                    relation-id=foo-table
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%join
-                                            relation=bar-unaliased
+                                            relation-id=bar-unaliased
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
@@ -2126,7 +2126,7 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-table-f1-low
+                                    relation-id=foo-table-f1-low
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%join
@@ -2175,11 +2175,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-alias-y
+                                    relation-id=foo-alias-y
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%cross-join
-                                            relation=bar-alias-x
+                                            relation-id=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2204,11 +2204,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-alias-y
+                                    relation-id=foo-alias-y
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%cross-join
-                                            relation=bar-alias-x
+                                            relation-id=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2233,11 +2233,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-table
+                                    relation-id=foo-table
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%cross-join
-                                            relation=bar-unaliased
+                                            relation-id=bar-unaliased
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2262,11 +2262,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-table
+                                    relation-id=foo-table
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%join
-                                            relation=bar-unaliased
+                                            relation-id=bar-unaliased
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2290,11 +2290,11 @@
                         :*  %query
                             :-  ~
                                 :^  %from
-                                    relation=foo-alias-y
+                                    relation-id=foo-alias-y
                                     as-of=~
                                     :~  :*  %joined-relation
                                             join=%join
-                                            relation=bar-alias-x
+                                            relation-id=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==

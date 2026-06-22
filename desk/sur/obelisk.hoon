@@ -97,7 +97,7 @@
   $+  joined-relat
   $:  %joined-relat
     join=(unit join-type)
-    =relation
+    =relation-id
     as-of=(unit as-of)
     =predicate
     ==

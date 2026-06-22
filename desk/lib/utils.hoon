@@ -192,12 +192,12 @@
   qualified-table(alias `(crip (cass (trip u.alias.qualified-table))))
 ::
 ++  normalize-relation
-  |=  =relation:ast
-  ^-  relation:ast
-  ?:  =(-.relation %qualified-table)
-    (normalize-qt-alias ;;(qualified-table:ast relation))
-  ?:  =(-.relation %cte-name)
-    =/  cn  ;;(cte-name:ast relation)
+  |=  =relation-id:ast
+  ^-  relation-id:ast
+  ?:  =(-.relation-id %qualified-table)
+    (normalize-qt-alias ;;(qualified-table:ast relation-id))
+  ?:  =(-.relation-id %cte-name)
+    =/  cn  ;;(cte-name:ast relation-id)
     [%cte-name (crip (cass (trip name.cn))) alias.cn]
   ~|("normalize-relation not implemented" !!)
 ::
@@ -205,12 +205,12 @@
   |=  =from:ast
   ^-  from:ast
   :^  %from
-      (normalize-relation relation.from)
+      (normalize-relation relation-id.from)
       as-of.from
       %+  turn  joins.from  |=  j=joined-relation:ast
                             :*  %joined-relation
                                 join-type.j
-                                (normalize-relation relation.j)
+                                (normalize-relation relation-id.j)
                                 as-of.j
                                 predicate.j
                                 ==
