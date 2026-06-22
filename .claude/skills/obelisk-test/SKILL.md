@@ -100,7 +100,7 @@ A `cmd-result` is a tagged union with `%results` head followed by a list of resu
     :~  [%action 'SELECT']           :: or 'INSERT INTO db1.dbo.my-table', etc.
         [%result-set <list of vectors>]    :: only for SELECT results
         [%server-time ~2012.5.3]
-        [%relation 'db1.dbo.my-table']      :: source table(s)
+        [%relation-id 'db1.dbo.my-table']      :: source table(s)
         [%schema-time ~2012.5.1]
         [%data-time ~2012.5.2]
         [%vector-count 3]
@@ -110,10 +110,10 @@ A `cmd-result` is a tagged union with `%results` head followed by a list of resu
 For JOINed queries, each source table gets its own message/schema-time/data-time block:
 
 ```hoon
-[%relation 'db1.dbo.calendar']
+[%relation-id 'db1.dbo.calendar']
 [%schema-time ~2012.4.30]
 [%data-time ~2012.4.30]
-[%relation 'db1.dbo.holiday-calendar']
+[%relation-id 'db1.dbo.holiday-calendar']
 [%schema-time ~2012.4.30]
 [%data-time ~2012.4.30]
 ```
@@ -190,7 +190,7 @@ Or simply:
             :-  %results  :~  [%action 'SELECT']
                               [%result-set expected-rows]
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-id 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 7]
@@ -235,7 +235,7 @@ Or simply:
           :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.my-table']
+              [%relation-id 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]

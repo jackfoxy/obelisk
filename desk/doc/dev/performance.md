@@ -76,7 +76,7 @@ query: s/2.834
      ...
       ~2044.4.9  2.044  4  April  9  Saturday  100  7  15
     [ %server-time ~2026.4.28..17.19.20..e4d8 ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 21.916 ]
@@ -106,7 +106,7 @@ query: s/1.876
       Monday
       Sunday
     [ %server-time ~2026.4.28..17.22.07..ee8c ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 7 ]
@@ -142,7 +142,7 @@ query: s/7.252
       ...
       .~0.26099999999999995  ~2033.2.11  2.033  2  February  11  Friday  42  6  7
     [ %server-time ~2026.4.28..18.52.26..8c0f ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 21.916 ]
@@ -176,7 +176,7 @@ query: ms/6.229
       ...
       reference  federal-holidays-fixed  ~./gall/dojo  ~2026.4.28..16.13.01..89bb  4
     [ %server-time ~2026.4.28..17.54.19..4404 ]
-    [ %relation 'animal-shelter.sys.tables' ]
+    [ %relation-id 'animal-shelter.sys.tables' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 25 ]
@@ -213,10 +213,10 @@ query: ms/142.850
       ~2025.11.11  Tuesday  Veterans Day
       ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
     [ %server-time ~2025.4.7..20.52.53..d6b4 ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
-    [ %relation 'animal-shelter.reference.calendar-us-fed-holiday' ]
+    [ %relation-id 'animal-shelter.reference.calendar-us-fed-holiday' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 10 ]
@@ -253,10 +253,10 @@ query: ms/433.152
       ...
       ~1991.11.19  November  Tuesday  Veterans Day  11
     [ %server-time ~2026.4.28..17.43.50..0083 ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
-    [ %relation 'animal-shelter.reference.federal-holidays-fixed' ]
+    [ %relation-id 'animal-shelter.reference.federal-holidays-fixed' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 7.381 ]
@@ -296,10 +296,10 @@ query: ms/625.443
       ...
       New York  Buffalo  Erie  1.004.655  14214
     [ %server-time ~2026.4.28..18.04.11..7338 ]
-    [ %relation 'animal-shelter.reference.cities' ]
+    [ %relation-id 'animal-shelter.reference.cities' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
-    [ %relation 'animal-shelter.reference.city-zip-codes' ]
+    [ %relation-id 'animal-shelter.reference.city-zip-codes' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 8.025 ]
@@ -338,10 +338,10 @@ query: ms/260.837
       ..."
       ~1996.11.28  1.996  November  28  Thursday  Thanksgiving Day
     [ %server-time ~2026.4.28..18.10.20..eac2 ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
-    [ %relation 'animal-shelter.reference.federal-holidays-floating' ]
+    [ %relation-id 'animal-shelter.reference.federal-holidays-floating' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 360 ]
@@ -380,10 +380,10 @@ query: ms/568.113
       ...
       New York  Buffalo  Erie  1.004.655  14214
     [ %server-time ~2026.4.28..18.23.41..7b8a ]
-    [ %relation 'animal-shelter.reference.cities' ]
+    [ %relation-id 'animal-shelter.reference.cities' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
-    [ %relation 'animal-shelter.reference.city-zip-codes' ]
+    [ %relation-id 'animal-shelter.reference.city-zip-codes' ]
     [ %schema-time ~2026.4.28..16.13.01..89bb ]
     [ %data-time ~2026.4.28..16.13.01..89bb ]
     [ %vector-count 4.795 ]

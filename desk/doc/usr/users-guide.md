@@ -106,7 +106,7 @@ From here on we will dispense with the full poke command and only specify the ur
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %relation 'sys.sys.databases' ]
+    [ %relation-id 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -545,7 +545,7 @@ SELECT day-name AS Day;
       Monday
       Sunday
     [ %server-time ~2024.9.30..18.07.14..afcc ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-id 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2024.9.30..14.15.21..ad17 ]
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 7 ]
@@ -794,7 +794,7 @@ FROM sys.sys.databases AS OF NOW SELECT *;
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %relation 'sys.sys.databases' ]
+    [ %relation-id 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -908,7 +908,7 @@ SELECT *;
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.00.48..85c2 ]
-    [ %relation 'db2.dbo.my-table-1' ]
+    [ %relation-id 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
@@ -934,7 +934,7 @@ We did not need to specify the exact time of the content state, only a time equa
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.06.08..4b55 ]
-    [ %relation 'db2.dbo.my-table-1' ]
+    [ %relation-id 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
@@ -1840,7 +1840,7 @@ list of `result` entries:
 +$  cmd-result  [%results (list result)]
 +$  result
   $%  [%action @t]
-      [%relation @t]
+      [%relation-id @t]
       [%message msg=@t]
       [%vector-count count=@ud]
       [%server-time date=@da]

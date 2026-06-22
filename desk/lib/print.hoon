@@ -32,8 +32,8 @@
       %action
         ~&  "    [ {<-.b>} {<action.b>} ]"
         $(results +.results)
-      %relation
-        ~&  "    [ {<-.b>} {<relation.b>} ]"
+      %relation-id
+        ~&  "    [ {<-.b>} {<relation-name.b>} ]"
         $(results +.results)
       %message
         ~&  "    [ {<-.b>} {<msg.b>} ]"

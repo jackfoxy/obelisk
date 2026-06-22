@@ -1084,7 +1084,7 @@
 +$  result
   $%
     [%action action=@t]
-    [%relation relation=@t]
+    [%relation-id relation-name=@t]
     [%message msg=@t]
     [%vector-count count=@ud]
     [%server-time date=@da]

@@ -86,7 +86,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
@@ -137,7 +137,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 5]
@@ -227,7 +227,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -313,7 +313,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
@@ -348,7 +348,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 3]
@@ -438,7 +438,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -520,7 +520,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
@@ -578,7 +578,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'sys.sys.databases']
+              [%relation-id 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.3]
               [%vector-count 4]
@@ -622,7 +622,7 @@
                               ==
                       ==
               [%server-time ~2000.1.2]
-              [%relation 'db1.sys.namespaces']
+              [%relation-id 'db1.sys.namespaces']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 3]
@@ -641,7 +641,7 @@
                               ==
                       ==
               [%server-time ~2000.1.3]
-              [%relation 'db1.sys.namespaces']
+              [%relation-id 'db1.sys.namespaces']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 2]
@@ -680,7 +680,7 @@
                               ==
                       ==
               [%server-time ~2000.1.2]
-              [%relation 'db2.sys.namespaces']
+              [%relation-id 'db2.sys.namespaces']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 3]
@@ -776,7 +776,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
@@ -815,7 +815,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 4]
@@ -889,7 +889,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -949,7 +949,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -1038,7 +1038,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 4]
@@ -1084,7 +1084,7 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
@@ -1102,7 +1102,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 1]
@@ -1162,7 +1162,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 7]
@@ -1236,7 +1236,7 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -1261,7 +1261,7 @@
                           ==
                   ==
           [%server-time ~2000.1.11]
-          [%relation 'db1.sys.table-keys']
+          [%relation-id 'db1.sys.table-keys']
           [%schema-time ~2000.1.2]
           [%data-time ~2000.1.2]
           [%vector-count 2]
@@ -1349,7 +1349,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 5]
@@ -1423,7 +1423,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -1506,7 +1506,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.tables']
+              [%relation-id 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
@@ -1580,7 +1580,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.table-keys']
+              [%relation-id 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -1691,7 +1691,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%relation 'db1.sys.columns']
+              [%relation-id 'db1.sys.columns']
               [%schema-time ~2000.1.5]
               [%data-time ~2000.1.5]
               [%vector-count 10]
@@ -1751,7 +1751,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'db1.sys.columns']
+              [%relation-id 'db1.sys.columns']
               [%schema-time ~2000.1.4]
               [%data-time ~2000.1.4]
               [%vector-count 7]
@@ -1860,7 +1860,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%relation 'db1.sys.columns']
+              [%relation-id 'db1.sys.columns']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 8]
@@ -1941,7 +1941,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%relation 'db1.sys.columns']
+              [%relation-id 'db1.sys.columns']
               [%schema-time ~2000.1.5]
               [%data-time ~2000.1.5]
               [%vector-count 10]
@@ -1981,12 +1981,12 @@
       :+  ~2000.1.8
           %db1
           "FROM sys.sys-log ".
-          "SELECT tmsp, agent, action, component, database, namespace, relation"
+          "SELECT tmsp, agent, action, component, database, namespace, relation-id"
       ::
       :+  ~2000.1.9
           %db1
           "FROM sys.sys-log AS OF ~2000.1.6 ".
-          "SELECT tmsp, agent, action, component, database, namespace, relation"
+          "SELECT tmsp, agent, action, component, database, namespace, relation-id"
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -1998,7 +1998,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
@@ -2007,7 +2007,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
@@ -2016,7 +2016,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2025,7 +2025,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2034,7 +2034,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-2]]
+                              [%relation-id [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2043,7 +2043,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
+                              [%relation-id [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
@@ -2052,7 +2052,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2061,11 +2061,11 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 8]
@@ -2081,7 +2081,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
@@ -2090,7 +2090,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
@@ -2099,7 +2099,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2108,7 +2108,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2117,7 +2117,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-2]]
+                              [%relation-id [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2126,7 +2126,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
+                              [%relation-id [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
@@ -2135,11 +2135,11 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -2183,12 +2183,12 @@
       :+  ~2000.1.9
           %db1
           "FROM sys.sys-log ".
-          "SELECT tmsp, agent, action, component, database, namespace, relation"
+          "SELECT tmsp, agent, action, component, database, namespace, relation-id"
       ::
       :+  ~2000.1.10
           %db1
           "FROM sys.sys-log AS OF ~2000.1.7 ".
-          "SELECT tmsp, agent, action, component, database, namespace, relation"
+          "SELECT tmsp, agent, action, component, database, namespace, relation-id"
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -2200,7 +2200,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
@@ -2209,7 +2209,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
@@ -2218,7 +2218,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2227,7 +2227,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.8]]
@@ -2236,7 +2236,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2245,7 +2245,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-2]]
+                              [%relation-id [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2254,7 +2254,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
+                              [%relation-id [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
@@ -2263,7 +2263,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2272,11 +2272,11 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 9]
@@ -2292,7 +2292,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
@@ -2301,7 +2301,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
@@ -2310,7 +2310,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2319,7 +2319,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2328,7 +2328,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-2]]
+                              [%relation-id [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2337,7 +2337,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
+                              [%relation-id [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
@@ -2346,7 +2346,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2355,11 +2355,11 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %ref]]
-                              [%relation [~.tas %my-table-4]]
+                              [%relation-id [~.tas %my-table-4]]
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 8]
@@ -2392,7 +2392,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2405,7 +2405,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2418,7 +2418,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2431,7 +2431,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2439,7 +2439,7 @@
                               ==
                       ==
               [%server-time ~2000.1.4]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.3]
               [%data-time ~2000.1.3]
               [%vector-count 4]
@@ -2455,7 +2455,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2468,7 +2468,7 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%relation-id [~.tas '']]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2481,7 +2481,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2489,7 +2489,7 @@
                               ==
                       ==
               [%server-time ~2000.1.5]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 3]
@@ -2511,7 +2511,7 @@
       :+  ~2100.1.4
           %db1
           "FROM sys.sys-log WHERE tmsp = ~2100.1.3 ".
-          "SELECT tmsp, action, component, database, namespace, relation, ".
+          "SELECT tmsp, action, component, database, namespace, relation-id, ".
           "target-database, target-namespace, target-relation, message"
       ::
       :-  %results
@@ -2523,7 +2523,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas %db1]]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               [%target-database [~.tas %db1]]
                               [%target-namespace [~.tas %dbo]]
                               [%target-relation [~.tas %renamed-table]]
@@ -2531,7 +2531,7 @@
                               ==
                       ==
               [%server-time ~2100.1.4]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2100.1.3]
               [%data-time ~2100.1.3]
               [%vector-count 1]
@@ -2563,7 +2563,7 @@
       :+  ~2100.2.4
           %db1
           "FROM sys.sys-log WHERE tmsp = ~2100.2.3 ".
-          "SELECT tmsp, action, component, database, namespace, relation, ".
+          "SELECT tmsp, action, component, database, namespace, relation-id, ".
           "target-database, target-namespace, target-relation, message"
       ::
       :-  %results
@@ -2575,7 +2575,7 @@
                               [%component [~.tas %table]]
                               [%database [~.tas %db1]]
                               [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table]]
+                              [%relation-id [~.tas %my-table]]
                               [%target-database [~.tas '']]
                               [%target-namespace [~.tas '']]
                               [%target-relation [~.tas '']]
@@ -2584,7 +2584,7 @@
                               ==
                       ==
               [%server-time ~2100.2.4]
-              [%relation 'db1.sys.sys-log']
+              [%relation-id 'db1.sys.sys-log']
               [%schema-time ~2100.2.3]
               [%data-time ~2100.2.3]
               [%vector-count 1]
@@ -2722,7 +2722,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.10]
               [%vector-count 9]
@@ -2797,7 +2797,7 @@
                               ==
                       ==
               [%server-time ~2000.1.12]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.9]
               [%vector-count 8]
@@ -2922,7 +2922,7 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.9]
               [%vector-count 8]
@@ -2989,7 +2989,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 7]
@@ -3118,7 +3118,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.10]
               [%data-time ~2000.1.10]
               [%vector-count 8]
@@ -3193,7 +3193,7 @@
                           ==
                   ==
           [%server-time ~2000.1.12]
-          [%relation 'db1.sys.data-log']
+          [%relation-id 'db1.sys.data-log']
           [%schema-time ~2000.1.9]
           [%data-time ~2000.1.9]
           [%vector-count 8]
@@ -3329,7 +3329,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.10]
               [%vector-count 9]
@@ -3396,7 +3396,7 @@
                               ==
                       ==
               [%server-time ~2000.1.12]
-              [%relation 'db1.sys.data-log']
+              [%relation-id 'db1.sys.data-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 7]

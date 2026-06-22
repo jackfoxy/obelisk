@@ -917,7 +917,7 @@
                               [%column %component ~.tas 0]
                               [%column %database ~.tas 0]
                               [%column %namespace ~.tas 0]
-                              [%column %relation ~.tas 0]
+                              [%column %relation-id ~.tas 0]
                               [%column %target-database ~.tas 0]
                               [%column %target-namespace ~.tas 0]
                               [%column %target-relation ~.tas 0]
@@ -1115,7 +1115,7 @@
                       %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %relation  ::column=@tas
+                  %relation-id  ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               :+  %ordering-column
