@@ -228,10 +228,10 @@
 +$  relation
   $+  relation
   $:  %relation
-  columns=(list column)
+  columns=(lest column)
   pri-indx=(unit index)
   ordered=?
-  pri-indexed=(tree [(list @) (map @tas @)])
+  pri-indexed=(tree [(list @) (map @tas @)])  :: may be bunt
   data-rows=(list data-row)
   ==
 ::
@@ -245,7 +245,7 @@
   $+  joined-row
   $:  %joined-row
     key=(list @)
-    ::data=(mip qualified-table @tas @)
+    ::data=(mip qualified-table @tas @)  :: sux that mip not in standard library
     data=(map qualified-table (map @tas @))
     ==
 +$  data-row  $%(joined-row indexed-row)

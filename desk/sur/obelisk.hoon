@@ -40,7 +40,7 @@
   $+  set-table
   $:  %set-table
     join=(unit join-type)
-    relation=(unit qualified-table)
+    relation-id=(unit qualified-table)
     schema-tmsp=(unit @da)
     data-tmsp=(unit @da)
     columns=(list column)

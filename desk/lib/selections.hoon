@@ -157,8 +157,8 @@
 ++  join-natural
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  rel-prior  (need relation.prior)
-  =/  rel-this   (need relation.this)
+  =/  rel-prior  (need relation-id.prior)
+  =/  rel-this   (need relation-id.this)
   ::  accumulated columns from all prior source tables
   ::  (used for matching in multi-table joins where columns.prior
   ::  only has the most recent table's columns)
@@ -358,8 +358,8 @@
   ::  currently only supports equality conditions with AND conjunctions
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  rel-prior  (need relation.prior)
-  =/  rel-this   (need relation.this)
+  =/  rel-prior  (need relation-id.prior)
+  =/  rel-this   (need relation-id.this)
   ::  validate and extract equi-join column pairs from predicate
   =/  raw-pairs  (extract-equi-pairs predicate.this)
   ::  resolve unqualified columns, validate existence, assign to prior/this
@@ -654,11 +654,11 @@
     out-rows  :-  ?:  ?=(%joined-row -.i.a)
                     :+  %joined-row
                         ~
-                        (~(put by data.i.a) (need relation.this) data.i.b)
+                        (~(put by data.i.a) (need relation-id.this) data.i.b)
                   %:  joined-from-indexed  i.a
-                                           (need relation.prior)
+                                           (need relation-id.prior)
                                            i.b
-                                           (need relation.this)
+                                           (need relation-id.this)
                                            ==
                   out-rows
     b  t.b
@@ -674,7 +674,7 @@
   |-
   ?~  sources  lookup
   =/  source=set-table  i.sources
-  ?~  relation.source  $(sources t.sources)
+  ?~  relation-id.source  $(sources t.sources)
   =/  columns=(list column:ast)  columns.source
   |-
   ?~  columns  ^$(sources t.sources)
@@ -684,10 +684,10 @@
     lookup   ?:  (~(has by lookup) name.col)
                %+  ~(put by lookup)
                       name.col
-                      :-  (need relation.source)
+                      :-  (need relation-id.source)
                           (~(got by lookup) name.col)
              %+  ~(put by lookup)  name.col
-                                   (limo ~[(need relation.source)])
+                                   (limo ~[(need relation-id.source)])
   ==
 ::
 ++  resolve-query-scalars
@@ -738,7 +738,7 @@
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
-  =.  relation.st2      ~
+  =.  relation-id.st2  ~
   =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
   =/  flipped-cols  (flop columns.i.set-tables)
   =.  columns.st2     %-  flop
@@ -1209,7 +1209,7 @@
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
-  =.  relation.cte-st  [~ norm-qt]
+  =.  relation-id.cte-st  [~ norm-qt]
   =.  join.cte-st      join
   =.  predicate.cte-st  predicate
   =/  cte-col-meta

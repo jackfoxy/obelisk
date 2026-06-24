@@ -1220,8 +1220,8 @@
 ++  pick-from-object
   |=  [a=set-table sources-state=(set [qualified-table:ast @da @da])]
   ^-  (set [qualified-table:ast @da @da])
-  ?~  relation.a    sources-state
-  =/  qt  (need relation.a)
+  ?~  relation-id.a    sources-state
+  =/  qt  (need relation-id.a)
   %-  ~(put in sources-state)  :+  qt(alias ~)
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
@@ -1530,8 +1530,8 @@
   ?~  set-tables      ~|("named-queries can't get here" !!)
   =/  canonical-list  %+  murn  set-tables
                                 |=  s=set-table
-                                ?~  relation.s  ~
-                                (some [(need relation.s) columns.s])
+                                ?~  relation-id.s  ~
+                                (some [(need relation-id.s) columns.s])
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
   =/  column-metas
@@ -1646,10 +1646,10 @@
           ==
   ^-  (list set-table)
   ?~  st  ~|("cte-set-tables can't get here" !!)
-  ?:  =(~ relation.i.st)  st
+  ?:  =(~ relation-id.i.st)  st
   =/  new  i.st
   =.  join.new        ~
-  =.  relation.new    ~
+  =.  relation-id.new  ~
   ::
   =/  col-lookup      (mk-col-lookup st)
   =/  rel-col-lookup  (mk-rel-col-lookup st)
@@ -1692,7 +1692,7 @@
     %-  flop
         %+  roll  st
                   |=  [a=set-table b=(list column:ast)]
-                  ?~(relation.a b (weld (flop columns.a) b))
+                  ?~(relation-id.a b (weld (flop columns.a) b))
     selected-all-table
       (~(got by rel-col-lookup) qualified-table.a)
     selected-cte-column
@@ -1884,7 +1884,7 @@
                              indexed-rows.st
                            joined-rows.st
   =.  columns.st       out-cols
-  =.  relation.st      ~
+  =.  relation-id.st   ~
   =.  join.st          ~
   =.  map-meta.st
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
@@ -1976,10 +1976,10 @@
   =/  lookup  *(mip:mip qualified-table:ast @tas @ta)
   |-
   ?~  st  lookup
-  ?~  relation.i.st  $(st t.st)
+  ?~  relation-id.i.st  $(st t.st)
   |-
   ?~  columns.i.st  ^$(st t.st)
-  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
+  =.  lookup  %^  ~(put bi:mip lookup)  (need relation-id.i.st)
                                         name.i.columns.i.st
                                         type.i.columns.i.st
   $(columns.i.st t.columns.i.st)
@@ -1990,10 +1990,10 @@
   =/  lookup  *(map qualified-table:ast (list column:ast))
   |-
   ?~  st  lookup
-  ?~  relation.i.st  $(st t.st)
+  ?~  relation-id.i.st  $(st t.st)
   %=  $
     st      t.st
-    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
+    lookup  (~(put by lookup) (need relation-id.i.st) columns.i.st)
   ==
 ::
 ++  cte-col-dups
@@ -2050,7 +2050,7 @@
     |-
     ?~  sources           lookup
     =/  source=set-table  i.sources
-    ?~  relation.source     $(sources t.sources)
+    ?~  relation-id.source  $(sources t.sources)
     =/  columns=(list column:ast)  columns.source
     |-
     ?~  columns  ^$(sources t.sources)
@@ -2060,10 +2060,10 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        :-  (need relation.source)
+                        :-  (need relation-id.source)
                             (~(got by lookup) name.col)
                %+  ~(put by lookup)  name.col
-                                     (limo ~[(need relation.source)])
+                                     (limo ~[(need relation-id.source)])
     ==
 ::
 ++  update-file
