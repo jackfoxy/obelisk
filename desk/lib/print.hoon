@@ -56,7 +56,18 @@
       %result-set
         =/  rc=?  (print-result-set +.b)
         $(results +.results)
+      %relations
+        =/  rc=?  (print-relations +.b)
+        $(results +.results)
       ==
+::
+++  print-relations
+  |=  a=*
+  ^-  @f
+  ~&  "    %relations"
+  =/  b  ;;((map relation-id relation) a)
+  ~&  ~(key by b)
+  %.y
 ::
 ++  print-result-set
   |=  a=(list vector)

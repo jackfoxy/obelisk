@@ -1130,6 +1130,7 @@
     [%schema-time date=@da]
     [%data-time date=@da]
     [%result-set (list vector)]
+    [%relations (list relation)]
     ==
 ::
 +$  vector-cell  [p=@tas q=dime]
