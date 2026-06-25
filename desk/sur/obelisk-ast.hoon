@@ -228,6 +228,7 @@
 +$  relation
   $+  relation
   $:  %relation
+  =relation-id
   columns=(lest column)
   pri-indx=(unit index)
   ordered=?
