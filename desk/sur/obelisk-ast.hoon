@@ -1130,8 +1130,9 @@
     [%security-time date=@da]
     [%schema-time date=@da]
     [%data-time date=@da]
-    [%result-set (list vector)]
+    [%result-set (list vector)]   ::to do, trap core vector, md, csv
     [%relations (list relation)]
+    [%select-relation relation]
     ==
 ::
 +$  vector-cell  [p=@tas q=dime]
