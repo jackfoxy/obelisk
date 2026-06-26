@@ -40,7 +40,7 @@
   $+  set-table
   $:  %set-table
     join=(unit join-type)
-    relation=(unit qualified-table)
+    relation-id=(unit qualified-table)
     schema-tmsp=(unit @da)
     data-tmsp=(unit @da)
     columns=(list column)
@@ -76,14 +76,6 @@
 ::
 +$  qualifier  $%(qualified-table cte-name)
 ::
-+$  joined-row
-  $+  joined-row
-  $:  %joined-row
-    key=(list @)
-    data=(mip qualified-table @tas @)
-    ==
-+$  data-row  $%(joined-row indexed-row)
-::
 +$  join-return
   $+  join-return
   $:  %join-return
@@ -97,7 +89,7 @@
   $+  joined-relat
   $:  %joined-relat
     join=(unit join-type)
-    =relation
+    =relation-id
     as-of=(unit as-of)
     =predicate
     ==

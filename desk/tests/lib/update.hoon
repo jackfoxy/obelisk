@@ -80,7 +80,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -153,7 +153,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -222,7 +222,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -296,7 +296,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -365,7 +365,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 4]
@@ -437,7 +437,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -509,7 +509,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -583,7 +583,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -658,7 +658,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -730,7 +730,7 @@
                                           ==
                                   ==
                             [%server-time ~2012.5.3]
-                            [%relation 'db1.dbo.my-table']
+                            [%relation-name 'db1.dbo.my-table']
                             [%schema-time ~2012.4.30]
                             [%data-time ~2012.5.1]
                             [%vector-count 4]
@@ -806,7 +806,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -897,7 +897,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
@@ -936,7 +936,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -1027,7 +1027,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
@@ -1066,7 +1066,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -1157,7 +1157,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
@@ -1196,7 +1196,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -1282,7 +1282,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1361,7 +1361,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1435,7 +1435,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 4]
@@ -1509,7 +1509,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1584,7 +1584,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1660,7 +1660,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1736,7 +1736,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%relation 'db1.dbo.my-table']
+                              [%relation-name 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1783,7 +1783,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%relation 'db1.dbo.people-text']
+              [%relation-name 'db1.dbo.people-text']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.1]
               [%vector-count 1]

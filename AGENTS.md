@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 Project-specific guidance for Obelisk, an RDBMS Gall agent implementing urQL.
 

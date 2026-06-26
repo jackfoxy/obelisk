@@ -917,7 +917,7 @@
                               [%column %component ~.tas 0]
                               [%column %database ~.tas 0]
                               [%column %namespace ~.tas 0]
-                              [%column %relation ~.tas 0]
+                              [%column %relation-id ~.tas 0]
                               [%column %target-database ~.tas 0]
                               [%column %target-namespace ~.tas 0]
                               [%column %target-relation ~.tas 0]
@@ -1115,7 +1115,7 @@
                       %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %relation  ::column=@tas
+                  %relation-id  ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               :+  %ordering-column
@@ -1482,7 +1482,7 @@
     =/  keys
       %^  spin  key.pri-indx.tbl
           1
-          |=([n=key-column a=@] [~[a name.n ascending.n] +(a)])
+          |=([n=key-column:ast a=@] [~[a name.n ascending.n] +(a)])
     (turn p.keys |=(a=(list @) (weld aa a)))
   --
 ::
@@ -1493,7 +1493,7 @@
     ^-  (list (list @))
     =/  parent-tbl=table  (~(got by tables) parent-key)
     =/  parent-cols=(list @tas)
-          (turn key.pri-indx.parent-tbl |=(k=key-column name.k))
+          (turn key.pri-indx.parent-tbl |=(k=key-column:ast name.k))
     =/  fks=(list foreign-constraint)  foreign-constraints.parent-file
     |-
     ?~  fks  ~

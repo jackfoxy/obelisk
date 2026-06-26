@@ -226,7 +226,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.calendar']
+              [%relation-name 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -294,7 +294,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.calendar']
+              [%relation-name 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -375,7 +375,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.calendar']
+              [%relation-name 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -518,7 +518,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.calendar']
+              [%relation-name 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 7]
@@ -593,7 +593,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%relation 'db1.dbo.calendar']
+              [%relation-name 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 3]

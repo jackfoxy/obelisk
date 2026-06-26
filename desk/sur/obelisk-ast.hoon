@@ -208,7 +208,7 @@
 +$  from
   $+  from
   $:  %from
-    =relation
+    =relation-id
     as-of=(unit as-of)
     joins=(list joined-relation)
     ==
@@ -216,13 +216,52 @@
   $+  joined-relation
   $:  %joined-relation
     =join-type
-    =relation
+    =relation-id
     as-of=(unit as-of)
     =predicate
     ==
 ::
-::  $relation:
-+$  relation  $%(qualified-table cte-name)
+::  $relation-id:
++$  relation-id  $%(qualified-table cte-name)
+::
+::  $relation
++$  relation
+  $+  relation
+  $:  %relation
+  =relation-id
+  columns=(lest column)
+  pri-indx=(unit index)
+  ordered=?
+  pri-indexed=(tree [(list @) (map @tas @)])  :: may be bunt
+  data-rows=(list data-row)
+  ==
+::
++$  indexed-row
+  $:  %indexed-row
+    key=(list @)
+    data=(map @tas @)
+    ==
+::
++$  joined-row
+  $+  joined-row
+  $:  %joined-row
+    key=(list @)
+    ::data=(mip qualified-table @tas @)  :: sux that mip not in standard library
+    data=(map qualified-table (map @tas @))
+    ==
++$  data-row  $%(joined-row indexed-row)
+::
++$  index
+  $:  %index
+    unique=?
+    key=(list key-column)
+    ==
++$  key-column
+  $:  %key-column
+    name=@tas
+    =aura
+    ascending=?
+    ==
 ::
 ::  $select:
 +$  select
@@ -395,9 +434,9 @@
 +$  merge
   $+  merge
   $:  %merge
-    target-table=relation
-    new-table=(unit relation)
-    source-table=relation
+    target-table=relation-id
+    new-table=(unit relation-id)
+    source-table=relation-id
     =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
@@ -1084,14 +1123,16 @@
 +$  result
   $%
     [%action action=@t]
-    [%relation relation=@t]
+    [%relation-name name=@t]
     [%message msg=@t]
     [%vector-count count=@ud]
     [%server-time date=@da]
     [%security-time date=@da]
     [%schema-time date=@da]
     [%data-time date=@da]
-    [%result-set (list vector)]
+    [%result-set (list vector)]   ::to do, trap core vector, md, csv
+    [%relations (list relation)]
+    [%select-relation relation]
     ==
 ::
 +$  vector-cell  [p=@tas q=dime]

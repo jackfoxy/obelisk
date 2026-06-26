@@ -290,7 +290,7 @@
   =/  key-pick=(list [@tas @])
         %+  turn
             key.pri-indx.table.txn
-            |=(a=key-column (make-key-pick name.a column-lookup.table.txn))
+            |=(a=key-column:ast (make-key-pick name.a column-lookup.table.txn))
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  inserted-rows=(list indexed-row)  ~
   ::
@@ -314,7 +314,7 @@
                 ==
     =/  child-key-cols=(list @tas)
           %+  turn  key.pri-indx.table.txn
-          |=(col=key-column name.col)
+          |=(col=key-column:ast name.col)
     =/  constrained=[data file]
           %:  apply-insert-constrained-values
                 content.db.txn
@@ -485,7 +485,7 @@
         (collect-outbound-fks outbound-fk-index.table.txn)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.table.txn
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  constrained=[data file]
         %:  apply-delete-constrained-values
               content.db.txn
@@ -626,7 +626,7 @@
   =/  aa  %-  silt
               %+  turn
                   key.pri-indx.table.txn
-                  |=(a=key-column name.a)
+                  |=(a=key-column:ast name.a)
   =/  bb  %-  silt
               %+  weld
                   (turn static-updates |=(a=[@tas @] -.a))
@@ -748,7 +748,7 @@
   ::
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.table.txn
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-row-pairs=(list [old=indexed-row new=indexed-row])
         (changed-row-pairs indexed-rows.file.txn -.rows-count)
   =/  constrained=[data file]
@@ -1181,7 +1181,7 @@
     $(raw t.raw)
   %=  $
     raw  t.raw
-    out  :-  :~  [%relation (qualified-table-to-cord -.i.raw)]
+    out  :-  :~  [%relation-name (qualified-table-to-cord -.i.raw)]
                  [%schema-time +<.i.raw]
                  [%data-time +>.i.raw]
                  ==
@@ -1220,8 +1220,8 @@
 ++  pick-from-object
   |=  [a=set-table sources-state=(set [qualified-table:ast @da @da])]
   ^-  (set [qualified-table:ast @da @da])
-  ?~  relation.a    sources-state
-  =/  qt  (need relation.a)
+  ?~  relation-id.a    sources-state
+  =/  qt  (need relation-id.a)
   %-  ~(put in sources-state)  :+  qt(alias ~)
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
@@ -1335,7 +1335,7 @@
           updates=(list [@tas @])
           scalar-updates=(list [@tas @tas])
           rs=resolved-scalars
-          key-columns=(list key-column)
+          key-columns=(list key-column:ast)
           cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
@@ -1373,7 +1373,7 @@
 ++  update-key
   |=  $:  r=indexed-row
           updates=(list [@tas @])
-          key-columns=(list key-column)
+          key-columns=(list key-column:ast)
           cols=(list column:ast)
           ==
   ^-  indexed-row
@@ -1530,8 +1530,8 @@
   ?~  set-tables      ~|("named-queries can't get here" !!)
   =/  canonical-list  %+  murn  set-tables
                                 |=  s=set-table
-                                ?~  relation.s  ~
-                                (some [(need relation.s) columns.s])
+                                ?~  relation-id.s  ~
+                                (some [(need relation-id.s) columns.s])
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
   =/  column-metas
@@ -1646,10 +1646,10 @@
           ==
   ^-  (list set-table)
   ?~  st  ~|("cte-set-tables can't get here" !!)
-  ?:  =(~ relation.i.st)  st
+  ?:  =(~ relation-id.i.st)  st
   =/  new  i.st
   =.  join.new        ~
-  =.  relation.new    ~
+  =.  relation-id.new  ~
   ::
   =/  col-lookup      (mk-col-lookup st)
   =/  rel-col-lookup  (mk-rel-col-lookup st)
@@ -1692,7 +1692,7 @@
     %-  flop
         %+  roll  st
                   |=  [a=set-table b=(list column:ast)]
-                  ?~(relation.a b (weld (flop columns.a) b))
+                  ?~(relation-id.a b (weld (flop columns.a) b))
     selected-all-table
       (~(got by rel-col-lookup) qualified-table.a)
     selected-cte-column
@@ -1884,7 +1884,7 @@
                              indexed-rows.st
                            joined-rows.st
   =.  columns.st       out-cols
-  =.  relation.st      ~
+  =.  relation-id.st   ~
   =.  join.st          ~
   =.  map-meta.st
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
@@ -1926,7 +1926,7 @@
   =/  templ-cells
     %-  mk-rel-vect-templ
     [column-metas selected -.rows map-meta resolved-scalars named-ctes]
-  =/  key-cols=(unit (list key-column))  ?~(pri ~ [~ key.u.pri])
+  =/  key-cols=(unit (list key-column:ast))  ?~(pri ~ [~ key.u.pri])
   =/  out=(list indexed-row)  ~
   =/  rows=(list data-row)  rows
   |-
@@ -1934,7 +1934,7 @@
   =/  data  (materialize-cte-row i.rows templ-cells)
   =/  key   ?~  key-cols
               ~
-            (turn u.key-cols |=(a=key-column (~(got by data) name.a)))
+            (turn u.key-cols |=(a=key-column:ast (~(got by data) name.a)))
   %=  $
     rows  t.rows
     out   :-  [%indexed-row key data]  out
@@ -1976,10 +1976,10 @@
   =/  lookup  *(mip:mip qualified-table:ast @tas @ta)
   |-
   ?~  st  lookup
-  ?~  relation.i.st  $(st t.st)
+  ?~  relation-id.i.st  $(st t.st)
   |-
   ?~  columns.i.st  ^$(st t.st)
-  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
+  =.  lookup  %^  ~(put bi:mip lookup)  (need relation-id.i.st)
                                         name.i.columns.i.st
                                         type.i.columns.i.st
   $(columns.i.st t.columns.i.st)
@@ -1990,10 +1990,10 @@
   =/  lookup  *(map qualified-table:ast (list column:ast))
   |-
   ?~  st  lookup
-  ?~  relation.i.st  $(st t.st)
+  ?~  relation-id.i.st  $(st t.st)
   %=  $
     st      t.st
-    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
+    lookup  (~(put by lookup) (need relation-id.i.st) columns.i.st)
   ==
 ::
 ++  cte-col-dups
@@ -2050,7 +2050,7 @@
     |-
     ?~  sources           lookup
     =/  source=set-table  i.sources
-    ?~  relation.source     $(sources t.sources)
+    ?~  relation-id.source  $(sources t.sources)
     =/  columns=(list column:ast)  columns.source
     |-
     ?~  columns  ^$(sources t.sources)
@@ -2060,17 +2060,17 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        :-  (need relation.source)
+                        :-  (need relation-id.source)
                             (~(got by lookup) name.col)
                %+  ~(put by lookup)  name.col
-                                     (limo ~[(need relation.source)])
+                                     (limo ~[(need relation-id.source)])
     ==
 ::
 ++  update-file
   |=  $:  =file
           =data
           tbl-key=[@tas @tas]
-          primary-key=(list key-column)
+          primary-key=(list key-column:ast)
           result-rowcount=@ud
           ==
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
@@ -2841,7 +2841,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -2973,7 +2973,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -3182,7 +3182,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]
@@ -3308,7 +3308,7 @@
         (~(put by files.cur-data) parent-key parent-file)
   =/  child-key-cols=(list @tas)
         %+  turn  key.pri-indx.child-table
-        |=(col=key-column name.col)
+        |=(col=key-column:ast name.col)
   =/  child-fks=(list outbound-fk-entry)
         (collect-outbound-fks outbound-fk-index.child-table)
   =/  constrained=[data file]

@@ -181,11 +181,6 @@
       constrained-columns=(list @tas)
       constrained-values=constrained-values
       ==
-+$  indexed-row
-  $:  %indexed-row
-    key=(list @)
-    data=(map @tas @)
-    ==
 +$  qualified-addrs  [%qualified-addrs (map [qualified-table @tas] @)]
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
@@ -226,17 +221,6 @@
     message=(unit @t)
     ==
 ::
-+$  index
-  $:  %index
-    unique=?
-    key=(list key-column)
-    ==
-+$  key-column
-  $:  %key-column
-    name=@tas
-    =aura
-    ascending=?
-    ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
 ::    +ns-rel-comp: [ns-rel-key ns-rel-key] -> ?

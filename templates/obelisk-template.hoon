@@ -602,7 +602,7 @@
           (make-column-node 4 %component %tas)
           (make-column-node 5 %database %t)
           (make-column-node 6 %namespace %t)
-          (make-column-node 7 %relation %tas)
+          (make-column-node 7 %relation-id %tas)
           (make-column-node 8 %target-database %t)
           (make-column-node 9 %target-namespace %t)
           (make-column-node 10 %target-relation %t)

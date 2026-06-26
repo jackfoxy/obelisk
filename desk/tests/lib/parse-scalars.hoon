@@ -18,7 +18,7 @@
   ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
   =/  relation  ?~(table relation-1 (need table))
-  =/  from  [%from relation=relation as-of=~ joins=~]
+  =/  from  [%from relation-id=relation as-of=~ joins=~]
   =/  query
     :*
       %query
@@ -60,7 +60,7 @@
   ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
   =/  relation  ?~(table relation-1 (need table))
-  =/  from  [%from relation=relation as-of=~ joins=~]
+  =/  from  [%from relation-id=relation as-of=~ joins=~]
   =/  query
     :*
       %query
@@ -90,7 +90,7 @@
 ++  my-cte-foo-2        [%cte-column 'my-cte' 'foo2']
 ++  my-cte-foo-3        [%cte-column 'my-cte' 'foo3']
 ++  cte-my-cte
-  =/  from-clause  [%from relation=relation-1 as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=relation-1 as-of=~ joins=~]
   =/  select  [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3]]
   =/  q
     :*  %query  [~ from-clause]  scalars=~  ~
@@ -420,7 +420,7 @@
     ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
+        from=[~ [%from relation-id=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~
@@ -445,14 +445,14 @@
   =/  cte-query
     =/  select
       [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3 [%selected-value value=literal-us alias=[~ 'country']]]]
-    :*  %query  from=[~ [%from relation=relation-1 as-of=~ joins=~]]  scalars=~  ~
+    :*  %query  from=[~ [%from relation-id=relation-1 as-of=~ joins=~]]  scalars=~  ~
         group-by=~  having=~  select  ~
         ==
   =/  ctes
     ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
+        from=[~ [%from relation-id=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~
