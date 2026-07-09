@@ -225,11 +225,14 @@
 +$  relation-id  $%(qualified-table cte-name)
 ::
 ::  $relation
+::
+::  invariant: (column & `indexed-row`data-row)
+::             | (qualified-column & `joined-row`data-row)
 +$  relation
   $+  relation
   $:  %relation
   =relation-id
-  columns=(lest column)
+  columns=(lest $%(column qualified-column))
   pri-indx=(unit index)
   ordered=?
   pri-indexed=(tree [(list @) (map @tas @)])  :: may be bunt

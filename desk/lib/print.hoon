@@ -59,15 +59,48 @@
       %relations
         =/  rc=?  (print-relations +.b)
         $(results +.results)
+      %select-relation
+        =/  rc=?  (print-select-relation +.b)
+        $(results +.results)
       ==
 ::
 ++  print-relations
-  |=  a=*
+  |=  a=(list relation)
   ^-  @f
   ~&  "    %relations"
-  =/  b  ;;((map relation-id relation) a)
-  ~&  ~(key by b)
-  %.y
+  |-
+  ?~  a  %.y
+  =/  rc=?  (print-relation -.a)
+  $(a +.a)
+::
+++  print-select-relation
+  |=  a=relation
+  ^-  @f
+  ~&  "    %select-relation"
+  (print-relation a)
+::
+++  print-relation
+  |=  a=relation
+  ^-  @f
+  ~&  "      relation-id: {<relation-id.a>}"
+  ~&  "      columns:"
+  =/  columns=(list $%(column qualified-column))  columns.a
+  |-
+  ?~  columns  %.y
+  =/  rc=?  (print-column -.columns)
+  $(columns +.columns)
+::
+++  print-column
+  |=  a=$%(column qualified-column)
+  ^-  @f
+  ?-  -.a
+      %column
+        ~&  "        {<name.a>} {<type.a>} {<addr.a>}"
+        %.y
+      %qualified-column
+        ~&  "        {<qualifier.a>} {<name.a>} {<alias.a>}"
+        %.y
+      ==
 ::
 ++  print-result-set
   |=  a=(list vector)
