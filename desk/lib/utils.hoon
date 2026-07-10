@@ -510,6 +510,31 @@
                 |=  e=[qualified-table:ast (list column:ast)]
                 [-.e (mk-unqualified-typ-addr-lookup +.e)]
 ::
+++  mk-qualifier-lookup
+  ::  Make lookup qualifier by column name for predicate processing when a
+  ::  column is unqualified.
+  |=  sources=(list set-table)
+  ^-  qualifier-lookup
+  =/  lookup  *qualifier-lookup
+  |-
+  ?~  sources  lookup
+  =/  source=set-table  i.sources
+  ?~  relation-id.source  $(sources t.sources)
+  =/  columns=(list column:ast)  columns.source
+  |-
+  ?~  columns  ^$(sources t.sources)
+  =/  col=column:ast  -.columns
+  %=  $
+    columns  +.columns
+    lookup   ?:  (~(has by lookup) name.col)
+               %+  ~(put by lookup)
+                      name.col
+                      :-  (need relation-id.source)
+                          (~(got by lookup) name.col)
+             %+  ~(put by lookup)  name.col
+                                   (limo ~[(need relation-id.source)])
+  ==
+::
 ++  qualify-unqualified
   |=  [selected=(list selected-column:ast) =qualifier-lookup]
   =/  selected-out  *(list selected-column:ast)

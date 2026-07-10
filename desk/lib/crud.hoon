@@ -836,20 +836,20 @@
     =/  selected  (normalize-selected columns.select.q)
     ?.  (selected-needs-materialization selected)
       jr
-    =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr selected)
+    =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
     =/  resolved-scalars
           %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
                                                              named-ctes
                                                              qualifier-lookup
                                                              map-meta.jr
                                                              ==
-    (materialize-query-result selected named-ctes jr %.n resolved-scalars)
+    (mk-query-result selected named-ctes jr %.n resolved-scalars)
   ::
   =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
   ?:  is-cte
     ?~  predicate.q  join-return
     =/  qualifier-lookup
-          (mk-qualifier-lookup set-tables.join-return columns.select.q)
+          (mk-qualifier-lookup set-tables.join-return)
     =/  resolved-scalars
           %:  resolve-query-scalars(state state, bowl bowl)
                 scalars.q
@@ -874,7 +874,7 @@
     join-return
   ::
   =/  selected          (normalize-selected columns.select.q)
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return)
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
                                                            named-ctes
@@ -898,7 +898,7 @@
   =.  joined-rows.i.set-tables.join-return
     %+  skim  joined-rows.i.set-tables.join-return
               |=(a=joined-row ?~(filter %.y ((need filter) a)))
-  (materialize-query-result selected named-ctes join-return %.y resolved-scalars)
+  (mk-query-result selected named-ctes join-return %.y resolved-scalars)
 ::
 ++  do-set-query
   |=  [sq=set-query:ast =named-ctes]
@@ -981,14 +981,14 @@
     jr
   ?:  (selected-preserves-source selected)
     jr
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
                                                            named-ctes
                                                            qualifier-lookup
                                                            map-meta.jr
                                                            ==
-  (materialize-query-result selected named-ctes jr %.n resolved-scalars)
+  (mk-query-result selected named-ctes jr %.n resolved-scalars)
 ::
 ++  selected-preserves-source
   |=  selected=(list selected-column:ast)
@@ -1443,7 +1443,7 @@
   =/  =join-return    (do-query cte-q nctes %.y)
   =.  state             server.join-return
   =/  selected          (normalize-selected columns.select.cte-q)
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return)
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  scalars.cte-q
                                                            nctes
@@ -1460,7 +1460,7 @@
     =/  cte-from  (normalize-from u.from.cte-q)
     !=(~ joins.cte-from)
   =/  set-tables      ?:  ?|(needs-mat has-joined)
-                        %-  materialize-cte-set-tables
+                        %-  mk-set-tables
                         :*  name.i.ctes
                             selected
                             nctes
@@ -1777,7 +1777,7 @@
           type.c
           addr.c
 ::
-++  materialize-query-result
+++  mk-query-result
   |=  $:  selected=(list selected-column:ast)
           =named-ctes
           jr=join-return
@@ -1786,7 +1786,7 @@
           ==
   ^-  join-return
   =/  result-tables
-    %-  materialize-cte-set-tables
+    %-  mk-set-tables
     :*  %result
         selected
         named-ctes
@@ -1796,7 +1796,7 @@
         %.n
         resolved-scalars
         ==
-  ?~  result-tables  ~|("materialize-query-result can't get here" !!)
+  ?~  result-tables  ~|("mk-query-result can't get here" !!)
   =/  cols=(list column:ast)  columns.i.result-tables
   :*  %join-return
       server.jr
@@ -1805,7 +1805,7 @@
       (materialized-cte-column-metas %result cols)
       ==
 ::
-++  materialize-cte-set-tables
+++  mk-set-tables
   |=  $:  name=@tas
           selected=(list selected-column:ast)
           =named-ctes
@@ -1816,7 +1816,7 @@
           =resolved-scalars
           ==
   ^-  (list set-table)
-  ?~  set-tables  ~|("materialize-cte-set-tables can't get here" !!)
+  ?~  set-tables  ~|("mk-set-tables can't get here" !!)
   =/  st  i.set-tables
   =/  rows=(list data-row)  ?~  joined-rows.st
                              ?:  use-joined  ~
@@ -1848,7 +1848,7 @@
   ::  doesn't apply to the flattened result; skip key extraction
   =/  mat-pri  ?:  use-joined  ~  pri-indx.st
   =.  indexed-rows.st
-    %-  materialize-cte-indexed-rows
+    %-  mk-indexed-rows
         :*  rows
             mat-pri
             column-metas.jr
@@ -1868,7 +1868,7 @@
   =/  cols
     %+  turn  (flop templ-cells)
     |=  tc=templ-cell
-    [%column p.out.tc p.q.out.tc 0]
+    [%column p.output.tc p.q.output.tc 0]
   (materialized-columns name check-dups cols)
 ::
 ++  materialized-columns
@@ -1879,7 +1879,7 @@
     (cte-col-dups name cols)
   cols
 ::
-++  materialize-cte-indexed-rows
+++  mk-indexed-rows
   |=  $:  rows=(list data-row)
           pri=(unit index)
           column-metas=(list column-meta)
@@ -1929,13 +1929,13 @@
   =/  counts  *(map @tas @ud)
   |-
   ?~  templ-cells  out
-  =/  name  p.out.i.templ-cells
+  =/  name  p.output.i.templ-cells
   =/  count  (~(gut by counts) name 0)
   =/  x
     ?^  scalar.i.templ-cells
       q:(resolve-selected-scalar row (need scalar.i.templ-cells))
     ?~  column.i.templ-cells
-      q.q.out.i.templ-cells
+      q.q.output.i.templ-cells
     .*(data.row [%0 addr.i.templ-cells])
   %=  $
     templ-cells  t.templ-cells
@@ -2038,31 +2038,6 @@
   ^-  server
   :: to do: iterate through objects
   state
-::
-++  mk-qualifier-lookup
-  ::  Make lookup qualifier by column name for predicate processing when a
-  ::  column is unqualified.
-  |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
-    ^-  qualifier-lookup
-    =/  lookup  *qualifier-lookup
-    |-
-    ?~  sources           lookup
-    =/  source=set-table  i.sources
-    ?~  relation-id.source  $(sources t.sources)
-    =/  columns=(list column:ast)  columns.source
-    |-
-    ?~  columns  ^$(sources t.sources)
-    =/  col=column:ast  -.columns
-    %=  $
-      columns  +.columns
-      lookup   ?:  (~(has by lookup) name.col)
-                 %+  ~(put by lookup)
-                        name.col
-                        :-  (need relation-id.source)
-                            (~(got by lookup) name.col)
-               %+  ~(put by lookup)  name.col
-                                     (limo ~[(need relation-id.source)])
-    ==
 ::
 ++  update-file
   |=  $:  =file

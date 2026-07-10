@@ -50,7 +50,7 @@
                                                 ==
   =/  selected      (normalize-selected columns.select.q)
   =/  qualifier-lookup
-        (query-qualifier-lookup set-tables.full-relation)
+        (mk-qualifier-lookup set-tables.full-relation)
   =/  resolved-scalars
         %:  resolve-query-scalars  scalars.q
                                    named-ctes
@@ -73,7 +73,7 @@
   =/  jr
     :*  %join-return
         state
-        %-  select-for-cte
+        %-  select-set-table
         [q set-tables.full-relation filter named-ctes resolved-scalars]
         map-meta.full-relation
         column-metas.full-relation
@@ -652,31 +652,6 @@
     i  +(i)
   ==
 ::
-++  query-qualifier-lookup
-  ::  Build lookup qualifier by column name for resolving unqualified columns in
-  ::  scalar functions on a single relation.
-  |=  sources=(list set-table)
-  ^-  qualifier-lookup
-  =/  lookup  *qualifier-lookup
-  |-
-  ?~  sources  lookup
-  =/  source=set-table  i.sources
-  ?~  relation-id.source  $(sources t.sources)
-  =/  columns=(list column:ast)  columns.source
-  |-
-  ?~  columns  ^$(sources t.sources)
-  =/  col=column:ast  -.columns
-  %=  $
-    columns  +.columns
-    lookup   ?:  (~(has by lookup) name.col)
-               %+  ~(put by lookup)
-                      name.col
-                      :-  (need relation-id.source)
-                          (~(got by lookup) name.col)
-             %+  ~(put by lookup)  name.col
-                                   (limo ~[(need relation-id.source)])
-  ==
-::
 ++  resolve-query-scalars
   |=  $:  scalars=(list scalar:ast)
           =named-ctes
@@ -703,19 +678,8 @@
     seed     seed
   ==
 ::
-++  select-for-cte
-  ::  cons a set-table of the crud-txn
-  ::  1) object=~
-  ::  2) new list of columns
-  ::  3) key preserved w/ updated names or not
-  ::  4) indexed-rows index preserved or not
-  ::  4.5) schema-tmsp=(unit @da)
-  ::      data-tmsp=(unit @da)
-  ::      =map-meta  delete those that do not exist
-  ::      pri-indx=(unit index)
-  ::      =predicate
-  ::      pri-indexed=(tree [(list @) (map @tas @)])
-  ::  5) row count
+++  select-set-table
+  ::  Project selected columns and an optional filter into a result set-table.
   |=  $:  q=query:ast
           set-tables=(list set-table)
           f=(unit $-(data-row ?))
@@ -723,7 +687,7 @@
           =resolved-scalars
           ==
   ^-  (list set-table)
-  ?~  set-tables  ~|("select-for-cte can't get here" !!)
+  ?~  set-tables  ~|("select-set-table can't get here" !!)
   =/  st2  i.set-tables
   =.  relation-id.st2  ~
   =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))

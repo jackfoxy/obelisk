@@ -118,7 +118,7 @@
     column=(unit qualified-column)
     scalar=(unit resolved-scalar)
     addr=@
-    out=[p=@tas q=dime]
+    output=[p=@tas q=dime]
     ==
 ::
 +$  seed  @uvJ
