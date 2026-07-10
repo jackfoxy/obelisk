@@ -118,7 +118,7 @@
     column=(unit qualified-column)
     scalar=(unit resolved-scalar)
     addr=@
-    vc=vector-cell
+    out=[p=@tas q=dime]
     ==
 ::
 +$  seed  @uvJ

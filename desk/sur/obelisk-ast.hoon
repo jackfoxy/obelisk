@@ -1122,6 +1122,7 @@
 ::
 ::  OUTPUT
 ::
++$  result-format  ?(%vectors %markdown %html %wain %tape %json %raw)
 +$  cmd-result  [%results (list result)]
 +$  result
   $%

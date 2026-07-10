@@ -311,7 +311,7 @@
   =/  f=$-(data-row:ast dime)  +>.rs
   (f row)
 ::
-++  mk-rel-vect-templ
+++  mk-rel-row-templ
   ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
@@ -493,7 +493,7 @@
       `-.a
       ~
       addr.a
-      `vector-cell:ast`[name.qualified-column.a [type.a 0]]
+      [name.qualified-column.a [type.a 0]]
       ==
 ::
 ++  mk-unqualified-typ-addr-lookup

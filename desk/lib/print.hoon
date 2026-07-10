@@ -54,8 +54,7 @@
         ~&  "    [ {<-.b>} {<date.b>} ]"
         $(results +.results)
       %result-set
-        =/  rc=?  (print-result-set +.b)
-        $(results +.results)
+        ~|("print: %result-set output is no longer supported" !!)
       %relations
         =/  rc=?  (print-relations +.b)
         $(results +.results)
@@ -82,64 +81,70 @@
 ++  print-relation
   |=  a=relation
   ^-  @f
-  ~&  "      relation-id: {<relation-id.a>}"
-  ~&  "      columns:"
   =/  columns=(list $%(column qualified-column))  columns.a
+  =/  rows=(list data-row)  data-rows.a
+  ?:  =(~ rows)  ~&  "      result set empty"  %.y
+  =/  rc1  (print-relation-heading columns)
+  =/  i  ?:  (lth (lent rows) 11)  0  1
+  =/  print-elipsis=?  (gte (lent rows) 11)
   |-
-  ?~  columns  %.y
-  =/  rc=?  (print-column -.columns)
-  $(columns +.columns)
-::
-++  print-column
-  |=  a=$%(column qualified-column)
-  ^-  @f
-  ?-  -.a
-      %column
-        ~&  "        {<name.a>} {<type.a>} {<addr.a>}"
-        %.y
-      %qualified-column
-        ~&  "        {<qualifier.a>} {<name.a>} {<alias.a>}"
-        %.y
-      ==
-::
-++  print-result-set
-  |=  a=(list vector)
-  ^-  @f
-  ~&  "    %result-set"
-  ?:  =(~ a)  ~&  "      result set empty"  %.y
-  =/  rc1  (print-heading -.a)
-  =/  i  ?:  (lth (lent a) 11)  0  1
-  =/  print-elipsis=?  (gte (lent a) 11)
-  |-
-  ?~  a  %.y
-  =/  rc2  (print-row -.a)
-  =/  rc3   ?:  &(=(i 9) print-elipsis)  ~&  "      ..."  (print-row (rear a))
+  ?~  rows  %.y
+  =/  rc2  (print-relation-row columns -.rows)
+  =/  rc3  ?:  &(=(i 9) print-elipsis)
+              ~&  "      ..."
+              (print-relation-row columns (rear rows))
             %.n
   %=  $
-    a  ?:  =(i 9)  ~  +.a
-    i  +(i)
+    rows  ?:  =(i 9)  ~  +.rows
+    i     +(i)
   ==
 ::
-++  print-row
-  |=  a=vector
+++  print-relation-heading
+  |=  columns=(list $%(column qualified-column))
   ^-  @f
-  =/  cells=(list vector-cell)  +.a
-  =/  row=tape  "    "
-  |-
-  ?~  cells  ~&  "{<(crip (flop row))>}"  %.y
-  =/  b=vector-cell  -.cells
-  =/  print-cell  ?:  =(p.q.b ~.t)  (trip `@t`q.q.b)
-      ~(rend co %$ q.b)
-  $(cells +.cells, row (weld (flop print-cell) (weld "  " row)))
-::
-++  print-heading
-  |=  a=vector
-  ^-  @f
-  =/  cells=(list vector-cell)  +.a
   =/  heading=tape  "    "
   |-
-  ?.  =(~ cells)
-    $(cells +.cells, heading (weld (flop (trip -<.cells)) (weld "  " heading)))
-  =/  head  (flop heading)
-  ~&  "{<(crip head)>}"  %.y
+  ?~  columns
+    ~&  "{<(crip (flop heading))>}"  %.y
+  =/  name  (relation-column-name i.columns)
+  $(columns t.columns, heading (weld (flop (trip name)) (weld "  " heading)))
+::
+++  relation-column-name
+  |=  col=$%(column qualified-column)
+  ^-  @tas
+  ?-  -.col
+      %column
+        name.col
+      %qualified-column
+        name.col
+  ==
+::
+++  print-relation-row
+  |=  [columns=(list $%(column qualified-column)) row=data-row]
+  ^-  @f
+  =/  out=tape  "    "
+  |-
+  ?~  columns  ~&  "{<(crip (flop out))>}"  %.y
+  =/  cell  (print-relation-cell i.columns row)
+  %=  $
+    columns  t.columns
+    out      (weld (flop cell) (weld "  " out))
+  ==
+::
+++  print-relation-cell
+  |=  [col=$%(column qualified-column) row=data-row]
+  ^-  tape
+  ?-  -.row
+    %indexed-row
+      ?>  ?=(%column -.col)
+      =/  c=column  ;;(column col)
+      =/  val  (~(got by data.row) name.c)
+      ?:  =(type.c ~.t)  (trip `@t`val)
+      ~(rend co %$ [type.c val])
+    %joined-row
+      ?>  ?=(%qualified-column -.col)
+      =/  c=qualified-column  ;;(qualified-column col)
+      =/  vals  (~(got by data.row) qualifier.c)
+      (trip (scot %ud (~(got by vals) name.c)))
+  ==
 --

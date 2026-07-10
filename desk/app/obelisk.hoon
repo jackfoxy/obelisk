@@ -1,5 +1,5 @@
 /-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
-/+  default-agent, dbug, *main, *migration, *print
+/+  default-agent, dbug, *format, *main, *migration, *print
 |%
 +$  versioned-state
   $%  state-0
@@ -128,8 +128,9 @@
         ==
       %.y
         =/  res  p.virtualized
+        =/  out  (format-results %vectors -.res)
         :_  this(server +.res)
-        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+        :~  [%give %fact ~[/server] %noun !>([& out])]
             [%give %kick ~[/server] ~]
         ==
     ==
@@ -158,8 +159,9 @@
   ::
   %commands
     =/  res  (state-server +.act)
+    =/  out  (format-results %vectors -.res)
     :_  this(server +.res)
-    :~  [%give %fact ~[/server] %noun !>(-.res)]
+    :~  [%give %fact ~[/server] %noun !>(out)]
         [%give %kick ~[/server] ~]
     ==
   ::

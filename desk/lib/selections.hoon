@@ -38,7 +38,7 @@
 ++  select-relation
   ::  crud-txn from a single table without joins
   |=  [q=query:ast is-cte=? =named-ctes]
-  ^-  [join-return (list vector)]
+  ^-  join-return
   =/  from          (normalize-from (need from.q))
   =/  =full-relation  %:  source-full-relation  relation-id.from
                                                 named-ctes
@@ -70,28 +70,15 @@
                             ==
   ::
   ?~  set-tables.full-relation  ~|("select-relation can't get here" !!)
-  :-  :*  %join-return
-          state
-          ?.  is-cte   set-tables.full-relation
-              %-  select-for-cte
-              [q set-tables.full-relation filter named-ctes resolved-scalars]
-          map-meta.full-relation
-          column-metas.full-relation
-          ==
-      ?:  is-cte  *(list vector)
-      %-  relation-vectors
-      :*  filter
-          column-metas.full-relation
-          ?:  is-cte  map-meta.full-relation
-          map-meta.i.set-tables.full-relation
-          ?~  joined-rows.i.set-tables.full-relation
-            indexed-rows.i.set-tables.full-relation
-          joined-rows.i.set-tables.full-relation
-          selected
-          resolved-scalars
-          named-ctes
-          ordered.i.set-tables.full-relation
-          ==
+  =/  jr
+    :*  %join-return
+        state
+        %-  select-for-cte
+        [q set-tables.full-relation filter named-ctes resolved-scalars]
+        map-meta.full-relation
+        column-metas.full-relation
+        ==
+  jr
 ::
 ++  join-all
   ::  server state returned because we may have updated the view cache
@@ -740,18 +727,17 @@
   =/  st2  i.set-tables
   =.  relation-id.st2  ~
   =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
-  =/  flipped-cols  (flop columns.i.set-tables)
-  =.  columns.st2     %-  flop
-                        ^-  (list column:ast)  %-  zing
-                            %+  turn  columns.select.q
-                                      |=  a=selected-column:ast
-                                      %-  selected-column-to-column
-                                      :*  named-ctes
-                                          col-map
-                                          flipped-cols
-                                          a
-                                          resolved-scalars
-                                          ==  
+  =.  columns.st2  ^-  (list column:ast)
+                   %-  zing
+                   %+  turn  columns.select.q
+                   |=  a=selected-column:ast
+                   %-  selected-column-to-column
+                   :*  named-ctes
+                       col-map
+                       columns.i.set-tables
+                       a
+                       resolved-scalars
+                       ==
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
                                 (cury selected-table-cols columns.i.set-tables)
@@ -823,8 +809,10 @@
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
-     ~[(~(got by col-map) name.selected-column)]
+      ~|  "SELECT: column {<name.selected-column>} not found"
+      ~[(~(got by col-map) name.selected-column)]
     unqualified-column:ast
+      ~|  "SELECT: column {<name.selected-column>} not found"
       ~[(~(got by col-map) name.selected-column)]
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
@@ -838,7 +826,8 @@
               0
           ==
     selected-value:ast
-      ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
+      =/  out-name  (heading selected-column (crip "literal"))
+      ~[[%column out-name p.value.selected-column 0]]
     selected-all:ast
       flipped-cols
     selected-all-table:ast
@@ -850,149 +839,6 @@
                             name.selected-column
       ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
-::
-++  relation-vectors
-  ::  tree address of indexed/joined rows off by one
-  ::  need sample column to determin path
-  |=  $:  filter=(unit $-(data-row ?))
-          column-metas=(list column-meta)
-          =map-meta
-          rows=(list data-row)
-          selected=(list selected-column:ast)
-          =resolved-scalars
-          =named-ctes
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?~  rows         *(list vector)
-  =/  out-rows     *(set vector)
-  =/  templ-cells=(list templ-cell)
-    %-  mk-rel-vect-templ
-    [column-metas selected -.rows map-meta resolved-scalars named-ctes]
-  ::
-  ?~  templ-cells  ~|("relation-vectors can't get here" !!)
-  =/  non-lit  %-  |=  a=(list templ-cell)
-                   |-  ^-  (unit templ-cell)
-                   ?~  a  ~
-                   ?~  column.i.a  $(a t.a)  [~ i.a]
-                   templ-cells
-  ?~  non-lit
-    ?-  -.i.rows
-      %joined-row
-        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
-      %indexed-row
-        (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
-    ==
-  =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
-  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
-  (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
-::
-++  indexed-results
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list indexed-row)
-          templ-cells=(list templ-cell)
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?:  ordered
-    (filter-ordered filter ;;((list data-row) rows) templ-cells)
-  (filter-unordered filter ;;((list data-row) rows) templ-cells)
-::
-++  joined-results
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list joined-row)
-          templ-cells=(list templ-cell)
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?:  ordered
-    (filter-ordered filter ;;((list data-row) rows) templ-cells)
-  (filter-unordered filter ;;((list data-row) rows) templ-cells)
-::
-++  filter-ordered
-  ::  Filter ordered result rows into vectors.
-  ::
-  ::  Uses a set to prevent duplicate rows while preserving the existing
-  ::  ordered output path.
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list data-row)
-          templ-cells=(list templ-cell)
-          ==
-  ^-  (list vector)
-  =/  out   *(list vector)
-  =/  seen  *(set vector)
-  |-
-  ?~  rows  out
-  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
-  ?.  ?~  filter
-        %.y
-      ((need filter) i.rows)
-    $(rows t.rows)
-  =/  cells                  *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    =/  result-vector=vector  (vector %vector cells)
-    ?:  (~(has in seen) result-vector)
-      ^$(rows t.rows)
-    %=  ^$
-      seen  (~(put in seen) result-vector)
-      out   [result-vector out]
-      rows  t.rows
-    ==
-  ?^  scalar.i.cols                                           :: resolved scalar
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
-  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
-  =/  value          ?:  is-indexed-row                       :: value
-                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
-                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
-  %=  $
-    cols   t.cols
-    cells  :-  :-  p.vc.i.cols
-                   [p.q.vc.i.cols value]
-               cells
-  ==
-::
-++  filter-unordered
-  ::  Filter unordered result rows into vectors.
-  ::
-  ::  Uses a set to prevent duplicate rows while preserving the distinct
-  ::  indexed-row and joined-row data-addressing semantics.
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list data-row)
-          templ-cells=(list templ-cell)
-          ==
-  ^-  (list vector)
-  =/  out-rows  *(set vector)
-  |-
-  ?~  rows  ~(tap in out-rows)
-  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
-  ?.  ?~  filter
-        %.y
-      ((need filter) i.rows)
-    $(rows t.rows)
-  =/  cells                  *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector cells))
-      rows      t.rows
-    ==
-  ?^  scalar.i.cols                                           :: resolved scalar
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
-  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
-  =/  value          ?:  is-indexed-row                       :: value  
-                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
-                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
-  %=  $
-    cols   t.cols
-    cells  :-  :-  p.vc.i.cols
-                   [p.q.vc.i.cols value]
-               cells
-  ==
 ::
 ++  recalc-addr
   ::  recalculate addr for joined data structure
