@@ -1,5 +1,5 @@
 /-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
-/+  default-agent, dbug, *format, *main, *migration, *print
+/+  default-agent, dbug, *format, *main, *migration, *print, scry
 |%
 +$  versioned-state
   $%  state-0
@@ -176,13 +176,29 @@
         [%give %kick ~[/server] ~]
     ==
   ==
-++  on-watch  |=(=path `this)
+++  on-watch
+  ::  /obelisk paths resolve one query, give its result, and kick;
+  ::  the query runs through +process-cmds security in /lib/main
+  |=  =path
+  ^-  (quip card _this)
+  ?.  ?=([%obelisk ^] path)  `this
+  =/  res=(unit (unit cage))
+    (~(peek scry [server bowl]) t.path)
+  ?~  res
+    ~|("invalid obelisk subscription path {<path>}" !!)
+  ?~  u.res
+    ~|("invalid obelisk subscription path {<path>}" !!)
+  :_  this
+  :~  [%give %fact ~ u.u.res]
+      [%give %kick ~ ~]
+  ==
 ++  on-leave  on-leave:default
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
   ?+  path  [~ ~]
-    [%x %server ~]  ``noun+!>(server.state)
+    [%x %server ~]   ``noun+!>(server.state)
+    [%x %obelisk ^]  (~(peek scry [server bowl]) t.t.path)
   ==
 ++  on-agent
   |=  [=wire =sign:agent:gall]

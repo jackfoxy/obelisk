@@ -9,5 +9,6 @@
 /dml-delete/md              DML Delete
 /dml-truncate-table/md      DML Truncate Table
 /select/md                  Select
+/scry/md                    Scries and Subscriptions
 /scalars/md                 Scalars
 /security-permissions/md    Security Permissions

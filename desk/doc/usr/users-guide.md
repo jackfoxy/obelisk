@@ -1438,6 +1438,74 @@ The structure is wrapped in a list because a script potentially consists of mult
 
 The last two column structures are unqualified. The parser does not have the table definition information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
 
+# Scries and Subscriptions
+
+Relations can be read without a poke through the Gall scry and subscription
+interfaces. Each path names a relation, a namespace, or a whole database, and
+Obelisk executes it as the equivalent query
+
+```
+FROM <relation> [ <as-of> ] SELECT { * | <column> [ ,...n ] }
+```
+
+Every read runs through the same security processing as a poked command, so
+reads by foreign ships are rejected.
+
+Scries use care `%x`. From the dojo (or `.^` in any hoon program) the path
+ends with the output mark, always `noun`:
+
+```
+::  all rows of db1.dbo.my-table
+.^(relation:ast %gx /=obelisk=/obelisk/db1/dbo/my-table/noun)
+
+::  only col1 and col2, in path order
+.^(relation:ast %gx /=obelisk=/obelisk/db1/dbo/my-table/col1/col2/noun)
+
+::  every relation in namespace dbo: name -> relation
+::  '..' is shorthand for dbo
+.^((map @tas relation:ast) %gx /=obelisk=/obelisk/db1/dbo/noun)
+.^((map @tas relation:ast) %gx /=obelisk=/obelisk/db1/'..'/noun)
+
+::  every relation in db1: namespace -> name -> relation
+.^((mip @tas @tas relation:ast) %gx /=obelisk=/obelisk/db1/noun)
+
+::  system views work like any other relation
+.^(relation:ast %gx /=obelisk=/obelisk/db1/sys/tables/noun)
+.^(relation:ast %gx /=obelisk=/obelisk/sys/sys/databases/noun)
+```
+
+Database- and namespace-level reads include the implemented system views under
+namespace `sys`. The `relation` mold is defined in `/sur/obelisk-ast.hoon` and
+`mip` in `/lib/mip.hoon`. A malformed path, an unknown object, or a failed
+query produces `[~ ~]`.
+
+Time travel is supported by an optional `@da` or `@dr` segment directly after
+`/obelisk`. A `@da` is an absolute `AS OF` time; a `@dr` is a timespan back
+from the current time:
+
+```
+::  as of an absolute time
+.^(relation:ast %gx /=obelisk=/obelisk/~2024.10.3/db1/dbo/my-table/noun)
+
+::  30 days ago
+.^(relation:ast %gx /=obelisk=/obelisk/~d30/db1/dbo/my-table/noun)
+```
+
+Subscription paths are identical to scry paths without the care. A watch
+resolves its query once, gives the result as a single `%fact` with mark
+`%noun`, and immediately gives a `%kick` — it does not (yet) push facts on
+subsequent changes to the underlying relations:
+
+```hoon
+[%pass /my-wire %agent [our.bowl %obelisk] %watch /obelisk/db1/dbo/my-table]
+```
+
+An invalid path — and any subscription by a foreign ship — crashes the watch,
+which arrives as a negative `%watch-ack`.
+
+See the `Scries and Subscriptions` reference document for the full path
+grammar.
+
 # APPENDIX I: System Views
 
 Views on database schema, data, and history metadata. `sys.sys.databases` is
