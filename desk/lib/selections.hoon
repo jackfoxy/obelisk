@@ -1015,7 +1015,7 @@
   =/  norm-qt  (normalize-qt-alias qualified-table)
   =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
                   "{<namespace.qualified-table>}.{<name.qualified-table>} ".
-                  "does not exist at schema time {<tmsp.schema>}"
+                  "does not exist at schema time {(date-tape tmsp.schema)}"
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr

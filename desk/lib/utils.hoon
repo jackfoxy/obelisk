@@ -600,6 +600,43 @@
                     t=[d=d.t.dt h=h.t.dt m=m.t.dt s=s.t.dt f=f.t.dt]
   ==
 ::
+++  date-tape
+  |=  da=@da
+  ^-  tape
+  (drop-date-zeroes (trip (scot %da da)))
+::
+++  drop-date-zeroes
+  |=  txt=tape
+  ^-  tape
+  (drop-date-zeroes-loop txt 0)
+::
+++  drop-date-zeroes-loop
+  |=  [txt=tape count=@ud]
+  ^-  tape
+  ?:  (gte count 5)  txt
+  ?~  txt  ~
+  ?.  =('.' i.txt)
+    [i.txt $(txt t.txt)]
+  ?~  t.txt
+    txt
+  ?.  (digit i.t.txt)
+    [i.txt $(txt t.txt)]
+  [i.txt $(txt (drop-leading-zeroes t.txt), count +(count))]
+::
+++  drop-leading-zeroes
+  |=  txt=tape
+  ^-  tape
+  ?~  txt  ~
+  ?.  =('0' i.txt)  txt
+  ?~  t.txt  txt
+  ?.  (digit i.t.txt)  txt
+  $(txt t.txt)
+::
+++  digit
+  |=  c=@tD
+  ^-  ?
+  &((gte c '0') (lte c '9'))
+::
 ++  to-column
   |=  [op=?(%insert %upsert) p=@t q=(map @tas [aura @])]
   ^-  column:ast

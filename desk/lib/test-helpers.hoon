@@ -2,18 +2,238 @@
 /-  ast=obelisk-ast, *obelisk, *server-state-1
 /+  *test, *scalars, parse
 /=  agent  /app/obelisk
+/=  scry-lib  /lib/scry
 |%
+::
++$  state
+  $:  %1
+      =server
+      ==
 ::
 ++  bowl
   ::  Build an example bowl manually
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)]  :: (our src dap sap)
-      [~ ~ ~]                                              :: (wex sup sky)
-      [run `@uvJ`(shax run) now [~zod %base ud+run]]       :: (act eny now byk)
+  (bowl-src run ~zod now)
+::
+++  bowl-src
+  ::  Build a bowl with an explicit source ship.
+  |=  [run=@ud src=@p now=@da]
+  ^-  bowl:gall
+  :*  [~zod src %obelisk `path`(limo `path`/test-agent)]  :: (our src dap sap)
+      [~ ~ ~]                                             :: (wex sup sky)
+      [run `@uvJ`(shax run) now [~zod %base ud+run]]      :: (act eny now byk)
   ==
 --
 |%
+::
+++  exec-agent
+  ::  Poke urQL into an agent, producing the updated agent.
+  |=  [ag=_agent run=@ud tmsp=@da db=@tas uql=tape]
+  ^+  agent
+  =^  mov  ag
+    (~(on-poke ag (bowl [run tmsp])) %obelisk-action !>([%tape db uql]))
+  ag
+::
+++  debug-exec-agent
+  |=  [ag=_agent run=@ud tmsp=@da db=@tas uql=tape]
+  ^+  agent
+  =^  mov  ag
+    (~(on-poke ag (bowl [run tmsp])) %obelisk-action !>([%test db uql]))
+  ag
+::
+++  scry-noun
+  ::  Unwrap the raw noun of a successful scry.
+  |=  res=(unit (unit cage))
+  ^-  *
+  ?~  res  ~|("scry blocked" !!)
+  ?~  u.res  ~|("scry failed" !!)
+  q.q.u.u.res
+::
+++  scry-relation
+  ::  Unwrap a relation-level scry result.
+  |=  res=(unit (unit cage))
+  ^-  relation:ast
+  ;;(relation:ast (scry-noun res))
+::
+++  row-data
+  ::  Return the data map of a single-table row.
+  |=  row=data-row:ast
+  ^-  (map @tas @)
+  ?>  ?=(%indexed-row -.row)
+  data.row
+::
+++  project
+  ::  Restrict a single-table row's data map to selected columns.
+  |=  [row=data-row:ast cols=(list @tas)]
+  ^-  (map @tas @)
+  =/  data  (row-data row)
+  %-  ~(gas by *(map @tas @))
+  (turn cols |=(col=@tas [col (~(got by data) col)]))
+::
+++  scry-0-1
+  ::  init + 1 scry → compare raw scry result
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          expect=*
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  %+  expect-eq
+    !>  expect
+  !>  (scry-noun (~(on-peek ag (bowl [run tmsp.scry])) pax.scry))
+::
+++  debug-scry-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          ==
+  ^-  *
+  =/  ag  (debug-exec-agent agent run tmsp.init db.init uql.init)
+  (scry-noun (~(on-peek ag (bowl [run tmsp.scry])) pax.scry))
+::
+++  scry-relation-0-1
+  ::  init + 1 relation scry → compare relation
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          expect=relation:ast
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  %+  expect-eq
+    !>  expect
+  !>  (scry-relation (~(on-peek ag (bowl [run tmsp.scry])) pax.scry))
+::
+++  debug-scry-relation-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          ==
+  ^-  relation:ast
+  =/  ag  (debug-exec-agent agent run tmsp.init db.init uql.init)
+  =+  !<(=state on-save:ag)
+  %-  scry-relation
+  %-  ~(read-path scry-lib [server.state (bowl [run tmsp.scry])])
+  ?+  pax.scry  ~
+    [%x %obelisk ^]  t.t.pax.scry
+  ==
+::
+++  scry-rows-0-1
+  ::  init + 1 relation scry → compare rows
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          expect=(list data-row:ast)
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  =/  rel
+    %-  scry-relation
+    (~(on-peek ag (bowl [run tmsp.scry])) pax.scry)
+  %+  expect-eq
+    !>  (sy expect)
+  !>  (sy data-rows.rel)
+::
+++  debug-scry-rows-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          ==
+  ^-  (list data-row:ast)
+  data-rows:(debug-scry-relation-0-1 run init scry)
+::
+++  scry-rows-1-1
+  ::  init + 1 action + 1 relation scry → compare rows
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          expect=(list data-row:ast)
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  =.  ag  (exec-agent ag run tmsp.action db.action uql.action)
+  =/  rel
+    %-  scry-relation
+    (~(on-peek ag (bowl [run tmsp.scry])) pax.scry)
+  %+  expect-eq
+    !>  (sy expect)
+  !>  (sy data-rows.rel)
+::
+++  debug-scry-rows-1-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          expect=(list data-row:ast)
+          ==
+  ^-  tang
+  =/  rows  data-rows:(debug-scry-relation-1-1 run init action scry)
+  ?>  =(rows rows)
+  ~
+::
+++  debug-scry-relation-1-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          ==
+  ^-  relation:ast
+  =/  ag  (debug-exec-agent agent run tmsp.init db.init uql.init)
+  =.  ag  (debug-exec-agent ag run tmsp.action db.action uql.action)
+  =+  !<(=state on-save:ag)
+  %-  scry-relation
+  %-  ~(read-path scry-lib [server.state (bowl [run tmsp.scry])])
+  ?+  pax.scry  ~
+    [%x %obelisk ^]  t.t.pax.scry
+  ==
+::
+++  scry-project-0-1
+  ::  init + 1 relation scry → compare selected row maps
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          cols=(list @tas)
+          expect=(list (map @tas @))
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  =/  rel
+    %-  scry-relation
+    (~(on-peek ag (bowl [run tmsp.scry])) pax.scry)
+  %+  expect-eq
+    !>  (sy expect)
+  !>  (sy (turn data-rows.rel |=(r=data-row:ast (project r cols))))
+::
+++  debug-scry-project-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da pax=path]
+          cols=(list @tas)
+          ==
+  ^-  (list (map @tas @))
+  =/  rel  (debug-scry-relation-0-1 run init scry)
+  (turn data-rows.rel |=(r=data-row:ast (project r cols)))
+::
+++  scry-bad-paths-0-n
+  ::  init + bad paths → each should produce [~ ~]
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da paths=(list path)]
+          ==
+  =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
+  =/  peek  ~(on-peek ag (bowl [run tmsp.scry]))
+  %-  zing
+  %+  turn  paths.scry
+  |=  pax=path
+  (expect !>(=([~ ~] (peek pax))))
+::
+++  debug-scry-bad-paths-0-n
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          scry=[tmsp=@da paths=(list path)]
+          ==
+  ^-  (list (unit (unit cage)))
+  =/  ag  (debug-exec-agent agent run tmsp.init db.init uql.init)
+  =/  peek  ~(on-peek ag (bowl [run tmsp.scry]))
+  (turn paths.scry |=(pax=path (peek pax)))
 ::
 ++  exec-0-r
   ::  init/resolve → compare cmd-result:ast only
@@ -1304,6 +1524,30 @@
         %+  expect-eq
           !>  expect-2
           !>  ;;(cmd-result:ast ->+>+>+<.mov4)
+::
+++  debug-1-2-ordered
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result:ast
+          expect-2=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action]))
+      %obelisk-action
+      !>  [%tape db.action uql.action]
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+                %obelisk-action
+                !>([%test db.resolve-1 uql.resolve-1])
 ::
 ++  exec-2-1-ordered
   ::  init + 2 actions + 1 resolves → compare 1 result

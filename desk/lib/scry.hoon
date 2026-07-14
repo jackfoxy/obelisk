@@ -183,7 +183,7 @@
   |=  as-of=(unit @da)
   ^-  tape
   ?~  as-of  ""
-  " AS OF {<u.as-of>}"
+  " AS OF {(date-tape u.as-of)}"
 ::
 ++  run-query
   ::  parse and execute a single query, extracting its relation;
