@@ -3,6 +3,7 @@
 ## v-dev
 * BREAKING CHANGE: relation:obelisk-ast -> relation-id
 * BREAKING CHANGE: relation.result:obelisk-ast -> relation-name.result
+* Scry database, namespace, relation, relation restricted by columns
 
 ## v0.8.1-beta
 

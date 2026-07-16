@@ -5,6 +5,8 @@
 
 * __`INSERT INTO [ FORCE ] \<table>__ -- (complete in dev) INSERT data defined by a query.
 
+* __`Scry`__ -- (complete in dev)
+
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __Outer JOINs__ -- LEFT JOIN, RIGHT JOIN, OUTER JOIN,
