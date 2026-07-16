@@ -100,6 +100,27 @@
     !>  %-  parse:parse(default-database 'dummy')
         "create database my-db as of 4 years ago"
 ::
+:: as of date with leading zero in month and day
+++  test-create-database-10
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.07.04"
+::
+:: as of date with leading zero in month only
+++  test-create-database-11
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.14]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.07.14"
+::
+:: as of date with leading zero in day only
+++  test-create-database-12
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.12.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.12.04"
+::
 :: fail when database name is not a term
 ++  test-fail-create-database-01
   %-  expect-fail

@@ -1588,7 +1588,7 @@
       ::
       [~2000.2.4 %db1 "FROM my-table SELECT *"]
       ::
-      'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2000.2.3'
+     'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2000.2.3'
       ==
 ::
 ::  rejects one-item COLUMNS when it does not change canonical order

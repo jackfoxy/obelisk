@@ -3461,7 +3461,7 @@
       |=([a=@ b=?] [b a])
     ;~(plug dim:ag ;~(pose (cold | hep) (easy &)))
     ;~(pfix dot mot:ag)   ::  month
-    ;~(pfix dot dip:ag)   ::  day
+    ;~(pfix dot dap:ag)   ::  day, dap:ag accepts leading zero (e.g. 04)
     ;~  pose
       ;~  pfix
         ;~(plug dot dot)

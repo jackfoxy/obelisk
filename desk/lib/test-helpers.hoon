@@ -1542,12 +1542,16 @@
   %+  ~(on-poke agent (bowl [run tmsp.action]))
       %obelisk-action
       !>  [%tape db.action uql.action]
+  =^  mov3  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+      %obelisk-action
+      !>  [%tape db.resolve-1 uql.resolve-1]
   ::
   %+  expect-fail-message
         'placeholder for debugging'
-        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
                 %obelisk-action
-                !>([%test db.resolve-1 uql.resolve-1])
+                !>([%test db.resolve-1 uql.resolve-2])
 ::
 ++  exec-2-1-ordered
   ::  init + 2 actions + 1 resolves → compare 1 result
