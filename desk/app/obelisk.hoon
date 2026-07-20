@@ -104,8 +104,9 @@
       %.y
         =/  res  p.virtualized
         =/  dummy  (print -.res)
+        =/  out  (format-results %vectors -.res)
         :_  this(server +.res)
-        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+        :~  [%give %fact ~[/server] %noun !>([& out])]
             [%give %kick ~[/server] ~]
         ==
     ==

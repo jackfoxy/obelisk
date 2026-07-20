@@ -231,7 +231,7 @@
 +$  relation
   $+  relation
   $:  %relation
-  =relation-id
+  relation-id=(unit qualified-table)
   columns=(lest $%(column qualified-column))
   pri-indx=(unit index)
   ordered=?

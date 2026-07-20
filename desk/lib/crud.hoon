@@ -1161,7 +1161,7 @@
       ;;((list data-row) indexed-rows.st)
     ;;((list data-row) joined-rows.st)
   :*  %relation
-      ?~(relation-id.st [%cte-name %result ~] (need relation-id.st))
+      relation-id.st
       [i.columns.st t.columns.st]
       pri-indx.st
       ordered.st

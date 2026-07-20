@@ -68,7 +68,7 @@
   |=  a=relation
   ^-  (list vector)
   =/  columns=(lest $%(column qualified-column))  columns.a
-  =/  use-keys  (relation-output-keys relation-id.a)
+  =/  use-keys  =(~ relation-id.a)
   ?:  ordered.a
     (relation-vectors-ordered use-keys columns data-rows.a)
   (relation-vectors-unordered use-keys columns data-rows.a)
@@ -132,14 +132,6 @@
     [cell ~]
   =/  next-counts  (~(put by counts) name +(count))
   [cell $(counts next-counts, columns t.columns)]
-::
-++  relation-output-keys
-  |=  rid=relation-id
-  ^-  ?
-  ?-  -.rid
-    %qualified-table  %.n
-    %cte-name         =(%result name.rid)
-  ==
 ::
 ++  relation-column-name
   |=  col=$%(column qualified-column)
