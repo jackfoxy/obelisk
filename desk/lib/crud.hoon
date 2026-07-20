@@ -177,6 +177,12 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result:ast)]]
+  =/  fast-query  (simple-table-query crud-txn)
+  =/  fast-results
+    ?~  fast-query  ~
+    (simple-table-query-results -.u.fast-query +.u.fast-query)
+  ?^  fast-results
+    [%.y next-data state u.fast-results]
   =/  named-ctes   (named-queries ctes.crud-txn *named-ctes)
   ?-  -.body.crud-txn
     %insert
@@ -223,6 +229,67 @@
       :-  %.n
           (do-update +.body.crud-txn named-ctes next-data next-schemas)
   ==
+::
+++  simple-table-query
+  ::  Recognize a direct projection of every column from one physical table.
+  |=  =crud-txn:ast
+  ^-  (unit [qualified-table:ast (unit as-of:ast)])
+  ?^  ctes.crud-txn  ~
+  ?.  ?=([%query *] body.crud-txn)  ~
+  =/  q=query:ast  +.body.crud-txn
+  ?~  from.q  ~
+  =/  f=from:ast  (normalize-from u.from.q)
+  ?.  ?=(qualified-table:ast relation-id.f)  ~
+  =/  qt=qualified-table:ast  relation-id.f
+  ?^  ship.qt  ~
+  ?.  ?&  =(~ joins.f)
+           =(~ scalars.q)
+           =(~ predicate.q)
+           =(~ group-by.q)
+           =(~ having.q)
+           =(~ order-by.q)
+           =(~ top.select.q)
+           =(~[[%all %all]] columns.select.q)
+       ==
+    ~
+  `[qt as-of.f]
+::
+++  simple-table-query-results
+  ::  Read an eligible query result directly from canonical table state.
+  |=  [qt=qualified-table:ast as-of=(unit as-of:ast)]
+  ^-  (unit (list result:ast))
+  =/  db  (~(get by state) database.qt)
+  ?~  db  ~
+  =/  sys-time  (set-tmsp as-of now.bowl)
+  =/  schema
+    ~|  "SELECT: database {<database.qt>} doesn't exist at time {<sys-time>}"
+        (get-schema [sys.u.db sys-time])
+  =/  tbl-key  [namespace.qt name.qt]
+  =/  tbl  (~(get by tables.schema) tbl-key)
+  ?~  tbl  ~
+  =/  fil  (get-content content.u.db sys-time tbl-key)
+  ?~  columns.u.tbl  ~|("set-table-relation: no columns" !!)
+  =/  rows=(list data-row)
+    ;;((list data-row) indexed-rows.fil)
+  =/  rel=relation:ast
+    :*  %relation
+        ~
+        [i.columns.u.tbl t.columns.u.tbl]
+        [~ pri-indx.u.tbl]
+        %.n
+        pri-idx.fil
+        rows
+        ==
+  =/  source  qt(alias ~)
+  :-  ~
+  :~  [%action 'SELECT']
+      [%relations ~[rel]]
+      [%server-time now.bowl]
+      [%relation-name (qualified-table-to-cord source)]
+      [%schema-time tmsp.u.tbl]
+      [%data-time tmsp.fil]
+      [%vector-count (lent rows)]
+      ==
 ::
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
