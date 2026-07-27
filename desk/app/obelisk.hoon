@@ -82,59 +82,48 @@
   =/  act  !<(action vase)
   ::
   =/  state-server  process-cmds(state server, bowl bowl)
-  ::
-  ?-    -.act
-  ::
-  ::  prints results
-  %tape-print
-    =/  virtualized
-        ^-  (each (pair (list cmd-result) server:server-state-1) tang)
-        %-  mule
-          |.
-          %:  state-server
-          (parse-urql +<.act +>.act)
-          ==
-    ?-  -.virtualized
-      %.n
-        =/  dummy  (print-crash p.virtualized)
-        :_  this
-        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
-            [%give %kick ~[/server] ~]
-        ==
-      %.y
-        =/  res  p.virtualized
-        =/  dummy  (print -.res)
-        =/  out  (format-results %vectors -.res)
-        :_  this(server +.res)
-        :~  [%give %fact ~[/server] %noun !>([& out])]
-            [%give %kick ~[/server] ~]
-        ==
-    ==
-  ::
-  ::  action without printing results
-  %tape
+  =/  deprecated
+    |=  [default-database=@tas urql=tape print-results=?]
+    ^-  (quip card _this)
     =/  virtualized
       ^-  (each (pair (list cmd-result) server:server-state-1) tang)
       %-  mule
       |.
       %:  state-server
-      ::~>  %bout.[0 %parse-cmds]
-      (parse-urql +<.act +>.act)
+      (parse-urql default-database urql)
       ==
     ?-  -.virtualized
       %.n
+        =/  dummy
+          ?:  print-results
+            (print-crash p.virtualized)
+          ~
         :_  this
         :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
             [%give %kick ~[/server] ~]
         ==
       %.y
         =/  res  p.virtualized
+        =/  dummy
+          ?:  print-results
+            (print -.res)
+          ~
         =/  out  (format-results %vectors -.res)
         :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>([& out])]
             [%give %kick ~[/server] ~]
         ==
     ==
+  ::
+  ?-    -.act
+  ::
+  ::  prints results
+  %tape-print
+    (deprecated +<.act +>.act %.y)
+  ::
+  ::  action without printing results
+  %tape
+    (deprecated +<.act +>.act %.n)
   ::
   %parse
     =/  virtualized
