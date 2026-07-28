@@ -1,0 +1,22 @@
+/usr                        User Docs
+  /users-guide/md             Users Guide
+  /reference                  Reference
+    /preliminaries/md           Preliminaries
+    /ddl                        Data Definition Language
+      /database/md                Database
+      /namespace/md               Namespace
+      /table/md                   Table
+      /index/md                   Index
+    /dml                        Data Manipulation Language
+      /insert/md                  Insert
+      /update/md                  Update
+      /upsert/md                  Upsert
+      /delete/md                  Delete
+      /truncate-table/md          Truncate Table DML
+    /select/md                  Select
+    /scry/md                    Scries and Subscriptions
+    /scalars/md                 Scalars
+    /security-permissions/md    Security Permissions
+/dev                        Developer Docs
+  /performance/md             Performance
+  /users-guide-script/txt     Users Guide Scripts
