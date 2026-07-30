@@ -156,8 +156,9 @@
   ^-  (list [ns=@tas name=@tas])
   =/  tables=relation:ast  (read-relation db %sys %tables ~ as-of)
   %+  murn  data-rows.tables
-  |=  row=data-row:ast
+  |=  indexed-data-row=[columns-index=@ud =data-row:ast]
   ^-  (unit [@tas @tas])
+  =/  row=data-row:ast  data-row.indexed-data-row
   ?.  ?=(%indexed-row -.row)  ~
   =/  row-ns=@tas  `@tas`(~(got by data.row) %namespace)
   ?:  &(?=(^ ns) !=(u.ns row-ns))  ~

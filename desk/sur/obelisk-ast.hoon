@@ -226,17 +226,18 @@
 ::
 ::  $relation
 ::
-::  invariant: (column & `indexed-row`data-row)
+::  invariant: each columns entry is unique
+::             (column & `indexed-row`data-row)
 ::             | (qualified-column & `joined-row`data-row)
 +$  relation
   $+  relation
   $:  %relation
   relation-id=(unit qualified-table)
-  columns=(lest $%(column qualified-column))
+  columns=(lest (lest $%(column qualified-column)))
   pri-indx=(unit index)
   ordered=?
   pri-indexed=(tree [(list @) (map @tas @)])  :: may be bunt
-  data-rows=(list data-row)
+  data-rows=(list [columns-index=@ud =data-row])
   ==
 ::
 +$  indexed-row
@@ -1087,16 +1088,20 @@
   ==
 ::
 ::  $action
-::    [%tape @tas tape]          - execute urQL script, parse and runtime
+::    [%script @tas result-format tape]
+::                              - execute urQL script, parse and runtime
+::    [%cmd-list result-format (list command)]
+::                              - execute API commands in runtime
+::    [%tape @tas tape]          - deprecated
 ::    [%tape-print @tas tape]    - execute urQL script, prints result to dojo
-::    [%commands (list command)] - execute API commands in runtime
+::    [%commands (list command)] - deprecated
 ::    [%test @tas tape]          - supports expect-fail-message in unit tests
 ::    [%parse tape]              - parse urQL script, returns (list command)
 ::  
 +$  action
   $%
-    ::[%script default-database=@tas format=result-format urql=tape]
-    ::[%cmd-list format=result-format cmds=(list command)]
+    [%script default-database=@tas format=result-format urql=tape]
+    [%cmd-list format=result-format cmds=(list command)]
     [%tape default-database=@tas urql=tape]                         ::deprecated
     [%tape-print default-database=@tas urql=tape]                   ::deprecated
     [%commands cmds=(list command)]                                 ::deprecated
@@ -1124,7 +1129,7 @@
 ::
 ::  OUTPUT
 ::
-+$  result-format  ?(%vectors %markdown %html %wain %tape %json %raw)
++$  result-format  ?(%vector %markdown %html %wain %tape %json %raw)
 +$  cmd-result  [%results (list result)]
 +$  result
   $%

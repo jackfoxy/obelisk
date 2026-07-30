@@ -7,7 +7,7 @@
   ?-  fmt
     %raw
       results
-    %vectors
+    %vector
       (turn results format-vectors)
     %markdown
       ~|('not implemented' !!)
@@ -59,23 +59,28 @@
 ++  relation-vectors
   |=  a=relation
   ^-  (list vector)
-  =/  columns=(lest $%(column qualified-column))  columns.a
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
   =/  use-keys  =(~ relation-id.a)
   ?:  ordered.a
+    ?:  (gth (lent columns) 1)
+      ~|("format: ordered multi-schema vector output not implemented" !!)
     (relation-vectors-ordered use-keys columns data-rows.a)
   (relation-vectors-unordered use-keys columns data-rows.a)
 ::
 ++  relation-vectors-ordered
   |=  $:  use-keys=?
-          columns=(lest $%(column qualified-column))
-          rows=(list data-row)
+          columns=(lest (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
           ==
   ^-  (list vector)
-  =/  out   *(list vector)
+  =/  out  *(list vector)
   =/  seen  *(set vector)
   |-
   ?~  rows  out
-  =/  v  (relation-vector use-keys columns i.rows)
+  =/  row=[columns-index=@ud =data-row]  i.rows
+  =/  format
+    (relation-columns-at columns-index.row columns)
+  =/  v  (relation-vector use-keys format data-row.row)
   ?:  (~(has in seen) v)
     $(rows t.rows)
   %=  $
@@ -86,17 +91,58 @@
 ::
 ++  relation-vectors-unordered
   |=  $:  use-keys=?
-          columns=(lest $%(column qualified-column))
-          rows=(list data-row)
+          columns=(lest (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
           ==
   ^-  (list vector)
+  ?~  rows  ~
+  =/  first=[columns-index=@ud =data-row]  i.rows
+  =/  format
+    (relation-columns-at columns-index.first columns)
+  =/  grouped
+    %:  relation-vector-group
+      use-keys
+      format
+      columns-index.first
+      rows
+    ==
+  (weld -.grouped $(rows +.grouped))
+::
+++  relation-vector-group
+  |=  $:  use-keys=?
+          format=(lest $%(column qualified-column))
+          format-index=@ud
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [(list vector) (list [columns-index=@ud =data-row])]
   =/  out  *(set vector)
+  =/  aside  *(list [columns-index=@ud =data-row])
   |-
-  ?~  rows  ~(tap in out)
+  ?~  rows
+    [~(tap in out) (flop aside)]
+  =/  row=[columns-index=@ud =data-row]  i.rows
+  ?.  =(format-index columns-index.row)
+    %=  $
+      rows   t.rows
+      aside  [row aside]
+    ==
   %=  $
     rows  t.rows
-    out   (~(put in out) (relation-vector use-keys columns i.rows))
+    out   (~(put in out) (relation-vector use-keys format data-row.row))
   ==
+::
+++  relation-columns-at
+  |=  $:  index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          ==
+  ^-  (lest $%(column qualified-column))
+  =/  requested  index
+  |-
+  ?~  columns
+    ~|("format: invalid relation columns index {<requested>}" !!)
+  ?:  =(0 index)
+    i.columns
+  $(index (dec index), columns t.columns)
 ::
 ++  relation-vector
   |=  [use-keys=? columns=(lest $%(column qualified-column)) row=data-row]

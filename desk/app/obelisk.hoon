@@ -106,7 +106,7 @@
               ?:  print-results
                 (print -.res)
               ~
-            =/  out  (format-results %vectors -.res)
+            =/  out  (format-results %vector -.res)
             :_  this(server +.res)
             :~  [%give %fact ~[/server] %noun !>([& out])]
                 [%give %kick ~[/server] ~]
@@ -115,10 +115,48 @@
   ::
   ?-    -.act
   ::
-  ::%script
-
-
-  ::%cmd-list
+  %script
+    =/  virtualized
+      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+      %-  mule
+      |.
+      =/  res
+        (state-server (parse-urql default-database.act urql.act))
+      [(format-results format.act -.res) +.res]
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+            ==
+      %.y
+        =/  res  p.virtualized
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+            ==
+    ==
+  ::
+  %cmd-list
+    =/  virtualized
+      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+      %-  mule
+      |.
+      =/  res  (state-server cmds.act)
+      [(format-results format.act -.res) +.res]
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+            ==
+      %.y
+        =/  res  p.virtualized
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+            ==
+    ==
 
   ::
   %tape-print
@@ -153,7 +191,7 @@
   ::
   %commands
     =/  res  (state-server +.act)
-    =/  out  (format-results %vectors -.res)
+    =/  out  (format-results %vector -.res)
     :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>(out)]
             [%give %kick ~[/server] ~]
@@ -229,7 +267,11 @@
                 [our.bowl dap.bowl]
                 %poke
                 %obelisk-action
-                !>([%tape %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+                !>  :*  %script
+                        %animal-shelter
+                        %raw
+                        (reel txt |=([a=cord b=tape] (weld (trip a) b)))
+                        ==
             ==
         ==
       ==

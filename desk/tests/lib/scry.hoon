@@ -30,8 +30,12 @@
   :+  %indexed-row  ~['gamma']
   (~(gas by *(map @tas @)) ~[[%col1 'gamma'] [%col2 3]])
 ::
-++  rows-2  ^-  (list data-row:ast)  ~[row-alpha row-beta]
-++  rows-3  ^-  (list data-row:ast)  ~[row-alpha row-beta row-gamma]
+++  rows-2
+  ^-  (list [columns-index=@ud =data-row:ast])
+  ~[[0 row-alpha] [0 row-beta]]
+++  rows-3
+  ^-  (list [columns-index=@ud =data-row:ast])
+  ~[[0 row-alpha] [0 row-beta] [0 row-gamma]]
 ::
 ::  scry a table: FROM db1.dbo.my-table SELECT *
 ++  test-scry-relation-00
@@ -134,7 +138,9 @@
     %-  ~(on-peek ag (bowl run ~2012.5.1))
     /x/obelisk/sys/sys/databases/database
   =/  dbs=(list (map @tas @))
-    (turn data-rows.rel |=(r=data-row:ast (project r ~[%database])))
+    %+  turn  data-rows.rel
+    |=  r=[columns-index=@ud =data-row:ast]
+    (project data-row.r ~[%database])
   %-  expect
   !>  (~(has in (sy dbs)) (~(gas by *(map @tas @)) ~[[%database %db1]]))
 ::

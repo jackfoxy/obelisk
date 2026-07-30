@@ -32,7 +32,9 @@
   |=  [ag=_agent run=@ud tmsp=@da db=@tas uql=tape]
   ^+  agent
   =^  mov  ag
-    (~(on-poke ag (bowl [run tmsp])) %obelisk-action !>([%tape db uql]))
+    %+  ~(on-poke ag (bowl [run tmsp]))
+      %obelisk-action
+    !>([%script db %raw uql])
   ag
 ::
 ++  debug-exec-agent
@@ -41,6 +43,22 @@
   =^  mov  ag
     (~(on-poke ag (bowl [run tmsp])) %obelisk-action !>([%test db uql]))
   ag
+::
+++  poke-action
+  ::  Poke an action and return its typed one-shot response and updated agent.
+  |=  [ag=_agent run=@ud tmsp=@da act=action:ast]
+  ^-  [(each (list cmd-result:ast) tang) _agent]
+  =^  mov  ag
+    (~(on-poke ag (bowl [run tmsp])) %obelisk-action !>(act))
+  ?~  mov  ~|("poke-action: no response cards" !!)
+  ?>  ?=([%give %fact * %noun *] i.mov)
+  =/  response  q.q.cage.p.i.mov
+  [;;((each (list cmd-result:ast) tang) response) ag]
+::
+++  parse-commands
+  |=  [db=@tas uql=tape]
+  ^-  (list command:ast)
+  (parse:parse(default-database db) uql)
 ::
 ++  scry-noun
   ::  Unwrap the raw noun of a successful scry.
@@ -123,7 +141,7 @@
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           scry=[tmsp=@da pax=path]
-          expect=(list data-row:ast)
+          expect=(list [columns-index=@ud =data-row:ast])
           ==
   =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
   =/  rel
@@ -138,7 +156,7 @@
           init=[tmsp=@da db=@tas uql=tape]
           scry=[tmsp=@da pax=path]
           ==
-  ^-  (list data-row:ast)
+  ^-  (list [columns-index=@ud =data-row:ast])
   data-rows:(debug-scry-relation-0-1 run init scry)
 ::
 ++  scry-rows-1-1
@@ -147,7 +165,7 @@
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
           scry=[tmsp=@da pax=path]
-          expect=(list data-row:ast)
+          expect=(list [columns-index=@ud =data-row:ast])
           ==
   =/  ag  (exec-agent agent run tmsp.init db.init uql.init)
   =.  ag  (exec-agent ag run tmsp.action db.action uql.action)
@@ -163,7 +181,7 @@
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
           scry=[tmsp=@da pax=path]
-          expect=(list data-row:ast)
+          expect=(list [columns-index=@ud =data-row:ast])
           ==
   ^-  tang
   =/  rows  data-rows:(debug-scry-relation-1-1 run init action scry)
@@ -200,7 +218,10 @@
     (~(on-peek ag (bowl [run tmsp.scry])) pax.scry)
   %+  expect-eq
     !>  (sy expect)
-  !>  (sy (turn data-rows.rel |=(r=data-row:ast (project r cols))))
+  !>  %-  sy
+      %+  turn  data-rows.rel
+      |=  r=[columns-index=@ud =data-row:ast]
+      (project data-row.r cols)
 ::
 ++  debug-scry-project-0-1
   |=  $:  run=@ud
@@ -210,7 +231,9 @@
           ==
   ^-  (list (map @tas @))
   =/  rel  (debug-scry-relation-0-1 run init scry)
-  (turn data-rows.rel |=(r=data-row:ast (project r cols)))
+  %+  turn  data-rows.rel
+  |=  r=[columns-index=@ud =data-row:ast]
+  (project data-row.r cols)
 ::
 ++  scry-bad-paths-0-n
   ::  init + bad paths → each should produce [~ ~]

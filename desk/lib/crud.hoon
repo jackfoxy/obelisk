@@ -271,14 +271,16 @@
   ?~  columns.u.tbl  ~|("set-table-relation: no columns" !!)
   =/  rows=(list data-row)
     ;;((list data-row) indexed-rows.fil)
+  =/  columns  ^-  (lest $%(column:ast qualified-column:ast))
+    [i.columns.u.tbl t.columns.u.tbl]
   =/  rel=relation:ast
     :*  %relation
         ~
-        [i.columns.u.tbl t.columns.u.tbl]
+        ~[columns]
         [~ pri-indx.u.tbl]
         %.n
         pri-idx.fil
-        rows
+        (turn rows |=(row=data-row:ast [0 row]))
         ==
   =/  source  qt(alias ~)
   :-  ~
@@ -1208,10 +1210,12 @@
 ++  result-relations
   |=  set-tables=(list set-table)
   ^-  (list relation)
-  ?~  set-tables  ~
-  ?^  relation-id.i.set-tables
-    ~
-  [(set-table-relation i.set-tables) $(set-tables t.set-tables)]
+  =/  result-tables
+    %+  skim  set-tables
+    |=  st=set-table
+    ?=(~ relation-id.st)
+  ?~  result-tables  ~
+  ~[(set-tables-relation [i.result-tables t.result-tables])]
 ::
 ++  result-row-count
   |=  relations=(list relation)
@@ -1219,22 +1223,54 @@
   ?~  relations  0
   (add (lent data-rows.i.relations) $(relations t.relations))
 ::
-++  set-table-relation
-  |=  st=set-table
+++  set-tables-relation
+  |=  set-tables=(lest set-table)
   ^-  relation
-  ?~  columns.st  ~|("set-table-relation: no columns" !!)
-  =/  rows=(list data-row)
+  =/  first=set-table  i.set-tables
+  =/  formats  *(list (lest $%(column:ast qualified-column:ast)))
+  =/  rows  *(list [columns-index=@ud =data-row:ast])
+  =/  remaining=(list set-table)  set-tables
+  |-
+  ?~  remaining
+    ?~  formats  ~|("set-tables-relation: no columns" !!)
+    :*  %relation
+        relation-id.first
+        [i.formats t.formats]
+        pri-indx.first
+        ordered.first
+        pri-indexed.first
+        rows
+        ==
+  =/  st=set-table  i.remaining
+  ?~  columns.st  ~|("set-tables-relation: no columns" !!)
+  =/  format  ^-  (lest $%(column:ast qualified-column:ast))
+    [i.columns.st t.columns.st]
+  =/  found  (relation-format-index format formats)
+  =/  format-index=@ud  ?~(found (lent formats) u.found)
+  =.  formats  ?~(found (snoc formats format) formats)
+  =/  st-rows=(list data-row:ast)
     ?~  joined-rows.st
-      ;;((list data-row) indexed-rows.st)
-    ;;((list data-row) joined-rows.st)
-  :*  %relation
-      relation-id.st
-      [i.columns.st t.columns.st]
-      pri-indx.st
-      ordered.st
-      pri-indexed.st
-      rows
-      ==
+      ;;((list data-row:ast) indexed-rows.st)
+    ;;((list data-row:ast) joined-rows.st)
+  %=  $
+    remaining  t.remaining
+    formats    formats
+    rows
+      %+  weld  rows
+      %+  turn  st-rows
+      |=(row=data-row:ast [format-index row])
+  ==
+::
+++  relation-format-index
+  |=  $:  format=(lest $%(column:ast qualified-column:ast))
+          formats=(list (lest $%(column:ast qualified-column:ast)))
+          ==
+  ^-  (unit @ud)
+  =/  index  0
+  |-
+  ?~  formats  ~
+  ?:  =(format i.formats)  `index
+  $(formats t.formats, index +(index))
 ::
 ++  order-results
   ::  sort comparator for select-results table metadata output.

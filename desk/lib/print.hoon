@@ -81,23 +81,58 @@
 ++  print-relation
   |=  a=relation
   ^-  @f
-  =/  columns=(list $%(column qualified-column))  columns.a
-  =/  rows=(list data-row)  data-rows.a
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  =/  rows=(list [columns-index=@ud =data-row])  data-rows.a
   ?:  =(~ rows)  ~&  "      result set empty"  %.y
-  =/  rc1  (print-relation-heading columns)
   =/  i  ?:  (lth (lent rows) 11)  0  1
   =/  print-elipsis=?  (gte (lent rows) 11)
+  =/  prior-format=(unit @ud)  ~
   |-
   ?~  rows  %.y
-  =/  rc2  (print-relation-row columns -.rows)
+  =/  row=[columns-index=@ud =data-row]  i.rows
+  =/  rc2  (print-relation-entry columns row prior-format)
   =/  rc3  ?:  &(=(i 9) print-elipsis)
-              ~&  "      ..."
-              (print-relation-row columns (rear rows))
+              (print-relation-tail columns (rear rows))
             %.n
   %=  $
-    rows  ?:  =(i 9)  ~  +.rows
-    i     +(i)
+    rows          ?:  =(i 9)  ~  +.rows
+    i             +(i)
+    prior-format  `columns-index.row
   ==
+::
+++  print-relation-entry
+  |=  $:  columns=(lest (lest $%(column qualified-column)))
+          row=[columns-index=@ud =data-row]
+          prior-format=(unit @ud)
+          ==
+  ^-  @f
+  =/  format  (relation-columns-at columns-index.row columns)
+  =/  rc
+    ?:  ?~(prior-format %.y !=(u.prior-format columns-index.row))
+      (print-relation-heading format)
+    %.y
+  (print-relation-row format data-row.row)
+::
+++  print-relation-tail
+  |=  $:  columns=(lest (lest $%(column qualified-column)))
+          row=[columns-index=@ud =data-row]
+          ==
+  ^-  @f
+  ~&  "      ..."
+  (print-relation-entry columns row ~)
+::
+++  relation-columns-at
+  |=  $:  index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          ==
+  ^-  (lest $%(column qualified-column))
+  =/  requested  index
+  |-
+  ?~  columns
+    ~|("print: invalid relation columns index {<requested>}" !!)
+  ?:  =(0 index)
+    i.columns
+  $(index (dec index), columns t.columns)
 ::
 ++  print-relation-heading
   |=  columns=(list $%(column qualified-column))
