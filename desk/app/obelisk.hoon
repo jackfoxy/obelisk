@@ -117,6 +117,9 @@
   ::
   ::%script
 
+
+  ::%cmd-list
+
   ::
   %tape-print
     ::  prints results

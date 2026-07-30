@@ -1095,9 +1095,11 @@
 ::  
 +$  action
   $%
-    [%tape default-database=@tas urql=tape]
-    [%tape-print default-database=@tas urql=tape]
-    [%commands cmds=(list command)]
+    ::[%script default-database=@tas format=result-format urql=tape]
+    ::[%cmd-list format=result-format cmds=(list command)]
+    [%tape default-database=@tas urql=tape]                         ::deprecated
+    [%tape-print default-database=@tas urql=tape]                   ::deprecated
+    [%commands cmds=(list command)]                                 ::deprecated
     [%test default-database=@tas urql=tape]
     [%parse default-database=@tas urql=tape]
     ==

@@ -29,6 +29,8 @@
 
 * __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
 
+* __version__ -- Query server version.
+
 ## other planned functionality
 
 * __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs. (possibly in V1.0)
