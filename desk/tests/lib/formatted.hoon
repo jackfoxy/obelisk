@@ -487,4 +487,272 @@
   %+  expect-eq
     !>(expected)
   !>((crip (markdown-table columns vectors)))
+::
+::  JSON renders one row array for each columns entry.
+++  test-json-multiple-schemas-21
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  json-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[json-relation]] [%vector-count 99]]]]
+  =/  expected-items=(list result:ast)
+    :~  [%message '[[{"value":1}],[{"value":"0x2"}]]']
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %json input))
+::
+::  JSON emits one empty row array for every empty columns entry.
+++  test-json-empty-multiple-schemas-22
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-json empty)
+  ;:  weld
+    %+  expect-eq
+      !>(`(list tape)`~["[]" "[]"])
+    !>(p.formatted)
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  JSON strings escape quotes and backslashes.
+++  test-json-escape-23
+  =/  table
+    %-  json-table
+    ~[[%vector ~[[%value [~.t 'a"b\\c']]]]]
+  %+  expect-eq
+    !>('[{"value":"a\\"b\\\\c"}]')
+  !>((crip table))
+::
+::  Ordered JSON formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-json-24
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema json output not implemented'
+  |.  (relation-json ordered-relation)
+::
+::  JSON renders multiple columns and data rows as row objects.
+++  test-json-multiple-columns-rows-25
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  %+  expect-eq
+    !>('[{"id":1,"label":"alpha"},{"id":2,"label":"beta"}]')
+  !>((crip (json-table vectors)))
+::
+::  JSON preserves non-decimal Hoon auras as strings.
+++  test-json-aura-values-26
+  =/  vector=vector:ast
+    :-  %vector
+    :~  [%date [~.da ~2024.1.2..3.4.5]]
+        [%duration [~.dr ~s5]]
+        [%signed [~.sd --42]]
+        [%single [~.rs .1.5]]
+        [%double [~.rd .~1.5]]
+        ==
+  =/  expected
+    %-  crip
+    ;:  welp
+      ~['{']
+      "\"date\":\"~2024.01.02..03.04.05\",\"duration\":\"~s5\","
+      "\"signed\":\"--42\",\"single\":\".1.5\",\"double\":\".~1.5\""
+      ~['}']
+    ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (json-row vector)))
+::
+::  Wain renders one header and its rows for each columns entry.
+++  test-wain-multiple-schemas-27
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  wain-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[wain-relation]] [%vector-count 99]]]]
+  =/  expected-items=(list result:ast)
+    :~  [%message 'value\0a1\0avalue\0a0x2']
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %wain input))
+::
+::  Wain emits a header for every empty columns entry.
+++  test-wain-empty-multiple-schemas-28
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-wain empty)
+  ;:  weld
+    %+  expect-eq  !>(`wain`~['value' 'value'])
+                   !>(p.formatted)
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  Ordered Wain formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-wain-29
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema wain output not implemented'
+  |.  (relation-wain ordered-relation)
+::
+::  Wain separates multiple columns with one space.
+++  test-wain-multiple-columns-rows-30
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  %+  expect-eq
+    !>(`wain`~['id label' '1 alpha' '2 beta'])
+  !>((wain-table columns vectors))
+::
+::  Wain preserves date, duration, signed, and floating auras.
+++  test-wain-aura-values-31
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%date [~.da ~2024.1.2..3.4.5]]
+                [%duration [~.dr ~s5]]
+                [%signed [~.sd --42]]
+                [%single [~.rs .1.5]]
+                [%double [~.rd .~1.5]]
+                ==
+        ==
+  =/  expected=wain
+    :~  'date duration signed single double'
+        '~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5'
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((wain-table columns vectors))
+::
+::  Tape renders one header and its rows for each columns entry.
+++  test-tape-multiple-schemas-32
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  tape-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[tape-relation]] [%vector-count 99]]]]
+  =/  expected-items=(list result:ast)
+    :~  [%message 'value\0a1\0avalue\0a0x2']
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %tape input))
+::
+::  Tape emits LF-delimited headers for empty columns entries.
+++  test-tape-empty-multiple-schemas-33
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-tape empty)
+  ;:  weld
+    %+  expect-eq  !>("value\0avalue")
+                   !>(p.formatted)
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  Ordered Tape formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-tape-34
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema tape output not implemented'
+  |.  (relation-tape ordered-relation)
+::
+::  Tape separates columns with spaces and rows with line feeds.
+++  test-tape-multiple-columns-rows-35
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  =/  lines  (wain-table columns vectors)
+  %+  expect-eq
+    !>("id label\0a1 alpha\0a2 beta")
+  !>((wain-to-tape lines))
+::
+::  Tape preserves date, duration, signed, and floating auras.
+++  test-tape-aura-values-36
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%date [~.da ~2024.1.2..3.4.5]]
+                [%duration [~.dr ~s5]]
+                [%signed [~.sd --42]]
+                [%single [~.rs .1.5]]
+                [%double [~.rd .~1.5]]
+                ==
+        ==
+  =/  expected=tape
+    ;:  welp
+      "date duration signed single double"
+      "\0a"
+      "~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5"
+    ==
+  =/  lines  (wain-table columns vectors)
+  %+  expect-eq
+    !>(expected)
+  !>((wain-to-tape lines))
 --

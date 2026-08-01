@@ -16,11 +16,116 @@
     %manx
       ~|('not implemented' !!)
     %wain
-      ~|('not implemented' !!)
+      (turn results format-wain)
     %tape
-      ~|('not implemented' !!)
+      (turn results format-tape)
     %json
-      ~|('not implemented' !!)
+      (turn results format-json)
+  ==
+::
+::  Format relation results as JSON arrays of row objects.
+++  format-json
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  json-result  (relations-json +.i.results)
+        :-  [%message (crip p.json-result)]
+            [~ q.json-result]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
+  ==
+::
+::  Format relation results as space-delimited cord lines.
+++  format-wain
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  wain-result  (relations-wain +.i.results)
+        :-  [%message (crip (wain-to-tape p.wain-result))]
+            [~ q.wain-result]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
+  ==
+::
+::  Format relation results as LF-delimited tape rows.
+++  format-tape
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  tape-result  (relations-tape +.i.results)
+        :-  [%message (crip p.tape-result)]
+            [~ q.tape-result]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
   ==
 ::
 ::  Format relation results as GitHub Flavored Markdown tables.
@@ -126,6 +231,252 @@
     out      [-.formatted out]
     count    +.formatted
   ==
+::
+++  relations-tape
+  |=  relations=(list relation)
+  ^-  [p=tape q=@ud]
+  =/  out  *tape
+  =/  count  0
+  |-
+  ?~  relations  [out count]
+  =/  formatted  (relation-tape i.relations)
+  =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
+  %=  $
+    relations  t.relations
+    out        (weld out (weld separator p.formatted))
+    count      (add count q.formatted)
+  ==
+::
+++  relation-tape
+  |=  a=relation
+  ^-  [p=tape q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema tape output not implemented" !!)
+  =/  formatted  (relation-wain a)
+  [(wain-to-tape p.formatted) q.formatted]
+::
+++  relations-wain
+  |=  relations=(list relation)
+  ^-  [p=wain q=@ud]
+  =/  lines  *wain
+  =/  count  0
+  |-
+  ?~  relations  [lines count]
+  =/  formatted  (relation-wain i.relations)
+  %=  $
+    relations  t.relations
+    lines      (weld lines p.formatted)
+    count      (add count q.formatted)
+  ==
+::
+++  relation-wain
+  |=  a=relation
+  ^-  [p=wain q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema wain output not implemented" !!)
+  %:  relation-wain-tables
+    =(~ relation-id.a)
+    ordered.a
+    0
+    columns
+    data-rows.a
+  ==
+::
+++  relation-wain-tables
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [p=wain q=@ud]
+  ?~  columns  [~ 0]
+  =/  vectors
+    %:  relation-table-vectors
+      use-keys
+      ordered
+      columns-index
+      i.columns
+      rows
+    ==
+  =/  rest
+    %=  $
+      columns-index  +(columns-index)
+      columns        t.columns
+    ==
+  :-  (weld (wain-table i.columns vectors) p.rest)
+      (add (lent vectors) q.rest)
+::
+++  wain-table
+  |=  $:  columns=(lest $%(column qualified-column))
+          vectors=(list vector)
+          ==
+  ^-  wain
+  [(wain-heading columns) (turn vectors wain-row)]
+::
+++  wain-heading
+  |=  columns=(list $%(column qualified-column))
+  ^-  cord
+  %-  crip
+  %-  zing
+  %+  join  " "
+  %+  turn  columns
+  |=  column=$%(column qualified-column)
+  (trip (relation-column-name column))
+::
+++  wain-row
+  |=  vector=vector
+  ^-  cord
+  %-  crip
+  %-  zing
+  %+  join  " "
+  %+  turn  +.vector
+  |=  cell=vector-cell
+  (render-dime q.cell)
+::
+++  wain-to-tape
+  |=  lines=wain
+  ^-  tape
+  %-  zing
+  (join "\0a" (turn lines trip))
+::
+++  relations-json
+  |=  relations=(list relation)
+  ^-  [p=tape q=@ud]
+  =/  tables  *(list tape)
+  =/  count  0
+  |-
+  ?~  relations  [(json-array tables) count]
+  =/  formatted  (relation-json i.relations)
+  %=  $
+    relations  t.relations
+    tables     (weld tables p.formatted)
+    count      (add count q.formatted)
+  ==
+::
+++  relation-json
+  |=  a=relation
+  ^-  [p=(list tape) q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema json output not implemented" !!)
+  %:  relation-json-tables
+    =(~ relation-id.a)
+    ordered.a
+    0
+    columns
+    data-rows.a
+  ==
+::
+++  relation-json-tables
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [p=(list tape) q=@ud]
+  ?~  columns  [~ 0]
+  =/  vectors
+    %:  relation-table-vectors
+      use-keys
+      ordered
+      columns-index
+      i.columns
+      rows
+    ==
+  =/  rest
+    %=  $
+      columns-index  +(columns-index)
+      columns        t.columns
+    ==
+  :-  [(json-table vectors) p.rest]
+      (add (lent vectors) q.rest)
+::
+++  json-table
+  |=  vectors=(list vector)
+  ^-  tape
+  (json-array (turn vectors json-row))
+::
+++  json-row
+  |=  vector=vector
+  ^-  tape
+  =/  cells  (turn +.vector json-cell)
+  (weld ~['{'] (weld (json-comma-list cells) ~['}']))
+::
+++  json-array
+  |=  values=(list tape)
+  ^-  tape
+  (weld "[" (weld (json-comma-list values) "]"))
+::
+++  json-comma-list
+  |=  values=(list tape)
+  ^-  tape
+  =/  out  *tape
+  |-
+  ?~  values  out
+  =/  separator=tape  ?:(=(~ out) ~ ",")
+  %=  $
+    values  t.values
+    out     (weld out (weld separator i.values))
+  ==
+::
+++  json-string
+  |=  value=tape
+  ^-  tape
+  (weld "\"" (weld (json-escape value) "\""))
+::
+++  json-escape
+  |=  value=tape
+  ^-  tape
+  %-  zing
+  %+  turn  value
+  |=  char=@tD
+  ^-  tape
+  ?:  =(char 34)   ~[`@tD`92 `@tD`34]
+  ?:  =(char 92)   ~[`@tD`92 `@tD`92]
+  ?:  =(char 8)    ~[`@tD`92 `@tD`98]
+  ?:  =(char 12)   ~[`@tD`92 `@tD`102]
+  ?:  =(char 10)   ~[`@tD`92 `@tD`110]
+  ?:  =(char 13)   ~[`@tD`92 `@tD`114]
+  ?:  =(char 9)    ~[`@tD`92 `@tD`116]
+  ?:  (lth char 32)
+    =/  hex  (slag 2 (scow %ux char))
+    =/  digits  ?:(=(1 (lent hex)) ['0' hex] hex)
+    (weld "\\u00" digits)
+  ~[char]
+::
+++  json-cell
+  |=  cell=vector-cell
+  ^-  tape
+  ;:  weld
+    (json-string (trip p.cell))
+    ":"
+    (json-dime q.cell)
+  ==
+::
+++  json-dime
+  |=  value=dime
+  ^-  tape
+  ?:  =(-.value ~.ud)
+    (json-unsigned `@ud`+.value)
+  (json-string (render-dime value))
+::
+++  json-unsigned
+  |=  value=@ud
+  ^-  tape
+  %+  skim  (scow %ud value)
+  |=  char=@tD
+  !=(char '.')
+::
+++  render-dime
+  |=  value=dime
+  ^-  tape
+  ?:  =(-.value ~.t)
+    (trip `@t`+.value)
+  ~(rend co %$ value)
 ::
 ++  relations-markdown
   |=  relations=(list relation)
@@ -253,10 +604,7 @@
 ++  markdown-dime
   |=  value=dime
   ^-  tape
-  %-  markdown-escape
-  ?:  =(-.value ~.t)
-    (trip `@t`+.value)
-  ~(rend co %$ value)
+  (markdown-escape (render-dime value))
 ::
 ++  markdown-escape
   |=  value=tape
@@ -393,10 +741,7 @@
 ++  html-dime
   |=  value=dime
   ^-  tape
-  %-  html-escape
-  ?:  =(-.value ~.t)
-    (trip `@t`+.value)
-  ~(rend co %$ value)
+  (html-escape (render-dime value))
 ::
 ++  html-escape
   |=  value=tape
