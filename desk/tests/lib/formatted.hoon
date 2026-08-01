@@ -79,6 +79,25 @@
     +.i.items
   $(items t.items)
 ::
+++  result-message
+  |=  results=(list cmd-result:ast)
+  ^-  @t
+  ?~  results  ~|("formatted test: no command results" !!)
+  =/  result=cmd-result:ast  (rear results)
+  =/  items=(list result:ast)  +.result
+  |-
+  ?~  items  ~|("formatted test: no message" !!)
+  ?:  ?=(%message -.i.items)
+    +.i.items
+  $(items t.items)
+::
+++  format-relation
+  |=  [format=result-format:ast relation=relation:ast]
+  ^-  (list cmd-result:ast)
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[relation]] [%vector-count 99]]]]
+  (format-results format input)
+::
 ++  poke-script
   |=  [run=@ud format=result-format:ast query=tape]
   ^-  (list cmd-result:ast)
@@ -203,6 +222,30 @@
       ~[[0 ud-row-1] [1 ux-row] [0 ud-row-3]]
       ==
 ::
+++  vectors-relation
+  |=  $:  columns=(lest $%(column:ast qualified-column:ast))
+          vectors=(list vector:ast)
+          ==
+  ^-  relation:ast
+  =/  rows=(list [columns-index=@ud =data-row:ast])
+    %+  turn  vectors
+    |=  vector=vector:ast
+    =/  data
+      %-  ~(gas by *(map @tas @))
+      %+  turn  +.vector
+      |=  cell=vector-cell:ast
+      [p.cell +.q.cell]
+    =/  row=data-row:ast  [%indexed-row ~ data]
+    [0 row]
+  :*  %relation
+      ~
+      ~[columns]
+      ~
+      %.n
+      *(tree [(list @) (map @tas @)])
+      rows
+      ==
+::
 ++  vector-aura
   |=  vector=vector:ast
   ^-  @ta
@@ -239,30 +282,36 @@
 ++  test-html-empty-multiple-schemas-07
   =/  relation  direct-relation
   =/  empty  relation(data-rows ~)
-  =/  formatted  (relation-html empty)
   =/  expected
     %-  crip
     %-  zing
     :~  "<table><tr><th>value</th></tr></table>"
         "<table><tr><th>value</th></tr></table>"
         ==
-  ;:  weld
-    %+  expect-eq  !>(expected)
-                   !>((crip p.formatted))
-  ::
-    %+  expect-eq  !>(0)
-                   !>(q.formatted)
-  ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message expected] [%vector-count 0]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %html empty))
 ::
 ::  HTML escapes text cell content.
 ++  test-html-escape-08
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  vectors=(list vector:ast)
+    ~[[%vector ~[[%value [~.t 'a&<b>']]]]]
+  =/  relation  (vectors-relation columns vectors)
+  =/  expected
+    '<table><tr><th>value</th></tr><tr><td>a&amp;&lt;b&gt;</td></tr></table>'
   %+  expect-eq
-    !>('a&amp;&lt;b&gt;')
-  !>((crip (html-dime [~.t 'a&<b>'])))
+    !>(expected)
+  !>((result-message (format-relation %html relation)))
 ::
 ::  Non-contiguous schemas are grouped by first encounter.
 ++  test-repeated-schema-09
-  =/  vectors  (relation-vectors direct-relation)
+  =/  formatted  (format-relation %vector direct-relation)
+  =/  vectors  (result-vectors formatted)
   %+  expect-eq
     !>(`(list @ta)`~[~.ud ~.ud ~.ux])
   !>((turn vectors vector-aura))
@@ -275,7 +324,7 @@
   =/  bad  relation(data-rows ~[[2 data-row.i.rows]])
   %+  expect-fail-message
     'format: invalid relation columns index 2'
-  |.  (relation-vectors bad)
+  |.  (format-relation %vector bad)
 ::
 ::  Ordered vector formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-vector-11
@@ -283,7 +332,7 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema vector output not implemented'
-  |.  (relation-vectors ordered-relation)
+  |.  (format-relation %vector ordered-relation)
 ::
 ::  Ordered HTML formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-html-12
@@ -291,7 +340,7 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema html output not implemented'
-  |.  (relation-html ordered-relation)
+  |.  (format-relation %html ordered-relation)
 ::
 ::  HTML renders multiple columns and data rows in one table.
 ++  test-html-multiple-columns-rows-13
@@ -319,7 +368,8 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (html-table columns vectors)))
+  !>  %-  result-message
+      (format-relation %html (vectors-relation columns vectors))
 ::
 ::  HTML cells preserve date, duration, signed, and floating auras.
 ++  test-html-aura-values-14
@@ -350,7 +400,8 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (html-table columns vectors)))
+  !>  %-  result-message
+      (format-relation %html (vectors-relation columns vectors))
 ::
 ::  Markdown renders one GitHub Flavored Markdown table per columns entry.
 ++  test-markdown-multiple-schemas-15
@@ -390,7 +441,6 @@
 ++  test-markdown-empty-multiple-schemas-16
   =/  relation  direct-relation
   =/  empty  relation(data-rows ~)
-  =/  formatted  (relation-markdown empty)
   =/  expected
     %-  crip
     %-  zing
@@ -402,19 +452,23 @@
         ~['\0a']
         "| --- |"
         ==
-  ;:  weld
-    %+  expect-eq  !>(expected)
-                   !>((crip p.formatted))
-  ::
-    %+  expect-eq  !>(0)
-                   !>(q.formatted)
-  ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message expected] [%vector-count 0]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %markdown empty))
 ::
 ::  Markdown escapes GFM table delimiters in text cells.
 ++  test-markdown-escape-17
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  vectors=(list vector:ast)
+    ~[[%vector ~[[%value [~.t 'a|b']]]]]
+  =/  relation  (vectors-relation columns vectors)
   %+  expect-eq
-    !>('a\\|b')
-  !>((crip (markdown-dime [~.t 'a|b'])))
+    !>('| value |\0a| --- |\0a| a\\|b |')
+  !>((result-message (format-relation %markdown relation)))
 ::
 ::  Ordered Markdown formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-markdown-18
@@ -422,7 +476,7 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema markdown output not implemented'
-  |.  (relation-markdown ordered-relation)
+  |.  (format-relation %markdown ordered-relation)
 ::
 ::  Markdown renders multiple columns and data rows in one GFM table.
 ++  test-markdown-multiple-columns-rows-19
@@ -454,7 +508,8 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (markdown-table columns vectors)))
+  !>  %-  result-message
+      (format-relation %markdown (vectors-relation columns vectors))
 ::
 ::  Markdown cells preserve date, duration, signed, and floating auras.
 ++  test-markdown-aura-values-20
@@ -486,7 +541,8 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (markdown-table columns vectors)))
+  !>  %-  result-message
+      (format-relation %markdown (vectors-relation columns vectors))
 ::
 ::  JSON renders one row array for each columns entry.
 ++  test-json-multiple-schemas-21
@@ -511,24 +567,23 @@
 ++  test-json-empty-multiple-schemas-22
   =/  relation  direct-relation
   =/  empty  relation(data-rows ~)
-  =/  formatted  (relation-json empty)
-  ;:  weld
-    %+  expect-eq
-      !>(`(list tape)`~["[]" "[]"])
-    !>(p.formatted)
-  ::
-    %+  expect-eq  !>(0)
-                   !>(q.formatted)
-  ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message '[[],[]]'] [%vector-count 0]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %json empty))
 ::
 ::  JSON strings escape quotes and backslashes.
 ++  test-json-escape-23
-  =/  table
-    %-  json-table
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  vectors=(list vector:ast)
     ~[[%vector ~[[%value [~.t 'a"b\\c']]]]]
+  =/  relation  (vectors-relation columns vectors)
   %+  expect-eq
-    !>('[{"value":"a\\"b\\\\c"}]')
-  !>((crip table))
+    !>('[[{"value":"a\\"b\\\\c"}]]')
+  !>((result-message (format-relation %json relation)))
 ::
 ::  Ordered JSON formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-json-24
@@ -536,10 +591,15 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema json output not implemented'
-  |.  (relation-json ordered-relation)
+  |.  (format-relation %json ordered-relation)
 ::
 ::  JSON renders multiple columns and data rows as row objects.
 ++  test-json-multiple-columns-rows-25
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
   =/  vectors=(list vector:ast)
     :~  :-  %vector
             :~  [%id [~.ud 1]]
@@ -551,11 +611,20 @@
                 ==
         ==
   %+  expect-eq
-    !>('[{"id":1,"label":"alpha"},{"id":2,"label":"beta"}]')
-  !>((crip (json-table vectors)))
+    !>('[[{"id":1,"label":"alpha"},{"id":2,"label":"beta"}]]')
+  !>  %-  result-message
+      (format-relation %json (vectors-relation columns vectors))
 ::
 ::  JSON preserves non-decimal Hoon auras as strings.
 ++  test-json-aura-values-26
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
   =/  vector=vector:ast
     :-  %vector
     :~  [%date [~.da ~2024.1.2..3.4.5]]
@@ -567,14 +636,15 @@
   =/  expected
     %-  crip
     ;:  welp
-      ~['{']
+      ~['[' '[' '{']
       "\"date\":\"~2024.01.02..03.04.05\",\"duration\":\"~s5\","
       "\"signed\":\"--42\",\"single\":\".1.5\",\"double\":\".~1.5\""
-      ~['}']
+      ~['}' ']' ']']
     ==
+  =/  relation  (vectors-relation columns ~[vector])
   %+  expect-eq
     !>(expected)
-  !>((crip (json-row vector)))
+  !>((result-message (format-relation %json relation)))
 ::
 ::  Wain renders one header and its rows for each columns entry.
 ++  test-wain-multiple-schemas-27
@@ -634,8 +704,9 @@
                 ==
         ==
   %+  expect-eq
-    !>(`wain`~['id label' '1 alpha' '2 beta'])
-  !>((wain-table columns vectors))
+    !>('id label\0a1 alpha\0a2 beta')
+  !>  %-  result-message
+      (format-relation %wain (vectors-relation columns vectors))
 ::
 ::  Wain preserves date, duration, signed, and floating auras.
 ++  test-wain-aura-values-31
@@ -656,13 +727,17 @@
                 [%double [~.rd .~1.5]]
                 ==
         ==
-  =/  expected=wain
-    :~  'date duration signed single double'
-        '~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5'
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "date duration signed single double"
+        ~['\0a']
+        "~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5"
         ==
   %+  expect-eq
     !>(expected)
-  !>((wain-table columns vectors))
+  !>  %-  result-message
+      (format-relation %wain (vectors-relation columns vectors))
 ::
 ::  Tape renders one header and its rows for each columns entry.
 ++  test-tape-multiple-schemas-32
@@ -687,14 +762,11 @@
 ++  test-tape-empty-multiple-schemas-33
   =/  relation  direct-relation
   =/  empty  relation(data-rows ~)
-  =/  formatted  (relation-tape empty)
-  ;:  weld
-    %+  expect-eq  !>("value\0avalue")
-                   !>(p.formatted)
-  ::
-    %+  expect-eq  !>(0)
-                   !>(q.formatted)
-  ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message 'value\0avalue'] [%vector-count 0]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %tape empty))
 ::
 ::  Ordered Tape formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-tape-34
@@ -702,7 +774,7 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema tape output not implemented'
-  |.  (relation-tape ordered-relation)
+  |.  (format-relation %tape ordered-relation)
 ::
 ::  Tape separates columns with spaces and rows with line feeds.
 ++  test-tape-multiple-columns-rows-35
@@ -721,10 +793,10 @@
                 [%label [~.t 'beta']]
                 ==
         ==
-  =/  lines  (wain-table columns vectors)
   %+  expect-eq
-    !>("id label\0a1 alpha\0a2 beta")
-  !>((wain-to-tape lines))
+    !>('id label\0a1 alpha\0a2 beta')
+  !>  %-  result-message
+      (format-relation %tape (vectors-relation columns vectors))
 ::
 ::  Tape preserves date, duration, signed, and floating auras.
 ++  test-tape-aura-values-36
@@ -751,10 +823,10 @@
       "\0a"
       "~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5"
     ==
-  =/  lines  (wain-table columns vectors)
   %+  expect-eq
-    !>(expected)
-  !>((wain-to-tape lines))
+    !>((crip expected))
+  !>  %-  result-message
+      (format-relation %tape (vectors-relation columns vectors))
 ::
 ::  Manx renders one table node for each columns entry.
 ++  test-manx-multiple-schemas-37
@@ -787,20 +859,17 @@
 ++  test-manx-empty-multiple-schemas-38
   =/  relation  direct-relation
   =/  empty  relation(data-rows ~)
-  =/  formatted  (relation-manx empty)
   =/  expected
     %-  crip
     %-  zing
     :~  "<table><tr><th>value</th></tr></table>"
         "<table><tr><th>value</th></tr></table>"
         ==
-  ;:  weld
-    %+  expect-eq  !>(expected)
-                   !>((crip (marl-to-tape p.formatted)))
-  ::
-    %+  expect-eq  !>(0)
-                   !>(q.formatted)
-  ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message expected] [%vector-count 0]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %manx empty))
 ::
 ::  Manx serialization escapes text content.
 ++  test-manx-escape-39
@@ -813,7 +882,8 @@
     '<table><tr><th>value</th></tr><tr><td>a&amp;&lt;b&gt;</td></tr></table>'
   %+  expect-eq
     !>(expected)
-  !>((crip (en-xml:html (manx-table columns vectors))))
+  !>  %-  result-message
+      (format-relation %manx (vectors-relation columns vectors))
 ::
 ::  Ordered Manx formatting with multiple schemas is not implemented.
 ++  test-fail-ordered-multi-schema-manx-40
@@ -821,7 +891,7 @@
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema manx output not implemented'
-  |.  (relation-manx ordered-relation)
+  |.  (format-relation %manx ordered-relation)
 ::
 ::  Manx renders multiple columns and data rows in one table node.
 ++  test-manx-multiple-columns-rows-41
@@ -849,7 +919,8 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (en-xml:html (manx-table columns vectors))))
+  !>  %-  result-message
+      (format-relation %manx (vectors-relation columns vectors))
 ::
 ::  Manx preserves date, duration, signed, and floating auras.
 ++  test-manx-aura-values-42
@@ -880,5 +951,6 @@
         ==
   %+  expect-eq
     !>(expected)
-  !>((crip (en-xml:html (manx-table columns vectors))))
+  !>  %-  result-message
+      (format-relation %manx (vectors-relation columns vectors))
 --

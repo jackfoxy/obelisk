@@ -36,7 +36,63 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  json-result  (relations-json +.i.results)
+        =/  relations=(list relation)  +.i.results
+        =/  json-result=[p=tape q=@ud]
+          =/  tables  *(list tape)
+          =/  total  *@ud
+          |-
+          ?~  relations  [(json-array tables) total]
+          =/  a=relation  i.relations
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          ?:  &(ordered.a (gth (lent columns) 1))
+            ~|  "format: ordered multi-schema json output not implemented"
+                !!
+          =/  formatted=[p=(list tape) q=@ud]
+            =/  columns-index  *@ud
+            =/  remaining  `(list (lest $%(column qualified-column)))`columns
+            =/  out  *(list tape)
+            =/  count  *@ud
+            |-
+            ?~  remaining  [out count]
+            =/  vectors
+              %:  relation-table-vectors
+                =(~ relation-id.a)
+                ordered.a
+                columns-index
+                i.remaining
+                data-rows.a
+              ==
+            =/  rows=(list tape)
+              %+  turn  vectors
+              |=  vector=vector
+              =/  cells=(list tape)
+                %+  turn  +.vector
+                |=  cell=vector-cell
+                =/  value
+                  ?:  =(-.q.cell ~.ud)
+                    %+  skim  (scow %ud `@ud`+.q.cell)
+                    |=  char=@tD
+                    !=(char '.')
+                  (json-string (render-dime q.cell))
+                ;:  weld
+                  (json-string (trip p.cell))
+                  ":"
+                  value
+                ==
+              (weld ~['{'] (weld (json-comma-list cells) ~['}']))
+            %=  $
+              columns-index  +(columns-index)
+              remaining      t.remaining
+              out            (weld out ~[(json-array rows)])
+              count          (add count (lent vectors))
+            ==
+          %=  $
+            relations  t.relations
+            tables     (weld tables p.formatted)
+            total      (add total q.formatted)
+          ==
         :-  [%message (crip p.json-result)]
             [~ q.json-result]
       %vector-count
@@ -71,8 +127,72 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  manx-result  (relations-manx +.i.results)
-        :-  [%message (crip (marl-to-tape p.manx-result))]
+        =/  relations=(list relation)  +.i.results
+        =/  manx-result=[p=marl q=@ud]
+          =/  tables  *marl
+          =/  total  *@ud
+          |-
+          ?~  relations  [tables total]
+          =/  a=relation  i.relations
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          ?:  &(ordered.a (gth (lent columns) 1))
+            ~|  "format: ordered multi-schema manx output not implemented"
+                !!
+          =/  formatted=[p=marl q=@ud]
+            =/  columns-index  *@ud
+            =/  remaining  `(list (lest $%(column qualified-column)))`columns
+            =/  nodes  *marl
+            =/  count  *@ud
+            |-
+            ?~  remaining  [nodes count]
+            =/  vectors
+              %:  relation-table-vectors
+                =(~ relation-id.a)
+                ordered.a
+                columns-index
+                i.remaining
+                data-rows.a
+              ==
+            =/  heading=manx
+              ;tr
+                ;*
+                %+  turn  i.remaining
+                |=  column=$%(column qualified-column)
+                ;th: {(trip (relation-column-name column))}
+              ==
+            =/  rows=marl
+              %+  turn  vectors
+              |=  vector=vector
+              ;tr
+                ;*
+                %+  turn  +.vector
+                |=  cell=vector-cell
+                ;td: {(render-dime q.cell)}
+              ==
+            =/  node=manx
+              ;table
+                ;+  heading
+                ;*  rows
+              ==
+            %=  $
+              columns-index  +(columns-index)
+              remaining      t.remaining
+              nodes          (weld nodes ~[node])
+              count          (add (lent vectors) count)
+            ==
+          %=  $
+            relations  t.relations
+            tables     (weld tables p.formatted)
+            total      (add total q.formatted)
+          ==
+        =/  serialized
+          %-  zing
+          %+  turn  p.manx-result
+          |=  node=manx
+          (en-xml:html node)
+        :-  [%message (crip serialized)]
             [~ q.manx-result]
       %vector-count
         ?~  count  [i.results count]
@@ -106,7 +226,18 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  wain-result  (relations-wain +.i.results)
+        =/  relations=(list relation)  +.i.results
+        =/  wain-result=[p=wain q=@ud]
+          =/  lines  *wain
+          =/  total  *@ud
+          |-
+          ?~  relations  [lines total]
+          =/  formatted  (relation-wain i.relations)
+          %=  $
+            relations  t.relations
+            lines      (weld lines p.formatted)
+            total      (add total q.formatted)
+          ==
         :-  [%message (crip (wain-to-tape p.wain-result))]
             [~ q.wain-result]
       %vector-count
@@ -141,7 +272,27 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  tape-result  (relations-tape +.i.results)
+        =/  relations=(list relation)  +.i.results
+        =/  tape-result=[p=tape q=@ud]
+          =/  out  *tape
+          =/  total  *@ud
+          |-
+          ?~  relations  [out total]
+          =/  a=relation  i.relations
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          ?:  &(ordered.a (gth (lent columns) 1))
+            ~|  "format: ordered multi-schema tape output not implemented"
+                !!
+          =/  formatted  (relation-wain a)
+          =/  text  (wain-to-tape p.formatted)
+          =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
+          %=  $
+            relations  t.relations
+            out        (weld out (weld separator text))
+            total      (add total q.formatted)
+          ==
         :-  [%message (crip p.tape-result)]
             [~ q.tape-result]
       %vector-count
@@ -176,7 +327,79 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  markdown  (relations-markdown +.i.results)
+        =/  relations=(list relation)  +.i.results
+        =/  markdown=[p=tape q=@ud]
+          =/  out  *tape
+          =/  total  *@ud
+          |-
+          ?~  relations  [out total]
+          =/  a=relation  i.relations
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          ?:  &(ordered.a (gth (lent columns) 1))
+            ~|  "format: ordered multi-schema markdown output not implemented"
+                !!
+          =/  formatted=[p=tape q=@ud]
+            =/  columns-index  *@ud
+            =/  remaining  `(list (lest $%(column qualified-column)))`columns
+            =/  tables  *tape
+            =/  count  *@ud
+            |-
+            ?~  remaining  [tables count]
+            =/  vectors
+              %:  relation-table-vectors
+                =(~ relation-id.a)
+                ordered.a
+                columns-index
+                i.remaining
+                data-rows.a
+              ==
+            =/  heading=tape
+              %-  zing
+              :-  "|"
+              %+  turn  i.remaining
+              |=  column=$%(column qualified-column)
+              =/  name
+                %-  markdown-escape
+                (trip (relation-column-name column))
+              (weld " " (weld name " |"))
+            =/  divider=tape
+              %-  zing
+              :-  "|"
+              (turn i.remaining |=(column=* " --- |"))
+            =/  rows=(list tape)
+              %+  turn  vectors
+              |=  vector=vector
+              %-  zing
+              :-  "|"
+              %+  turn  +.vector
+              |=  cell=vector-cell
+              =/  value  (markdown-escape (render-dime q.cell))
+              (weld " " (weld value " |"))
+            =/  table=tape
+              =/  base=tape  (weld heading (weld ~['\0a'] divider))
+              ?~  rows  base
+              =/  row-text=tape  (zing (join "\0a" rows))
+              (weld base (weld ~['\0a'] row-text))
+            =/  separator=tape  ?:(=(~ tables) ~ ~['\0a' '\0a'])
+            %=  $
+              columns-index  +(columns-index)
+              remaining      t.remaining
+              tables         (weld tables (weld separator table))
+              count          (add count (lent vectors))
+            ==
+          =/  separator=tape
+            ?:  =(~ out)
+              ~
+            ?:  =(~ p.formatted)
+              ~
+            ~['\0a' '\0a']
+          %=  $
+            relations  t.relations
+            out        (weld out (weld separator p.formatted))
+            total      (add total q.formatted)
+          ==
         :-  [%message (crip p.markdown)]
             [~ q.markdown]
       %vector-count
@@ -210,7 +433,72 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  html  (relations-html +.i.results)
+        =/  relations=(list relation)  +.i.results
+        =/  html=[p=tape q=@ud]
+          =/  out  *tape
+          =/  total  *@ud
+          |-
+          ?~  relations  [out total]
+          =/  a=relation  i.relations
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          ?:  &(ordered.a (gth (lent columns) 1))
+            ~|  "format: ordered multi-schema html output not implemented"
+                !!
+          =/  formatted=[p=tape q=@ud]
+            =/  columns-index  *@ud
+            =/  remaining  `(list (lest $%(column qualified-column)))`columns
+            =/  tables  *tape
+            =/  count  *@ud
+            |-
+            ?~  remaining  [tables count]
+            =/  vectors
+              %:  relation-table-vectors
+                =(~ relation-id.a)
+                ordered.a
+                columns-index
+                i.remaining
+                data-rows.a
+              ==
+            =/  heading=tape
+              %-  zing
+              %+  turn  i.remaining
+              |=  column=$%(column qualified-column)
+              =/  name
+                %-  html-escape
+                (trip (relation-column-name column))
+              (weld "<th>" (weld name "</th>"))
+            =/  rows=tape
+              %-  zing
+              %+  turn  vectors
+              |=  vector=vector
+              =/  cells=tape
+                %-  zing
+                %+  turn  +.vector
+                |=  cell=vector-cell
+                =/  value  (html-escape (render-dime q.cell))
+                (weld "<td>" (weld value "</td>"))
+              (weld "<tr>" (weld cells "</tr>"))
+            =/  table=tape
+              ;:  weld
+                "<table><tr>"
+                heading
+                "</tr>"
+                rows
+                "</table>"
+              ==
+            %=  $
+              columns-index  +(columns-index)
+              remaining      t.remaining
+              tables         (weld tables table)
+              count          (add count (lent vectors))
+            ==
+          %=  $
+            relations  t.relations
+            out        (weld out p.formatted)
+            total      (add total q.formatted)
+          ==
         :-  [%message (crip p.html)]
             [~ q.html]
       %vector-count
@@ -244,7 +532,20 @@
   =/  formatted=[result (unit @ud)]
     ?-  -.i.results
       %relations
-        =/  vectors  (zing (turn +.i.results relation-vectors))
+        =/  vectors
+          %-  zing
+          %+  turn  +.i.results
+          |=  a=relation
+          =/  columns
+            ^-  (lest (lest $%(column qualified-column)))
+            columns.a
+          =/  use-keys  =(~ relation-id.a)
+          ?:  ordered.a
+            ?:  (gth (lent columns) 1)
+              ~|  "format: ordered multi-schema vector output not implemented"
+                  !!
+            (relation-vectors-ordered use-keys columns data-rows.a)
+          (relation-vectors-unordered use-keys columns data-rows.a)
         :-  [%result-set vectors]
             [~ (lent vectors)]
       %vector-count
@@ -267,270 +568,54 @@
     count    +.formatted
   ==
 ::
-++  relations-manx
-  |=  relations=(list relation)
-  ^-  [p=marl q=@ud]
-  =/  tables  *marl
-  =/  count  0
-  |-
-  ?~  relations  [tables count]
-  =/  formatted  (relation-manx i.relations)
-  %=  $
-    relations  t.relations
-    tables     (weld tables p.formatted)
-    count      (add count q.formatted)
-  ==
-::
-++  relation-manx
-  |=  a=relation
-  ^-  [p=marl q=@ud]
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  ?:  &(ordered.a (gth (lent columns) 1))
-    ~|("format: ordered multi-schema manx output not implemented" !!)
-  %:  relation-manx-tables
-    =(~ relation-id.a)
-    ordered.a
-    0
-    columns
-    data-rows.a
-  ==
-::
-++  relation-manx-tables
-  |=  $:  use-keys=?
-          ordered=?
-          columns-index=@ud
-          columns=(list (lest $%(column qualified-column)))
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [p=marl q=@ud]
-  ?~  columns  [~ 0]
-  =/  vectors
-    %:  relation-table-vectors
-      use-keys
-      ordered
-      columns-index
-      i.columns
-      rows
-    ==
-  =/  rest
-    %=  $
-      columns-index  +(columns-index)
-      columns        t.columns
-    ==
-  :-  [(manx-table i.columns vectors) p.rest]
-      (add (lent vectors) q.rest)
-::
-++  manx-table
-  |=  $:  columns=(lest $%(column qualified-column))
-          vectors=(list vector)
-          ==
-  ^-  manx
-  ;table
-    ;+  (manx-heading columns)
-    ;*  (turn vectors manx-row)
-  ==
-::
-++  manx-heading
-  |=  columns=(list $%(column qualified-column))
-  ^-  manx
-  ;tr
-    ;*
-    %+  turn  columns
-    |=  column=$%(column qualified-column)
-    ;th: {(trip (relation-column-name column))}
-  ==
-::
-++  manx-row
-  |=  vector=vector
-  ^-  manx
-  ;tr
-    ;*
-    %+  turn  +.vector
-    |=  cell=vector-cell
-    ;td: {(render-dime q.cell)}
-  ==
-::
-++  marl-to-tape
-  |=  nodes=marl
-  ^-  tape
-  %-  zing
-  %+  turn  nodes
-  |=  node=manx
-  (en-xml:html node)
-::
-++  relations-tape
-  |=  relations=(list relation)
-  ^-  [p=tape q=@ud]
-  =/  out  *tape
-  =/  count  0
-  |-
-  ?~  relations  [out count]
-  =/  formatted  (relation-tape i.relations)
-  =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
-  %=  $
-    relations  t.relations
-    out        (weld out (weld separator p.formatted))
-    count      (add count q.formatted)
-  ==
-::
-++  relation-tape
-  |=  a=relation
-  ^-  [p=tape q=@ud]
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  ?:  &(ordered.a (gth (lent columns) 1))
-    ~|("format: ordered multi-schema tape output not implemented" !!)
-  =/  formatted  (relation-wain a)
-  [(wain-to-tape p.formatted) q.formatted]
-::
-++  relations-wain
-  |=  relations=(list relation)
-  ^-  [p=wain q=@ud]
-  =/  lines  *wain
-  =/  count  0
-  |-
-  ?~  relations  [lines count]
-  =/  formatted  (relation-wain i.relations)
-  %=  $
-    relations  t.relations
-    lines      (weld lines p.formatted)
-    count      (add count q.formatted)
-  ==
-::
 ++  relation-wain
   |=  a=relation
   ^-  [p=wain q=@ud]
   =/  columns=(lest (lest $%(column qualified-column)))  columns.a
   ?:  &(ordered.a (gth (lent columns) 1))
     ~|("format: ordered multi-schema wain output not implemented" !!)
-  %:  relation-wain-tables
-    =(~ relation-id.a)
-    ordered.a
-    0
-    columns
-    data-rows.a
-  ==
-::
-++  relation-wain-tables
-  |=  $:  use-keys=?
-          ordered=?
-          columns-index=@ud
-          columns=(list (lest $%(column qualified-column)))
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [p=wain q=@ud]
-  ?~  columns  [~ 0]
+  =/  columns-index  *@ud
+  =/  remaining  `(list (lest $%(column qualified-column)))`columns
+  =/  lines  *wain
+  =/  count  *@ud
+  |-
+  ?~  remaining  [lines count]
   =/  vectors
     %:  relation-table-vectors
-      use-keys
-      ordered
+      =(~ relation-id.a)
+      ordered.a
       columns-index
-      i.columns
-      rows
+      i.remaining
+      data-rows.a
     ==
-  =/  rest
-    %=  $
-      columns-index  +(columns-index)
-      columns        t.columns
-    ==
-  :-  (weld (wain-table i.columns vectors) p.rest)
-      (add (lent vectors) q.rest)
-::
-++  wain-table
-  |=  $:  columns=(lest $%(column qualified-column))
-          vectors=(list vector)
-          ==
-  ^-  wain
-  [(wain-heading columns) (turn vectors wain-row)]
-::
-++  wain-heading
-  |=  columns=(list $%(column qualified-column))
-  ^-  cord
-  %-  crip
-  %-  zing
-  %+  join  " "
-  %+  turn  columns
-  |=  column=$%(column qualified-column)
-  (trip (relation-column-name column))
-::
-++  wain-row
-  |=  vector=vector
-  ^-  cord
-  %-  crip
-  %-  zing
-  %+  join  " "
-  %+  turn  +.vector
-  |=  cell=vector-cell
-  (render-dime q.cell)
+  =/  heading
+    %-  crip
+    %-  zing
+    %+  join  " "
+    %+  turn  i.remaining
+    |=  column=$%(column qualified-column)
+    (trip (relation-column-name column))
+  =/  rows=wain
+    %+  turn  vectors
+    |=  vector=vector
+    %-  crip
+    %-  zing
+    %+  join  " "
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    (render-dime q.cell)
+  %=  $
+    columns-index  +(columns-index)
+    remaining      t.remaining
+    lines          (weld lines [heading rows])
+    count          (add count (lent vectors))
+  ==
 ::
 ++  wain-to-tape
   |=  lines=wain
   ^-  tape
   %-  zing
   (join "\0a" (turn lines trip))
-::
-++  relations-json
-  |=  relations=(list relation)
-  ^-  [p=tape q=@ud]
-  =/  tables  *(list tape)
-  =/  count  0
-  |-
-  ?~  relations  [(json-array tables) count]
-  =/  formatted  (relation-json i.relations)
-  %=  $
-    relations  t.relations
-    tables     (weld tables p.formatted)
-    count      (add count q.formatted)
-  ==
-::
-++  relation-json
-  |=  a=relation
-  ^-  [p=(list tape) q=@ud]
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  ?:  &(ordered.a (gth (lent columns) 1))
-    ~|("format: ordered multi-schema json output not implemented" !!)
-  %:  relation-json-tables
-    =(~ relation-id.a)
-    ordered.a
-    0
-    columns
-    data-rows.a
-  ==
-::
-++  relation-json-tables
-  |=  $:  use-keys=?
-          ordered=?
-          columns-index=@ud
-          columns=(list (lest $%(column qualified-column)))
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [p=(list tape) q=@ud]
-  ?~  columns  [~ 0]
-  =/  vectors
-    %:  relation-table-vectors
-      use-keys
-      ordered
-      columns-index
-      i.columns
-      rows
-    ==
-  =/  rest
-    %=  $
-      columns-index  +(columns-index)
-      columns        t.columns
-    ==
-  :-  [(json-table vectors) p.rest]
-      (add (lent vectors) q.rest)
-::
-++  json-table
-  |=  vectors=(list vector)
-  ^-  tape
-  (json-array (turn vectors json-row))
-::
-++  json-row
-  |=  vector=vector
-  ^-  tape
-  =/  cells  (turn +.vector json-cell)
-  (weld ~['{'] (weld (json-comma-list cells) ~['}']))
 ::
 ++  json-array
   |=  values=(list tape)
@@ -552,50 +637,24 @@
 ++  json-string
   |=  value=tape
   ^-  tape
-  (weld "\"" (weld (json-escape value) "\""))
-::
-++  json-escape
-  |=  value=tape
-  ^-  tape
-  %-  zing
-  %+  turn  value
-  |=  char=@tD
-  ^-  tape
-  ?:  =(char 34)   ~[`@tD`92 `@tD`34]
-  ?:  =(char 92)   ~[`@tD`92 `@tD`92]
-  ?:  =(char 8)    ~[`@tD`92 `@tD`98]
-  ?:  =(char 12)   ~[`@tD`92 `@tD`102]
-  ?:  =(char 10)   ~[`@tD`92 `@tD`110]
-  ?:  =(char 13)   ~[`@tD`92 `@tD`114]
-  ?:  =(char 9)    ~[`@tD`92 `@tD`116]
-  ?:  (lth char 32)
-    =/  hex  (slag 2 (scow %ux char))
-    =/  digits  ?:(=(1 (lent hex)) ['0' hex] hex)
-    (weld "\\u00" digits)
-  ~[char]
-::
-++  json-cell
-  |=  cell=vector-cell
-  ^-  tape
-  ;:  weld
-    (json-string (trip p.cell))
-    ":"
-    (json-dime q.cell)
-  ==
-::
-++  json-dime
-  |=  value=dime
-  ^-  tape
-  ?:  =(-.value ~.ud)
-    (json-unsigned `@ud`+.value)
-  (json-string (render-dime value))
-::
-++  json-unsigned
-  |=  value=@ud
-  ^-  tape
-  %+  skim  (scow %ud value)
-  |=  char=@tD
-  !=(char '.')
+  =/  escaped=tape
+    %-  zing
+    %+  turn  value
+    |=  char=@tD
+    ^-  tape
+    ?:  =(char 34)   ~[`@tD`92 `@tD`34]
+    ?:  =(char 92)   ~[`@tD`92 `@tD`92]
+    ?:  =(char 8)    ~[`@tD`92 `@tD`98]
+    ?:  =(char 12)   ~[`@tD`92 `@tD`102]
+    ?:  =(char 10)   ~[`@tD`92 `@tD`110]
+    ?:  =(char 13)   ~[`@tD`92 `@tD`114]
+    ?:  =(char 9)    ~[`@tD`92 `@tD`116]
+    ?:  (lth char 32)
+      =/  hex  (slag 2 (scow %ux char))
+      =/  digits  ?:(=(1 (lent hex)) ['0' hex] hex)
+      (weld "\\u00" digits)
+    ~[char]
+  (weld "\"" (weld escaped "\""))
 ::
 ++  render-dime
   |=  value=dime
@@ -603,134 +662,6 @@
   ?:  =(-.value ~.t)
     (trip `@t`+.value)
   ~(rend co %$ value)
-::
-++  relations-markdown
-  |=  relations=(list relation)
-  ^-  [p=tape q=@ud]
-  =/  out  *tape
-  =/  count  0
-  |-
-  ?~  relations  [out count]
-  =/  markdown  (relation-markdown i.relations)
-  =/  separator=tape
-    ?:  =(~ out)
-      ~
-    ?:  =(~ p.markdown)
-      ~
-    ~['\0a' '\0a']
-  %=  $
-    relations  t.relations
-    out        (weld out (weld separator p.markdown))
-    count      (add count q.markdown)
-  ==
-::
-++  relation-markdown
-  |=  a=relation
-  ^-  [p=tape q=@ud]
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  ?:  &(ordered.a (gth (lent columns) 1))
-    ~|("format: ordered multi-schema markdown output not implemented" !!)
-  %:  relation-markdown-tables
-    =(~ relation-id.a)
-    ordered.a
-    0
-    columns
-    data-rows.a
-  ==
-::
-++  relation-markdown-tables
-  |=  $:  use-keys=?
-          ordered=?
-          columns-index=@ud
-          columns=(list (lest $%(column qualified-column)))
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [p=tape q=@ud]
-  ?~  columns  [~ 0]
-  =/  vectors
-    %:  relation-table-vectors
-      use-keys
-      ordered
-      columns-index
-      i.columns
-      rows
-    ==
-  =/  rest
-    %=  $
-      columns-index  +(columns-index)
-      columns        t.columns
-    ==
-  =/  table  (markdown-table i.columns vectors)
-  =/  separator=tape  ?:(=(~ p.rest) ~ ~['\0a' '\0a'])
-  :-  (weld table (weld separator p.rest))
-      (add (lent vectors) q.rest)
-::
-++  markdown-table
-  |=  $:  columns=(lest $%(column qualified-column))
-          vectors=(list vector)
-          ==
-  ^-  tape
-  =/  heading  (markdown-heading columns)
-  =/  divider  (markdown-divider columns)
-  =/  table  (weld heading (weld ~['\0a'] divider))
-  =/  rows  (markdown-rows vectors)
-  ?~  rows  table
-  (weld table (weld ~['\0a'] rows))
-::
-++  markdown-rows
-  |=  vectors=(list vector)
-  ^-  tape
-  =/  out  *tape
-  |-
-  ?~  vectors  out
-  =/  row  (markdown-row +.i.vectors)
-  =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
-  %=  $
-    vectors  t.vectors
-    out      (weld out (weld separator row))
-  ==
-::
-++  markdown-heading
-  |=  columns=(list $%(column qualified-column))
-  ^-  tape
-  =/  out=tape  "|"
-  |-
-  ?~  columns  out
-  =/  name
-    (markdown-escape (trip (relation-column-name i.columns)))
-  %=  $
-    columns  t.columns
-    out      (weld out (weld " " (weld name " |")))
-  ==
-::
-++  markdown-divider
-  |=  columns=(list $%(column qualified-column))
-  ^-  tape
-  =/  out=tape  "|"
-  |-
-  ?~  columns  out
-  %=  $
-    columns  t.columns
-    out      (weld out " --- |")
-  ==
-::
-++  markdown-row
-  |=  values=(list vector-cell)
-  ^-  tape
-  =/  out=tape  "|"
-  |-
-  ?~  values  out
-  =/  cell=vector-cell  i.values
-  =/  value  (markdown-dime +.cell)
-  %=  $
-    values  t.values
-    out     (weld out (weld " " (weld value " |")))
-  ==
-::
-++  markdown-dime
-  |=  value=dime
-  ^-  tape
-  (markdown-escape (render-dime value))
 ::
 ++  markdown-escape
   |=  value=tape
@@ -744,59 +675,6 @@
   ?:  =(char 10)  "<br>"
   ~[char]
 ::
-++  relations-html
-  |=  relations=(list relation)
-  ^-  [p=tape q=@ud]
-  =/  out  *tape
-  =/  count  0
-  |-
-  ?~  relations  [out count]
-  =/  html  (relation-html i.relations)
-  %=  $
-    relations  t.relations
-    out        (weld out p.html)
-    count      (add count q.html)
-  ==
-::
-++  relation-html
-  |=  a=relation
-  ^-  [p=tape q=@ud]
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  ?:  &(ordered.a (gth (lent columns) 1))
-    ~|("format: ordered multi-schema html output not implemented" !!)
-  %:  relation-html-tables
-    =(~ relation-id.a)
-    ordered.a
-    0
-    columns
-    data-rows.a
-  ==
-::
-++  relation-html-tables
-  |=  $:  use-keys=?
-          ordered=?
-          columns-index=@ud
-          columns=(list (lest $%(column qualified-column)))
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [p=tape q=@ud]
-  ?~  columns  [~ 0]
-  =/  vectors
-    %:  relation-table-vectors
-      use-keys
-      ordered
-      columns-index
-      i.columns
-      rows
-    ==
-  =/  rest
-    %=  $
-      columns-index  +(columns-index)
-      columns        t.columns
-    ==
-  :-  (weld (html-table i.columns vectors) p.rest)
-      (add (lent vectors) q.rest)
-::
 ++  relation-table-vectors
   |=  $:  use-keys=?
           ordered=?
@@ -805,7 +683,7 @@
           rows=(list [columns-index=@ud =data-row])
           ==
   ^-  (list vector)
-  =/  matching
+  =/  matching=(list [columns-index=@ud =data-row])
     %+  turn
       %+  skim  rows
       |=  row=[columns-index=@ud =data-row]
@@ -816,58 +694,6 @@
   ?:  ordered
     (relation-vectors-ordered use-keys schemas matching)
   (relation-vectors-unordered use-keys schemas matching)
-::
-++  html-table
-  |=  $:  columns=(lest $%(column qualified-column))
-          vectors=(list vector)
-          ==
-  ^-  tape
-  =/  body=tape
-    (weld (html-heading columns) (html-rows vectors))
-  (weld "<table>" (weld body "</table>"))
-::
-++  html-rows
-  |=  vectors=(list vector)
-  ^-  tape
-  =/  out  *tape
-  |-
-  ?~  vectors  out
-  =/  v=vector  i.vectors
-  %=  $
-    vectors  t.vectors
-    out      (weld out (html-row +.v))
-  ==
-::
-++  html-heading
-  |=  columns=(list $%(column qualified-column))
-  ^-  tape
-  =/  out=tape  "<tr>"
-  |-
-  ?~  columns  (weld out "</tr>")
-  =/  name
-    (html-escape (trip (relation-column-name i.columns)))
-  %=  $
-    columns  t.columns
-    out      (weld out (weld "<th>" (weld name "</th>")))
-  ==
-::
-::  Render one HTML data row.
-++  html-row
-  |=  values=(list vector-cell)
-  ^-  tape
-  =/  out=tape  "<tr>"
-  |-
-  ?~  values  (weld out "</tr>")
-  =/  cell=vector-cell  i.values
-  %=  $
-    values  t.values
-    out     (weld out (weld "<td>" (weld (html-dime +.cell) "</td>")))
-  ==
-::
-++  html-dime
-  |=  value=dime
-  ^-  tape
-  (html-escape (render-dime value))
 ::
 ++  html-escape
   |=  value=tape
@@ -890,17 +716,6 @@
     %qualified-column
       name.col
   ==
-::
-++  relation-vectors
-  |=  a=relation
-  ^-  (list vector)
-  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
-  =/  use-keys  =(~ relation-id.a)
-  ?:  ordered.a
-    ?:  (gth (lent columns) 1)
-      ~|("format: ordered multi-schema vector output not implemented" !!)
-    (relation-vectors-ordered use-keys columns data-rows.a)
-  (relation-vectors-unordered use-keys columns data-rows.a)
 ::
 ++  relation-vectors-ordered
   |=  $:  use-keys=?
@@ -934,37 +749,29 @@
   =/  first=[columns-index=@ud =data-row]  i.rows
   =/  format
     (relation-columns-at columns-index.first columns)
-  =/  grouped
-    %:  relation-vector-group
-      use-keys
-      format
-      columns-index.first
-      rows
+  =/  format-index  columns-index.first
+  =/  grouped=[(list vector) (list [columns-index=@ud =data-row])]
+    =/  remaining  `(list [columns-index=@ud =data-row])`rows
+    =/  out  *(list vector)
+    =/  seen  *(set vector)
+    =/  aside  *(list [columns-index=@ud =data-row])
+    |-
+    ?~  remaining  [(flop out) (flop aside)]
+    =/  row=[columns-index=@ud =data-row]  i.remaining
+    ?.  =(format-index columns-index.row)
+      %=  $
+        remaining  t.remaining
+        aside      [row aside]
+      ==
+    =/  vector  (relation-vector use-keys format data-row.row)
+    ?:  (~(has in seen) vector)
+      $(remaining t.remaining)
+    %=  $
+      remaining  t.remaining
+      out        [vector out]
+      seen       (~(put in seen) vector)
     ==
   (weld -.grouped $(rows +.grouped))
-::
-++  relation-vector-group
-  |=  $:  use-keys=?
-          format=(lest $%(column qualified-column))
-          format-index=@ud
-          rows=(list [columns-index=@ud =data-row])
-          ==
-  ^-  [(list vector) (list [columns-index=@ud =data-row])]
-  =/  out  *(set vector)
-  =/  aside  *(list [columns-index=@ud =data-row])
-  |-
-  ?~  rows
-    [~(tap in out) (flop aside)]
-  =/  row=[columns-index=@ud =data-row]  i.rows
-  ?.  =(format-index columns-index.row)
-    %=  $
-      rows   t.rows
-      aside  [row aside]
-    ==
-  %=  $
-    rows  t.rows
-    out   (~(put in out) (relation-vector use-keys format data-row.row))
-  ==
 ::
 ++  relation-columns-at
   |=  $:  index=@ud
