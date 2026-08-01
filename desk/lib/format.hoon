@@ -12,6 +12,8 @@
     %markdown
       ~|('not implemented' !!)
     %html
+      (turn results format-html)
+    %manx
       ~|('not implemented' !!)
     %wain
       ~|('not implemented' !!)
@@ -19,6 +21,40 @@
       ~|('not implemented' !!)
     %json
       ~|('not implemented' !!)
+  ==
+::
+++  format-html
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  html  (relations-html +.i.results)
+        :-  [%message (crip p.html)]
+            [~ q.html]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
   ==
 ::
 ++  format-vectors
@@ -54,6 +90,156 @@
     results  t.results
     out      [-.formatted out]
     count    +.formatted
+  ==
+::
+++  relations-html
+  |=  relations=(list relation)
+  ^-  [p=tape q=@ud]
+  =/  out  *tape
+  =/  count  0
+  |-
+  ?~  relations  [out count]
+  =/  html  (relation-html i.relations)
+  %=  $
+    relations  t.relations
+    out        (weld out p.html)
+    count      (add count q.html)
+  ==
+::
+++  relation-html
+  |=  a=relation
+  ^-  [p=tape q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema html output not implemented" !!)
+  %:  relation-html-tables
+    =(~ relation-id.a)
+    ordered.a
+    0
+    columns
+    data-rows.a
+  ==
+::
+++  relation-html-tables
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [p=tape q=@ud]
+  ?~  columns  [~ 0]
+  =/  vectors
+    %:  relation-html-vectors
+      use-keys
+      ordered
+      columns-index
+      i.columns
+      rows
+    ==
+  =/  rest
+    %=  $
+      columns-index  +(columns-index)
+      columns        t.columns
+    ==
+  :-  (weld (html-table i.columns vectors) p.rest)
+      (add (lent vectors) q.rest)
+::
+++  relation-html-vectors
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(lest $%(column qualified-column))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  (list vector)
+  =/  matching
+    %+  turn
+      %+  skim  rows
+      |=  row=[columns-index=@ud =data-row]
+      =(columns-index columns-index.row)
+    |=  row=[columns-index=@ud =data-row]
+    [0 data-row.row]
+  =/  schemas  ~[columns]
+  ?:  ordered
+    (relation-vectors-ordered use-keys schemas matching)
+  (relation-vectors-unordered use-keys schemas matching)
+::
+++  html-table
+  |=  $:  columns=(lest $%(column qualified-column))
+          vectors=(list vector)
+          ==
+  ^-  tape
+  =/  body=tape
+    (weld (html-heading columns) (html-rows vectors))
+  (weld "<table>" (weld body "</table>"))
+::
+++  html-rows
+  |=  vectors=(list vector)
+  ^-  tape
+  =/  out  *tape
+  |-
+  ?~  vectors  out
+  =/  v=vector  i.vectors
+  %=  $
+    vectors  t.vectors
+    out      (weld out (html-row +.v))
+  ==
+::
+++  html-heading
+  |=  columns=(list $%(column qualified-column))
+  ^-  tape
+  =/  out=tape  "<tr>"
+  |-
+  ?~  columns  (weld out "</tr>")
+  =/  name
+    (html-escape (trip (relation-column-name i.columns)))
+  %=  $
+    columns  t.columns
+    out      (weld out (weld "<th>" (weld name "</th>")))
+  ==
+::
+::  Render one HTML data row.
+++  html-row
+  |=  values=(list vector-cell)
+  ^-  tape
+  =/  out=tape  "<tr>"
+  |-
+  ?~  values  (weld out "</tr>")
+  =/  cell=vector-cell  i.values
+  %=  $
+    values  t.values
+    out     (weld out (weld "<td>" (weld (html-dime +.cell) "</td>")))
+  ==
+::
+++  html-dime
+  |=  value=dime
+  ^-  tape
+  %-  html-escape
+  ?:  =(-.value ~.t)
+    (trip `@t`+.value)
+  ~(rend co %$ value)
+::
+++  html-escape
+  |=  value=tape
+  ^-  tape
+  %-  zing
+  %+  turn  value
+  |=  char=@tD
+  ^-  tape
+  ?:  =(char '&')  "&amp;"
+  ?:  =(char '<')  "&lt;"
+  ?:  =(char '>')  "&gt;"
+  ~[char]
+::
+++  relation-column-name
+  |=  col=$%(column qualified-column)
+  ^-  @tas
+  ?-  -.col
+    %column
+      name.col
+    %qualified-column
+      name.col
   ==
 ::
 ++  relation-vectors

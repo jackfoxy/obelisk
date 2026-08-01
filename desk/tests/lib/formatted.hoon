@@ -208,15 +208,67 @@
   ^-  @ta
   p.q.i.+.vector
 ::
+::  HTML renders one table for each columns entry.
+++  test-html-multiple-schemas-06
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  html-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[html-relation]] [%vector-count 99]]]]
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>value</th></tr>"
+        "<tr><td>1</td></tr></table>"
+        "<table><tr><th>value</th></tr>"
+        "<tr><td>0x2</td></tr></table>"
+        ==
+  =/  expected-items=(list result:ast)
+    :~  [%message expected]
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %html input))
+::
+::  HTML emits a header-only table for every empty columns entry.
+++  test-html-empty-multiple-schemas-07
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-html empty)
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>value</th></tr></table>"
+        "<table><tr><th>value</th></tr></table>"
+        ==
+  ;:  weld
+    %+  expect-eq  !>(expected)
+                   !>((crip p.formatted))
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  HTML escapes text cell content.
+++  test-html-escape-08
+  %+  expect-eq
+    !>('a&amp;&lt;b&gt;')
+  !>((crip (html-dime [~.t 'a&<b>'])))
+::
 ::  Non-contiguous schemas are grouped by first encounter.
-++  test-repeated-schema-06
+++  test-repeated-schema-09
   =/  vectors  (relation-vectors direct-relation)
   %+  expect-eq
     !>(`(list @ta)`~[~.ud ~.ud ~.ux])
   !>((turn vectors vector-aura))
 ::
 ::  An invalid row format index fails at the formatter boundary.
-++  test-fail-invalid-format-index-07
+++  test-fail-invalid-format-index-10
   =/  relation  direct-relation
   =/  rows  data-rows.relation
   ?~  rows  ~|("formatted test: direct relation has no rows" !!)
@@ -225,11 +277,78 @@
     'format: invalid relation columns index 2'
   |.  (relation-vectors bad)
 ::
-::  Ordered formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-08
+::  Ordered vector formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-vector-11
   =/  relation  direct-relation
   =/  ordered-relation  relation(ordered %.y)
   %+  expect-fail-message
     'format: ordered multi-schema vector output not implemented'
   |.  (relation-vectors ordered-relation)
+::
+::  Ordered HTML formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-html-12
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema html output not implemented'
+  |.  (relation-html ordered-relation)
+::
+::  HTML renders multiple columns and data rows in one table.
+++  test-html-multiple-columns-rows-13
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>id</th><th>label</th></tr>"
+        "<tr><td>1</td><td>alpha</td></tr>"
+        "<tr><td>2</td><td>beta</td></tr></table>"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (html-table columns vectors)))
+::
+::  HTML cells preserve date, duration, signed, and floating auras.
+++  test-html-aura-values-14
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%date [~.da ~2024.1.2..3.4.5]]
+                [%duration [~.dr ~s5]]
+                [%signed [~.sd --42]]
+                [%single [~.rs .1.5]]
+                [%double [~.rd .~1.5]]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>date</th><th>duration</th><th>signed</th>"
+        "<th>single</th><th>double</th></tr>"
+        "<tr><td>~2024.01.02..03.04.05</td><td>~s5</td><td>--42</td>"
+        "<td>.1.5</td><td>.~1.5</td></tr></table>"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (html-table columns vectors)))
 --
