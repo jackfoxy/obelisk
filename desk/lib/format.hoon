@@ -10,7 +10,7 @@
     %vector
       (turn results format-vectors)
     %markdown
-      ~|('not implemented' !!)
+      (turn results format-markdown)
     %html
       (turn results format-html)
     %manx
@@ -21,6 +21,41 @@
       ~|('not implemented' !!)
     %json
       ~|('not implemented' !!)
+  ==
+::
+::  Format relation results as GitHub Flavored Markdown tables.
+++  format-markdown
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  markdown  (relations-markdown +.i.results)
+        :-  [%message (crip p.markdown)]
+            [~ q.markdown]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
   ==
 ::
 ++  format-html
@@ -92,6 +127,149 @@
     count    +.formatted
   ==
 ::
+++  relations-markdown
+  |=  relations=(list relation)
+  ^-  [p=tape q=@ud]
+  =/  out  *tape
+  =/  count  0
+  |-
+  ?~  relations  [out count]
+  =/  markdown  (relation-markdown i.relations)
+  =/  separator=tape
+    ?:  =(~ out)
+      ~
+    ?:  =(~ p.markdown)
+      ~
+    ~['\0a' '\0a']
+  %=  $
+    relations  t.relations
+    out        (weld out (weld separator p.markdown))
+    count      (add count q.markdown)
+  ==
+::
+++  relation-markdown
+  |=  a=relation
+  ^-  [p=tape q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema markdown output not implemented" !!)
+  %:  relation-markdown-tables
+    =(~ relation-id.a)
+    ordered.a
+    0
+    columns
+    data-rows.a
+  ==
+::
+++  relation-markdown-tables
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [p=tape q=@ud]
+  ?~  columns  [~ 0]
+  =/  vectors
+    %:  relation-table-vectors
+      use-keys
+      ordered
+      columns-index
+      i.columns
+      rows
+    ==
+  =/  rest
+    %=  $
+      columns-index  +(columns-index)
+      columns        t.columns
+    ==
+  =/  table  (markdown-table i.columns vectors)
+  =/  separator=tape  ?:(=(~ p.rest) ~ ~['\0a' '\0a'])
+  :-  (weld table (weld separator p.rest))
+      (add (lent vectors) q.rest)
+::
+++  markdown-table
+  |=  $:  columns=(lest $%(column qualified-column))
+          vectors=(list vector)
+          ==
+  ^-  tape
+  =/  heading  (markdown-heading columns)
+  =/  divider  (markdown-divider columns)
+  =/  table  (weld heading (weld ~['\0a'] divider))
+  =/  rows  (markdown-rows vectors)
+  ?~  rows  table
+  (weld table (weld ~['\0a'] rows))
+::
+++  markdown-rows
+  |=  vectors=(list vector)
+  ^-  tape
+  =/  out  *tape
+  |-
+  ?~  vectors  out
+  =/  row  (markdown-row +.i.vectors)
+  =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
+  %=  $
+    vectors  t.vectors
+    out      (weld out (weld separator row))
+  ==
+::
+++  markdown-heading
+  |=  columns=(list $%(column qualified-column))
+  ^-  tape
+  =/  out=tape  "|"
+  |-
+  ?~  columns  out
+  =/  name
+    (markdown-escape (trip (relation-column-name i.columns)))
+  %=  $
+    columns  t.columns
+    out      (weld out (weld " " (weld name " |")))
+  ==
+::
+++  markdown-divider
+  |=  columns=(list $%(column qualified-column))
+  ^-  tape
+  =/  out=tape  "|"
+  |-
+  ?~  columns  out
+  %=  $
+    columns  t.columns
+    out      (weld out " --- |")
+  ==
+::
+++  markdown-row
+  |=  values=(list vector-cell)
+  ^-  tape
+  =/  out=tape  "|"
+  |-
+  ?~  values  out
+  =/  cell=vector-cell  i.values
+  =/  value  (markdown-dime +.cell)
+  %=  $
+    values  t.values
+    out     (weld out (weld " " (weld value " |")))
+  ==
+::
+++  markdown-dime
+  |=  value=dime
+  ^-  tape
+  %-  markdown-escape
+  ?:  =(-.value ~.t)
+    (trip `@t`+.value)
+  ~(rend co %$ value)
+::
+++  markdown-escape
+  |=  value=tape
+  ^-  tape
+  %-  zing
+  %+  turn  value
+  |=  char=@tD
+  ^-  tape
+  ?:  =(char 92)  "\\\\"
+  ?:  =(char '|')  "\\|"
+  ?:  =(char 10)  "<br>"
+  ~[char]
+::
 ++  relations-html
   |=  relations=(list relation)
   ^-  [p=tape q=@ud]
@@ -130,7 +308,7 @@
   ^-  [p=tape q=@ud]
   ?~  columns  [~ 0]
   =/  vectors
-    %:  relation-html-vectors
+    %:  relation-table-vectors
       use-keys
       ordered
       columns-index
@@ -145,7 +323,7 @@
   :-  (weld (html-table i.columns vectors) p.rest)
       (add (lent vectors) q.rest)
 ::
-++  relation-html-vectors
+++  relation-table-vectors
   |=  $:  use-keys=?
           ordered=?
           columns-index=@ud

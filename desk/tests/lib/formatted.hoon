@@ -351,4 +351,140 @@
   %+  expect-eq
     !>(expected)
   !>((crip (html-table columns vectors)))
+::
+::  Markdown renders one GitHub Flavored Markdown table per columns entry.
+++  test-markdown-multiple-schemas-15
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  markdown-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[markdown-relation]] [%vector-count 99]]]]
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "| value |"
+        ~['\0a']
+        "| --- |"
+        ~['\0a']
+        "| 1 |"
+        ~['\0a' '\0a']
+        "| value |"
+        ~['\0a']
+        "| --- |"
+        ~['\0a']
+        "| 0x2 |"
+        ==
+  =/  expected-items=(list result:ast)
+    :~  [%message expected]
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %markdown input))
+::
+::  Markdown emits a header and delimiter for every empty columns entry.
+++  test-markdown-empty-multiple-schemas-16
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-markdown empty)
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "| value |"
+        ~['\0a']
+        "| --- |"
+        ~['\0a' '\0a']
+        "| value |"
+        ~['\0a']
+        "| --- |"
+        ==
+  ;:  weld
+    %+  expect-eq  !>(expected)
+                   !>((crip p.formatted))
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  Markdown escapes GFM table delimiters in text cells.
+++  test-markdown-escape-17
+  %+  expect-eq
+    !>('a\\|b')
+  !>((crip (markdown-dime [~.t 'a|b'])))
+::
+::  Ordered Markdown formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-markdown-18
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema markdown output not implemented'
+  |.  (relation-markdown ordered-relation)
+::
+::  Markdown renders multiple columns and data rows in one GFM table.
+++  test-markdown-multiple-columns-rows-19
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "| id | label |"
+        ~['\0a']
+        "| --- | --- |"
+        ~['\0a']
+        "| 1 | alpha |"
+        ~['\0a']
+        "| 2 | beta |"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (markdown-table columns vectors)))
+::
+::  Markdown cells preserve date, duration, signed, and floating auras.
+++  test-markdown-aura-values-20
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%date [~.da ~2024.1.2..3.4.5]]
+                [%duration [~.dr ~s5]]
+                [%signed [~.sd --42]]
+                [%single [~.rs .1.5]]
+                [%double [~.rd .~1.5]]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "| date | duration | signed | single | double |"
+        ~['\0a']
+        "| --- | --- | --- | --- | --- |"
+        ~['\0a']
+        "| ~2024.01.02..03.04.05 | ~s5 | --42 | .1.5 | .~1.5 |"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (markdown-table columns vectors)))
 --
