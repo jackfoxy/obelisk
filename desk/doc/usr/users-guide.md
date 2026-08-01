@@ -1786,12 +1786,25 @@ script) and a urQL tape.
       [%parse default-database=@tas urql=tape]
   ==
 ```
-
-- `%script %vector` — parse and execute a urQL script with vector output.
-- `%script %raw` — parse and execute a urQL script with raw relation output.
 - `%parse` — parse a urQL script and return the resulting `(list command)`
   without executing it. Useful for inspection and debugging.
+
+- `%script %vector` — parse and execute a urQL script with vector output.
+- `%script %markdown` — parse and execute a urQL script with Markdown output.
+- `%script %html` — parse and execute a urQL script with HTML output.
+- `%script %manx` — parse and execute a urQL script with Manx output.
+- `%script %wain` — parse and execute a urQL script with wain output.
+- `%script %tape` — parse and execute a urQL script with tape output.
+- `%script %json` — parse and execute a urQL script with JSON output.
+- `%script %raw` — parse and execute a urQL script with raw relation output.
+
 - `%cmd-list %vector` — submit commands directly with vector output.
+- `%cmd-list %markdown` — submit commands directly with Markdown output.
+- `%cmd-list %html` — submit commands directly with HTML output.
+- `%cmd-list %manx` — submit commands directly with Manx output.
+- `%cmd-list %wain` — submit commands directly with wain output.
+- `%cmd-list %tape` — submit commands directly with tape output.
+- `%cmd-list %json` — submit commands directly with JSON output.
 - `%cmd-list %raw` — submit commands directly with raw relation output.
 
 There is also a `%test` action used by the Obelisk test code. Client programs
@@ -1806,12 +1819,21 @@ The mark for the poke is always `%obelisk-action`.
 ## Result formats
 
 `result-format:ast` selects the output representation for `%script` and
-`%cmd-list`. `%raw` preserves `%relations`; each `relation` contains a unique
-non-empty list of column schemas, and each data row carries the zero-based
-index of its schema. `%vector` converts relations to `%result-set` vectors.
+`%cmd-list`.
 
-The remaining declared result formats are reserved but not implemented.
-Ordered `%vector` output with multiple schemas is also not implemented.
+- `%vector` converts relations to typed `%result-set` vectors.
+- `%markdown` returns GitHub Flavored Markdown tables in `%message` results.
+- `%html` returns HTML `<table>` markup in `%message` results.
+- `%manx` returns serialized Manx table nodes in `%message` results.
+- `%wain` returns rows as cords, with one space between columns.
+- `%tape` returns rows with one space between columns and one line feed between
+  rows.
+- `%json` returns relation rows as JSON objects.
+- `%raw` preserves `%relations`; each `relation` contains a unique non-empty
+  list of column schemas, and each data row carries the zero-based index of its
+  schema.
+
+Ordered output with multiple schemas is not implemented for formatted results.
 
 ## Result molds
 

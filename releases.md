@@ -6,6 +6,7 @@
 * BREAKING CHANGE: relation.result:obelisk-ast -> relation-name.result
 * Scry database, namespace, relation, relation restricted by columns
 * new %script and %list-cmd pokes, %tape and %commands deprecated
+* %vector, %markdown, %html, %wain, %manx, %tape, %json, and %raw output formats
 
 ## v0.8.1-beta
 
