@@ -14,7 +14,7 @@
     %html
       (turn results format-html)
     %manx
-      ~|('not implemented' !!)
+      (turn results format-manx)
     %wain
       (turn results format-wain)
     %tape
@@ -39,6 +39,41 @@
         =/  json-result  (relations-json +.i.results)
         :-  [%message (crip p.json-result)]
             [~ q.json-result]
+      %vector-count
+        ?~  count  [i.results count]
+        [[%vector-count u.count] count]
+      %result-set  [i.results count]
+      %action  [i.results count]
+      %relation-name  [i.results count]
+      %message  [i.results count]
+      %server-time  [i.results count]
+      %security-time  [i.results count]
+      %schema-time  [i.results count]
+      %data-time  [i.results count]
+      %select-relation  [i.results count]
+    ==
+  %=  $
+    results  t.results
+    out      [-.formatted out]
+    count    +.formatted
+  ==
+::
+::  Format relation results as serialized table nodes.
+++  format-manx
+  |=  a=cmd-result
+  ^-  cmd-result
+  :-  %results
+  =/  results=(list result)  +.a
+  =/  out=(list result)      ~
+  =/  count=(unit @ud)       ~
+  |-
+  ?~  results  (flop out)
+  =/  formatted=[result (unit @ud)]
+    ?-  -.i.results
+      %relations
+        =/  manx-result  (relations-manx +.i.results)
+        :-  [%message (crip (marl-to-tape p.manx-result))]
+            [~ q.manx-result]
       %vector-count
         ?~  count  [i.results count]
         [[%vector-count u.count] count]
@@ -231,6 +266,97 @@
     out      [-.formatted out]
     count    +.formatted
   ==
+::
+++  relations-manx
+  |=  relations=(list relation)
+  ^-  [p=marl q=@ud]
+  =/  tables  *marl
+  =/  count  0
+  |-
+  ?~  relations  [tables count]
+  =/  formatted  (relation-manx i.relations)
+  %=  $
+    relations  t.relations
+    tables     (weld tables p.formatted)
+    count      (add count q.formatted)
+  ==
+::
+++  relation-manx
+  |=  a=relation
+  ^-  [p=marl q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ~|("format: ordered multi-schema manx output not implemented" !!)
+  %:  relation-manx-tables
+    =(~ relation-id.a)
+    ordered.a
+    0
+    columns
+    data-rows.a
+  ==
+::
+++  relation-manx-tables
+  |=  $:  use-keys=?
+          ordered=?
+          columns-index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          rows=(list [columns-index=@ud =data-row])
+          ==
+  ^-  [p=marl q=@ud]
+  ?~  columns  [~ 0]
+  =/  vectors
+    %:  relation-table-vectors
+      use-keys
+      ordered
+      columns-index
+      i.columns
+      rows
+    ==
+  =/  rest
+    %=  $
+      columns-index  +(columns-index)
+      columns        t.columns
+    ==
+  :-  [(manx-table i.columns vectors) p.rest]
+      (add (lent vectors) q.rest)
+::
+++  manx-table
+  |=  $:  columns=(lest $%(column qualified-column))
+          vectors=(list vector)
+          ==
+  ^-  manx
+  ;table
+    ;+  (manx-heading columns)
+    ;*  (turn vectors manx-row)
+  ==
+::
+++  manx-heading
+  |=  columns=(list $%(column qualified-column))
+  ^-  manx
+  ;tr
+    ;*
+    %+  turn  columns
+    |=  column=$%(column qualified-column)
+    ;th: {(trip (relation-column-name column))}
+  ==
+::
+++  manx-row
+  |=  vector=vector
+  ^-  manx
+  ;tr
+    ;*
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    ;td: {(render-dime q.cell)}
+  ==
+::
+++  marl-to-tape
+  |=  nodes=marl
+  ^-  tape
+  %-  zing
+  %+  turn  nodes
+  |=  node=manx
+  (en-xml:html node)
 ::
 ++  relations-tape
   |=  relations=(list relation)

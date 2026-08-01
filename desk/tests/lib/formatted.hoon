@@ -755,4 +755,130 @@
   %+  expect-eq
     !>(expected)
   !>((wain-to-tape lines))
+::
+::  Manx renders one table node for each columns entry.
+++  test-manx-multiple-schemas-37
+  =/  relation  direct-relation
+  =/  rows  data-rows.relation
+  ?~  rows  ~|("formatted test: direct relation has no rows" !!)
+  ?~  t.rows  ~|("formatted test: direct relation has only one row" !!)
+  =/  manx-relation  relation(data-rows ~[i.rows i.t.rows])
+  =/  input=(list cmd-result:ast)
+    ~[[%results ~[[%relations ~[manx-relation]] [%vector-count 99]]]]
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>value</th></tr>"
+        "<tr><td>1</td></tr></table>"
+        "<table><tr><th>value</th></tr>"
+        "<tr><td>0x2</td></tr></table>"
+        ==
+  =/  expected-items=(list result:ast)
+    :~  [%message expected]
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-results %manx input))
+::
+::  Manx emits a header-only table for every empty columns entry.
+++  test-manx-empty-multiple-schemas-38
+  =/  relation  direct-relation
+  =/  empty  relation(data-rows ~)
+  =/  formatted  (relation-manx empty)
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>value</th></tr></table>"
+        "<table><tr><th>value</th></tr></table>"
+        ==
+  ;:  weld
+    %+  expect-eq  !>(expected)
+                   !>((crip (marl-to-tape p.formatted)))
+  ::
+    %+  expect-eq  !>(0)
+                   !>(q.formatted)
+  ==
+::
+::  Manx serialization escapes text content.
+++  test-manx-escape-39
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  vectors=(list vector:ast)
+    ~[[%vector ~[[%value [~.t 'a&<b>']]]]]
+  =/  expected
+    '<table><tr><th>value</th></tr><tr><td>a&amp;&lt;b&gt;</td></tr></table>'
+  %+  expect-eq
+    !>(expected)
+  !>((crip (en-xml:html (manx-table columns vectors))))
+::
+::  Ordered Manx formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-manx-40
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema manx output not implemented'
+  |.  (relation-manx ordered-relation)
+::
+::  Manx renders multiple columns and data rows in one table node.
+++  test-manx-multiple-columns-rows-41
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'beta']]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>id</th><th>label</th></tr>"
+        "<tr><td>1</td><td>alpha</td></tr>"
+        "<tr><td>2</td><td>beta</td></tr></table>"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (en-xml:html (manx-table columns vectors))))
+::
+::  Manx preserves date, duration, signed, and floating auras.
+++  test-manx-aura-values-42
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %date ~.da 0]
+        [%column %duration ~.dr 0]
+        [%column %signed ~.sd 0]
+        [%column %single ~.rs 0]
+        [%column %double ~.rd 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%date [~.da ~2024.1.2..3.4.5]]
+                [%duration [~.dr ~s5]]
+                [%signed [~.sd --42]]
+                [%single [~.rs .1.5]]
+                [%double [~.rd .~1.5]]
+                ==
+        ==
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>date</th><th>duration</th><th>signed</th>"
+        "<th>single</th><th>double</th></tr>"
+        "<tr><td>~2024.01.02..03.04.05</td><td>~s5</td>"
+        "<td>--42</td><td>.1.5</td><td>.~1.5</td></tr></table>"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((crip (en-xml:html (manx-table columns vectors))))
 --
