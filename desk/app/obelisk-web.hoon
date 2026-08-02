@@ -3,7 +3,9 @@
 ::  Direct Eyre routing keeps this small desk-local route surface explicit.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  dbug, default-agent, json-lib=obelisk-web-json, server, web-lib=obelisk-web
+/+  dbug, default-agent, server
+/+  json-lib=obelisk-web-json, result-lib=obelisk-web-result
+/+  web-lib=obelisk-web
 |%
 +$  card  card:agent:gall
 +$  route-result
@@ -14,6 +16,13 @@
   $:  action=action:ast
       work-kind=obelisk-work-kind:web
       reply-kind=obelisk-reply-kind:web
+  ==
++$  query-reply  (each (list cmd-result:ast) tang)
++$  parse-reply  (each (list command:ast) tang)
++$  reply-outcome
+  $%  [%ok response=web-response:web]
+      [%error trace=tang]
+      [%malformed ~]
   ==
 ::
 ++  connect-card
@@ -143,6 +152,62 @@
     %file-save  ~
   ==
 ::
+++  decode-reply
+  |=  [kind=obelisk-reply-kind:web =cage]
+  ^-  reply-outcome
+  ?.  =(%noun p.cage)  [%malformed ~]
+  ?-  kind
+    %query
+      =/  decoded=(each query-reply tang)
+        (mule |.(!<(query-reply q.cage)))
+      ?.  ?=(%.y -.decoded)  [%malformed ~]
+      =/  reply=query-reply  p.decoded
+      ?-  -.reply
+        %.n  [%error p.reply]
+        %.y  [%ok (run-response:result-lib p.reply)]
+      ==
+    %parse
+      =/  decoded=(each parse-reply tang)
+        (mule |.(!<(parse-reply q.cage)))
+      ?.  ?=(%.y -.decoded)  [%malformed ~]
+      =/  reply=parse-reply  p.decoded
+      ?-  -.reply
+        %.n  [%error p.reply]
+        %.y  [%ok (parse-response:result-lib p.reply)]
+      ==
+  ==
+::
+++  respond-json
+  |=  [eyre-id=@ta response=web-response:web]
+  ^-  (list card)
+  %:  respond
+    eyre-id
+    200
+    :~  ['content-type' 'application/json; charset=utf-8']
+        ['cache-control' 'no-store']
+        ['x-content-type-options' 'nosniff']
+    ==
+    (json-text:json-lib (response-json:json-lib response))
+  ==
+::
+++  reply-cards
+  |=  [eyre-id=@ta kind=obelisk-reply-kind:web outcome=reply-outcome]
+  ^-  (list card)
+  ?-  -.outcome
+    %ok  (respond-json eyre-id response.outcome)
+    %malformed  (malformed-fact-response eyre-id)
+    %error
+      =/  message=@t
+        ?-(kind %query 'Obelisk execution failed', %parse 'urQL parse failed')
+      %+  respond-error  eyre-id
+      :*  %unprocessable
+          422
+          message
+          %.n
+          (tang-details:result-lib trace.outcome)
+      ==
+  ==
+::
 ++  coordinated-response
   |=  eyre-id=@ta
   ^-  (list card)
@@ -186,14 +251,6 @@
   ^-  (list card)
   %+  respond-error  eyre-id
   (make-error %timeout 504 'Obelisk request timed out' %.y)
-::
-++  valid-obelisk-fact
-  |=  =cage
-  ^-  ?
-  ?.  =(%noun p.cage)  %.n
-  =/  decoded=(each [? *] tang)
-    %-  mule  |.  !<([? *] q.cage)
-  ?=(%.y -.decoded)
 ::
 ++  begin-readiness
   |=  [job=queued-request:web state=live-state:web our=@p]
@@ -550,12 +607,12 @@
         :_  this(state state)
         ~[(poke-card poke-wire.active our.bowl action.active)]
       %fact
+        =/  outcome=reply-outcome
+          ?:  =(%watching phase.active)
+            [%malformed ~]
+          (decode-reply reply-kind.active cage.sign)
         =/  response-cards=(list card)
-          ?:  ?&  !=(%watching phase.active)
-                  (valid-obelisk-fact cage.sign)
-              ==
-            (coordinated-response eyre-id.job.active)
-          (malformed-fact-response eyre-id.job.active)
+          (reply-cards eyre-id.job.active reply-kind.active outcome)
         =/  completed=(quip card live-state:web)
           %:  complete-active
             active

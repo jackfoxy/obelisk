@@ -386,9 +386,15 @@
   ^-  sign:agent:gall
   [%poke-ack ~]
 ::
-++  valid-fact
+++  query-fact
+  |=  reply=(each (list cmd-result:ast) tang)
   ^-  sign:agent:gall
-  [%fact %noun !>([& ~])]
+  [%fact %noun !>(reply)]
+::
+++  parse-fact
+  |=  reply=(each (list command:ast) tang)
+  ^-  sign:agent:gall
+  [%fact %noun !>(reply)]
 ::
 ++  malformed-fact
   ^-  sign:agent:gall
@@ -397,6 +403,18 @@
 ++  kick-sign
   ^-  sign:agent:gall
   [%kick ~]
+::
+++  finish-request
+  |=  [req=inbound-request:eyre response=sign:agent:gall]
+  ^-  (quip card:agent:gall agent:gall)
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  =/  poked
+    (signal-agent +.watched (work-wire 0 0 %poke) poke-ack)
+  (signal-agent +.poked (work-wire 0 0 %watch) response)
 ::
 ++  wake-sign
   ^-  sign-arvo
@@ -812,7 +830,11 @@
   =/  poked
     (signal-agent +.watched (work-wire 0 0 %poke) poke-ack)
   =/  fact
-    (signal-agent +.poked (work-wire 0 0 %watch) valid-fact)
+    %:  signal-agent
+      +.poked
+      (work-wire 0 0 %watch)
+      (query-fact [%.y ~])
+    ==
   =/  stale
     (signal-agent +.fact (work-wire 0 0 %watch) kick-sign)
   ;:  weld
@@ -827,7 +849,7 @@
     !>(-.watched)
     (expect-eq !>(*(list card:agent:gall)) !>(-.poked))
     (expect-eq !>((work-leave-card 0 0)) !>((first-card -.fact)))
-    (expect-eq !>(503) !>((response-status (tail-cards -.fact))))
+    (expect-eq !>(200) !>((response-status (tail-cards -.fact))))
     %+  expect-eq
       !>(~[/http-response/first])
     !>((response-paths (tail-cards -.fact)))
@@ -847,7 +869,11 @@
   =/  poked-zero
     (signal-agent +.watched-zero (work-wire 0 0 %poke) poke-ack)
   =/  fact-zero
-    (signal-agent +.poked-zero (work-wire 0 0 %watch) valid-fact)
+    %:  signal-agent
+      +.poked-zero
+      (work-wire 0 0 %watch)
+      (parse-fact [%.y ~])
+    ==
   =/  stale-zero
     (signal-agent +.fact-zero (work-wire 0 0 %watch) kick-sign)
   =/  ready-one
@@ -857,7 +883,11 @@
   =/  poked-one
     (signal-agent +.watched-one (work-wire 1 0 %poke) poke-ack)
   =/  fact-one
-    (signal-agent +.poked-one (work-wire 1 0 %watch) valid-fact)
+    %:  signal-agent
+      +.poked-one
+      (work-wire 1 0 %watch)
+      (parse-fact [%.y ~])
+    ==
   ;:  weld
     (expect-eq !>(*(list card:agent:gall)) !>(-.second))
     %+  expect-eq
@@ -882,7 +912,11 @@
   =/  timed-out
     (wake-agent +.ready (work-wire 0 0 %timeout))
   =/  stale
-    (signal-agent +.timed-out (work-wire 0 0 %watch) valid-fact)
+    %:  signal-agent
+      +.timed-out
+      (work-wire 0 0 %watch)
+      (query-fact [%.y ~])
+    ==
   ;:  weld
     (expect-eq !>((work-leave-card 0 0)) !>((first-card -.timed-out)))
     (expect-eq !>(504) !>((response-status (tail-cards -.timed-out))))
@@ -1011,4 +1045,151 @@
     (poke-http-id-on ag (scot %ud index) req)
   ?>  ?=(~ -.queued)
   $(ag +.queued, index +(index))
+::
+++  test-run-typed-success-42
+  =/  commands=(list cmd-result:ast)
+    :~  :-  %results
+        :~  [%action 'SELECT']
+            [%result-set ~[[%vector ~[[%answer [%ud 42]]]]]]
+            [%vector-count 1]
+        ==
+    ==
+  =/  body  (request-text [%run %sys 'SELECT 42;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  out  (finish-request req (query-fact [%.y commands]))
+  =/  response-cards  (tail-cards -.out)
+  =/  expected=web-response:web
+    :*  %run
+        :~  :-  0
+            :~  [%action 'SELECT']
+                :*  %result-set
+                    ~[[%answer %ud]]
+                    ~[~[[%answer %ud '42']]]
+                ==
+                [%vector-count 1]
+            ==
+        ==
+        %.n
+    ==
+  ;:  weld
+    (expect-eq !>(200) !>((response-status response-cards)))
+    %+  expect-eq
+      !>((response-json:json-lib expected))
+    !>((response-json response-cards))
+  ==
+::
+++  test-parse-typed-success-43
+  =/  commands=(list command:ast)
+    ~[[%create-database %db1 ~]]
+  =/  body  (request-text [%parse %sys 'CREATE DATABASE db1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  out  (finish-request req (parse-fact [%.y commands]))
+  =/  response-cards  (tail-cards -.out)
+  =/  expected=web-response:web
+    :*  %parse
+        (turn commands |=(command=command:ast (crip (text !>(command)))))
+        (crip (text !>(commands)))
+    ==
+  ;:  weld
+    (expect-eq !>(200) !>((response-status response-cards)))
+    %+  expect-eq
+      !>((response-json:json-lib expected))
+    !>((response-json response-cards))
+  ==
+::
+++  test-parse-failure-44
+  =/  trace=tang  ~[leaf+"parse failed at token"]
+  =/  body  (request-text [%parse %sys 'NOT URQL'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  out  (finish-request req (parse-fact [%.n trace]))
+  =/  response-cards  (tail-cards -.out)
+  =/  message-match=(unit @ud)
+    (find "parse failed at token" (trip (response-body response-cards)))
+  ;:  weld
+    (expect-eq !>(422) !>((response-status response-cards)))
+    %+  expect-eq
+      !>('unprocessable')
+    !>((response-error-code response-cards))
+    (expect !>(?=(^ message-match)))
+  ==
+::
+++  test-run-execution-failure-45
+  =/  trace=tang  ~[leaf+"execution failed safely"]
+  =/  body  (request-text [%run %sys 'SELECT missing;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  out  (finish-request req (query-fact [%.n trace]))
+  =/  response-cards  (tail-cards -.out)
+  =/  message-match=(unit @ud)
+    (find "execution failed safely" (trip (response-body response-cards)))
+  ;:  weld
+    (expect-eq !>(422) !>((response-status response-cards)))
+    %+  expect-eq
+      !>('unprocessable')
+    !>((response-error-code response-cards))
+    (expect !>(?=(^ message-match)))
+  ==
+::
+++  test-run-and-parse-empty-script-46
+  =/  run-body  (request-text [%run %sys ''])
+  =/  run-request
+    %:  api-request
+      '/apps/obelisk/api/run'
+      %.y
+      `run-body
+      `'application/json'
+    ==
+  =/  run-out  (finish-request run-request (query-fact [%.y ~]))
+  =/  parse-body  (request-text [%parse %sys ''])
+  =/  parse-request
+    %:  api-request
+      '/apps/obelisk/api/parse'
+      %.y
+      `parse-body
+      `'application/json'
+    ==
+  =/  parse-out  (finish-request parse-request (parse-fact [%.y ~]))
+  =/  empty-commands  *(list command:ast)
+  =/  expected-parse=json
+    %-  response-json:json-lib
+    [%parse ~ (crip (text !>(empty-commands)))]
+  ;:  weld
+    %+  expect-eq
+      !>((response-json:json-lib [%run ~ %.n]))
+    !>((response-json (tail-cards -.run-out)))
+    %+  expect-eq
+      !>(expected-parse)
+    !>((response-json (tail-cards -.parse-out)))
+  ==
+::
+++  test-parse-rejects-query-reply-47
+  =/  query-commands=(list cmd-result:ast)  ~[[%results ~]]
+  =/  body  (request-text [%parse %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  out
+    (finish-request req (query-fact [%.y query-commands]))
+  =/  response-cards  (tail-cards -.out)
+  ;:  weld
+    (expect-eq !>(500) !>((response-status response-cards)))
+    %+  expect-eq
+      !>('internal')
+    !>((response-error-code response-cards))
+  ==
+::
+++  test-parse-action-shape-48
+  =/  body  (request-text [%parse %my-db 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  %+  expect-eq
+    !>  ~[(work-poke-card 0 0 [%parse %my-db "SELECT 1;"])]
+  !>(-.watched)
 --
