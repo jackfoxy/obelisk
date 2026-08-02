@@ -77,16 +77,28 @@
 ::
 +$  obelisk-phase  ?(%watching %poking %waiting)
 ::
++$  obelisk-context
+  $%  [%none ~]
+      [%run commands=(list command:ast)]
+      [%schema-databases requested=(unit @tas)]
+      $:  %schema-details
+          requested=(unit @tas)
+          databases=(list @tas)
+      ==
+  ==
+::
 +$  active-obelisk
   $:  job=queued-request
       action=action:ast
       work-kind=obelisk-work-kind
       reply-kind=obelisk-reply-kind
+      context=obelisk-context
       phase=obelisk-phase
       watch-wire=wire
       poke-wire=wire
       timeout-wire=wire
       retries=@ud
+      stage=@ud
   ==
 ::
 ::  +|  Errors

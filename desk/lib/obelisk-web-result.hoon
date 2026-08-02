@@ -60,7 +60,12 @@
 ++  run-response
   |=  commands=(list cmd-result:ast)
   ^-  web-response:web
-  [%run (command-dtos commands 0) %.n]
+  (run-response-with commands %.n)
+::
+++  run-response-with
+  |=  [commands=(list cmd-result:ast) schema-changed=?]
+  ^-  web-response:web
+  [%run (command-dtos commands 0) schema-changed]
 ::
 ++  parse-response
   |=  commands=(list command:ast)

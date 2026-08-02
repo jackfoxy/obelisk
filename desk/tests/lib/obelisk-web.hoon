@@ -1,7 +1,8 @@
 ::  Tests for %obelisk-web shared types and state lifecycle.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  json-lib=obelisk-web-json, state=obelisk-web, *test
+/+  json-lib=obelisk-web-json, schema-lib=obelisk-web-schema
+/+  state=obelisk-web, *test
 /=  agent  /app/obelisk-web
 |%
 ::
@@ -19,11 +20,13 @@
       action=`action:ast`[%parse %sys "SELECT 1;"]
       work-kind=%parse
       reply-kind=%parse
+      context=[%none ~]
       phase=%waiting
-      watch-wire=/obelisk-web/work/41/2/watch
-      poke-wire=/obelisk-web/work/41/2/poke
-      timeout-wire=/obelisk-web/work/41/2/timeout
+      watch-wire=/obelisk-web/work/41/2/0/watch
+      poke-wire=/obelisk-web/work/41/2/0/poke
+      timeout-wire=/obelisk-web/work/41/2/0/timeout
       retries=2
+      stage=0
   ==
 ::
 ++  dirty-transient-fixture
@@ -290,7 +293,18 @@
 ++  work-wire
   |=  [request-id=@ud attempt=@ud kind=term]
   ^-  wire
-  [%obelisk-web %work (scot %ud request-id) (scot %ud attempt) kind ~]
+  (stage-wire request-id attempt 0 kind)
+::
+++  stage-wire
+  |=  [request-id=@ud attempt=@ud stage=@ud kind=term]
+  ^-  wire
+  :~  %obelisk-web
+      %work
+      (scot %ud request-id)
+      (scot %ud attempt)
+      (scot %ud stage)
+      kind
+  ==
 ::
 ++  watch-card
   |=  request-id=@ud
@@ -328,8 +342,13 @@
 ++  work-watch-card
   |=  [request-id=@ud attempt=@ud]
   ^-  card:agent:gall
+  (work-watch-card-at request-id attempt 0)
+::
+++  work-watch-card-at
+  |=  [request-id=@ud attempt=@ud stage=@ud]
+  ^-  card:agent:gall
   :*  %pass
-      (work-wire request-id attempt %watch)
+      (stage-wire request-id attempt stage %watch)
       %agent
       [~zod %obelisk]
       %watch
@@ -339,8 +358,13 @@
 ++  work-timeout-card
   |=  [request-id=@ud attempt=@ud]
   ^-  card:agent:gall
+  (work-timeout-card-at request-id attempt 0)
+::
+++  work-timeout-card-at
+  |=  [request-id=@ud attempt=@ud stage=@ud]
+  ^-  card:agent:gall
   :*  %pass
-      (work-wire request-id attempt %timeout)
+      (stage-wire request-id attempt stage %timeout)
       %arvo
       %b
       %wait
@@ -350,8 +374,13 @@
 ++  work-leave-card
   |=  [request-id=@ud attempt=@ud]
   ^-  card:agent:gall
+  (work-leave-card-at request-id attempt 0)
+::
+++  work-leave-card-at
+  |=  [request-id=@ud attempt=@ud stage=@ud]
+  ^-  card:agent:gall
   :*  %pass
-      (work-wire request-id attempt %watch)
+      (stage-wire request-id attempt stage %watch)
       %agent
       [~zod %obelisk]
       %leave
@@ -361,8 +390,13 @@
 ++  work-poke-card
   |=  [request-id=@ud attempt=@ud action=action:ast]
   ^-  card:agent:gall
+  (work-poke-card-at request-id attempt 0 action)
+::
+++  work-poke-card-at
+  |=  [request-id=@ud attempt=@ud stage=@ud action=action:ast]
+  ^-  card:agent:gall
   :*  %pass
-      (work-wire request-id attempt %poke)
+      (stage-wire request-id attempt stage %poke)
       %agent
       [~zod %obelisk]
       %poke
@@ -391,6 +425,63 @@
   ^-  sign:agent:gall
   [%fact %noun !>(reply)]
 ::
+++  result-command
+  |=  vectors=(list vector:ast)
+  ^-  cmd-result:ast
+  [%results ~[[%result-set vectors]]]
+::
+++  database-command
+  |=  databases=(list @tas)
+  ^-  cmd-result:ast
+  =/  vectors=(list vector:ast)
+    %+  turn  databases
+    |=  database=@tas
+    [%vector ~[[%database [%tas database]]]]
+  (result-command vectors)
+::
+++  schema-detail-commands
+  ^-  (list cmd-result:ast)
+  =/  namespaces=(list vector:ast)
+    :~  [%vector ~[[%namespace [%tas %zeta]]]]
+        [%vector ~[[%namespace [%tas %sys]]]]
+        [%vector ~[[%namespace [%tas %public]]]]
+    ==
+  =/  tables=(list vector:ast)
+    ~[[%vector ~[[%namespace [%tas %public]] [%name [%tas %widgets]]]]]
+  =/  keys=(list vector:ast)
+    :~  :*  %vector
+            :~  [%namespace [%tas %public]]
+                [%name [%tas %widgets]]
+                [%key-ordinal [%ud 1]]
+                [%key [%tas %id]]
+                [%key-ascending [%f 0]]
+            ==
+        ==
+    ==
+  =/  columns=(list vector:ast)
+    :~  :*  %vector
+            :~  [%namespace [%tas %public]]
+                [%name [%tas %widgets]]
+                [%col-ordinal [%ud 2]]
+                [%col-name [%tas %id]]
+                [%col-type [%ta %ud]]
+            ==
+        ==
+        :*  %vector
+            :~  [%namespace [%tas %public]]
+                [%name [%tas %widgets]]
+                [%col-ordinal [%ud 1]]
+                [%col-name [%tas %label]]
+                [%col-type [%ta %t]]
+            ==
+        ==
+    ==
+  :~  (result-command namespaces)
+      (result-command tables)
+      (result-command keys)
+      (result-command columns)
+  ==
+::
 ++  parse-fact
   |=  reply=(each (list command:ast) tang)
   ^-  sign:agent:gall
@@ -415,6 +506,31 @@
   =/  poked
     (signal-agent +.watched (work-wire 0 0 %poke) poke-ack)
   (signal-agent +.poked (work-wire 0 0 %watch) response)
+::
+++  finish-run-request
+  |=  $:  req=inbound-request:eyre
+          parsed=(list command:ast)
+          response=sign:agent:gall
+      ==
+  ^-  (quip card:agent:gall agent:gall)
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  =/  poked
+    (signal-agent +.watched (work-wire 0 0 %poke) poke-ack)
+  =/  parsed-out
+    %:  signal-agent
+      +.poked
+      (work-wire 0 0 %watch)
+      (parse-fact [%.y parsed])
+    ==
+  =/  script-watched
+    (signal-agent +.parsed-out (stage-wire 0 0 1 %watch) watch-ack)
+  =/  script-poked
+    (signal-agent +.script-watched (stage-wire 0 0 1 %poke) poke-ack)
+  (signal-agent +.script-poked (stage-wire 0 0 1 %watch) response)
 ::
 ++  wake-sign
   ^-  sign-arvo
@@ -833,10 +949,20 @@
     %:  signal-agent
       +.poked
       (work-wire 0 0 %watch)
+      (parse-fact [%.y ~])
+    ==
+  =/  script-watched
+    (signal-agent +.fact (stage-wire 0 0 1 %watch) watch-ack)
+  =/  script-poked
+    (signal-agent +.script-watched (stage-wire 0 0 1 %poke) poke-ack)
+  =/  finished
+    %:  signal-agent
+      +.script-poked
+      (stage-wire 0 0 1 %watch)
       (query-fact [%.y ~])
     ==
   =/  stale
-    (signal-agent +.fact (work-wire 0 0 %watch) kick-sign)
+    (signal-agent +.finished (work-wire 0 0 %watch) kick-sign)
   ;:  weld
     %+  expect-eq
       !>  :~  (leave-card 0)
@@ -845,14 +971,23 @@
           ==
     !>(-.ready)
     %+  expect-eq
-      !>  ~[(work-poke-card 0 0 [%script %sys %vector "SELECT 1;"])]
+      !>  ~[(work-poke-card 0 0 [%parse %sys "SELECT 1;"])]
     !>(-.watched)
     (expect-eq !>(*(list card:agent:gall)) !>(-.poked))
-    (expect-eq !>((work-leave-card 0 0)) !>((first-card -.fact)))
-    (expect-eq !>(200) !>((response-status (tail-cards -.fact))))
+    %+  expect-eq
+      !>  :~  (work-leave-card 0 0)
+              (work-watch-card-at 0 0 1)
+              (work-timeout-card-at 0 0 1)
+          ==
+    !>(-.fact)
+    %+  expect-eq
+      !>  ~[(work-poke-card-at 0 0 1 [%script %sys %vector "SELECT 1;"])]
+    !>(-.script-watched)
+    (expect-eq !>((work-leave-card-at 0 0 1)) !>((first-card -.finished)))
+    (expect-eq !>(200) !>((response-status (tail-cards -.finished))))
     %+  expect-eq
       !>(~[/http-response/first])
-    !>((response-paths (tail-cards -.fact)))
+    !>((response-paths (tail-cards -.finished)))
     (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
   ==
 ::
@@ -1057,7 +1192,7 @@
   =/  body  (request-text [%run %sys 'SELECT 42;'])
   =/  req
     (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
-  =/  out  (finish-request req (query-fact [%.y commands]))
+  =/  out  (finish-run-request req ~ (query-fact [%.y commands]))
   =/  response-cards  (tail-cards -.out)
   =/  expected=web-response:web
     :*  %run
@@ -1121,7 +1256,7 @@
   =/  body  (request-text [%run %sys 'SELECT missing;'])
   =/  req
     (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
-  =/  out  (finish-request req (query-fact [%.n trace]))
+  =/  out  (finish-run-request req ~ (query-fact [%.n trace]))
   =/  response-cards  (tail-cards -.out)
   =/  message-match=(unit @ud)
     (find "execution failed safely" (trip (response-body response-cards)))
@@ -1142,7 +1277,7 @@
       `run-body
       `'application/json'
     ==
-  =/  run-out  (finish-request run-request (query-fact [%.y ~]))
+  =/  run-out  (finish-run-request run-request ~ (query-fact [%.y ~]))
   =/  parse-body  (request-text [%parse %sys ''])
   =/  parse-request
     %:  api-request
@@ -1192,4 +1327,153 @@
   %+  expect-eq
     !>  ~[(work-poke-card 0 0 [%parse %my-db "SELECT 1;"])]
   !>(-.watched)
+::
+++  test-schema-construction-49
+  =/  response=(unit web-response:web)
+    %:  schema-response:schema-lib
+      `%missing
+      ~[%alpha %sys]
+      schema-detail-commands
+    ==
+  ?~  response  (expect !>(%.n))
+  ?>  ?=(%schema -.u.response)
+  =/  schema=schema-dto:web  value.u.response
+  =/  alpha=database-dto:web  (snag 0 databases.schema)
+  =/  system=database-dto:web  (snag 1 databases.schema)
+  =/  system-namespace=namespace-dto:web  (snag 0 namespaces.system)
+  =/  public=namespace-dto:web  (snag 0 namespaces.alpha)
+  =/  sys-namespace=namespace-dto:web  (snag 1 namespaces.alpha)
+  =/  widgets=relation-dto:web  (snag 0 relations.public)
+  =/  label=column-dto:web  (snag 0 columns.widgets)
+  =/  id=column-dto:web  (snag 1 columns.widgets)
+  =/  expected-key=(unit key-dto:web)  `[1 %.y]
+  =/  expected-views=(list @tas)
+    :~  %columns
+        %data-log
+        %foreign-keys
+        %namespaces
+        %sys-log
+        %table-keys
+        %tables
+    ==
+  =/  system-relations=(list @tas)
+    %+  turn  relations.system-namespace
+    |=  relation=relation-dto:web
+    name.relation
+  ;:  weld
+    (expect-eq !>(%sys) !>(default-database.schema))
+    %+  expect-eq
+      !>(~[%alpha %sys])
+    !>((turn databases.schema |=(database=database-dto:web name.database)))
+    %+  expect-eq
+      !>(~[%public %sys %zeta])
+    !>((turn namespaces.alpha |=(namespace=namespace-dto:web name.namespace)))
+    %+  expect-eq
+      !>(~[%label %id])
+    !>((turn columns.widgets |=(column=column-dto:web name.column)))
+    (expect-eq !>(~) !>(key.label))
+    (expect-eq !>(expected-key) !>(key.id))
+    (expect-eq !>(7) !>((lent relations.sys-namespace)))
+    %+  expect-eq
+      !>(expected-views)
+    !>((turn relations.sys-namespace |=(r=relation-dto:web name.r)))
+    (expect-eq !>(%.n) !>(default.alpha))
+    (expect-eq !>(%.y) !>(default.system))
+    (expect-eq !>(~[%databases]) !>(system-relations))
+  ==
+::
+++  test-schema-malformed-vectors-50
+  =/  bad-database=cmd-result:ast
+    (result-command ~[[%vector ~[[%database [%ta %alpha]]]]])
+  =/  too-short=(list cmd-result:ast)
+    (slag 1 schema-detail-commands)
+  ;:  weld
+    %+  expect-eq
+      !>(*(unit (list @tas)))
+    !>((database-names:schema-lib ~[bad-database]))
+    %+  expect-eq
+      !>(*(unit web-response:web))
+    !>((schema-response:schema-lib ~ ~[%alpha] too-short))
+  ==
+::
+++  test-schema-query-sequence-51
+  =/  expected=tape
+    %+  weld  (namespaces-query:schema-lib %alpha)
+    %+  weld  (tables-query:schema-lib %alpha)
+    %+  weld  (keys-query:schema-lib %alpha)
+    (columns-query:schema-lib %alpha)
+  ;:  weld
+    %+  expect-eq
+      !>("FROM sys.sys.databases SELECT database;")
+    !>(databases-query:schema-lib)
+    %+  expect-eq
+      !>(expected)
+    !>((detail-script:schema-lib ~[%sys %alpha]))
+  ==
+::
+++  test-schema-refresh-decisions-52
+  =/  ddl=(list command:ast)
+    ~[[%create-database %created ~]]
+  =/  body  (request-text [%run %sys 'CREATE DATABASE created;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  out  (finish-run-request req ddl (query-fact [%.y ~]))
+  =/  response-cards  (tail-cards -.out)
+  ;:  weld
+    (expect !>((schema-changing:schema-lib ddl)))
+    %+  expect-eq
+      !>((response-json:json-lib [%run ~ %.y]))
+    !>((response-json response-cards))
+  ==
+::
+++  test-schema-coordinator-53
+  =/  body  (request-text [%schema `%missing])
+  =/  req
+    (api-request '/apps/obelisk/api/schema' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  =/  databases
+    %:  signal-agent
+      +.watched
+      (work-wire 0 0 %watch)
+      (query-fact [%.y ~[(database-command ~[%sys %alpha])]])
+    ==
+  =/  details-watched
+    (signal-agent +.databases (stage-wire 0 0 1 %watch) watch-ack)
+  =/  details-poked
+    (signal-agent +.details-watched (stage-wire 0 0 1 %poke) poke-ack)
+  =/  finished
+    %:  signal-agent
+      +.details-poked
+      (stage-wire 0 0 1 %watch)
+      (query-fact [%.y schema-detail-commands])
+    ==
+  =/  response-cards  (tail-cards -.finished)
+  =/  database-action=action:ast
+    [%script %sys %vector databases-query:schema-lib]
+  =/  detail-action=action:ast
+    [%script %sys %vector (detail-script:schema-lib ~[%alpha %sys])]
+  =/  response-value=json
+    (need (field:json-lib 'value' (response-json response-cards)))
+  ;:  weld
+    %+  expect-eq
+      !>(~[(work-poke-card 0 0 database-action)])
+    !>(-.watched)
+    %+  expect-eq
+      !>  :~  (work-leave-card 0 0)
+              (work-watch-card-at 0 0 1)
+              (work-timeout-card-at 0 0 1)
+          ==
+    !>(-.databases)
+    %+  expect-eq
+      !>(~[(work-poke-card-at 0 0 1 detail-action)])
+    !>(-.details-watched)
+    (expect-eq !>(200) !>((response-status response-cards)))
+    %+  expect-eq
+      !>(`'sys')
+    !>((text-field:json-lib 'defaultDatabase' response-value))
+  ==
 --

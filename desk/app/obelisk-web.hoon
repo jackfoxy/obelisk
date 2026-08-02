@@ -5,6 +5,7 @@
 /-  ast=obelisk-ast, web=obelisk-web
 /+  dbug, default-agent, server
 /+  json-lib=obelisk-web-json, result-lib=obelisk-web-result
+/+  schema-lib=obelisk-web-schema
 /+  web-lib=obelisk-web
 |%
 +$  card  card:agent:gall
@@ -16,12 +17,13 @@
   $:  action=action:ast
       work-kind=obelisk-work-kind:web
       reply-kind=obelisk-reply-kind:web
+      context=obelisk-context:web
   ==
 +$  query-reply  (each (list cmd-result:ast) tang)
 +$  parse-reply  (each (list command:ast) tang)
-+$  reply-outcome
-  $%  [%ok response=web-response:web]
-      [%error trace=tang]
++$  decoded-reply
+  $%  [%query reply=query-reply]
+      [%parse reply=parse-reply]
       [%malformed ~]
   ==
 ::
@@ -108,9 +110,15 @@
   /obelisk-web/readiness/(scot %ud request-id)
 ::
 ++  work-wire
-  |=  [request-id=request-id:web attempt=@ud kind=term]
+  |=  [request-id=request-id:web attempt=@ud stage=@ud kind=term]
   ^-  wire
-  [%obelisk-web %work (scot %ud request-id) (scot %ud attempt) kind ~]
+  :~  %obelisk-web
+      %work
+      (scot %ud request-id)
+      (scot %ud attempt)
+      (scot %ud stage)
+      kind
+  ==
 ::
 ++  wait-card
   |=  [=wire when=@da]
@@ -140,13 +148,16 @@
   ?-  -.request
     %run
       =/  action=action:ast
-        [%script default-database.request %vector (trip script.request)]
-      `[action %run-script %query]
+        [%parse default-database.request (trip script.request)]
+      `[action %run-parse %parse [%none ~]]
     %parse
       =/  action=action:ast
         [%parse default-database.request (trip script.request)]
-      `[action %parse %parse]
-    %schema  ~
+      `[action %parse %parse [%none ~]]
+    %schema
+      =/  action=action:ast
+        [%script %sys %vector databases-query:schema-lib]
+      `[action %schema %query [%schema-databases default-database.request]]
     %file-browse  ~
     %file-load  ~
     %file-save  ~
@@ -154,27 +165,19 @@
 ::
 ++  decode-reply
   |=  [kind=obelisk-reply-kind:web =cage]
-  ^-  reply-outcome
+  ^-  decoded-reply
   ?.  =(%noun p.cage)  [%malformed ~]
   ?-  kind
     %query
       =/  decoded=(each query-reply tang)
         (mule |.(!<(query-reply q.cage)))
       ?.  ?=(%.y -.decoded)  [%malformed ~]
-      =/  reply=query-reply  p.decoded
-      ?-  -.reply
-        %.n  [%error p.reply]
-        %.y  [%ok (run-response:result-lib p.reply)]
-      ==
+      [%query p.decoded]
     %parse
       =/  decoded=(each parse-reply tang)
         (mule |.(!<(parse-reply q.cage)))
       ?.  ?=(%.y -.decoded)  [%malformed ~]
-      =/  reply=parse-reply  p.decoded
-      ?-  -.reply
-        %.n  [%error p.reply]
-        %.y  [%ok (parse-response:result-lib p.reply)]
-      ==
+      [%parse p.decoded]
   ==
 ::
 ++  respond-json
@@ -190,22 +193,17 @@
     (json-text:json-lib (response-json:json-lib response))
   ==
 ::
-++  reply-cards
-  |=  [eyre-id=@ta kind=obelisk-reply-kind:web outcome=reply-outcome]
+++  reply-error-cards
+  |=  [eyre-id=@ta kind=obelisk-reply-kind:web trace=tang]
   ^-  (list card)
-  ?-  -.outcome
-    %ok  (respond-json eyre-id response.outcome)
-    %malformed  (malformed-fact-response eyre-id)
-    %error
-      =/  message=@t
-        ?-(kind %query 'Obelisk execution failed', %parse 'urQL parse failed')
-      %+  respond-error  eyre-id
-      :*  %unprocessable
-          422
-          message
-          %.n
-          (tang-details:result-lib trace.outcome)
-      ==
+  =/  message=@t
+    ?-(kind %query 'Obelisk execution failed', %parse 'urQL parse failed')
+  %+  respond-error  eyre-id
+  :*  %unprocessable
+      422
+      message
+      %.n
+      (tang-details:result-lib trace)
   ==
 ::
 ++  coordinated-response
@@ -273,6 +271,38 @@
   =.  queue.transient.next-state  t.queue.transient.state
   (begin-readiness job next-state our)
 ::
+++  start-work
+  |=  $:  job=queued-request:web
+          retries=@ud
+          stage=@ud
+          work=work-plan
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =/  watch-wire=wire  (work-wire request-id.job retries stage %watch)
+  =/  poke-wire=wire  (work-wire request-id.job retries stage %poke)
+  =/  timeout-wire=wire  (work-wire request-id.job retries stage %timeout)
+  =/  active=active-obelisk:web
+    :*  job
+        action.work
+        work-kind.work
+        reply-kind.work
+        context.work
+        %watching
+        watch-wire
+        poke-wire
+        timeout-wire
+        retries
+        stage
+    ==
+  =.  active.transient.state  `active
+  :_  state
+  :~  (watch-card watch-wire our)
+      (wait-card timeout-wire (add now work-timeout:web-lib))
+  ==
+::
 ++  start-active
   |=  $:  job=queued-request:web
           retries=@ud
@@ -281,31 +311,33 @@
           our=@p
       ==
   ^-  (quip card live-state:web)
-  =/  work=(unit work-plan)
-    (work-for request.job)
+  =/  work=(unit work-plan)  (work-for request.job)
   ?~  work
     =/  next=(quip card live-state:web)  (start-next state now our)
     :_  +.next
     (weld (coordinated-response eyre-id.job) -.next)
-  =/  watch-wire=wire  (work-wire request-id.job retries %watch)
-  =/  poke-wire=wire  (work-wire request-id.job retries %poke)
-  =/  timeout-wire=wire  (work-wire request-id.job retries %timeout)
-  =/  active=active-obelisk:web
-    :*  job
-        action.u.work
-        work-kind.u.work
-        reply-kind.u.work
-        %watching
-        watch-wire
-        poke-wire
-        timeout-wire
-        retries
+  (start-work job retries 0 u.work state now our)
+::
+++  continue-active
+  |=  $:  active=active-obelisk:web
+          work=work-plan
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =/  next=(quip card live-state:web)
+    %:  start-work
+      job.active
+      retries.active
+      +(stage.active)
+      work
+      state
+      now
+      our
     ==
-  =.  active.transient.state  `active
-  :_  state
-  :~  (watch-card watch-wire our)
-      (wait-card timeout-wire (add now work-timeout:web-lib))
-  ==
+  :_  +.next
+  [(leave-card watch-wire.active our) -.next]
 ::
 ++  complete-active
   |=  $:  active=active-obelisk:web
@@ -322,6 +354,201 @@
     ?:  cleanup  ~[(leave-card watch-wire.active our)]  ~
   :_  +.next
   (weld cleanup-cards (weld response-cards -.next))
+::
+++  complete-with-response
+  |=  $:  active=active-obelisk:web
+          response=web-response:web
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  %:  complete-active
+    active
+    (respond-json eyre-id.job.active response)
+    %.y
+    state
+    now
+    our
+  ==
+::
+++  complete-with-malformed
+  |=  $:  active=active-obelisk:web
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  %:  complete-active
+    active
+    (malformed-fact-response eyre-id.job.active)
+    %.y
+    state
+    now
+    our
+  ==
+::
+++  complete-with-error
+  |=  $:  active=active-obelisk:web
+          kind=obelisk-reply-kind:web
+          trace=tang
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  %:  complete-active
+    active
+    (reply-error-cards eyre-id.job.active kind trace)
+    %.y
+    state
+    now
+    our
+  ==
+::
+++  handle-parse-success
+  |=  $:  active=active-obelisk:web
+          commands=(list command:ast)
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  ?-  work-kind.active
+    %parse
+      %:  complete-with-response
+        active
+        (parse-response:result-lib commands)
+        state
+        now
+        our
+      ==
+    %run-parse
+      ?>  ?=(%run -.request.job.active)
+      =/  action=action:ast
+        :*  %script
+            default-database.request.job.active
+            %vector
+            (trip script.request.job.active)
+        ==
+      =/  work=work-plan
+        [action %run-script %query [%run commands]]
+      (continue-active active work state now our)
+    %run-script  (complete-with-malformed active state now our)
+    %schema  (complete-with-malformed active state now our)
+  ==
+::
+++  handle-schema-databases
+  |=  $:  active=active-obelisk:web
+          commands=(list cmd-result:ast)
+          requested=(unit @tas)
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =/  databases=(unit (list @tas))
+    (database-names:schema-lib commands)
+  ?~  databases
+    (complete-with-malformed active state now our)
+  =/  script=tape  (detail-script:schema-lib u.databases)
+  ?~  script
+    =/  response=(unit web-response:web)
+      (schema-response:schema-lib requested u.databases ~)
+    ?~  response
+      (complete-with-malformed active state now our)
+    (complete-with-response active u.response state now our)
+  =/  action=action:ast  [%script %sys %vector script]
+  =/  work=work-plan
+    :*  action
+        %schema
+        %query
+        [%schema-details requested u.databases]
+    ==
+  (continue-active active work state now our)
+::
+++  handle-query-success
+  |=  $:  active=active-obelisk:web
+          commands=(list cmd-result:ast)
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  ?-  work-kind.active
+    %run-script
+      ?.  ?=(%run -.context.active)
+        (complete-with-malformed active state now our)
+      =/  changed=?
+        (schema-changing:schema-lib commands.context.active)
+      %:  complete-with-response
+        active
+        (run-response-with:result-lib commands changed)
+        state
+        now
+        our
+      ==
+    %schema
+      ?-  -.context.active
+        %schema-databases
+          %:  handle-schema-databases
+            active
+            commands
+            requested.context.active
+            state
+            now
+            our
+          ==
+        %schema-details
+          =/  response=(unit web-response:web)
+            %:  schema-response:schema-lib
+              requested.context.active
+              databases.context.active
+              commands
+            ==
+          ?~  response
+            (complete-with-malformed active state now our)
+          (complete-with-response active u.response state now our)
+        %none  (complete-with-malformed active state now our)
+        %run  (complete-with-malformed active state now our)
+      ==
+    %run-parse  (complete-with-malformed active state now our)
+    %parse  (complete-with-malformed active state now our)
+  ==
+::
+++  handle-active-fact
+  |=  $:  active=active-obelisk:web
+          cage=cage
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  ?:  =(%watching phase.active)
+    (complete-with-malformed active state now our)
+  =/  decoded=decoded-reply
+    (decode-reply reply-kind.active cage)
+  ?-  -.decoded
+    %malformed  (complete-with-malformed active state now our)
+    %parse
+      ?-  -.reply.decoded
+        %.n
+          %:  complete-with-error
+            active  %parse  p.reply.decoded  state  now  our
+          ==
+        %.y
+          (handle-parse-success active p.reply.decoded state now our)
+      ==
+    %query
+      ?-  -.reply.decoded
+        %.n
+          %:  complete-with-error
+            active  %query  p.reply.decoded  state  now  our
+          ==
+        %.y
+          (handle-query-success active p.reply.decoded state now our)
+      ==
+  ==
 ::
 ++  advance-readiness
   |=  $:  pending=pending-readiness:web
@@ -607,23 +834,16 @@
         :_  this(state state)
         ~[(poke-card poke-wire.active our.bowl action.active)]
       %fact
-        =/  outcome=reply-outcome
-          ?:  =(%watching phase.active)
-            [%malformed ~]
-          (decode-reply reply-kind.active cage.sign)
-        =/  response-cards=(list card)
-          (reply-cards eyre-id.job.active reply-kind.active outcome)
-        =/  completed=(quip card live-state:web)
-          %:  complete-active
+        =/  handled=(quip card live-state:web)
+          %:  handle-active-fact
             active
-            response-cards
-            %.y
+            cage.sign
             state
             now.bowl
             our.bowl
           ==
-        :_  this(state +.completed)
-        -.completed
+        :_  this(state +.handled)
+        -.handled
       %kick
         =/  completed=(quip card live-state:web)
           %:  complete-active
