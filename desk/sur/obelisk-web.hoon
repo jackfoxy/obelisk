@@ -22,6 +22,7 @@
       next-request-id=request-id
       queue=(list queued-request)
       active=(unit active-obelisk)
+      readiness=(unit pending-readiness)
   ==
 ::
 +$  live-state
@@ -55,6 +56,18 @@
       eyre-id=@ta
       received-at=@da
       request=web-request
+  ==
+::
++$  pending-readiness
+  $:  job=queued-request
+      failures=@ud
+      retry-wire=wire
+  ==
+::
++$  readiness-decision
+  $%  [%ready ~]
+      [%retry failures=@ud]
+      [%exhausted ~]
   ==
 ::
 +$  obelisk-work-kind

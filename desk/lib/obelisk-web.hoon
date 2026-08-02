@@ -13,7 +13,26 @@
       0
       ~
       ~
+      ~
   ==
+::
+++  max-readiness-failures
+  ^-  @ud
+  3
+::
+++  readiness-delay
+  ^-  @dr
+  ~s1
+::
+++  readiness-step
+  |=  [live=? failures=@ud]
+  ^-  readiness-decision:web
+  ?:  live
+    [%ready ~]
+  =/  next-failures=@ud  +(failures)
+  ?:  (lth next-failures max-readiness-failures)
+    [%retry next-failures]
+  [%exhausted ~]
 ::
 ++  empty-saved-state
   ^-  saved-state-0:web
