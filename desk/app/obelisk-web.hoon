@@ -172,12 +172,12 @@
   ?-  kind
     %query
       =/  decoded=(each query-reply tang)
-        (mule |.(!<(query-reply q.cage)))
+        (mule |.(;;(query-reply q.q.cage)))
       ?.  ?=(%.y -.decoded)  [%malformed ~]
       [%query p.decoded]
     %parse
       =/  decoded=(each parse-reply tang)
-        (mule |.(!<(parse-reply q.cage)))
+        (mule |.(;;(parse-reply q.q.cage)))
       ?.  ?=(%.y -.decoded)  [%malformed ~]
       [%parse p.decoded]
   ==
@@ -269,23 +269,14 @@
     %+  respond-error  eyre-id
     (make-error %bad-request 400 'invalid file browse path' %.n)
   =/  clay-path=path  (browse-path:file-lib relative)
-  =/  beam=path
-    (clay-beam:file-lib our desk da+now clay-path)
-  =/  exists=(each ? tang)  (clay-exists beam)
-  ?-  -.exists
-    %.n  (file-error-cards eyre-id 'Clay browse failed' p.exists)
+  =/  loaded=(each (list path) tang)
+    (clay-physical-paths our desk now clay-path)
+  ?-  -.loaded
+    %.n  (file-error-cards eyre-id 'Clay browse failed' p.loaded)
     %.y
-      ?.  p.exists
-        (respond-json eyre-id [%file-list ~])
-      =/  loaded=(each (list path) tang)
-        (clay-physical-paths our desk now clay-path)
-      ?-  -.loaded
-        %.n  (file-error-cards eyre-id 'Clay browse failed' p.loaded)
-        %.y
-          =/  entries=(list file-entry-dto:web)
-            (entries-from-physical:file-lib relative p.loaded)
-          (respond-json eyre-id [%file-list entries])
-      ==
+      =/  entries=(list file-entry-dto:web)
+        (entries-from-physical:file-lib relative p.loaded)
+      (respond-json eyre-id [%file-list entries])
   ==
 ::
 ++  load-file-cards

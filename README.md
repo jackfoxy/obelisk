@@ -16,13 +16,20 @@
 
 Obelisk employs a dialect of SQL called "urQL" that provides for these properties.
 
-For more information see [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder and the USTJ article [Obelisk: Reinventing SQL for Modern Computing](https://urbitsystems.tech/article/v03-i01/obelisk-reinventing-sql-for-modern-computing).
+For more information see
+[Reference/Preliminaries](/desk/doc/usr/reference/preliminaries.md), the
+[Users Guide](/desk/doc/usr/users-guide.md), and the USTJ article
+[Obelisk: Reinventing SQL for Modern Computing](https://urbitsystems.tech/article/v03-i01/obelisk-reinventing-sql-for-modern-computing).
 
-### Using the %hawk UI
+### Native web interface
 
-The best user experience with %obelisk directly comes with the preinstalled %hawk Obelisk UI: click the Obelisk landscape tile to open %hawk to Obelisk. UX is similar to SQL Studio. You can write and run scripts, save scripts and results, and open script templates.
+The Obelisk desk includes a native Sail workbench. Click the Obelisk tile or
+visit `/apps/obelisk` on your ship. No external UI app is required.
 
-You will find the same actions from the %dojo execute a little faster (see the [Users Guide](/desk/doc/sur/users-guide.md)), the UI does add some overhead. Still the UI is the recommended interface for most direct user interactions with the %obelisk desk.
+The workbench supports Run, Parse, schema browsing, multiple editor tabs,
+Clay-backed script and result files, result paging, copying, and delimited
+exports. See the [Users Guide](/desk/doc/usr/users-guide.md) for the interface
+and dojo workflows.
 
 ### Beta release
 
@@ -38,7 +45,8 @@ The animal-shelter database comes installed, but should you drop it and wish to 
 
 Depending on your system it will load in about 30 seconds.
 
-You can also install it from the %hawk UI, but this will be much slower and is not recommended.
+You can submit the same script through the native web interface, but the dojo
+is recommended for this large initial import.
 
 ### Developers
 

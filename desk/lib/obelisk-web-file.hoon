@@ -112,10 +112,14 @@
 ++  logical-path
   |=  physical=path
   ^-  (unit relative-path:web)
-  ?:  (lth (lent physical) 3)  ~
-  ?.  =(%txt (rear physical))  ~
+  =/  normalized=path
+    ?:  (path-prefix storage-root physical)
+      (slag (lent storage-root) physical)
+    physical
+  ?:  (lth (lent normalized) 3)  ~
+  ?.  =(%txt (rear normalized))  ~
   =/  relative=relative-path:web
-    (scag (dec (lent physical)) physical)
+    (scag (dec (lent normalized)) normalized)
   ?.  (valid-file-path relative)  ~
   `relative
 ::
@@ -180,10 +184,19 @@
     (skim entries |=(entry=file-entry-dto:web !=(base path.entry)))
   (sort entries entry-lte)
 ::
+++  storage-wain
+  |=  content=@t
+  ^-  wain
+  =/  lines=wain  (to-wain:format content)
+  ?:  =(0 content)  lines
+  =/  size=@ud  (met 3 content)
+  ?.  =(10 (cut 3 [(dec size) 1] content))  lines
+  (snoc lines '')
+::
 ++  text-cage
   |=  content=@t
   ^-  cage
-  [%txt !>((to-wain:format content))]
+  [%txt !>((storage-wain content))]
 ::
 ++  text-from-cage
   |=  =cage
@@ -191,7 +204,7 @@
   ?.  =(%txt p.cage)  ~
   =/  decoded=(each @t tang)
     %-  mule  |.
-    (of-wain:format !<(wain q.cage))
+    (of-wain:format ;;(wain q.q.cage))
   ?-  -.decoded
     %.n  ~
     %.y  `p.decoded

@@ -1,9 +1,9 @@
-# Native Sail Front End: Baseline and Parity Matrix
+# Native Sail Front End: Parity and Verification
 
-This document completes work unit 1 of
-`native-sail-frontend-plan.md`. It records the Hawk baseline, the current
-Obelisk protocol, the selected web architecture, and the acceptance mapping
-for every requirement in `native-sail-frontend.md`.
+This document began as the work unit 1 baseline for
+`native-sail-frontend-plan.md` and now records final verification. It covers
+the Hawk baseline, current Obelisk protocol, selected web architecture, and
+acceptance evidence for every requirement in `native-sail-frontend.md`.
 
 ## Baseline
 
@@ -60,9 +60,9 @@ The web agent uses versioned saved state and reconstructs transient state on
 load. Eyre bindings, request queues, timers, and in-flight jobs are transient.
 Loading an old or empty state must never crash the agent.
 
-Hawk installation and removal are outside the new agent. The existing Hawk
-installation path remains until native parity has passed its final acceptance
-check.
+The native agent has no Hawk dependency. After parity testing, the legacy Hawk
+auto-install card and callback were removed from `%obelisk`; the template is
+retained as the behavioral reference.
 
 ### `%obelisk` request coordination
 
@@ -94,9 +94,10 @@ execution; correctness is preferred over adding an alternate execution API.
 
 ### Clay file namespace
 
-Saved scripts and result exports use Clay under `/data/obelisk/ui` with `%txt`
-content. API paths are relative to that root. Empty components, `.` and `..`,
-absolute paths, control characters, and invalid Clay components are rejected.
+Saved scripts and result exports use Clay under `/data/obelisk`, in the
+`scripts` and `results` scopes, with `%txt` content. API paths are relative to
+that root. Empty components, `.` and `..`, absolute paths, control characters,
+and invalid Clay components are rejected.
 
 The file browser is recursive. Save distinguishes create from overwrite;
 overwrite requires an explicit flag. Save As uses the same endpoint with a new
@@ -116,7 +117,7 @@ Asset routes are served only beneath the application prefix. API bodies and
 responses use typed JSON encoding and decoding; user text is never assembled
 by string interpolation into JSON or HTML.
 
-Provisional route contract:
+Route contract:
 
 | Method | Route | Purpose | Success |
 | --- | --- | --- | --- |
@@ -335,7 +336,7 @@ Every row identifies the later work-plan unit and its acceptance evidence.
 | R6 | Copy and Save Results include all rows and result sets | 16 | Paged multi-set fixture exports complete data |
 | P1 | Desk packaging includes new app, lib, sur, tests, and assets | 17 | Desk build resolves every mark and import |
 | P2 | Existing Hawk removal only after native parity | 17 | Removal is the final packaging change after acceptance passes |
-| P3 | Setup, route, Clay, and migration documentation | 17 | Documentation review against actual paths and state version |
+| P3 | Setup, route, Clay, and migration documentation | 18 | Documentation review against actual paths and state version |
 | T1 | All new automated tests live in one required file | 2-18 | Only `desk/tests/lib/obelisk-web.hoon` contains project tests |
 | T2 | Full build, automated suite, and fake-ship workflow | 18 | Manual command transcript and completed parity checklist |
 
@@ -347,3 +348,24 @@ Every row identifies the later work-plan unit and its acceptance evidence.
 - Direct Eyre was selected over Rudder with a documented rationale.
 - Every prompt requirement maps to a work unit and an acceptance check.
 
+## Final Verification
+
+Verification used a disposable fake `~zod` running Vere 4.5.
+
+- `-test /=obelisk=/tests/lib/obelisk-web` completed with `ok=%.y`.
+- `-test /=obelisk=/tests` completed with `ok=%.y`.
+- A clean desk install activated `%obelisk` and `%obelisk-web`, served
+  `/apps/obelisk` with status 200, and did not install Hawk.
+- Stopping and reviving `%obelisk-web` preserved the route and returned status
+  200 after activation.
+- A full Vere restart preserved a nested script and an 800-row Clay export.
+- The authenticated browser checklist passed Run, Parse, selected-text `F5`,
+  schema refresh, default database selection, schema templates, nested Save
+  As, duplicate-open activation, session reload, 500-row paging, full-data
+  Copy, comma/space/tab exports, pane persistence, and narrow layout.
+- The repository contains no generated frontend bundle, package-manager
+  artifact, Hawk integration, unfinished web stub, or temporary test output.
+
+The final implementation uses direct Eyre routes and a bounded single-flight
+FIFO because the current `%obelisk` fact protocol has no request identifier.
+No documented parity gaps remain.

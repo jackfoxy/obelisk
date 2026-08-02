@@ -4,9 +4,32 @@ If you have worked with SQL, Obelisk should seem very familiar. If you have no e
 
 It is recommended to read the [Preliminaries](/docs/usr/reference/preliminaries.md) chapter of the Reference document before proceeding.
 
-Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
+Examples in this article rely on the Urbit `%obelisk` agent, which prints
+results to the dojo.
 
-Use the %hawk Obelisk UI for a SQL Studio-like experience: write and run scripts, save scripts and results, and open script templates.
+## Native web interface
+
+The Obelisk desk installs its native Sail workbench automatically. Open the
+Obelisk landscape tile or visit `/apps/obelisk` on your ship. It does not need
+Hawk or another external application.
+
+The editor supports multiple tabs. Run uses the selected text when there is a
+selection and otherwise uses the active tab; `F5` is the Run shortcut. Parse
+shows the parsed command noun without executing the script. The Default DB
+selector controls how unqualified object names are resolved. The schema tree
+refreshes after successful schema changes and offers SELECT, INSERT, and
+CREATE templates where appropriate.
+
+Use File to create, open, save, save as, or close scripts. Explicitly saved
+scripts and result exports are `%txt` files in the desk's Clay namespace under
+`/data/obelisk`, in the `scripts` and `results` scopes; nested relative paths
+are supported. Unsaved editor state, pane sizes, schema expansion, and the
+current output are retained only for the browser session.
+
+Query results are displayed in command order. Result sets of 800 rows or more
+are paged in groups of 500, while Copy and Save Results still include every
+row. Save Results supports comma, space, and tab delimiters. The interface
+requires an authenticated ship session for database and file operations.
 
 
 # Commands

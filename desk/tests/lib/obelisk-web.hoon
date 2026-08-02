@@ -6,6 +6,7 @@
 /+  schema-lib=obelisk-web-schema
 /+  state=obelisk-web, *test
 /=  agent  /app/obelisk-web
+/=  backend  /app/obelisk
 |%
 ::
 ++  queued-fixture
@@ -1685,11 +1686,11 @@
 ::
 ++  test-file-recursive-ordering-61
   =/  physical=(list path)
-    :~  /scripts/zeta/txt
-        /scripts/nested/beta/txt
-        /results/result-1/txt
-        /scripts/nested/alpha/txt
-        /scripts/ignored/hoon
+    :~  /data/obelisk/scripts/zeta/txt
+        /data/obelisk/scripts/nested/beta/txt
+        /data/obelisk/results/result-1/txt
+        /data/obelisk/scripts/nested/alpha/txt
+        /data/obelisk/scripts/ignored/hoon
     ==
   =/  expected=(list file-entry-dto:web)
     :~  [~[%scripts %nested] %directory]
@@ -1702,9 +1703,14 @@
   !>((entries-from-physical:file-lib ~[%scripts] physical))
 ::
 ++  test-file-text-and-conflicts-62
-  =/  cage=cage  (text-cage:file-lib hostile-text)
+  =/  text-cage-value=cage  (text-cage:file-lib hostile-text)
+  =/  trailing=@t  'first\0a\0a'
+  =/  trailing-cage=cage  (text-cage:file-lib trailing)
   ;:  weld
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib cage)))
+    %+  expect-eq
+      !>(`hostile-text)
+    !>((text-from-cage:file-lib text-cage-value))
+    (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
     (expect !>((save-conflict:file-lib %.y %.n)))
     (expect !>(!(save-conflict:file-lib %.y %.y)))
     (expect !>(!(save-conflict:file-lib %.n %.n)))
@@ -1935,5 +1941,47 @@
     (expect-eq !>(~[bind-card]) !>(-.loaded))
     (expect-eq !>(empty-saved-state:state) on-save:+.initialized)
     (expect-eq !>(empty-saved-state:state) on-save:+.loaded)
+  ==
+::
+++  test-live-backend-reply-cages-76
+  =/  query-action=action:ast
+    [%script %sys %vector "FROM sys.sys.databases SELECT database;"]
+  =/  query-out
+    %-  on-poke:~(. backend bowl)
+    [%obelisk-action !>(query-action)]
+  =/  query-cards  -.query-out
+  ?>  ?=(^ query-cards)
+  =/  query-card  i.query-cards
+  ?>  ?=([%give %fact *] query-card)
+  =/  query-cage  cage.p.query-card
+  =/  query-sign=sign:agent:gall  [%fact query-cage]
+  =/  run-body  (request-text [%run %sys ''])
+  =/  run-request
+    (api-request '/apps/obelisk/api/run' %.y `run-body `'application/json')
+  =/  web-query-out  (finish-run-request run-request ~ query-sign)
+  =/  parse-action=action:ast
+    [%parse %sys "FROM sys.sys.databases SELECT database;"]
+  =/  parse-out
+    %-  on-poke:~(. backend bowl)
+    [%obelisk-action !>(parse-action)]
+  =/  parse-cards  -.parse-out
+  ?>  ?=(^ parse-cards)
+  =/  parse-card  i.parse-cards
+  ?>  ?=([%give %fact *] parse-card)
+  =/  parse-cage  cage.p.parse-card
+  =/  parse-sign=sign:agent:gall  [%fact parse-cage]
+  =/  parse-body
+    (request-text [%parse %sys 'FROM sys.sys.databases SELECT database;'])
+  =/  parse-request
+    %:  api-request
+      '/apps/obelisk/api/parse'
+      %.y
+      `parse-body
+      `'application/json'
+    ==
+  =/  web-parse-out  (finish-request parse-request parse-sign)
+  ;:  weld
+    (expect-eq !>(422) !>((response-status (tail-cards -.web-query-out))))
+    (expect-eq !>(200) !>((response-status (tail-cards -.web-parse-out))))
   ==
 --
