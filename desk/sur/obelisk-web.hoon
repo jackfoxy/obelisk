@@ -23,6 +23,7 @@
       queue=(list queued-request)
       active=(unit active-obelisk)
       readiness=(unit pending-readiness)
+      file-save=(unit pending-file-save)
   ==
 ::
 +$  live-state
@@ -56,6 +57,15 @@
       eyre-id=@ta
       received-at=@da
       request=web-request
+  ==
+::
++$  pending-file-save
+  $:  eyre-id=@ta
+      path=relative-path
+      content=@t
+      verify-wire=wire
+      timeout-wire=wire
+      desk=desk
   ==
 ::
 +$  pending-readiness

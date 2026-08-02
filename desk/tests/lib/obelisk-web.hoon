@@ -1,7 +1,8 @@
 ::  Tests for %obelisk-web shared types and state lifecycle.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  json-lib=obelisk-web-json, result-lib=obelisk-web-result
+/+  file-lib=obelisk-web-file, json-lib=obelisk-web-json
+/+  result-lib=obelisk-web-result
 /+  schema-lib=obelisk-web-schema
 /+  state=obelisk-web, *test
 /=  agent  /app/obelisk-web
@@ -37,6 +38,7 @@
       queue=~[queued-fixture]
       active=`active-fixture
       readiness=~
+      file-save=~
   ==
 ::
 ++  test-state-bunts-00
@@ -60,7 +62,7 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~]])
+    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
 ++  test-save-load-roundtrip-02
@@ -844,15 +846,6 @@
     %+  expect-api-accepted
       '/apps/obelisk/api/schema'
     [%schema `%sys]
-    %+  expect-api-accepted
-      '/apps/obelisk/api/files/browse'
-    [%file-browse ~[%scripts]]
-    %+  expect-api-accepted
-      '/apps/obelisk/api/files/load'
-    [%file-load ~[%scripts %query-1]]
-    %+  expect-api-accepted
-      '/apps/obelisk/api/files/save'
-    [%file-save ~[%scripts %query-1] 'SELECT 1;' %.n]
   ==
 ::
 ++  test-readiness-unavailable-30
@@ -1651,5 +1644,156 @@
     (expect-eq !>(3) !>((page-count:result-lib 1.001)))
     (expect-eq !>(800) !>((lent rows.table)))
     (expect !>(?=(^ (find "\0a799\0a" (trip exported)))))
+  ==
+::
+++  test-file-path-validation-60
+  ;:  weld
+    (expect !>((valid-browse-path:file-lib ~)))
+    (expect !>((valid-browse-path:file-lib ~[%scripts %nested])))
+    (expect !>((valid-file-path:file-lib ~[%scripts %nested %query-1])))
+    (expect !>((valid-file-path:file-lib ~[%results %results-1])))
+    (expect !>(!(valid-file-path:file-lib ~[%scripts])))
+    (expect !>(!(valid-file-path:file-lib ~[%other %query-1])))
+    (expect !>(!(valid-file-path:file-lib ~[%scripts '.' %query-1])))
+    (expect !>(!(valid-file-path:file-lib ~[%scripts '..' %query-1])))
+    (expect !>(!(valid-file-path:file-lib ~[%scripts '' %query-1])))
+    (expect !>(!(valid-file-path:file-lib ~[%scripts 'bad path'])))
+    (expect !>((valid-storage-mark:file-lib %txt)))
+    (expect !>(!(valid-storage-mark:file-lib %hoon)))
+    %+  expect-eq
+      !>(/data/obelisk/scripts/nested/query-1/txt)
+    !>((storage-path:file-lib ~[%scripts %nested %query-1]))
+    %+  expect-eq
+      !>(/~zod//~2026.8.1/tomb/~zod/obelisk/~2026.8.1/data/obelisk/txt)
+    !>  %:  tomb-beam:file-lib
+          %:  clay-beam:file-lib
+            ~zod  %obelisk  da+~2026.8.1  /data/obelisk/txt
+          ==
+        ==
+  ==
+::
+++  test-file-recursive-ordering-61
+  =/  physical=(list path)
+    :~  /scripts/zeta/txt
+        /scripts/nested/beta/txt
+        /results/result-1/txt
+        /scripts/nested/alpha/txt
+        /scripts/ignored/hoon
+    ==
+  =/  expected=(list file-entry-dto:web)
+    :~  [~[%scripts %nested] %directory]
+        [~[%scripts %nested %alpha] %file]
+        [~[%scripts %nested %beta] %file]
+        [~[%scripts %zeta] %file]
+    ==
+  %+  expect-eq
+    !>(expected)
+  !>((entries-from-physical:file-lib ~[%scripts] physical))
+::
+++  test-file-text-and-conflicts-62
+  =/  cage=cage  (text-cage:file-lib hostile-text)
+  ;:  weld
+    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib cage)))
+    (expect !>((save-conflict:file-lib %.y %.n)))
+    (expect !>(!(save-conflict:file-lib %.y %.y)))
+    (expect !>(!(save-conflict:file-lib %.n %.n)))
+  ==
+::
+++  test-file-invalid-http-paths-63
+  =/  save-body
+    (request-text [%file-save ~[%scripts '..' %query] 'x' %.n])
+  =/  save-req
+    %:  api-request
+      '/apps/obelisk/api/files/save'
+      %.y
+      `save-body
+      `'application/json'
+    ==
+  =/  load-body  (request-text [%file-load ~[%outside %query]])
+  =/  load-req
+    %:  api-request
+      '/apps/obelisk/api/files/load'
+      %.y
+      `load-body
+      `'application/json'
+    ==
+  =/  save-out  (poke-http save-req)
+  =/  load-out  (poke-http load-req)
+  ;:  weld
+    (expect-eq !>(400) !>((response-status -.save-out)))
+    (expect-eq !>('bad-request') !>((response-error-code -.save-out)))
+    (expect-eq !>(400) !>((response-status -.load-out)))
+    (expect-eq !>('bad-request') !>((response-error-code -.load-out)))
+  ==
+::
+++  test-file-save-persistence-64
+  =/  relative=relative-path:web  ~[%scripts %step-10-persist]
+  =/  content=@t  hostile-text
+  =/  clay-path=path  (storage-path:file-lib relative)
+  =/  riot=riot:clay
+    `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
+  ;:  weld
+    %+  expect-eq
+      !>(/data/obelisk/scripts/step-10-persist/txt)
+    !>(clay-path)
+    (expect !>((save-verifies:file-lib content riot)))
+  ==
+::
+++  test-file-save-clay-failure-65
+  =/  malformed=riot:clay
+    `[[%x ud+1 %obelisk] /data/obelisk/results/bad [%noun !>('x')]]
+  ;:  weld
+    (expect !>(!(save-verifies:file-lib 'x' ~)))
+    (expect !>(!(save-verifies:file-lib 'x' malformed)))
+  ==
+::
+++  test-sail-shell-landmarks-and-controls-66
+  =/  out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  html=tape  (trip (response-body -.out))
+  =/  local=bowl:gall  bowl
+  =/  ship=tape  (trip (scot %p our.local))
+  ;:  weld
+    (expect !>(?=(^ (find "app-header" html))))
+    (expect !>(?=(^ (find "schema-pane" html))))
+    (expect !>(?=(^ (find "query-editor" html))))
+    (expect !>(?=(^ (find "output-pane" html))))
+    (expect !>(?=(^ (find "File" html))))
+    (expect !>(?=(^ (find "New" html))))
+    (expect !>(?=(^ (find "Open..." html))))
+    (expect !>(?=(^ (find "Save As..." html))))
+    (expect !>(?=(^ (find "Close" html))))
+    (expect !>(?=(^ (find "Run" html))))
+    (expect !>(?=(^ (find "F5" html))))
+    (expect !>(?=(^ (find "Parse" html))))
+    (expect !>(?=(^ (find "Save Results" html))))
+    (expect !>(?=(^ (find "Reference" html))))
+    (expect !>(?=(^ (find "Users Guide" html))))
+    (expect !>(?=(^ (find "Roadmap" html))))
+    (expect !>(?=(^ (find "Default DB" html))))
+    (expect !>(?=(^ (find "For Developers" html))))
+    (expect !>(?=(^ (find "API/AST" html))))
+    (expect !>(?=(^ (find "urQL" html))))
+    (expect !>(?=(^ (find "Sample urQL" html))))
+    (expect !>(?=(^ (find "Benchmarks" html))))
+    (expect !>(?=(^ (find ship html))))
+  ==
+::
+++  test-sail-shell-assets-and-independence-67
+  =/  page-out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  css-out  (poke-http (request %'GET' '/apps/obelisk/app.css'))
+  =/  html=tape  (trip (response-body -.page-out))
+  =/  lower=tape  (cass html)
+  =/  style=tape  (trip (response-body -.css-out))
+  ;:  weld
+    (expect !>(?=(^ (find "/apps/obelisk/app.css" html))))
+    (expect !>(?=(^ (find "/apps/obelisk/app.js" html))))
+    (expect !>(?=(^ (find "prefers-color-scheme: dark" style))))
+    (expect !>(?=(^ (find "max-width: 760px" style))))
+    (expect !>(?=(^ (find ".workbench" style))))
+    (expect !>(?=(^ (find ".schema-pane" style))))
+    (expect !>(?=(^ (find ".output-pane" style))))
+    (expect !>(?=(~ (find "hawk" lower))))
+    (expect !>(?=(~ (find "htmx" lower))))
+    (expect !>(?=(~ (find "jquery" lower))))
   ==
 --

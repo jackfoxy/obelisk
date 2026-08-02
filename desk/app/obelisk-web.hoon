@@ -4,6 +4,7 @@
 ::
 /-  ast=obelisk-ast, web=obelisk-web
 /+  dbug, default-agent, server
+/+  file-lib=obelisk-web-file
 /+  json-lib=obelisk-web-json, result-lib=obelisk-web-result
 /+  schema-lib=obelisk-web-schema
 /+  web-lib=obelisk-web
@@ -12,6 +13,7 @@
 +$  route-result
   $%  [%cards value=(list card)]
       [%obelisk request=web-request:web]
+      [%file request=web-request:web]
   ==
 +$  work-plan
   $:  action=action:ast
@@ -191,6 +193,269 @@
         ['x-content-type-options' 'nosniff']
     ==
     (json-text:json-lib (response-json:json-lib response))
+  ==
+::
+++  file-error-cards
+  |=  [eyre-id=@ta message=@t trace=tang]
+  ^-  (list card)
+  %+  respond-error  eyre-id
+  [%internal 500 message %.n (tang-details:result-lib trace)]
+::
+++  clay-exists
+  |=  beam=path
+  ^-  (each ? tang)
+  %-  mule  |.
+  .^(? %cx (tomb-beam:file-lib beam))
+::
+++  clay-arch
+  |=  beam=path
+  ^-  (each arch tang)
+  %-  mule  |.
+  .^(arch %cy beam)
+::
+++  clay-physical-paths
+  |=  [our=@p desk=desk now=@da clay-path=path]
+  ^-  (each (list path) tang)
+  =/  beam=path
+    (clay-beam:file-lib our desk da+now clay-path)
+  =/  loaded=(each arch tang)  (clay-arch beam)
+  ?-  -.loaded
+    %.n  loaded
+    %.y
+      =/  here=(list path)
+        ?~(fil.p.loaded ~ ~[clay-path])
+      =/  names=(list @ta)
+        (sort ~(tap in ~(key by dir.p.loaded)) aor)
+      =/  children=(each (list path) tang)
+        (clay-child-paths our desk now clay-path names)
+      ?-  -.children
+        %.n  children
+        %.y  [%.y (weld here p.children)]
+      ==
+  ==
+::
+++  clay-child-paths
+  |=  [our=@p desk=desk now=@da parent=path names=(list @ta)]
+  ^-  (each (list path) tang)
+  ?~  names  [%.y ~]
+  =/  child=(each (list path) tang)
+    (clay-physical-paths our desk now (snoc parent i.names))
+  ?-  -.child
+    %.n  child
+    %.y
+      =/  rest=(each (list path) tang)
+        $(names t.names)
+      ?-  -.rest
+        %.n  rest
+        %.y  [%.y (weld p.child p.rest)]
+      ==
+  ==
+::
+++  clay-text
+  |=  beam=path
+  ^-  (each @t tang)
+  %-  mule  |.
+  (of-wain:format .^(wain %cx beam))
+::
+++  browse-file-cards
+  |=  $:  eyre-id=@ta
+          relative=relative-path:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (list card)
+  ?.  (valid-browse-path:file-lib relative)
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'invalid file browse path' %.n)
+  =/  clay-path=path  (browse-path:file-lib relative)
+  =/  beam=path
+    (clay-beam:file-lib our desk da+now clay-path)
+  =/  exists=(each ? tang)  (clay-exists beam)
+  ?-  -.exists
+    %.n  (file-error-cards eyre-id 'Clay browse failed' p.exists)
+    %.y
+      ?.  p.exists
+        (respond-json eyre-id [%file-list ~])
+      =/  loaded=(each (list path) tang)
+        (clay-physical-paths our desk now clay-path)
+      ?-  -.loaded
+        %.n  (file-error-cards eyre-id 'Clay browse failed' p.loaded)
+        %.y
+          =/  entries=(list file-entry-dto:web)
+            (entries-from-physical:file-lib relative p.loaded)
+          (respond-json eyre-id [%file-list entries])
+      ==
+  ==
+::
+++  load-file-cards
+  |=  $:  eyre-id=@ta
+          relative=relative-path:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (list card)
+  ?.  (valid-file-path:file-lib relative)
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'invalid file path' %.n)
+  =/  clay-path=path  (storage-path:file-lib relative)
+  =/  beam=path
+    (clay-beam:file-lib our desk da+now clay-path)
+  =/  exists=(each ? tang)  (clay-exists beam)
+  ?-  -.exists
+    %.n  (file-error-cards eyre-id 'Clay load failed' p.exists)
+    %.y
+      ?.  p.exists
+        %+  respond-error  eyre-id
+        (make-error %not-found 404 'saved file not found' %.n)
+      =/  loaded=(each @t tang)  (clay-text beam)
+      ?-  -.loaded
+        %.n  (file-error-cards eyre-id 'Clay load failed' p.loaded)
+        %.y  (respond-json eyre-id [%file relative p.loaded])
+      ==
+  ==
+::
+++  file-verify-card
+  |=  $:  =wire
+          our=@p
+          desk=desk
+          now=@da
+          clay-path=path
+      ==
+  ^-  card
+  :*  %pass  wire  %arvo  %c
+      %warp  our  desk  ~  %next  %x  da+now  clay-path
+  ==
+::
+++  file-write-card
+  |=  [=wire desk=desk clay-path=path content=@t]
+  ^-  card
+  :*  %pass  wire  %arvo  %c
+      %info  desk  %&
+      ~[[clay-path %ins (text-cage:file-lib content)]]
+  ==
+::
+++  cancel-file-verify-card
+  |=  [=wire our=@p desk=desk]
+  ^-  card
+  [%pass wire %arvo %c %warp our desk ~]
+::
+++  save-file
+  |=  $:  eyre-id=@ta
+          relative=relative-path:web
+          content=@t
+          overwrite=?
+          state=live-state:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (quip card live-state:web)
+  ?.  (valid-file-path:file-lib relative)
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'invalid file path' %.n)
+  =/  current=(unit pending-file-save:web)  file-save.transient.state
+  ?^  current
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %unavailable 503 'another file save is pending' %.y)
+  =/  clay-path=path  (storage-path:file-lib relative)
+  =/  beam=path
+    (clay-beam:file-lib our desk da+now clay-path)
+  =/  exists=(each ? tang)  (clay-exists beam)
+  ?-  -.exists
+    %.n
+      :_  state
+      (file-error-cards eyre-id 'Clay save check failed' p.exists)
+    %.y
+      %:  save-file-after-check
+        eyre-id  relative  content  overwrite  p.exists
+        state  our  desk  now
+      ==
+  ==
+::
+++  save-file-after-check
+  |=  $:  eyre-id=@ta
+          relative=relative-path:web
+          content=@t
+          overwrite=?
+          exists=?
+          state=live-state:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (quip card live-state:web)
+  ?:  (save-conflict:file-lib exists overwrite)
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %conflict 409 'saved file already exists' %.n)
+  =/  clay-path=path  (storage-path:file-lib relative)
+  =/  request-id=request-id:web  next-request-id.transient.state
+  =/  verify-wire=wire
+    /obelisk-web/file-save/(scot %ud request-id)/verify
+  =/  write-wire=wire
+    /obelisk-web/file-save/(scot %ud request-id)/write
+  =/  timeout-wire=wire
+    /obelisk-web/file-save/(scot %ud request-id)/timeout
+  =/  pending=pending-file-save:web
+    [eyre-id relative content verify-wire timeout-wire desk]
+  =.  next-request-id.transient.state  +(request-id)
+  =.  file-save.transient.state  `pending
+  :_  state
+  :~  %:  file-verify-card
+          verify-wire  our  desk  now  clay-path
+      ==
+      (file-write-card write-wire desk clay-path content)
+      (wait-card timeout-wire (add now file-timeout:file-lib))
+  ==
+::
+++  complete-file-save
+  |=  $:  pending=pending-file-save:web
+          =sign-arvo
+          state=live-state:web
+      ==
+  ^-  (quip card live-state:web)
+  =/  result=riot:clay
+    ?.  ?=([%clay %writ *] sign-arvo)  ~
+    +.+.sign-arvo
+  =/  valid=?  (save-verifies:file-lib content.pending result)
+  =.  file-save.transient.state  ~
+  :_  state
+  ?:  valid
+    (respond-json eyre-id.pending [%saved path.pending])
+  (file-error-cards eyre-id.pending 'Clay save verification failed' ~)
+::
+++  handle-file-request
+  |=  $:  eyre-id=@ta
+          request=web-request:web
+          state=live-state:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (quip card live-state:web)
+  ?-  -.request
+    %file-browse
+      :_  state
+      (browse-file-cards eyre-id path.request our desk now)
+    %file-load
+      :_  state
+      (load-file-cards eyre-id path.request our desk now)
+    %file-save
+      %:  save-file
+        eyre-id
+        path.request
+        content.request
+        overwrite.request
+        state
+        our
+        desk
+        now
+      ==
+    ?(%run %parse %schema)  !!
   ==
 ::
 ++  reply-error-cards
@@ -674,14 +939,12 @@
     :-  %cards
     %+  respond-error  eyre-id
     (make-error %bad-request 400 'request type does not match route' %.n)
-  ?.  (obelisk-backed operation)
-    :-  %cards
-    %+  respond-error  eyre-id
-    (make-error %unavailable 503 'file service is starting' %.y)
-  [%obelisk u.decoded]
+  ?:  (obelisk-backed operation)
+    [%obelisk u.decoded]
+  [%file u.decoded]
 ::
 ++  route-http
-  |=  [eyre-id=@ta req=inbound-request:eyre]
+  |=  [eyre-id=@ta req=inbound-request:eyre our=@p]
   ^-  route-result
   =/  url=tape  (trip url.request.req)
   =/  method=method:http  method.request.req
@@ -692,7 +955,7 @@
     ?:  ?|  =("/apps/obelisk" url)
             =("/apps/obelisk/" url)
         ==
-      `['text/html; charset=utf-8' page:web-lib]
+      `['text/html; charset=utf-8' (page:web-lib our)]
     ?:  =("/apps/obelisk/app.js" url)
       `['text/javascript; charset=utf-8' javascript:web-lib]
     ?:  =("/apps/obelisk/app.css" url)
@@ -759,7 +1022,7 @@
     %-  (slog 'obelisk-web received malformed HTTP request' p.decoded)
     `this
   =/  [eyre-id=@ta req=inbound-request:eyre]  p.decoded
-  =/  routed=route-result  (route-http eyre-id req)
+  =/  routed=route-result  (route-http eyre-id req our.bowl)
   ?-  -.routed
     %cards
       :_  this
@@ -775,6 +1038,18 @@
         ==
       :_  this(state +.accepted)
       -.accepted
+    %file
+      =/  handled=(quip card live-state:web)
+        %:  handle-file-request
+          eyre-id
+          request.routed
+          state
+          our.bowl
+          q.byk.bowl
+          now.bowl
+        ==
+      :_  this(state +.handled)
+      -.handled
   ==
 ::
 ++  on-watch  on-watch:default
@@ -883,6 +1158,26 @@
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
+  =/  pending=(unit pending-file-save:web)  file-save.transient.state
+  ?:  ?&  ?=(^ pending)
+          =(wire verify-wire.u.pending)
+      ==
+    =/  completed=(quip card live-state:web)
+      (complete-file-save u.pending sign-arvo state)
+    :_  this(state +.completed)
+    -.completed
+  ?:  ?&  ?=(^ pending)
+          =(wire timeout-wire.u.pending)
+      ==
+    ?.  ?=([%behn %wake *] sign-arvo)
+      (on-arvo:default wire sign-arvo)
+    =/  cancel=card
+      (cancel-file-verify-card verify-wire.u.pending our.bowl desk.u.pending)
+    =.  file-save.transient.state  ~
+    :_  this(state state)
+    :-  cancel
+    %+  respond-error  eyre-id.u.pending
+    (make-error %timeout 504 'Clay save timed out' %.y)
   ?:  ?=([%obelisk-web %readiness *] wire)
     ?~  readiness.transient.state  `this
     =/  pending=pending-readiness:web  u.readiness.transient.state
@@ -915,6 +1210,8 @@
       ==
     :_  this(state +.completed)
     -.completed
+  ?:  ?=([%obelisk-web %file-save *] wire)
+    `this
   (on-arvo:default wire sign-arvo)
 ::
 ++  on-fail  on-fail:default
