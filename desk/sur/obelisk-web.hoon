@@ -75,7 +75,7 @@
 ::
 +$  obelisk-reply-kind  ?(%query %parse)
 ::
-+$  obelisk-phase  ?(%checking %watching %poking %waiting)
++$  obelisk-phase  ?(%watching %poking %waiting)
 ::
 +$  active-obelisk
   $:  job=queued-request
@@ -83,7 +83,8 @@
       work-kind=obelisk-work-kind
       reply-kind=obelisk-reply-kind
       phase=obelisk-phase
-      obelisk-wire=wire
+      watch-wire=wire
+      poke-wire=wire
       timeout-wire=wire
       retries=@ud
   ==

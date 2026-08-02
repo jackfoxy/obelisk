@@ -2,13 +2,18 @@
 ::
 ::  Direct Eyre routing keeps this small desk-local route surface explicit.
 ::
-/-  web=obelisk-web
+/-  ast=obelisk-ast, web=obelisk-web
 /+  dbug, default-agent, json-lib=obelisk-web-json, server, web-lib=obelisk-web
 |%
 +$  card  card:agent:gall
 +$  route-result
   $%  [%cards value=(list card)]
       [%obelisk request=web-request:web]
+  ==
++$  work-plan
+  $:  action=action:ast
+      work-kind=obelisk-work-kind:web
+      reply-kind=obelisk-reply-kind:web
   ==
 ::
 ++  connect-card
@@ -93,6 +98,11 @@
   ^-  wire
   /obelisk-web/readiness/(scot %ud request-id)
 ::
+++  work-wire
+  |=  [request-id=request-id:web attempt=@ud kind=term]
+  ^-  wire
+  [%obelisk-web %work (scot %ud request-id) (scot %ud attempt) kind ~]
+::
 ++  wait-card
   |=  [=wire when=@da]
   ^-  card
@@ -108,14 +118,39 @@
   ^-  card
   [%pass wire %agent [our %obelisk] %leave ~]
 ::
-++  ready-response
+++  poke-card
+  |=  [=wire our=@p action=action:ast]
+  ^-  card
+  :*  %pass  wire  %agent  [our %obelisk]
+      %poke  %obelisk-action  !>(action)
+  ==
+::
+++  work-for
+  |=  request=web-request:web
+  ^-  (unit work-plan)
+  ?-  -.request
+    %run
+      =/  action=action:ast
+        [%script default-database.request %vector (trip script.request)]
+      `[action %run-script %query]
+    %parse
+      =/  action=action:ast
+        [%parse default-database.request (trip script.request)]
+      `[action %parse %parse]
+    %schema  ~
+    %file-browse  ~
+    %file-load  ~
+    %file-save  ~
+  ==
+::
+++  coordinated-response
   |=  eyre-id=@ta
   ^-  (list card)
   %+  respond-error  eyre-id
   %:  make-error
     %unavailable
     503
-    'Obelisk is ready; request execution is starting'
+    'Obelisk reply received; response decoding is starting'
     %.y
   ==
 ::
@@ -128,6 +163,38 @@
     ~[['retry-after' '1']]
   ==
 ::
+++  queue-full-response
+  |=  eyre-id=@ta
+  ^-  (list card)
+  %+  respond-error  eyre-id
+  (make-error %queue-full 429 'Obelisk request queue is full' %.y)
+::
+++  malformed-fact-response
+  |=  eyre-id=@ta
+  ^-  (list card)
+  %+  respond-error  eyre-id
+  (make-error %internal 500 'Obelisk returned a malformed reply' %.n)
+::
+++  lost-subscription-response
+  |=  eyre-id=@ta
+  ^-  (list card)
+  %+  respond-error  eyre-id
+  (make-error %unavailable 503 'Obelisk closed before replying' %.y)
+::
+++  timeout-response
+  |=  eyre-id=@ta
+  ^-  (list card)
+  %+  respond-error  eyre-id
+  (make-error %timeout 504 'Obelisk request timed out' %.y)
+::
+++  valid-obelisk-fact
+  |=  =cage
+  ^-  ?
+  ?.  =(%noun p.cage)  %.n
+  =/  decoded=(each [? *] tang)
+    %-  mule  |.  !<([? *] q.cage)
+  ?=(%.y -.decoded)
+::
 ++  begin-readiness
   |=  [job=queued-request:web state=live-state:web our=@p]
   ^-  (quip card live-state:web)
@@ -137,16 +204,82 @@
   :_  state
   ~[(watch-card retry-wire our)]
 ::
+++  start-next
+  |=  [state=live-state:web now=@da our=@p]
+  ^-  (quip card live-state:web)
+  ?~  queue.transient.state
+    :_  state
+    ~
+  =/  job=queued-request:web  i.queue.transient.state
+  =/  next-state=live-state:web
+    ^-(live-state:web state)
+  =.  queue.transient.next-state  t.queue.transient.state
+  (begin-readiness job next-state our)
+::
+++  start-active
+  |=  $:  job=queued-request:web
+          retries=@ud
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =/  work=(unit work-plan)
+    (work-for request.job)
+  ?~  work
+    =/  next=(quip card live-state:web)  (start-next state now our)
+    :_  +.next
+    (weld (coordinated-response eyre-id.job) -.next)
+  =/  watch-wire=wire  (work-wire request-id.job retries %watch)
+  =/  poke-wire=wire  (work-wire request-id.job retries %poke)
+  =/  timeout-wire=wire  (work-wire request-id.job retries %timeout)
+  =/  active=active-obelisk:web
+    :*  job
+        action.u.work
+        work-kind.u.work
+        reply-kind.u.work
+        %watching
+        watch-wire
+        poke-wire
+        timeout-wire
+        retries
+    ==
+  =.  active.transient.state  `active
+  :_  state
+  :~  (watch-card watch-wire our)
+      (wait-card timeout-wire (add now work-timeout:web-lib))
+  ==
+::
+++  complete-active
+  |=  $:  active=active-obelisk:web
+          response-cards=(list card)
+          cleanup=?
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =.  active.transient.state  ~
+  =/  next=(quip card live-state:web)  (start-next state now our)
+  =/  cleanup-cards=(list card)
+    ?:  cleanup  ~[(leave-card watch-wire.active our)]  ~
+  :_  +.next
+  (weld cleanup-cards (weld response-cards -.next))
+::
 ++  advance-readiness
-  |=  [pending=pending-readiness:web live=? state=live-state:web now=@da]
+  |=  $:  pending=pending-readiness:web
+          live=?
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
   ^-  (quip card live-state:web)
   =/  decision=readiness-decision:web
     (readiness-step:web-lib live failures.pending)
   ?-  -.decision
     %ready
       =.  readiness.transient.state  ~
-      :_  state
-      (ready-response eyre-id.job.pending)
+      (start-active job.pending failures.pending state now our)
     %retry
       =.  failures.pending  failures.decision
       =.  readiness.transient.state  `pending
@@ -154,16 +287,24 @@
       ~[(wait-card retry-wire.pending (add now readiness-delay:web-lib))]
     %exhausted
       =.  readiness.transient.state  ~
-      :_  state
-      (unavailable-response eyre-id.job.pending)
+      =/  next=(quip card live-state:web)  (start-next state now our)
+      :_  +.next
+      (weld (unavailable-response eyre-id.job.pending) -.next)
   ==
 ::
 ++  retry-active
-  |=  [active=active-obelisk:web state=live-state:web now=@da]
+  |=  $:  active=active-obelisk:web
+          cleanup=?
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
   ^-  (quip card live-state:web)
   =/  decision=readiness-decision:web
     (readiness-step:web-lib %.n retries.active)
   =.  active.transient.state  ~
+  =/  cleanup-cards=(list card)
+    ?:  cleanup  ~[(leave-card watch-wire.active our)]  ~
   ?-  -.decision
     %ready  !!
     %retry
@@ -172,11 +313,41 @@
         [job.active failures.decision retry-wire]
       =.  readiness.transient.state  `pending
       :_  state
+      %+  weld  cleanup-cards
       ~[(wait-card retry-wire (add now readiness-delay:web-lib))]
     %exhausted
-      :_  state
-      (unavailable-response eyre-id.job.active)
+      =/  next=(quip card live-state:web)  (start-next state now our)
+      :_  +.next
+      %+  weld  cleanup-cards
+      (weld (unavailable-response eyre-id.job.active) -.next)
   ==
+::
+++  accept-job
+  |=  $:  eyre-id=@ta
+          request=web-request:web
+          state=live-state:web
+          now=@da
+          our=@p
+      ==
+  ^-  (quip card live-state:web)
+  =/  busy=?
+    ?|  ?=(^ readiness.transient.state)
+        ?=(^ active.transient.state)
+        ?=(^ queue.transient.state)
+    ==
+  ?:  ?&  busy
+          !(queue-has-room:web-lib queue.transient.state)
+      ==
+    :_  state
+    (queue-full-response eyre-id)
+  =/  request-id=request-id:web  next-request-id.transient.state
+  =/  job=queued-request:web  [request-id eyre-id now request]
+  =.  next-request-id.transient.state  +(request-id)
+  ?:  busy
+    =.  queue.transient.state  (snoc queue.transient.state job)
+    :_  state
+    ~
+  (begin-readiness job state our)
 ::
 ++  route-api
   |=  $:  eyre-id=@ta
@@ -310,17 +481,16 @@
       :_  this
       value.routed
     %obelisk
-      ?^  readiness.transient.state
-        :_  this
-        (unavailable-response eyre-id)
-      =/  request-id=request-id:web  next-request-id.transient.state
-      =/  job=queued-request:web
-        [request-id eyre-id now.bowl request.routed]
-      =.  next-request-id.transient.state  +(request-id)
-      =/  started=(quip card live-state:web)
-        (begin-readiness job state our.bowl)
-      :_  this(state +.started)
-      -.started
+      =/  accepted=(quip card live-state:web)
+        %:  accept-job
+          eyre-id
+          request.routed
+          state
+          now.bowl
+          our.bowl
+        ==
+      :_  this(state +.accepted)
+      -.accepted
   ==
 ::
 ++  on-watch  on-watch:default
@@ -340,62 +510,135 @@
     ?-  -.sign
       %watch-ack
         =/  advanced=(quip card live-state:web)
-          (advance-readiness u.pending ?~(p.sign %.y %.n) state now.bowl)
+          %:  advance-readiness
+            u.pending
+            ?~(p.sign %.y %.n)
+            state
+            now.bowl
+            our.bowl
+          ==
         :_  this(state +.advanced)
         ?~  p.sign
           (weld ~[(leave-card wire our.bowl)] -.advanced)
         -.advanced
       %kick
         =/  advanced=(quip card live-state:web)
-          (advance-readiness u.pending %.n state now.bowl)
+          (advance-readiness u.pending %.n state now.bowl our.bowl)
         :_  this(state +.advanced)
         -.advanced
       %fact  `this
       %poke-ack  `this
     ==
   ?~  active.transient.state
+    ?:  ?=([%obelisk-web %work *] wire)
+      `this
     (on-agent:default wire sign)
   =/  active=active-obelisk:web  u.active.transient.state
-  ?.  =(wire obelisk-wire.active)
-    (on-agent:default wire sign)
-  ?-  -.sign
-    %poke-ack
-      ?~  p.sign
-        `this
-      =/  retried=(quip card live-state:web)
-        (retry-active active state now.bowl)
-      :_  this(state +.retried)
-      -.retried
-    %watch-ack
-      ?~  p.sign
-        `this
-      =/  retried=(quip card live-state:web)
-        (retry-active active state now.bowl)
-      :_  this(state +.retried)
-      -.retried
-    %kick  (on-agent:default wire sign)
-    %fact  (on-agent:default wire sign)
-  ==
+  ?:  =(wire watch-wire.active)
+    ?-  -.sign
+      %watch-ack
+        ?^  p.sign
+          =/  retried=(quip card live-state:web)
+            %:  retry-active
+              active  %.n  state  now.bowl  our.bowl
+            ==
+          :_  this(state +.retried)
+          -.retried
+        ?.  =(%watching phase.active)  `this
+        =.  phase.active  %poking
+        =.  active.transient.state  `active
+        :_  this(state state)
+        ~[(poke-card poke-wire.active our.bowl action.active)]
+      %fact
+        =/  response-cards=(list card)
+          ?:  ?&  !=(%watching phase.active)
+                  (valid-obelisk-fact cage.sign)
+              ==
+            (coordinated-response eyre-id.job.active)
+          (malformed-fact-response eyre-id.job.active)
+        =/  completed=(quip card live-state:web)
+          %:  complete-active
+            active
+            response-cards
+            %.y
+            state
+            now.bowl
+            our.bowl
+          ==
+        :_  this(state +.completed)
+        -.completed
+      %kick
+        =/  completed=(quip card live-state:web)
+          %:  complete-active
+            active
+            (lost-subscription-response eyre-id.job.active)
+            %.n
+            state
+            now.bowl
+            our.bowl
+          ==
+        :_  this(state +.completed)
+        -.completed
+      %poke-ack  `this
+    ==
+  ?:  =(wire poke-wire.active)
+    ?-  -.sign
+      %poke-ack
+        ?^  p.sign
+          =/  retried=(quip card live-state:web)
+            %:  retry-active
+              active  %.y  state  now.bowl  our.bowl
+            ==
+          :_  this(state +.retried)
+          -.retried
+        ?.  =(%poking phase.active)  `this
+        =.  phase.active  %waiting
+        =.  active.transient.state  `active
+        `this(state state)
+      %watch-ack  `this
+      %kick  `this
+      %fact  `this
+    ==
+  ?:  ?=([%obelisk-web %work *] wire)
+    `this
+  (on-agent:default wire sign)
 ::
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
-  ?.  ?=([%obelisk-web %readiness *] wire)
-    (on-arvo:default wire sign-arvo)
-  ?~  readiness.transient.state
-    `this
-  =/  pending=pending-readiness:web  u.readiness.transient.state
-  ?.  =(wire retry-wire.pending)
-    `this
-  ?.  ?=([%behn %wake *] sign-arvo)
-    (on-arvo:default wire sign-arvo)
-  ?~  error.sign-arvo
-    :_  this
-    ~[(watch-card wire our.bowl)]
-  =/  advanced=(quip card live-state:web)
-    (advance-readiness pending %.n state now.bowl)
-  :_  this(state +.advanced)
-  -.advanced
+  ?:  ?=([%obelisk-web %readiness *] wire)
+    ?~  readiness.transient.state  `this
+    =/  pending=pending-readiness:web  u.readiness.transient.state
+    ?.  =(wire retry-wire.pending)  `this
+    ?.  ?=([%behn %wake *] sign-arvo)
+      (on-arvo:default wire sign-arvo)
+    ?~  error.sign-arvo
+      :_  this
+      ~[(watch-card wire our.bowl)]
+    =/  advanced=(quip card live-state:web)
+      %:  advance-readiness
+        pending  %.n  state  now.bowl  our.bowl
+      ==
+    :_  this(state +.advanced)
+    -.advanced
+  ?:  ?=([%obelisk-web %work *] wire)
+    ?~  active.transient.state  `this
+    =/  active=active-obelisk:web  u.active.transient.state
+    ?.  =(wire timeout-wire.active)  `this
+    ?.  ?=([%behn %wake *] sign-arvo)
+      (on-arvo:default wire sign-arvo)
+    =/  completed=(quip card live-state:web)
+      %:  complete-active
+        active
+        (timeout-response eyre-id.job.active)
+        %.y
+        state
+        now.bowl
+        our.bowl
+      ==
+    :_  this(state +.completed)
+    -.completed
+  (on-arvo:default wire sign-arvo)
 ::
 ++  on-fail  on-fail:default
 --

@@ -20,8 +20,9 @@
       work-kind=%parse
       reply-kind=%parse
       phase=%waiting
-      obelisk-wire=/obelisk-web/obelisk/41
-      timeout-wire=/obelisk-web/timeout/41
+      watch-wire=/obelisk-web/work/41/2/watch
+      poke-wire=/obelisk-web/work/41/2/poke
+      timeout-wire=/obelisk-web/work/41/2/timeout
       retries=2
   ==
 ::
@@ -158,13 +159,18 @@
 ++  poke-http
   |=  req=inbound-request:eyre
   ^-  (quip card:agent:gall agent:gall)
-  (poke-http-on agent req)
+  (poke-http-id-on agent 'request' req)
 ::
 ++  poke-http-on
   |=  [ag=agent:gall req=inbound-request:eyre]
   ^-  (quip card:agent:gall agent:gall)
+  (poke-http-id-on ag 'request' req)
+::
+++  poke-http-id-on
+  |=  [ag=agent:gall eyre-id=@ta req=inbound-request:eyre]
+  ^-  (quip card:agent:gall agent:gall)
   %-  on-poke:~(. ag bowl)
-  [%handle-http-request !>(['request' req])]
+  [%handle-http-request !>([eyre-id req])]
 ::
 ++  poke-http-with
   |=  [req=inbound-request:eyre =bowl:gall]
@@ -193,6 +199,16 @@
   ?>  =(%http-response-header p.cage.gift)
   =/  header  !<(response-header:http q.cage.gift)
   status-code.header
+::
+++  response-paths
+  |=  cards=(list card:agent:gall)
+  ^-  (list path)
+  ?>  ?=(^ cards)
+  =/  card  i.cards
+  ?>  ?=(%give -.card)
+  =/  gift  p.card
+  ?>  ?=(%fact -.gift)
+  paths.gift
 ::
 ++  first-card
   |=  cards=(list card:agent:gall)
@@ -271,6 +287,11 @@
   ^-  wire
   /obelisk-web/readiness/(scot %ud request-id)
 ::
+++  work-wire
+  |=  [request-id=@ud attempt=@ud kind=term]
+  ^-  wire
+  [%obelisk-web %work (scot %ud request-id) (scot %ud attempt) kind ~]
+::
 ++  watch-card
   |=  request-id=@ud
   ^-  card:agent:gall
@@ -304,6 +325,51 @@
       (add ~2026.8.1 readiness-delay:state)
   ==
 ::
+++  work-watch-card
+  |=  [request-id=@ud attempt=@ud]
+  ^-  card:agent:gall
+  :*  %pass
+      (work-wire request-id attempt %watch)
+      %agent
+      [~zod %obelisk]
+      %watch
+      /server
+  ==
+::
+++  work-timeout-card
+  |=  [request-id=@ud attempt=@ud]
+  ^-  card:agent:gall
+  :*  %pass
+      (work-wire request-id attempt %timeout)
+      %arvo
+      %b
+      %wait
+      (add ~2026.8.1 work-timeout:state)
+  ==
+::
+++  work-leave-card
+  |=  [request-id=@ud attempt=@ud]
+  ^-  card:agent:gall
+  :*  %pass
+      (work-wire request-id attempt %watch)
+      %agent
+      [~zod %obelisk]
+      %leave
+      ~
+  ==
+::
+++  work-poke-card
+  |=  [request-id=@ud attempt=@ud action=action:ast]
+  ^-  card:agent:gall
+  :*  %pass
+      (work-wire request-id attempt %poke)
+      %agent
+      [~zod %obelisk]
+      %poke
+      %obelisk-action
+      !>(action)
+  ==
+::
 ++  watch-nack
   ^-  sign:agent:gall
   [%watch-ack `~[leaf+"Obelisk unavailable"]]
@@ -315,6 +381,22 @@
 ++  poke-nack
   ^-  sign:agent:gall
   [%poke-ack `~[leaf+"Obelisk poke failed"]]
+::
+++  poke-ack
+  ^-  sign:agent:gall
+  [%poke-ack ~]
+::
+++  valid-fact
+  ^-  sign:agent:gall
+  [%fact %noun !>([& ~])]
+::
+++  malformed-fact
+  ^-  sign:agent:gall
+  [%fact %json !>(~)]
+::
+++  kick-sign
+  ^-  sign:agent:gall
+  [%kick ~]
 ::
 ++  wake-sign
   ^-  sign-arvo
@@ -499,15 +581,12 @@
   =/  ready  (signal-agent +.out wire watch-ack)
   ;:  weld
     (expect-eq !>(~[(watch-card 0)]) !>(-.out))
-    (expect-eq !>((leave-card 0)) !>((first-card -.ready)))
-    (expect-eq !>(503) !>((response-status (tail-cards -.ready))))
     %+  expect-eq
-      !>('unavailable')
-    !>((response-error-code (tail-cards -.ready)))
-    %+  expect-eq
-      !>(`'no-store')
-    !>  %+  get-header:http  'cache-control'
-        (response-headers (tail-cards -.ready))
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 0)
+              (work-timeout-card 0 0)
+          ==
+    !>(-.ready)
   ==
 ::
 ++  test-json-request-roundtrips-25
@@ -640,10 +719,7 @@
   ;:  weld
     (expect-eq !>(~[(watch-card 0)]) !>(-.first))
     (expect-eq !>(~[(retry-card 0)]) !>(-.nacked))
-    (expect-eq !>(503) !>((response-status -.blocked)))
-    %+  expect-eq
-      !>(`'1')
-    !>((get-header:http 'retry-after' (response-headers -.blocked)))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.blocked))
   ==
 ::
 ++  test-readiness-delayed-ready-31
@@ -659,9 +735,13 @@
   ;:  weld
     (expect-eq !>(~[(retry-card 0)]) !>(-.nacked))
     (expect-eq !>(~[(watch-card 0)]) !>(-.woke))
-    (expect-eq !>((leave-card 0)) !>((first-card -.ready)))
-    (expect-eq !>(503) !>((response-status (tail-cards -.ready))))
-    (expect-eq !>(~[(watch-card 1)]) !>(-.next))
+    %+  expect-eq
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 1)
+              (work-timeout-card 0 1)
+          ==
+    !>(-.ready)
+    (expect-eq !>(*(list card:agent:gall)) !>(-.next))
   ==
 ::
 ++  test-readiness-retry-exhausted-32
@@ -699,9 +779,13 @@
   =/  next  (poke-http-on +.ready req)
   ;:  weld
     (expect-eq !>(~[(watch-card 0)]) !>(-.first))
-    (expect-eq !>((leave-card 0)) !>((first-card -.ready)))
-    (expect-eq !>(503) !>((response-status (tail-cards -.ready))))
-    (expect-eq !>(~[(watch-card 1)]) !>(-.next))
+    %+  expect-eq
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 0)
+              (work-timeout-card 0 0)
+          ==
+    !>(-.ready)
+    (expect-eq !>(*(list card:agent:gall)) !>(-.next))
   ==
 ::
 ++  test-readiness-poke-failure-34
@@ -715,4 +799,216 @@
       !>(`readiness-decision:web`[%exhausted ~])
     !>((readiness-step:state %.n 2))
   ==
+::
+++  test-coordinator-watch-before-poke-35
+  =/  body  (request-text [%run %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  first  (poke-http-id-on agent 'first' req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  =/  poked
+    (signal-agent +.watched (work-wire 0 0 %poke) poke-ack)
+  =/  fact
+    (signal-agent +.poked (work-wire 0 0 %watch) valid-fact)
+  =/  stale
+    (signal-agent +.fact (work-wire 0 0 %watch) kick-sign)
+  ;:  weld
+    %+  expect-eq
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 0)
+              (work-timeout-card 0 0)
+          ==
+    !>(-.ready)
+    %+  expect-eq
+      !>  ~[(work-poke-card 0 0 [%script %sys %vector "SELECT 1;"])]
+    !>(-.watched)
+    (expect-eq !>(*(list card:agent:gall)) !>(-.poked))
+    (expect-eq !>((work-leave-card 0 0)) !>((first-card -.fact)))
+    (expect-eq !>(503) !>((response-status (tail-cards -.fact))))
+    %+  expect-eq
+      !>(~[/http-response/first])
+    !>((response-paths (tail-cards -.fact)))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
+  ==
+::
+++  test-coordinator-overlap-isolated-36
+  =/  body  (request-text [%parse %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  first  (poke-http-id-on agent 'first' req)
+  =/  second  (poke-http-id-on +.first 'second' req)
+  =/  ready-zero
+    (signal-agent +.second (readiness-wire 0) watch-ack)
+  =/  watched-zero
+    (signal-agent +.ready-zero (work-wire 0 0 %watch) watch-ack)
+  =/  poked-zero
+    (signal-agent +.watched-zero (work-wire 0 0 %poke) poke-ack)
+  =/  fact-zero
+    (signal-agent +.poked-zero (work-wire 0 0 %watch) valid-fact)
+  =/  stale-zero
+    (signal-agent +.fact-zero (work-wire 0 0 %watch) kick-sign)
+  =/  ready-one
+    (signal-agent +.stale-zero (readiness-wire 1) watch-ack)
+  =/  watched-one
+    (signal-agent +.ready-one (work-wire 1 0 %watch) watch-ack)
+  =/  poked-one
+    (signal-agent +.watched-one (work-wire 1 0 %poke) poke-ack)
+  =/  fact-one
+    (signal-agent +.poked-one (work-wire 1 0 %watch) valid-fact)
+  ;:  weld
+    (expect-eq !>(*(list card:agent:gall)) !>(-.second))
+    %+  expect-eq
+      !>(~[/http-response/first])
+    !>((response-paths (tail-cards -.fact-zero)))
+    %+  expect-eq
+      !>((watch-card 1))
+    !>((snag 4 -.fact-zero))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale-zero))
+    %+  expect-eq
+      !>(~[/http-response/second])
+    !>((response-paths (tail-cards -.fact-one)))
+  ==
+::
+++  test-coordinator-timeout-once-37
+  =/  body  (request-text [%run %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  timed-out
+    (wake-agent +.ready (work-wire 0 0 %timeout))
+  =/  stale
+    (signal-agent +.timed-out (work-wire 0 0 %watch) valid-fact)
+  ;:  weld
+    (expect-eq !>((work-leave-card 0 0)) !>((first-card -.timed-out)))
+    (expect-eq !>(504) !>((response-status (tail-cards -.timed-out))))
+    %+  expect-eq
+      !>('timeout')
+    !>((response-error-code (tail-cards -.timed-out)))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
+  ==
+::
+++  test-coordinator-malformed-fact-once-38
+  =/  body  (request-text [%parse %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched
+    (signal-agent +.ready (work-wire 0 0 %watch) watch-ack)
+  =/  malformed
+    (signal-agent +.watched (work-wire 0 0 %watch) malformed-fact)
+  =/  stale
+    (signal-agent +.malformed (work-wire 0 0 %watch) kick-sign)
+  ;:  weld
+    (expect-eq !>(500) !>((response-status (tail-cards -.malformed))))
+    %+  expect-eq
+      !>('internal')
+    !>((response-error-code (tail-cards -.malformed)))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
+  ==
+::
+++  test-coordinator-lost-subscription-once-39
+  =/  body  (request-text [%run %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  kicked
+    (signal-agent +.ready (work-wire 0 0 %watch) kick-sign)
+  =/  stale
+    (signal-agent +.kicked (work-wire 0 0 %watch) kick-sign)
+  ;:  weld
+    (expect-eq !>(503) !>((response-status -.kicked)))
+    %+  expect-eq
+      !>('unavailable')
+    !>((response-error-code -.kicked))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
+  ==
+::
+++  test-coordinator-agent-failure-retries-40
+  =/  body  (request-text [%run %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/run' %.y `body `'application/json')
+  =/  first  (poke-http req)
+  =/  ready-zero
+    (signal-agent +.first (readiness-wire 0) watch-ack)
+  =/  watched-zero
+    (signal-agent +.ready-zero (work-wire 0 0 %watch) watch-ack)
+  =/  failed
+    (signal-agent +.watched-zero (work-wire 0 0 %poke) poke-nack)
+  =/  woke  (wake-agent +.failed (readiness-wire 0))
+  =/  ready-one
+    (signal-agent +.woke (readiness-wire 0) watch-ack)
+  =/  watched-one
+    (signal-agent +.ready-one (work-wire 0 1 %watch) watch-ack)
+  =/  failed-one
+    (signal-agent +.watched-one (work-wire 0 1 %poke) poke-nack)
+  =/  woke-two  (wake-agent +.failed-one (readiness-wire 0))
+  =/  ready-two
+    (signal-agent +.woke-two (readiness-wire 0) watch-ack)
+  =/  watched-two
+    (signal-agent +.ready-two (work-wire 0 2 %watch) watch-ack)
+  =/  failed-two
+    (signal-agent +.watched-two (work-wire 0 2 %poke) poke-nack)
+  =/  stale
+    (signal-agent +.failed-two (work-wire 0 2 %watch) kick-sign)
+  ;:  weld
+    %+  expect-eq
+      !>  :~  (work-leave-card 0 0)
+              (retry-card 0)
+          ==
+    !>(-.failed)
+    (expect-eq !>(~[(watch-card 0)]) !>(-.woke))
+    %+  expect-eq
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 1)
+              (work-timeout-card 0 1)
+          ==
+    !>(-.ready-one)
+    %+  expect-eq
+      !>  :~  (work-leave-card 0 1)
+              (retry-card 0)
+          ==
+    !>(-.failed-one)
+    %+  expect-eq
+      !>  :~  (leave-card 0)
+              (work-watch-card 0 2)
+              (work-timeout-card 0 2)
+          ==
+    !>(-.ready-two)
+    (expect-eq !>((work-leave-card 0 2)) !>((first-card -.failed-two)))
+    (expect-eq !>(503) !>((response-status (tail-cards -.failed-two))))
+    %+  expect-eq
+      !>('unavailable')
+    !>((response-error-code (tail-cards -.failed-two)))
+    (expect-eq !>(*(list card:agent:gall)) !>(-.stale))
+  ==
+::
+++  test-coordinator-queue-bound-41
+  =/  body  (request-text [%parse %sys 'SELECT 1;'])
+  =/  req
+    (api-request '/apps/obelisk/api/parse' %.y `body `'application/json')
+  =/  first  (poke-http-id-on agent 'active' req)
+  =/  ag=agent:gall  +.first
+  =/  index=@ud  0
+  |-
+  ?:  =(index max-queued-requests:state)
+    =/  overflow  (poke-http-id-on ag 'overflow' req)
+    ;:  weld
+      (expect-eq !>(429) !>((response-status -.overflow)))
+      %+  expect-eq
+        !>('queue-full')
+      !>((response-error-code -.overflow))
+    ==
+  =/  queued
+    (poke-http-id-on ag (scot %ud index) req)
+  ?>  ?=(~ -.queued)
+  $(ag +.queued, index +(index))
 --

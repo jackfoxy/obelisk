@@ -24,6 +24,19 @@
   ^-  @dr
   ~s1
 ::
+++  work-timeout
+  ^-  @dr
+  ~s30
+::
+++  max-queued-requests
+  ^-  @ud
+  32
+::
+++  queue-has-room
+  |=  queue=(list queued-request:web)
+  ^-  ?
+  (lth (lent queue) max-queued-requests)
+::
 ++  readiness-step
   |=  [live=? failures=@ud]
   ^-  readiness-decision:web
