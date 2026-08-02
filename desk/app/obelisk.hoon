@@ -25,18 +25,6 @@
 ++  on-init
   ^-  (quip card _this)
   =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
-  =+  .^(desks=(set desk) %cd /=//=)
-  =/  install-hawk=card  :*  %pass
-                             /init/hawk/install
-                             %agent
-                             [our.bowl %hood]
-                             %poke
-                             %kiln-install
-                             !>([%hawk ~dister-migrev-dolseg %hawk])
-                             ==
-  =/  hawk-cards=(list card)  ?:  (~(has in desks) %hawk)
-                                ~
-                              [install-hawk ~]
   =/  animal-cards=(list card)
     :~  :*  %pass
             /init/animal-shelter
@@ -53,7 +41,7 @@
             ==
         ==
   :_  this(state *state-1)
-  (weld hawk-cards animal-cards)
+  animal-cards
 ++  on-save
   !>(state)
 ++  on-load
@@ -239,8 +227,6 @@
       [%init %animal-shelter %poke ~]
     `this
   ::
-      [%init %hawk %install ~]
-    `this
   ==
 ++  on-arvo
   |=  [=wire =sign-arvo]

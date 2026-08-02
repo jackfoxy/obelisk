@@ -1925,4 +1925,15 @@
     (expect !>(?=(^ (find "path: ['results']" script))))
     (expect !>(?=(^ (find "error.status === 409" script))))
   ==
+::
+++  test-packaging-lifecycle-75
+  =/  initialized  on-init:~(. agent bowl)
+  =/  loaded
+    (on-load:~(. agent bowl) !>(empty-saved-state:state))
+  ;:  weld
+    (expect-eq !>(~[bind-card]) !>(-.initialized))
+    (expect-eq !>(~[bind-card]) !>(-.loaded))
+    (expect-eq !>(empty-saved-state:state) on-save:+.initialized)
+    (expect-eq !>(empty-saved-state:state) on-save:+.loaded)
+  ==
 --
