@@ -1855,4 +1855,43 @@
     %-  expect-fail
     |.  (on-watch:~(. agent bowl) /unknown)
   ==
+::
+++  test-file-ui-contract-72
+  =/  page-out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  js-out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
+  =/  html=tape  (trip (response-body -.page-out))
+  =/  script=tape  (trip (response-body -.js-out))
+  ;:  weld
+    (expect !>(?=(^ (find "file-dialog" html))))
+    (expect !>(?=(^ (find "file-dialog-list" html))))
+    (expect !>(?=(^ (find "file-path-input" html))))
+    (expect !>(?=(^ (find "files/browse" script))))
+    (expect !>(?=(^ (find "files/load" script))))
+    (expect !>(?=(^ (find "files/save" script))))
+    (expect !>(?=(^ (find "scriptPathFromInput" script))))
+    (expect !>(?=(^ (find "openSelectedFile" script))))
+    (expect !>(?=(^ (find "error.status === 409" script))))
+    (expect !>(?=(^ (find "savedText" script))))
+    (expect !>(?=(^ (find "is already open" script))))
+  ==
+::
+++  test-schema-ui-contract-73
+  =/  page-out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  js-out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
+  =/  html=tape  (trip (response-body -.page-out))
+  =/  script=tape  (trip (response-body -.js-out))
+  ;:  weld
+    (expect !>(?=(^ (find "relation-menu" html))))
+    (expect !>(?=(^ (find "relation-select" html))))
+    (expect !>(?=(^ (find "relation-insert" html))))
+    (expect !>(?=(^ (find "relation-create" html))))
+    (expect !>(?=(^ (find "refreshSchema" script))))
+    (expect !>(?=(^ (find "schemaExpanded" script))))
+    (expect !>(?=(^ (find "schemaChanged" script))))
+    (expect !>(?=(^ (find "preferNewDatabase" script))))
+    (expect !>(?=(^ (find "'tbl'" script))))
+    (expect !>(?=(^ (find "'vw'" script))))
+    (expect !>(?=(^ (find "DEFAULT" script))))
+    (expect !>(?=(^ (find "PRIMARY KEY" script))))
+  ==
 --
