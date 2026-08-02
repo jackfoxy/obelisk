@@ -986,7 +986,7 @@
 ++  on-init
   ^-  (quip card _this)
   =/  initial=live-state:web  empty-live-state:web-lib
-  =.  binding.transient.initial  %bound
+  =.  binding.transient.initial  %binding
   :_  this(state initial)
   ~[(connect-card dap.bowl)]
 ::
@@ -1006,7 +1006,7 @@
         %-  (slog 'obelisk-web state corrupt; using empty state' p.loaded)
         empty-live-state:web-lib
     ==
-  =.  binding.transient.next  %bound
+  =.  binding.transient.next  %binding
   :_  this(state next)
   ~[(connect-card dap.bowl)]
 ::
@@ -1015,13 +1015,16 @@
   ^-  (quip card _this)
   ?.  =(%handle-http-request mark)
     (on-poke:default mark vase)
-  ?>  =(src.bowl our.bowl)
   =/  decoded=(each [eyre-id=@ta req=inbound-request:eyre] tang)
     %-  mule  |.  !<([@ta inbound-request:eyre] vase)
   ?.  ?=(%.y -.decoded)
     %-  (slog 'obelisk-web received malformed HTTP request' p.decoded)
     `this
   =/  [eyre-id=@ta req=inbound-request:eyre]  p.decoded
+  ::  Public assets use an Eyre guest identity; protected work must be local.
+  ?>  ?|  !authenticated.req
+          =(src.bowl our.bowl)
+      ==
   =/  routed=route-result  (route-http eyre-id req our.bowl)
   ?-  -.routed
     %cards
@@ -1052,7 +1055,12 @@
       -.handled
   ==
 ::
-++  on-watch  on-watch:default
+++  on-watch
+  |=  =path
+  ^-  (quip card _this)
+  ?+  path  (on-watch:default path)
+    [%http-response @ ~]  `this
+  ==
 ::
 ++  on-leave  on-leave:default
 ::
@@ -1158,6 +1166,12 @@
 ++  on-arvo
   |=  [=wire =sign-arvo]
   ^-  (quip card _this)
+  ?:  =(wire /eyre/connect)
+    ?.  ?=([%eyre %bound *] sign-arvo)
+      (on-arvo:default wire sign-arvo)
+    =.  binding.transient.state
+      (binding-after-connect:web-lib accepted.sign-arvo)
+    `this(state state)
   =/  pending=(unit pending-file-save:web)  file-save.transient.state
   ?:  ?&  ?=(^ pending)
           =(wire verify-wire.u.pending)

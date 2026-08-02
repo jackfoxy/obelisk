@@ -17,6 +17,11 @@
       ~
   ==
 ::
+++  binding-after-connect
+  |=  accepted=?
+  ^-  binding-state:web
+  ?:(accepted %bound %unbound)
+::
 ++  max-readiness-failures
   ^-  @ud
   3
@@ -243,6 +248,8 @@
           ==
           ;button#schema-resizer.splitter
             =type  "button"
+            =role  "separator"
+            =aria-orientation  "vertical"
             =aria-label  "Resize schemas"
             ;span.visually-hidden: Resize schemas
           ==
@@ -281,6 +288,8 @@
             ==
             ;button#output-resizer.splitter.horizontal
               =type  "button"
+              =role  "separator"
+              =aria-orientation  "horizontal"
               =aria-label  "Resize output"
               ;span.visually-hidden: Resize output
             ==
@@ -310,6 +319,11 @@
               ==
             ==
           ==
+        ==
+        ;div#app-status.status.hidden
+          =role  "status"
+          =aria-live  "polite"
+          ""
         ==
       ==
     ==
@@ -491,6 +505,25 @@
     display: none !important;
   }
 
+  .status {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 0.3rem solid var(--accent);
+    border-radius: 0.35rem;
+    bottom: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.18);
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 0.65rem 0.8rem;
+    position: fixed;
+    right: 1rem;
+    white-space: pre-wrap;
+    z-index: 50;
+  }
+
+  .status[data-kind="error"] {
+    border-left-color: #dc2626;
+  }
+
   .workbench {
     display: grid;
     grid-template-columns: minmax(14rem, 22rem) 0.35rem minmax(0, 1fr);
@@ -506,6 +539,16 @@
   .schema-pane {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .schema-pane.collapsed .pane-header > div,
+  .schema-pane.collapsed .schema-tree {
+    display: none;
+  }
+
+  .schema-pane.collapsed .pane-header {
+    justify-content: center;
+    padding: 0.4rem;
   }
 
   .pane-header {
@@ -620,6 +663,10 @@
     grid-template-rows: auto minmax(0, 1fr);
   }
 
+  .output-pane.collapsed .results {
+    display: none;
+  }
+
   .pane-actions {
     display: flex;
     gap: 0.35rem;
@@ -628,6 +675,17 @@
   .empty-state {
     color: var(--muted);
     margin: 0;
+  }
+
+  .error-pane, .plain-output {
+    font: 0.86rem/1.5 ui-monospace, monospace;
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  .error-pane {
+    color: #b91c1c;
   }
 
   .visually-hidden {
@@ -702,6 +760,573 @@
 ++  javascript
   ^-  @t
   '''
-  document.documentElement.dataset.obelisk = 'ready';
+  (() => {
+    'use strict';
+
+    const storageKey = 'obelisk.workbench.v1';
+    const byId = (id) => document.getElementById(id);
+    const app = byId('obelisk-app');
+    const workbench = byId('workbench');
+    const workspace = byId('workspace');
+    const schemaPane = byId('schema-pane');
+    const schemaResizer = byId('schema-resizer');
+    const schemaCollapse = byId('schema-collapse');
+    const outputPane = byId('output-pane');
+    const outputResizer = byId('output-resizer');
+    const outputCollapse = byId('output-collapse');
+    const editor = byId('query-editor');
+    const tabsElement = document.querySelector('.editor-tabs');
+    const newTabButton = byId('new-tab-btn');
+    const runButton = byId('run-btn');
+    const parseButton = byId('parse-btn');
+    const copyQueryButton = byId('copy-query-btn');
+    const copyOutputButton = byId('copy-output-btn');
+    const defaultDatabase = byId('default-db');
+    const results = byId('results');
+    const status = byId('app-status');
+    let statusTimer = 0;
+    let lastOutputText = '';
+    let busy = false;
+
+    function initialState() {
+      return {
+        version: 1,
+        tabs: [{
+          id: 'draft-1',
+          name: 'script-1',
+          path: null,
+          text: '',
+          selectionStart: 0,
+          selectionEnd: 0
+        }],
+        activeId: 'draft-1',
+        nextDraft: 2,
+        schemaSize: 320,
+        outputSize: 260,
+        schemaOpen: true,
+        outputOpen: true,
+        defaultDatabase: 'sys'
+      };
+    }
+
+    function validTab(tab) {
+      return tab && typeof tab.id === 'string' &&
+        typeof tab.name === 'string' && typeof tab.text === 'string' &&
+        Number.isInteger(tab.selectionStart) &&
+        Number.isInteger(tab.selectionEnd) &&
+        (tab.path === null || Array.isArray(tab.path));
+    }
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem(storageKey));
+        if (!saved || saved.version !== 1 || !Array.isArray(saved.tabs) ||
+            saved.tabs.length === 0 || !saved.tabs.every(validTab)) {
+          return initialState();
+        }
+        if (!saved.tabs.some((tab) => tab.id === saved.activeId)) {
+          saved.activeId = saved.tabs[0].id;
+        }
+        const base = initialState();
+        return Object.assign(base, saved);
+      } catch (_) {
+        return initialState();
+      }
+    }
+
+    let state = loadState();
+
+    function persist() {
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(state));
+      } catch (_) {
+        setStatus('Session state could not be saved.', 'error', true);
+      }
+    }
+
+    function activeTab() {
+      return state.tabs.find((tab) => tab.id === state.activeId) ||
+        state.tabs[0];
+    }
+
+    function captureEditor() {
+      const tab = activeTab();
+      tab.text = editor.value;
+      tab.selectionStart = editor.selectionStart;
+      tab.selectionEnd = editor.selectionEnd;
+    }
+
+    function restoreEditor(focus) {
+      const tab = activeTab();
+      editor.value = tab.text;
+      const start = Math.min(tab.selectionStart, tab.text.length);
+      const end = Math.min(tab.selectionEnd, tab.text.length);
+      requestAnimationFrame(() => {
+        editor.setSelectionRange(start, end);
+        if (focus) editor.focus();
+      });
+    }
+
+    function renderTabs() {
+      tabsElement.querySelectorAll('[role="tab"]').forEach((tab) => {
+        tab.remove();
+      });
+      state.tabs.forEach((tab) => {
+        const button = document.createElement('button');
+        const selected = tab.id === state.activeId;
+        button.type = 'button';
+        button.id = `tab-${tab.id}`;
+        button.className = selected ? 'tab active' : 'tab';
+        button.setAttribute('role', 'tab');
+        button.setAttribute('aria-selected', String(selected));
+        button.setAttribute('aria-controls', 'query-editor');
+        button.tabIndex = selected ? 0 : -1;
+        button.dataset.tabId = tab.id;
+        button.textContent = tab.name;
+        button.title = tab.path ? tab.path.join('/') : tab.name;
+        button.addEventListener('click', () => activateTab(tab.id, true));
+        button.addEventListener('keydown', tabKeydown);
+        tabsElement.insertBefore(button, newTabButton);
+      });
+    }
+
+    function tabKeydown(event) {
+      const current = state.tabs.findIndex((tab) => {
+        return tab.id === event.currentTarget.dataset.tabId;
+      });
+      let next = current;
+      if (event.key === 'ArrowRight') next = (current + 1) % state.tabs.length;
+      if (event.key === 'ArrowLeft') {
+        next = (current + state.tabs.length - 1) % state.tabs.length;
+      }
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = state.tabs.length - 1;
+      if (next === current) return;
+      event.preventDefault();
+      activateTab(state.tabs[next].id, false);
+      byId(`tab-${state.tabs[next].id}`).focus();
+    }
+
+    function activateTab(id, focusEditor) {
+      if (id === state.activeId) {
+        if (focusEditor) editor.focus();
+        return;
+      }
+      captureEditor();
+      state.activeId = id;
+      renderTabs();
+      restoreEditor(focusEditor);
+      persist();
+    }
+
+    function nextDraftName() {
+      let name;
+      do {
+        name = `script-${state.nextDraft}`;
+        state.nextDraft += 1;
+      } while (state.tabs.some((tab) => tab.name === name));
+      return name;
+    }
+
+    function addDraft(text = '') {
+      captureEditor();
+      const name = nextDraftName();
+      const tab = {
+        id: `draft-${state.nextDraft - 1}`,
+        name,
+        path: null,
+        text,
+        selectionStart: 0,
+        selectionEnd: 0
+      };
+      state.tabs.push(tab);
+      state.activeId = tab.id;
+      renderTabs();
+      restoreEditor(true);
+      persist();
+      closeMenus();
+      return tab;
+    }
+
+    function closeActiveTab() {
+      captureEditor();
+      const index = state.tabs.findIndex((tab) => tab.id === state.activeId);
+      state.tabs.splice(index, 1);
+      if (state.tabs.length === 0) {
+        const name = nextDraftName();
+        state.tabs.push({
+          id: `draft-${state.nextDraft - 1}`,
+          name,
+          path: null,
+          text: '',
+          selectionStart: 0,
+          selectionEnd: 0
+        });
+      }
+      const next = Math.min(index, state.tabs.length - 1);
+      state.activeId = state.tabs[next].id;
+      renderTabs();
+      restoreEditor(true);
+      persist();
+      closeMenus();
+    }
+
+    function setStatus(message, kind = 'info', sticky = false) {
+      clearTimeout(statusTimer);
+      status.textContent = message;
+      status.dataset.kind = kind;
+      status.classList.remove('hidden');
+      if (!sticky) {
+        statusTimer = window.setTimeout(() => {
+          status.classList.add('hidden');
+        }, 3500);
+      }
+    }
+
+    function setBusy(value, label = '') {
+      busy = value;
+      app.setAttribute('aria-busy', String(value));
+      results.setAttribute('aria-busy', String(value));
+      runButton.disabled = value;
+      parseButton.disabled = value;
+      runButton.firstElementChild.textContent = value && label === 'run' ?
+        'Running…' : 'Run';
+      parseButton.textContent = value && label === 'parse' ?
+        'Parsing…' : 'Parse';
+    }
+
+    function errorMessage(body, fallback) {
+      if (!body || body.type !== 'error' || !body.error) return fallback;
+      const details = Array.isArray(body.error.details) ?
+        body.error.details.join('\n') : '';
+      return details ? `${body.error.message}\n${details}` :
+        body.error.message;
+    }
+
+    async function api(operation, payload) {
+      const response = await fetch(`/apps/obelisk/api/${operation}`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(Object.assign({type: operation}, payload))
+      });
+      let body = null;
+      try {
+        body = await response.json();
+      } catch (_) {
+        throw new Error(`Server returned invalid JSON (${response.status}).`);
+      }
+      if (!response.ok || body.type === 'error') {
+        const fallback = `Request failed (${response.status}).`;
+        throw new Error(errorMessage(body, fallback));
+      }
+      return body;
+    }
+
+    function selectedScript() {
+      captureEditor();
+      const tab = activeTab();
+      if (tab.selectionEnd > tab.selectionStart) {
+        return tab.text.slice(tab.selectionStart, tab.selectionEnd);
+      }
+      return tab.text;
+    }
+
+    function showOutput(text, kind = 'plain') {
+      lastOutputText = text;
+      results.replaceChildren();
+      const pre = document.createElement('pre');
+      pre.className = kind === 'error' ? 'error-pane' : 'plain-output';
+      pre.textContent = text;
+      results.appendChild(pre);
+      copyOutputButton.disabled = text.length === 0;
+      state.outputOpen = true;
+      applyLayout();
+      persist();
+    }
+
+    async function execute(operation) {
+      if (busy) return;
+      const script = selectedScript();
+      setBusy(true, operation);
+      setStatus(operation === 'run' ? 'Running query…' : 'Parsing query…');
+      try {
+        const body = await api(operation, {
+          defaultDatabase: defaultDatabase.value,
+          script
+        });
+        if (operation === 'parse') {
+          showOutput(body.text || '');
+          setStatus('Parse complete.');
+        } else {
+          showOutput(JSON.stringify(body.commands || [], null, 2));
+          setStatus('Run complete.');
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        showOutput(message, 'error');
+        setStatus(message, 'error', true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function copyText(text, label) {
+      try {
+        if (window.isSecureContext && navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const helper = document.createElement('textarea');
+          helper.value = text;
+          helper.setAttribute('readonly', '');
+          helper.style.position = 'fixed';
+          helper.style.opacity = '0';
+          document.body.appendChild(helper);
+          helper.select();
+          if (!document.execCommand('copy')) throw new Error('copy failed');
+          helper.remove();
+        }
+        setStatus(`${label} copied.`);
+      } catch (_) {
+        setStatus(`Could not copy ${label.toLowerCase()}.`, 'error', true);
+      }
+    }
+
+    function menuParts(menu) {
+      return {
+        toggle: menu.querySelector('.menu-toggle'),
+        panel: menu.querySelector('.menu-panel')
+      };
+    }
+
+    function setMenu(menu, open, focusFirst = false) {
+      const parts = menuParts(menu);
+      menu.dataset.open = String(open);
+      parts.toggle.setAttribute('aria-expanded', String(open));
+      parts.panel.classList.toggle('hidden', !open);
+      if (open && focusFirst) {
+        const selector = '[role="menuitem"]:not(:disabled)';
+        const first = parts.panel.querySelector(selector);
+        if (first) first.focus();
+      }
+    }
+
+    const menus = Array.from(document.querySelectorAll('.menu'));
+
+    function closeMenus(except = null) {
+      menus.forEach((menu) => {
+        if (menu !== except) setMenu(menu, false);
+      });
+    }
+
+    function menuKeydown(event) {
+      const panel = event.currentTarget;
+      const items = Array.from(
+        panel.querySelectorAll('[role="menuitem"]:not(:disabled)')
+      );
+      const current = items.indexOf(document.activeElement);
+      let next = current;
+      if (event.key === 'ArrowDown') next = (current + 1) % items.length;
+      if (event.key === 'ArrowUp') {
+        next = (current + items.length - 1) % items.length;
+      }
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = items.length - 1;
+      if (next === current || items.length === 0) return;
+      event.preventDefault();
+      items[next].focus();
+    }
+
+    menus.forEach((menu) => {
+      const parts = menuParts(menu);
+      parts.toggle.addEventListener('click', () => {
+        const open = menu.dataset.open !== 'true';
+        closeMenus(menu);
+        setMenu(menu, open);
+      });
+      parts.toggle.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowDown') return;
+        event.preventDefault();
+        closeMenus(menu);
+        setMenu(menu, true, true);
+      });
+      parts.panel.addEventListener('keydown', menuKeydown);
+    });
+
+    function clamp(value, minimum, maximum) {
+      return Math.min(maximum, Math.max(minimum, value));
+    }
+
+    function narrowLayout() {
+      return window.matchMedia('(max-width: 760px)').matches;
+    }
+
+    function applyLayout() {
+      schemaPane.classList.toggle('collapsed', !state.schemaOpen);
+      outputPane.classList.toggle('collapsed', !state.outputOpen);
+      schemaResizer.hidden = !state.schemaOpen;
+      outputResizer.hidden = !state.outputOpen;
+      schemaCollapse.setAttribute('aria-expanded', String(state.schemaOpen));
+      outputCollapse.setAttribute('aria-expanded', String(state.outputOpen));
+      schemaCollapse.setAttribute('aria-label', state.schemaOpen ?
+        'Collapse schemas' : 'Expand schemas');
+      outputCollapse.setAttribute('aria-label', state.outputOpen ?
+        'Collapse output' : 'Expand output');
+      schemaCollapse.textContent = state.schemaOpen ? '‹' : '›';
+      outputCollapse.textContent = state.outputOpen ? '⌄' : '⌃';
+      if (narrowLayout()) {
+        const size = clamp(state.schemaSize, 160,
+          Math.max(160, window.innerHeight * 0.45));
+        workbench.style.gridTemplateColumns = 'minmax(0, 1fr)';
+        workbench.style.gridTemplateRows = state.schemaOpen ?
+          `${size}px .35rem minmax(32rem, 1fr)` :
+          '3rem 0 minmax(32rem, 1fr)';
+      } else {
+        const size = clamp(state.schemaSize, 180,
+          Math.max(180, window.innerWidth * 0.55));
+        workbench.style.gridTemplateRows = '';
+        workbench.style.gridTemplateColumns = state.schemaOpen ?
+          `${size}px .35rem minmax(0, 1fr)` :
+          '3rem 0 minmax(0, 1fr)';
+      }
+      const outputSize = clamp(state.outputSize, 96,
+        Math.max(96, workspace.clientHeight - 180));
+      workspace.style.gridTemplateRows = state.outputOpen ?
+        `minmax(12rem, 1fr) .35rem ${outputSize}px` :
+        'minmax(12rem, 1fr) 0 3rem';
+      schemaResizer.setAttribute('aria-valuenow', String(state.schemaSize));
+      outputResizer.setAttribute('aria-valuenow', String(state.outputSize));
+    }
+
+    function beginResize(kind, event) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      const move = (next) => {
+        if (kind === 'schema') {
+          const rect = workbench.getBoundingClientRect();
+          state.schemaSize = narrowLayout() ?
+            next.clientY - rect.top : next.clientX - rect.left;
+        } else {
+          const rect = workspace.getBoundingClientRect();
+          state.outputSize = rect.bottom - next.clientY;
+        }
+        applyLayout();
+      };
+      const finish = () => {
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', finish);
+        persist();
+      };
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', finish);
+    }
+
+    function resizeKeydown(kind, event) {
+      let delta = 0;
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') delta = -16;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') delta = 16;
+      if (delta === 0) return;
+      event.preventDefault();
+      if (kind === 'schema') state.schemaSize += delta;
+      if (kind === 'output') state.outputSize -= delta;
+      applyLayout();
+      persist();
+    }
+
+    editor.addEventListener('input', () => {
+      captureEditor();
+      persist();
+    });
+    ['select', 'keyup', 'pointerup'].forEach((eventName) => {
+      editor.addEventListener(eventName, () => {
+        captureEditor();
+        persist();
+      });
+    });
+    newTabButton.addEventListener('click', () => addDraft());
+    byId('new-tab-menu-item').addEventListener('click', () => addDraft());
+    byId('close-tab-menu-item').addEventListener('click', closeActiveTab);
+    runButton.addEventListener('click', () => execute('run'));
+    parseButton.addEventListener('click', () => execute('parse'));
+    copyQueryButton.addEventListener('click', () => {
+      captureEditor();
+      copyText(activeTab().text, 'Query');
+    });
+    copyOutputButton.addEventListener('click', () => {
+      copyText(lastOutputText, 'Output');
+    });
+    defaultDatabase.addEventListener('change', () => {
+      state.defaultDatabase = defaultDatabase.value;
+      persist();
+    });
+    schemaCollapse.addEventListener('click', () => {
+      state.schemaOpen = !state.schemaOpen;
+      applyLayout();
+      persist();
+    });
+    outputCollapse.addEventListener('click', () => {
+      state.outputOpen = !state.outputOpen;
+      applyLayout();
+      persist();
+    });
+    schemaResizer.addEventListener('pointerdown', (event) => {
+      beginResize('schema', event);
+    });
+    outputResizer.addEventListener('pointerdown', (event) => {
+      beginResize('output', event);
+    });
+    schemaResizer.addEventListener('keydown', (event) => {
+      resizeKeydown('schema', event);
+    });
+    outputResizer.addEventListener('keydown', (event) => {
+      resizeKeydown('output', event);
+    });
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.menu')) closeMenus();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const open = menus.find((menu) => menu.dataset.open === 'true');
+        closeMenus();
+        if (open) menuParts(open).toggle.focus();
+      }
+      if (event.key === 'F5') {
+        event.preventDefault();
+        execute('run');
+      }
+    });
+    window.addEventListener('resize', applyLayout);
+    window.addEventListener('beforeunload', () => {
+      captureEditor();
+      persist();
+    });
+
+    byId('open-menu-item').disabled = true;
+    byId('save-tab-menu-item').disabled = true;
+    byId('save-as-menu-item').disabled = true;
+    copyOutputButton.disabled = true;
+    defaultDatabase.value = state.defaultDatabase;
+    if (!defaultDatabase.value) {
+      state.defaultDatabase = 'sys';
+      defaultDatabase.value = 'sys';
+    }
+    renderTabs();
+    restoreEditor(false);
+    applyLayout();
+    setBusy(false);
+    document.documentElement.dataset.obelisk = 'ready';
+
+    window.ObeliskWorkbench = {
+      api,
+      addDraft,
+      activateTab,
+      closeActiveTab,
+      execute,
+      getState: () => state,
+      persist,
+      setStatus,
+      showOutput
+    };
+  })();
   '''
 --

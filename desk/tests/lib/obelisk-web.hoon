@@ -551,6 +551,11 @@
   ^-  sign-arvo
   [%behn %wake ~]
 ::
+++  eyre-bound-sign
+  |=  accepted=?
+  ^-  sign-arvo
+  [%eyre %bound accepted `/apps/obelisk]
+::
 ++  bind-card
   ^-  card:agent:gall
   :*  %pass  /eyre/connect  %arvo  %e
@@ -638,6 +643,12 @@
   =/  req  (request %'GET' '/apps/obelisk')
   %-  expect-fail
   |.  (poke-http-with req foreign-bowl)
+::
+++  test-web-public-page-allows-eyre-guest-16a
+  =/  req  (request %'GET' '/apps/obelisk')
+  =.  authenticated.req  %.n
+  =/  out  (poke-http-with req foreign-bowl)
+  (expect-eq !>(200) !>((response-status -.out)))
 ::
 ++  test-web-api-unauthenticated-17
   =/  body  (request-text [%run %sys 'SELECT 1;'])
@@ -1795,5 +1806,53 @@
     (expect !>(?=(~ (find "hawk" lower))))
     (expect !>(?=(~ (find "htmx" lower))))
     (expect !>(?=(~ (find "jquery" lower))))
+  ==
+::
+++  test-browser-controller-and-pane-state-68
+  =/  out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
+  =/  script=tape  (trip (response-body -.out))
+  ;:  weld
+    (expect !>(?=(^ (find "sessionStorage" script))))
+    (expect !>(?=(^ (find "aria-expanded" script))))
+    (expect !>(?=(^ (find "pointermove" script))))
+    (expect !>(?=(^ (find "schemaOpen" script))))
+    (expect !>(?=(^ (find "outputOpen" script))))
+    (expect !>(?=(^ (find "event.key === 'Escape'" script))))
+    (expect !>(?=(^ (find "setBusy" script))))
+  ==
+::
+++  test-editor-and-query-interactions-69
+  =/  out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
+  =/  script=tape  (trip (response-body -.out))
+  ;:  weld
+    (expect !>(?=(^ (find "nextDraftName" script))))
+    (expect !>(?=(^ (find "selectionStart" script))))
+    (expect !>(?=(^ (find "execute('run')" script))))
+    (expect !>(?=(^ (find "execute('parse')" script))))
+    (expect !>(?=(^ (find "event.key === 'F5'" script))))
+    (expect !>(?=(^ (find "navigator.clipboard" script))))
+    (expect !>(?=(^ (find "document.execCommand('copy')" script))))
+  ==
+::
+++  test-web-eyre-bind-response-70
+  =/  initialized  on-init:~(. agent bowl)
+  =/  accepted
+    (on-arvo:~(. +.initialized bowl) /eyre/connect (eyre-bound-sign %.y))
+  =/  rejected
+    (on-arvo:~(. +.initialized bowl) /eyre/connect (eyre-bound-sign %.n))
+  ;:  weld
+    (expect-eq !>(~) !>(-.accepted))
+    (expect-eq !>(~) !>(-.rejected))
+    (expect-eq !>(%bound) !>((binding-after-connect:state %.y)))
+    (expect-eq !>(%unbound) !>((binding-after-connect:state %.n)))
+  ==
+::
+++  test-web-http-response-watch-71
+  =/  accepted
+    (on-watch:~(. agent bowl) /http-response/request)
+  ;:  weld
+    (expect-eq !>(~) !>(-.accepted))
+    %-  expect-fail
+    |.  (on-watch:~(. agent bowl) /unknown)
   ==
 --
