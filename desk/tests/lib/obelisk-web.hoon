@@ -1894,4 +1894,35 @@
     (expect !>(?=(^ (find "DEFAULT" script))))
     (expect !>(?=(^ (find "PRIMARY KEY" script))))
   ==
+::
+++  test-output-ui-contract-74
+  =/  page-out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  css-out  (poke-http (request %'GET' '/apps/obelisk/app.css'))
+  =/  js-out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
+  =/  html=tape  (trip (response-body -.page-out))
+  =/  style=tape  (trip (response-body -.css-out))
+  =/  script=tape  (trip (response-body -.js-out))
+  ;:  weld
+    (expect !>(?=(^ (find "save-results-btn" html))))
+    (expect !>(?=(^ (find "results-delimiter-fields" html))))
+    (expect !>(?=(^ (find "value=\"comma\"" html))))
+    (expect !>(?=(^ (find "value=\"space\"" html))))
+    (expect !>(?=(^ (find "value=\"tab\"" html))))
+    (expect !>(?=(^ (find "result-table-wrap" style))))
+    (expect !>(?=(^ (find "white-space: nowrap" style))))
+    (expect !>(?=(^ (find "showRunOutput" script))))
+    (expect !>(?=(^ (find "showParseOutput" script))))
+    (expect !>(?=(^ (find "showErrorOutput" script))))
+    (expect !>(?=(^ (find "renderCommand" script))))
+    (expect !>(?=(^ (find "renderResultSet" script))))
+    (expect !>(?=(^ (find "resultPageSize = 500" script))))
+    (expect !>(?=(^ (find "resultPagingThreshold = 800" script))))
+    (expect !>(?=(^ (find "runCopyText" script))))
+    (expect !>(?=(^ (find "runExportText" script))))
+    (expect !>(?=(^ (find "security-time:" script))))
+    (expect !>(?=(^ (find "showSaveResultsDialog" script))))
+    (expect !>(?=(^ (find "nextResultName" script))))
+    (expect !>(?=(^ (find "path: ['results']" script))))
+    (expect !>(?=(^ (find "error.status === 409" script))))
+  ==
 --

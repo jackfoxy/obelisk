@@ -341,6 +341,31 @@
               Script path
             ==
             ;input#file-path-input.hidden(placeholder "folder/script-name");
+            ;fieldset#results-delimiter-fields.hidden
+              ;legend: Delimiter
+              ;label
+                ;input
+                  =type  "radio"
+                  =name  "results-delimiter"
+                  =value  "comma"
+                  =checked  "";
+                Comma
+              ==
+              ;label
+                ;input
+                  =type  "radio"
+                  =name  "results-delimiter"
+                  =value  "space";
+                Space
+              ==
+              ;label
+                ;input
+                  =type  "radio"
+                  =name  "results-delimiter"
+                  =value  "tab";
+                Tab
+              ==
+            ==
             ;div.dialog-actions
               ;button#file-dialog-cancel(type "button"): Cancel
               ;button#file-dialog-confirm.primary(type "submit"): Open
@@ -623,6 +648,27 @@
     width: 100%;
   }
 
+  #results-delimiter-fields {
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0.55rem 0.7rem 0.65rem;
+  }
+
+  #results-delimiter-fields legend {
+    color: var(--muted);
+    font-size: 0.8rem;
+    padding: 0 0.25rem;
+  }
+
+  #results-delimiter-fields label {
+    align-items: center;
+    display: flex;
+    gap: 0.3rem;
+  }
+
   .dialog-actions {
     display: flex;
     gap: 0.45rem;
@@ -865,7 +911,7 @@
     margin: 0;
   }
 
-  .error-pane, .plain-output {
+  .error-pane, .plain-output, .parse-output {
     font: 0.86rem/1.5 ui-monospace, monospace;
     margin: 0;
     overflow-wrap: anywhere;
@@ -874,6 +920,123 @@
 
   .error-pane {
     color: #b91c1c;
+  }
+
+  .error-summary {
+    color: #b91c1c;
+    font-weight: 600;
+    margin: 0 0 0.45rem;
+  }
+
+  .command-group {
+    border: 1px solid var(--border);
+    border-radius: 0.45rem;
+    margin-bottom: 0.75rem;
+    min-width: 0;
+  }
+
+  .command-heading {
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+    margin: 0;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .result-tabs {
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.35rem 0.5rem 0;
+  }
+
+  .result-tab {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .result-tab[aria-selected="true"] {
+    background: var(--surface);
+    border-bottom-color: var(--surface);
+    font-weight: 600;
+  }
+
+  .command-panel, .command-metadata {
+    padding: 0.65rem;
+  }
+
+  .result-set + .result-set {
+    margin-top: 1rem;
+  }
+
+  .result-set-heading {
+    font-size: 0.84rem;
+    margin: 0 0 0.4rem;
+  }
+
+  .result-table-wrap {
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .result-table {
+    border-collapse: collapse;
+    font: 0.82rem/1.4 ui-monospace, monospace;
+    white-space: nowrap;
+    width: max-content;
+  }
+
+  .result-table th, .result-table td {
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+  }
+
+  .result-table th {
+    background: var(--surface-alt);
+    position: sticky;
+    top: 0;
+  }
+
+  .result-table .row-number {
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .result-pager {
+    align-items: center;
+    display: flex;
+    gap: 0.45rem;
+    margin-top: 0.45rem;
+  }
+
+  .result-pager-status {
+    color: var(--muted);
+    margin-right: auto;
+  }
+
+  .metadata-list {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+  }
+
+  .metadata-row {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  .metadata-row dt {
+    color: var(--muted);
+  }
+
+  .metadata-row dd {
+    font-family: ui-monospace, monospace;
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
   }
 
   .visually-hidden {
@@ -969,6 +1132,7 @@
     const parseButton = byId('parse-btn');
     const copyQueryButton = byId('copy-query-btn');
     const copyOutputButton = byId('copy-output-btn');
+    const saveResultsButton = byId('save-results-btn');
     const defaultDatabase = byId('default-db');
     const schemaTree = byId('schema-tree');
     const results = byId('results');
@@ -980,10 +1144,17 @@
     const fileDialogList = byId('file-dialog-list');
     const filePathLabel = byId('file-path-label');
     const filePathInput = byId('file-path-input');
+    const resultsDelimiterFields = byId('results-delimiter-fields');
     const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
     let statusTimer = 0;
     let lastOutputText = '';
+    let outputState = {
+      kind: 'empty',
+      commands: [],
+      text: '',
+      exportable: false
+    };
     let busy = false;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
@@ -1249,6 +1420,15 @@
       }
     }
 
+    function updateOutputControls() {
+      copyOutputButton.disabled = lastOutputText.length === 0;
+      saveResultsButton.disabled = busy || !outputState.exportable;
+      saveResultsButton.setAttribute(
+        'aria-disabled',
+        String(saveResultsButton.disabled)
+      );
+    }
+
     function setBusy(value, label = '') {
       busy = value;
       app.setAttribute('aria-busy', String(value));
@@ -1264,6 +1444,7 @@
         'Running…' : 'Run';
       parseButton.textContent = value && label === 'parse' ?
         'Parsing…' : 'Parse';
+      updateOutputControls();
       if (fileDialog.open) {
         fileDialogConfirm.disabled = value ||
           (fileDialogMode === 'open' && !selectedFilePath);
@@ -1309,15 +1490,23 @@
       return body;
     }
 
-    function scriptPathFromInput(value) {
+    function relativePathFromInput(value, root) {
       const parts = String(value || '').split('/').map((part) => {
         return part.trim();
       });
-      if (parts[0] === 'scripts') parts.shift();
+      if (parts[0] === root) parts.shift();
       const valid = parts.length > 0 && parts.every((part) => {
         return /^[a-z][a-z0-9-]*$/.test(part);
       });
-      return valid ? ['scripts', ...parts] : null;
+      return valid ? [root, ...parts] : null;
+    }
+
+    function scriptPathFromInput(value) {
+      return relativePathFromInput(value, 'scripts');
+    }
+
+    function resultPathFromInput(value) {
+      return relativePathFromInput(value, 'results');
     }
 
     function displayScriptPath(path) {
@@ -1333,6 +1522,7 @@
     function closeFileDialog() {
       if (fileDialog.open) fileDialog.close();
       selectedFilePath = null;
+      resultsDelimiterFields.classList.add('hidden');
     }
 
     function renderFileEntries() {
@@ -1388,6 +1578,7 @@
       fileDialogList.classList.remove('hidden');
       filePathLabel.classList.add('hidden');
       filePathInput.classList.add('hidden');
+      resultsDelimiterFields.classList.add('hidden');
       fileDialogConfirm.textContent = 'Open';
       fileDialogConfirm.disabled = true;
       fileDialog.showModal();
@@ -1414,8 +1605,55 @@
         'Use lower-case letters, digits, and hyphens in each path part.';
       fileDialogList.classList.add('hidden');
       filePathLabel.classList.remove('hidden');
+      filePathLabel.textContent = 'Script path';
       filePathInput.classList.remove('hidden');
+      resultsDelimiterFields.classList.add('hidden');
       filePathInput.value = suggestScriptPath(activeTab());
+      fileDialogConfirm.textContent = 'Save';
+      fileDialogConfirm.disabled = false;
+      fileDialog.showModal();
+      filePathInput.focus();
+      filePathInput.select();
+    }
+
+    function nextResultName(entries) {
+      const names = new Set(entries.filter((entry) => {
+        return Array.isArray(entry.path) && entry.path.length === 2 &&
+          entry.path[0] === 'results';
+      }).map((entry) => entry.path[1]));
+      let number = 1;
+      while (names.has(`results-${number}`)) number += 1;
+      return `results-${number}`;
+    }
+
+    async function showSaveResultsDialog() {
+      if (busy || !outputState.exportable) return;
+      closeMenus();
+      setBusy(true, 'browse');
+      let entries = [];
+      try {
+        const body = await api('file-browse', {path: ['results']});
+        entries = Array.isArray(body.entries) ? body.entries : [];
+      } catch (error) {
+        setStatus(error.message, 'error', true);
+        return;
+      } finally {
+        setBusy(false);
+      }
+      fileDialogMode = 'save-results';
+      selectedFilePath = null;
+      fileDialogTitle.textContent = 'Save results';
+      fileDialogHelp.textContent =
+        'Save under results using lower-case letters, digits, and hyphens.';
+      fileDialogList.classList.add('hidden');
+      filePathLabel.classList.remove('hidden');
+      filePathLabel.textContent = 'Result path';
+      filePathInput.classList.remove('hidden');
+      filePathInput.value = nextResultName(entries);
+      const showDelimiter = outputState.kind === 'run';
+      resultsDelimiterFields.classList.toggle('hidden', !showDelimiter);
+      const comma = resultsDelimiterFields.querySelector('[value="comma"]');
+      comma.checked = true;
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
       fileDialog.showModal();
@@ -1500,6 +1738,57 @@
         return;
       }
       const saved = await saveTab(activeTab(), path, false);
+      if (saved) closeFileDialog();
+    }
+
+    function selectedResultsDelimiter() {
+      const selected = resultsDelimiterFields.querySelector(
+        'input[name="results-delimiter"]:checked'
+      );
+      return selected ? selected.value : 'comma';
+    }
+
+    function resultSaveText() {
+      if (outputState.kind === 'parse') {
+        return ensureTrailingNewline(outputState.text);
+      }
+      return runExportText(
+        outputState.commands,
+        selectedResultsDelimiter()
+      );
+    }
+
+    async function saveResultsFile(path, overwrite) {
+      if (busy || !outputState.exportable) return false;
+      const content = resultSaveText();
+      setBusy(true, 'save-results');
+      try {
+        const body = await api('file-save', {path, content, overwrite});
+        setStatus(`${body.path.slice(1).join('/')} saved.`);
+        return true;
+      } catch (error) {
+        const name = path.slice(1).join('/');
+        if (!overwrite && error.status === 409 &&
+            window.confirm(`${name} exists. Overwrite it?`)) {
+          setBusy(false);
+          return saveResultsFile(path, true);
+        }
+        setStatus(error.message, 'error', true);
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function saveResultsFromDialog() {
+      const path = resultPathFromInput(filePathInput.value);
+      if (!path) {
+        fileDialogHelp.textContent =
+          'Invalid path. Use names like folder/results-name.';
+        filePathInput.focus();
+        return;
+      }
+      const saved = await saveResultsFile(path, false);
       if (saved) closeFileDialog();
     }
 
@@ -1749,17 +2038,364 @@
       return tab.text;
     }
 
-    function showOutput(text, kind = 'plain') {
-      lastOutputText = text;
-      results.replaceChildren();
-      const pre = document.createElement('pre');
-      pre.className = kind === 'error' ? 'error-pane' : 'plain-output';
-      pre.textContent = text;
-      results.appendChild(pre);
-      copyOutputButton.disabled = text.length === 0;
+    const resultPageSize = 500;
+    const resultPagingThreshold = 800;
+
+    function resultSetsForCommand(command) {
+      const commandResults = Array.isArray(command.results) ?
+        command.results : [];
+      return commandResults.filter((result) => {
+        return result && result.type === 'result-set';
+      }).map((result) => result.value || {columns: [], rows: []});
+    }
+
+    function metadataForCommand(command) {
+      const commandResults = Array.isArray(command.results) ?
+        command.results : [];
+      return commandResults.filter((result) => {
+        return result && result.type !== 'result-set';
+      });
+    }
+
+    function metadataLabel(type) {
+      return {
+        action: 'message:',
+        'relation-name': 'message:',
+        message: 'message:',
+        'vector-count': 'vector count:',
+        'server-time': 'server-time:',
+        'security-time': 'security-time:',
+        'schema-time': 'schema-time:',
+        'data-time': 'data-time:',
+        relations: 'relations:',
+        'select-relation': 'select-relation:'
+      }[type] || `${type}:`;
+    }
+
+    function metadataLine(result) {
+      return `${metadataLabel(result.type)} ${String(result.value)}`;
+    }
+
+    function delimiterCharacter(delimiter) {
+      if (delimiter === 'space') return ' ';
+      if (delimiter === 'tab') return '\t';
+      return ',';
+    }
+
+    function exportResultSet(resultSet, delimiter) {
+      const columns = Array.isArray(resultSet.columns) ?
+        resultSet.columns : [];
+      if (columns.length === 0) return '';
+      const separator = delimiterCharacter(delimiter);
+      const lines = [columns.map((column) => column.name).join(separator)];
+      const rows = Array.isArray(resultSet.rows) ? resultSet.rows : [];
+      rows.forEach((row) => {
+        const cells = Array.isArray(row) ? row : [];
+        lines.push(cells.map((cell) => String(cell.value)).join(separator));
+      });
+      return lines.join('\n');
+    }
+
+    function allResultSets(commands) {
+      return commands.flatMap(resultSetsForCommand);
+    }
+
+    function runExportText(commands, delimiter) {
+      const chunks = allResultSets(commands).map((resultSet) => {
+        return exportResultSet(resultSet, delimiter);
+      }).filter((chunk) => chunk.length > 0);
+      return chunks.length > 0 ? `${chunks.join('\n\n')}\n` : '';
+    }
+
+    function runMetadataText(commands) {
+      const lines = commands.flatMap((command) => {
+        return metadataForCommand(command).map(metadataLine);
+      });
+      return lines.length > 0 ? `${lines.join('\n')}\n` : '';
+    }
+
+    function runCopyText(commands) {
+      const resultText = runExportText(commands, 'comma');
+      const metadataText = runMetadataText(commands);
+      if (!resultText) return metadataText;
+      if (!metadataText) return resultText;
+      return `${resultText}\n${metadataText}`;
+    }
+
+    function ensureTrailingNewline(text) {
+      return text.endsWith('\n') ? text : `${text}\n`;
+    }
+
+    function renderMetadata(container, metadata) {
+      if (metadata.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'No messages.';
+        container.appendChild(empty);
+        return;
+      }
+      const list = document.createElement('dl');
+      list.className = 'metadata-list';
+      metadata.forEach((result) => {
+        const row = document.createElement('div');
+        row.className = 'metadata-row';
+        const term = document.createElement('dt');
+        term.textContent = metadataLabel(result.type);
+        const description = document.createElement('dd');
+        description.textContent = String(result.value);
+        row.append(term, description);
+        list.appendChild(row);
+      });
+      container.appendChild(list);
+    }
+
+    function renderResultTable(resultSet, rows, firstRow) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'result-table-wrap';
+      const table = document.createElement('table');
+      table.className = 'result-table';
+      const head = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      const numberHeading = document.createElement('th');
+      numberHeading.className = 'row-number';
+      numberHeading.setAttribute('aria-label', 'Row number');
+      headRow.appendChild(numberHeading);
+      const columns = Array.isArray(resultSet.columns) ?
+        resultSet.columns : [];
+      columns.forEach((column) => {
+        const heading = document.createElement('th');
+        heading.scope = 'col';
+        heading.textContent = column.name;
+        heading.title = column.aura ? `@${column.aura}` : '';
+        headRow.appendChild(heading);
+      });
+      head.appendChild(headRow);
+      const body = document.createElement('tbody');
+      rows.forEach((row, rowIndex) => {
+        const tableRow = document.createElement('tr');
+        const number = document.createElement('th');
+        number.className = 'row-number';
+        number.scope = 'row';
+        number.textContent = String(firstRow + rowIndex + 1);
+        tableRow.appendChild(number);
+        const cells = Array.isArray(row) ? row : [];
+        cells.forEach((cell) => {
+          const data = document.createElement('td');
+          data.textContent = String(cell.value);
+          data.title = cell.aura ? `@${cell.aura}` : '';
+          tableRow.appendChild(data);
+        });
+        body.appendChild(tableRow);
+      });
+      table.append(head, body);
+      wrapper.appendChild(table);
+      return wrapper;
+    }
+
+    function renderResultSet(resultSet, resultNumber, resultCount) {
+      const section = document.createElement('section');
+      section.className = 'result-set';
+      if (resultCount > 1) {
+        const heading = document.createElement('h4');
+        heading.className = 'result-set-heading';
+        heading.textContent = `Result set ${resultNumber + 1}`;
+        section.appendChild(heading);
+      }
+      const rows = Array.isArray(resultSet.rows) ? resultSet.rows : [];
+      const columns = Array.isArray(resultSet.columns) ?
+        resultSet.columns : [];
+      if (columns.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'Empty result set.';
+        section.appendChild(empty);
+        return section;
+      }
+      const tableHolder = document.createElement('div');
+      section.appendChild(tableHolder);
+      if (rows.length < resultPagingThreshold) {
+        tableHolder.appendChild(renderResultTable(resultSet, rows, 0));
+        return section;
+      }
+      let page = 0;
+      const pageCount = Math.ceil(rows.length / resultPageSize);
+      const pager = document.createElement('nav');
+      pager.className = 'result-pager';
+      pager.setAttribute('aria-label', 'Result pages');
+      const pageStatus = document.createElement('span');
+      pageStatus.className = 'result-pager-status';
+      const previous = document.createElement('button');
+      previous.type = 'button';
+      previous.textContent = 'Previous';
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.textContent = 'Next';
+      function renderPage() {
+        const first = page * resultPageSize;
+        const last = Math.min(first + resultPageSize, rows.length);
+        tableHolder.replaceChildren(
+          renderResultTable(resultSet, rows.slice(first, last), first)
+        );
+        pageStatus.textContent =
+          `Rows ${first + 1}–${last} of ${rows.length} · ` +
+          `Page ${page + 1} of ${pageCount}`;
+        previous.disabled = page === 0;
+        next.disabled = page === pageCount - 1;
+      }
+      previous.addEventListener('click', () => {
+        page = Math.max(0, page - 1);
+        renderPage();
+      });
+      next.addEventListener('click', () => {
+        page = Math.min(pageCount - 1, page + 1);
+        renderPage();
+      });
+      pager.append(pageStatus, previous, next);
+      section.appendChild(pager);
+      renderPage();
+      return section;
+    }
+
+    function renderCommand(command, position) {
+      const group = document.createElement('article');
+      group.className = 'command-group';
+      const heading = document.createElement('h3');
+      heading.className = 'command-heading';
+      const commandIndex = Number.isInteger(command.index) ?
+        command.index + 1 : position + 1;
+      heading.textContent = `Command ${commandIndex}`;
+      group.appendChild(heading);
+      const resultSets = resultSetsForCommand(command);
+      const metadata = metadataForCommand(command);
+      if (resultSets.length === 0) {
+        const direct = document.createElement('div');
+        direct.className = 'command-metadata';
+        renderMetadata(direct, metadata);
+        group.appendChild(direct);
+        return group;
+      }
+      const tabList = document.createElement('div');
+      tabList.className = 'result-tabs';
+      tabList.setAttribute('role', 'tablist');
+      tabList.setAttribute('aria-label', `Command ${commandIndex} output`);
+      const resultsTab = document.createElement('button');
+      resultsTab.type = 'button';
+      resultsTab.className = 'result-tab';
+      resultsTab.textContent = 'Results';
+      resultsTab.setAttribute('role', 'tab');
+      resultsTab.setAttribute('aria-selected', 'true');
+      const messagesTab = document.createElement('button');
+      messagesTab.type = 'button';
+      messagesTab.className = 'result-tab';
+      messagesTab.textContent = 'Messages';
+      messagesTab.setAttribute('role', 'tab');
+      messagesTab.setAttribute('aria-selected', 'false');
+      const resultPanel = document.createElement('div');
+      resultPanel.className = 'command-panel';
+      resultPanel.setAttribute('role', 'tabpanel');
+      const messagePanel = document.createElement('div');
+      messagePanel.className = 'command-panel hidden';
+      messagePanel.setAttribute('role', 'tabpanel');
+      const resultPanelId = `command-${position}-results`;
+      const messagePanelId = `command-${position}-messages`;
+      resultsTab.setAttribute('aria-controls', resultPanelId);
+      messagesTab.setAttribute('aria-controls', messagePanelId);
+      resultPanel.id = resultPanelId;
+      messagePanel.id = messagePanelId;
+      resultSets.forEach((resultSet, resultNumber) => {
+        resultPanel.appendChild(
+          renderResultSet(resultSet, resultNumber, resultSets.length)
+        );
+      });
+      renderMetadata(messagePanel, metadata);
+      function selectTab(showResults) {
+        resultsTab.setAttribute('aria-selected', String(showResults));
+        messagesTab.setAttribute('aria-selected', String(!showResults));
+        resultPanel.classList.toggle('hidden', !showResults);
+        messagePanel.classList.toggle('hidden', showResults);
+      }
+      resultsTab.addEventListener('click', () => selectTab(true));
+      messagesTab.addEventListener('click', () => selectTab(false));
+      tabList.append(resultsTab, messagesTab);
+      group.append(tabList, resultPanel, messagePanel);
+      return group;
+    }
+
+    function revealOutput() {
       state.outputOpen = true;
       applyLayout();
       persist();
+      updateOutputControls();
+    }
+
+    function showRunOutput(commands) {
+      const safeCommands = Array.isArray(commands) ? commands : [];
+      const exportable = allResultSets(safeCommands).some((resultSet) => {
+        return Array.isArray(resultSet.columns) &&
+          resultSet.columns.length > 0;
+      });
+      outputState = {
+        kind: 'run',
+        commands: safeCommands,
+        text: '',
+        exportable
+      };
+      lastOutputText = runCopyText(safeCommands);
+      results.replaceChildren();
+      if (safeCommands.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'No command results.';
+        results.appendChild(empty);
+      } else {
+        safeCommands.forEach((command, position) => {
+          results.appendChild(renderCommand(command, position));
+        });
+      }
+      revealOutput();
+    }
+
+    function showParseOutput(text) {
+      const value = String(text || '');
+      outputState = {
+        kind: 'parse',
+        commands: [],
+        text: value,
+        exportable: value.length > 0
+      };
+      lastOutputText = value;
+      results.replaceChildren();
+      const pre = document.createElement('pre');
+      pre.className = 'parse-output';
+      pre.textContent = value;
+      results.appendChild(pre);
+      revealOutput();
+    }
+
+    function showErrorOutput(text) {
+      const value = String(text || 'Unknown error.');
+      outputState = {
+        kind: 'error',
+        commands: [],
+        text: value,
+        exportable: false
+      };
+      lastOutputText = value;
+      results.replaceChildren();
+      const summary = document.createElement('p');
+      summary.className = 'error-summary';
+      summary.textContent = value.split('\n').find((line) => line.trim()) ||
+        'Request failed.';
+      const trace = document.createElement('pre');
+      trace.className = 'error-pane';
+      trace.textContent = value;
+      results.append(summary, trace);
+      revealOutput();
+    }
+
+    function showOutput(text, kind = 'plain') {
+      if (kind === 'error') showErrorOutput(text);
+      else showParseOutput(text);
     }
 
     async function execute(operation) {
@@ -1773,10 +2409,10 @@
           script
         });
         if (operation === 'parse') {
-          showOutput(body.text || '');
+          showParseOutput(body.text || '');
           setStatus('Parse complete.');
         } else {
-          showOutput(JSON.stringify(body.commands || [], null, 2));
+          showRunOutput(body.commands || []);
           if (body.schemaChanged) {
             await refreshSchema({preferNewDatabase: true});
           }
@@ -1784,7 +2420,7 @@
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        showOutput(message, 'error');
+        showErrorOutput(message);
         setStatus(message, 'error', true);
       } finally {
         setBusy(false);
@@ -1977,6 +2613,7 @@
     fileDialogForm.addEventListener('submit', (event) => {
       event.preventDefault();
       if (fileDialogMode === 'open') openSelectedFile();
+      else if (fileDialogMode === 'save-results') saveResultsFromDialog();
       else saveAsFromDialog();
     });
     byId('relation-select').addEventListener('click', () => {
@@ -1990,6 +2627,7 @@
     });
     runButton.addEventListener('click', () => execute('run'));
     parseButton.addEventListener('click', () => execute('parse'));
+    saveResultsButton.addEventListener('click', showSaveResultsDialog);
     copyQueryButton.addEventListener('click', () => {
       captureEditor();
       copyText(activeTab().text, 'Query');
@@ -2049,7 +2687,7 @@
       persist();
     });
 
-    copyOutputButton.disabled = true;
+    updateOutputControls();
     defaultDatabase.value = state.defaultDatabase;
     if (!defaultDatabase.value) {
       state.defaultDatabase = 'sys';
@@ -2074,11 +2712,16 @@
       persist,
       refreshSchema,
       relationTemplate,
+      renderCommand,
+      runCopyText,
+      runExportText,
       saveActiveTab,
+      showSaveResultsDialog,
       showOpenDialog,
       showSaveAsDialog,
       setStatus,
-      showOutput
+      showOutput,
+      showRunOutput
     };
   })();
   '''
