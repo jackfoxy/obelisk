@@ -167,14 +167,16 @@
 ::
 ::  +|  Query DTOs
 ::
++$  export-delimiter  ?(%comma %space %tab)
+::
 +$  result-column-dto
   $:  name=@tas
-      aura=@ta
+      aura=@t
   ==
 ::
 +$  result-cell-dto
   $:  name=@tas
-      aura=@ta
+      aura=@t
       value=@t
   ==
 ::

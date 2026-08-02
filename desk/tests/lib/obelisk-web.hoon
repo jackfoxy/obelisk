@@ -1,7 +1,8 @@
 ::  Tests for %obelisk-web shared types and state lifecycle.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  json-lib=obelisk-web-json, schema-lib=obelisk-web-schema
+/+  json-lib=obelisk-web-json, result-lib=obelisk-web-result
+/+  schema-lib=obelisk-web-schema
 /+  state=obelisk-web, *test
 /=  agent  /app/obelisk-web
 |%
@@ -429,6 +430,18 @@
   |=  vectors=(list vector:ast)
   ^-  cmd-result:ast
   [%results ~[[%result-set vectors]]]
+::
+++  numbered-vectors
+  |=  count=@ud
+  ^-  (list vector:ast)
+  (numbered-vectors-from 0 count)
+::
+++  numbered-vectors-from
+  |=  [index=@ud count=@ud]
+  ^-  (list vector:ast)
+  ?:  =(index count)  ~
+  :-  [%vector ~[[%row [%ud index]]]]
+  $(index +(index))
 ::
 ++  database-command
   |=  databases=(list @tas)
@@ -1475,5 +1488,168 @@
     %+  expect-eq
       !>(`'sys')
     !>((text-field:json-lib 'defaultDatabase' response-value))
+  ==
+::
+++  test-result-conversion-all-variants-54
+  =/  vector=vector:ast
+    :*  %vector
+        :~  [%text [%t hostile-text]]
+            [%name [%tas %alpha]]
+            [%count [%ud 42]]
+            [%flag [%f 0]]
+        ==
+    ==
+  =/  vectors=(list vector:ast)  ~[vector]
+  =/  results=(list result:ast)
+    :~  [%action hostile-text]
+        [%relation-name 'sys.public.items']
+        [%message hostile-text]
+        [%vector-count 42]
+        [%server-time ~2026.8.1]
+        [%security-time ~2026.8.1]
+        [%schema-time ~2026.8.1]
+        [%data-time ~2026.8.1]
+        [%result-set vectors]
+        [%relations ~]
+        [%select-relation *relation:ast]
+    ==
+  =/  dtos=(list result-dto:web)
+    (turn results result-dto:result-lib)
+  =/  result-set=result-dto:web  (snag 8 dtos)
+  ?>  ?=(%result-set -.result-set)
+  =/  table=result-set-dto:web  value.result-set
+  =/  expected-row=(list result-cell-dto:web)
+    :~  [%text 't' hostile-text]
+        [%name 'tas' 'alpha']
+        [%count 'ud' '42']
+        [%flag 'f' '.y']
+    ==
+  =/  metadata=(list @t)  (metadata-results:result-lib dtos)
+  =/  response=web-response:web
+    (run-response:result-lib ~[[%results results]])
+  ;:  weld
+    %+  expect-eq
+      !>  :~  %action
+              %relation-name
+              %message
+              %vector-count
+              %server-time
+              %security-time
+              %schema-time
+              %data-time
+              %result-set
+              %relations
+              %select-relation
+          ==
+    !>((turn dtos |=(dto=result-dto:web -.dto)))
+    %+  expect-eq
+      !>(~[[%text 't'] [%name 'tas'] [%count 'ud'] [%flag 'f']])
+    !>(columns.table)
+    %+  expect-eq
+      !>(~[expected-row])
+    !>(rows.table)
+    (expect-eq !>(10) !>((lent metadata)))
+    %+  expect-eq
+      !>((cat 3 'message: ' hostile-text))
+    !>((snag 0 metadata))
+    %+  expect-eq
+      !>('message: sys.public.items')
+    !>((snag 1 metadata))
+    (expect-eq !>('vector count: 42') !>((snag 3 metadata)))
+    (json-roundtrip (response-json:json-lib response))
+  ==
+::
+++  test-result-export-multiple-sets-55
+  =/  first=result-set-dto:web
+    :*  ~[[%alpha '@t'] [%count '@ud']]
+        ~[~[[%alpha '@t' 'one'] [%count '@ud' '2']]]
+    ==
+  =/  second=result-set-dto:web
+    :*  ~[[%zeta '@t']]
+        ~[~[[%zeta '@t' 'last']]]
+    ==
+  =/  commands=(list command-dto:web)
+    :~  [0 ~[[%message hostile-text] [%result-set first]]]
+        [1 ~[[%result-set second] [%vector-count 1]]]
+    ==
+  ;:  weld
+    %+  expect-eq
+      !>('alpha,count\0aone,2\0a\0azeta\0alast\0a')
+    !>((result-export-text:result-lib commands %comma))
+    %+  expect-eq
+      !>('alpha count\0aone 2\0a\0azeta\0alast\0a')
+    !>((result-export-text:result-lib commands %space))
+    %+  expect-eq
+      !>('alpha\09count\0aone\092\0a\0azeta\0alast\0a')
+    !>((result-export-text:result-lib commands %tab))
+    %+  expect-eq
+      !>(~[first second])
+    !>((result-sets:result-lib commands))
+  ==
+::
+++  test-result-export-empty-and-metadata-56
+  =/  empty-set=result-set-dto:web  [~ ~]
+  =/  header-only=result-set-dto:web  [~[[%value 't']] ~]
+  =/  metadata=(list command-dto:web)
+    ~[[0 ~[[%message hostile-text]]]]
+  =/  empty-command=(list command-dto:web)
+    ~[[0 ~[[%result-set empty-set]]]]
+  =/  line=@t  (cat 3 'message: ' hostile-text)
+  =/  expected=@t  (cat 3 line '\0a')
+  ;:  weld
+    (expect-eq !>('') !>((result-export-text:result-lib ~ %comma)))
+    %+  expect-eq
+      !>('')
+    !>((result-export-text:result-lib empty-command %comma))
+    %+  expect-eq
+      !>('value\0a')
+    !>((result-export-text:result-lib ~[[0 ~[[%result-set header-only]]]] %tab))
+    (expect-eq !>(expected) !>((metadata-text:result-lib metadata)))
+    %+  expect-eq
+      !>(expected)
+    !>((query-copy-text:result-lib metadata %comma))
+    %+  expect-eq
+      !>(~[line])
+    !>((metadata-lines:result-lib metadata))
+  ==
+::
+++  test-result-copy-includes-metadata-57
+  =/  table=result-set-dto:web
+    [~[[%value '@t']] ~[~[[%value '@t' 'safe']]]]
+  =/  commands=(list command-dto:web)
+    ~[[0 ~[[%result-set table] [%message hostile-text]]]]
+  =/  expected=@t
+    (cat 3 'value\0asafe\0a\0amessage: ' (cat 3 hostile-text '\0a'))
+  %+  expect-eq
+    !>(expected)
+  !>((query-copy-text:result-lib commands %comma))
+::
+++  test-parse-export-58
+  ;:  weld
+    %+  expect-eq
+      !>('CREATE TABLE items;\0a')
+    !>((parse-export-text:result-lib 'CREATE TABLE items;'))
+    %+  expect-eq
+      !>('CREATE TABLE items;\0a')
+    !>((parse-export-text:result-lib 'CREATE TABLE items;\0a'))
+    (expect-eq !>('\0a') !>((parse-export-text:result-lib '')))
+  ==
+::
+++  test-result-paging-and-full-export-59
+  =/  vectors=(list vector:ast)  (numbered-vectors 800)
+  =/  table=result-set-dto:web  (result-set:result-lib vectors)
+  =/  commands=(list command-dto:web)
+    ~[[0 ~[[%result-set table]]]]
+  =/  exported=@t  (result-export-text:result-lib commands %comma)
+  ;:  weld
+    (expect !>(!(should-page:result-lib 799)))
+    (expect !>((should-page:result-lib 800)))
+    (expect !>((should-page:result-lib 801)))
+    (expect-eq !>(0) !>((page-count:result-lib 0)))
+    (expect-eq !>(2) !>((page-count:result-lib 799)))
+    (expect-eq !>(2) !>((page-count:result-lib 800)))
+    (expect-eq !>(3) !>((page-count:result-lib 1.001)))
+    (expect-eq !>(800) !>((lent rows.table)))
+    (expect !>(?=(^ (find "\0a799\0a" (trip exported)))))
   ==
 --
