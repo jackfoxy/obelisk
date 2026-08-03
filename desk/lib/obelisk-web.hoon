@@ -109,30 +109,36 @@
           ;a.brand(href "/apps/obelisk", aria-label "Obelisk home")
             Obelisk
           ==
-          ;nav.toolbar(aria-label "Obelisk workbench controls")
-            ;div#file-menu.menu(data-open "false")
-              ;button#file-menu-toggle.menu-toggle
-                =type  "button"
-                =aria-haspopup  "menu"
-                =aria-expanded  "false"
-                File
+          ;div#file-menu.menu.header-file-menu(data-open "false")
+            ;button#file-menu-toggle.menu-toggle
+              =type  "button"
+              =aria-haspopup  "menu"
+              =aria-expanded  "false"
+              File
+            ==
+            ;div#file-menu-panel.menu-panel.hidden(role "menu")
+              ;button#new-tab-menu-item(type "button", role "menuitem")
+                New
               ==
-              ;div#file-menu-panel.menu-panel.hidden(role "menu")
-                ;button#new-tab-menu-item(type "button", role "menuitem")
-                  New
-                ==
-                ;button#open-menu-item(type "button", role "menuitem")
-                  Open...
-                ==
-                ;button#save-tab-menu-item(type "button", role "menuitem")
-                  Save
-                ==
-                ;button#save-as-menu-item(type "button", role "menuitem")
-                  Save As...
-                ==
-                ;button#close-tab-menu-item(type "button", role "menuitem")
-                  Close
-                ==
+              ;button#open-menu-item(type "button", role "menuitem")
+                Open...
+              ==
+              ;button#save-tab-menu-item(type "button", role "menuitem")
+                Save
+              ==
+              ;button#save-as-menu-item(type "button", role "menuitem")
+                Save As...
+              ==
+              ;button#close-tab-menu-item(type "button", role "menuitem")
+                Close
+              ==
+            ==
+          ==
+          ;nav.toolbar(aria-label "Obelisk workbench controls")
+            ;div.default-database
+              ;label(for "default-db"): Default DB
+              ;select#default-db(name "default-db")
+                ;option(value "sys"): sys
               ==
             ==
             ;button#run-btn.primary(type "button", title "Run (F5)")
@@ -146,82 +152,7 @@
               =aria-disabled  "true"
               Save Results
             ==
-            ;a.doc-link
-              =href
-                "https://github.com/jackfoxy/obelisk/tree/master/".
-                "desk/doc/usr/reference/"
-              =target  "_blank"
-              =rel  "noopener noreferrer"
-              Reference
-            ==
-            ;a.doc-link
-              =href
-                "https://github.com/jackfoxy/obelisk/blob/master/".
-                "desk/doc/usr/users-guide.md"
-              =target  "_blank"
-              =rel  "noopener noreferrer"
-              Users Guide
-            ==
-            ;a.doc-link
-              =href
-                "https://github.com/jackfoxy/obelisk/blob/master/roadmap.md"
-              =target  "_blank"
-              =rel  "noopener noreferrer"
-              Roadmap
-            ==
-            ;div.default-database
-              ;label(for "default-db"): Default DB
-              ;select#default-db(name "default-db")
-                ;option(value "sys"): sys
-              ==
-            ==
-            ;div#dev-menu.menu(data-open "false")
-              ;button#dev-menu-toggle.menu-toggle
-                =type  "button"
-                =aria-haspopup  "menu"
-                =aria-expanded  "false"
-                For Developers
-              ==
-              ;div#dev-menu-panel.menu-panel.menu-panel-right.hidden
-                =role  "menu"
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/sur/obelisk-ast.hoon"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  =role  "menuitem"
-                  API/AST
-                ==
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/tree/master/".
-                    ".claude/skills/obelisk-urql"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  =role  "menuitem"
-                  urQL
-                ==
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/doc/dev/users-guide-script.txt"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  =role  "menuitem"
-                  Sample urQL
-                ==
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/doc/dev/performance.md"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  =role  "menuitem"
-                  Benchmarks
-                ==
-              ==
-            ==
+            ;button#help-btn(type "button", aria-expanded "false"): Help
           ==
         ==
         ;main#workbench.workbench
@@ -275,8 +206,9 @@
                 ;span: urQL
                 ;button#copy-query-btn.icon-button
                   =type  "button"
-                  =aria-label  "Copy query"
-                  Copy
+                  =title  "Copy script"
+                  =aria-label  "Copy script"
+                  ;span.copy-icon(aria-hidden "true");
                 ==
               ==
               ;textarea#query-editor.query-editor
@@ -300,8 +232,9 @@
                 ;div.pane-actions
                   ;button#copy-output-btn.icon-button
                     =type  "button"
-                    =aria-label  "Copy output"
-                    Copy
+                    =title  "Copy results"
+                    =aria-label  "Copy results"
+                    ;span.copy-icon(aria-hidden "true");
                   ==
                   ;button#output-collapse.icon-button
                     =type  "button"
@@ -316,6 +249,80 @@
                 =aria-live  "polite"
                 =aria-label  "Query results"
                 ;p.empty-state: No results yet
+              ==
+            ==
+          ==
+        ==
+        ;aside#help-panel.help-panel(hidden "", aria-label "Help")
+          ;div.help-card
+            ;div.pane-header
+              ;h2: Help
+              ;button#close-help(type "button", aria-label "Close help")
+                Close
+              ==
+            ==
+            ;nav.help-links(aria-label "Obelisk documentation")
+              ;a
+                =href
+                  "https://github.com/jackfoxy/obelisk/tree/master/".
+                  "desk/doc/usr/reference/"
+                =target  "_blank"
+                =rel  "noopener noreferrer"
+                Reference
+              ==
+              ;a
+                =href
+                  "https://github.com/jackfoxy/obelisk/blob/master/".
+                  "desk/doc/usr/users-guide.md"
+                =target  "_blank"
+                =rel  "noopener noreferrer"
+                Users Guide
+              ==
+              ;a
+                =href
+                  "https://github.com/jackfoxy/obelisk/blob/master/".
+                  "roadmap.md"
+                =target  "_blank"
+                =rel  "noopener noreferrer"
+                Roadmap
+              ==
+            ==
+            ;section.help-section
+              ;h3: For Developers
+              ;nav#developer-help-links.help-links
+                =aria-label  "Obelisk developer documentation"
+                ;a
+                  =href
+                    "https://github.com/jackfoxy/obelisk/blob/master/".
+                    "desk/sur/obelisk-ast.hoon"
+                  =target  "_blank"
+                  =rel  "noopener noreferrer"
+                  API/AST
+                ==
+                ;a
+                  =href
+                    "https://github.com/jackfoxy/obelisk/tree/master/".
+                    ".claude/skills/obelisk-urql"
+                  =target  "_blank"
+                  =rel  "noopener noreferrer"
+                  urQL
+                ==
+                ;a
+                  =href
+                    "https://github.com/jackfoxy/obelisk/blob/master/".
+                    "desk/doc/dev/users-guide-script.txt"
+                  =target  "_blank"
+                  =rel  "noopener noreferrer"
+                  Sample urQL
+                ==
+                ;a
+                  =href
+                    "https://github.com/jackfoxy/obelisk/blob/master/".
+                    "desk/doc/dev/performance.md"
+                  =target  "_blank"
+                  =rel  "noopener noreferrer"
+                  Benchmarks
+                ==
               ==
             ==
           ==
@@ -428,8 +435,9 @@
   button, select {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 0.3rem;
+    border-radius: 0.4rem;
     min-height: 2rem;
+    padding: 0.5rem 0.75rem;
   }
 
   button, select, a {
@@ -440,7 +448,11 @@
     cursor: pointer;
   }
 
-  button:hover:not(:disabled), a:hover {
+  button:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+
+  a:hover {
     background: var(--surface-alt);
   }
 
@@ -473,7 +485,7 @@
     display: flex;
     gap: 1rem;
     min-height: 3.25rem;
-    padding: 0.55rem 0.8rem;
+    padding: 0.75rem 1rem;
     position: relative;
     z-index: 20;
   }
@@ -484,16 +496,27 @@
     text-decoration: none;
   }
 
+  .header-file-menu {
+    margin-left: 0.25rem;
+  }
+
+  #file-menu-toggle {
+    background: transparent;
+    border: 0;
+  }
+
   .toolbar {
     align-items: center;
     display: flex;
     flex: 1;
     flex-wrap: wrap;
-    gap: 0.45rem;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 
   .toolbar button, .toolbar select {
-    padding: 0.3rem 0.65rem;
+    padding: 0.5rem 0.75rem;
   }
 
   .toolbar .primary {
@@ -509,15 +532,10 @@
     opacity: 0.8;
   }
 
-  .doc-link {
-    padding: 0.35rem 0.2rem;
-  }
-
   .default-database {
     align-items: center;
     display: flex;
     gap: 0.35rem;
-    margin-left: auto;
   }
 
   .default-database label {
@@ -826,6 +844,11 @@
     background: var(--accent);
   }
 
+  .splitter.inactive {
+    pointer-events: none;
+    visibility: hidden;
+  }
+
   .splitter.horizontal {
     cursor: row-resize;
   }
@@ -854,6 +877,7 @@
   .editor-tabs button {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+    height: 2.3rem;
     margin-right: 0.25rem;
   }
 
@@ -861,6 +885,14 @@
     background: var(--surface);
     border-bottom-color: var(--surface);
     font-weight: 600;
+  }
+
+  .editor-tabs .new-tab {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    line-height: 1;
+    padding-block: 0;
   }
 
   .editor-toolbar {
@@ -875,8 +907,43 @@
   }
 
   .icon-button {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
     min-height: 1.8rem;
     padding: 0.2rem 0.5rem;
+  }
+
+  #copy-query-btn, #copy-output-btn {
+    height: 2rem;
+    padding: 0;
+    width: 2rem;
+  }
+
+  .copy-icon {
+    height: 0.9rem;
+    position: relative;
+    width: 0.9rem;
+  }
+
+  .copy-icon::before, .copy-icon::after {
+    border: 1.5px solid currentcolor;
+    border-radius: 2px;
+    content: '';
+    height: 0.58rem;
+    position: absolute;
+    width: 0.5rem;
+  }
+
+  .copy-icon::before {
+    left: 0;
+    top: 0;
+  }
+
+  .copy-icon::after {
+    background: var(--surface);
+    bottom: 0;
+    right: 0;
   }
 
   .query-editor {
@@ -1008,6 +1075,13 @@
     align-items: center;
     display: flex;
     gap: 0.45rem;
+  }
+
+  .result-pager-top {
+    margin-bottom: 0.45rem;
+  }
+
+  .result-pager-bottom {
     margin-top: 0.45rem;
   }
 
@@ -1037,6 +1111,51 @@
     margin: 0;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+  }
+
+  .help-panel {
+    background: rgb(0 0 0 / 0.4);
+    display: grid;
+    inset: 0;
+    padding: 1rem;
+    place-items: center;
+    position: fixed;
+    z-index: 70;
+  }
+
+  .help-panel[hidden] {
+    display: none;
+  }
+
+  .help-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.2);
+    max-width: 32rem;
+    padding: 0 1rem 1rem;
+    width: 100%;
+  }
+
+  .help-links {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .help-links a {
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    padding: 0.65rem 0.75rem;
+    text-decoration: none;
+  }
+
+  .help-section {
+    margin-top: 1rem;
+  }
+
+  .help-section h3 {
+    font-size: 0.9rem;
+    margin: 0 0 0.5rem;
   }
 
   .visually-hidden {
@@ -1133,6 +1252,9 @@
     const copyQueryButton = byId('copy-query-btn');
     const copyOutputButton = byId('copy-output-btn');
     const saveResultsButton = byId('save-results-btn');
+    const helpButton = byId('help-btn');
+    const helpPanel = byId('help-panel');
+    const closeHelpButton = byId('close-help');
     const defaultDatabase = byId('default-db');
     const schemaTree = byId('schema-tree');
     const results = byId('results');
@@ -2219,39 +2341,52 @@
       }
       let page = 0;
       const pageCount = Math.ceil(rows.length / resultPageSize);
-      const pager = document.createElement('nav');
-      pager.className = 'result-pager';
-      pager.setAttribute('aria-label', 'Result pages');
-      const pageStatus = document.createElement('span');
-      pageStatus.className = 'result-pager-status';
-      const previous = document.createElement('button');
-      previous.type = 'button';
-      previous.textContent = 'Previous';
-      const next = document.createElement('button');
-      next.type = 'button';
-      next.textContent = 'Next';
+      const pagers = [];
+      function makePager(position) {
+        const pager = document.createElement('nav');
+        pager.className = `result-pager result-pager-${position}`;
+        pager.setAttribute(
+          'aria-label',
+          `Result pages ${position === 'top' ? 'above' : 'below'} table`
+        );
+        const status = document.createElement('span');
+        status.className = 'result-pager-status';
+        const previous = document.createElement('button');
+        previous.type = 'button';
+        previous.textContent = 'Previous';
+        previous.addEventListener('click', () => {
+          page = Math.max(0, page - 1);
+          renderPage();
+        });
+        const next = document.createElement('button');
+        next.type = 'button';
+        next.textContent = 'Next';
+        next.addEventListener('click', () => {
+          page = Math.min(pageCount - 1, page + 1);
+          renderPage();
+        });
+        pagers.push({status, previous, next});
+        pager.append(status, previous, next);
+        return pager;
+      }
+      const topPager = makePager('top');
+      const bottomPager = makePager('bottom');
       function renderPage() {
         const first = page * resultPageSize;
         const last = Math.min(first + resultPageSize, rows.length);
         tableHolder.replaceChildren(
           renderResultTable(resultSet, rows.slice(first, last), first)
         );
-        pageStatus.textContent =
-          `Rows ${first + 1}–${last} of ${rows.length} · ` +
-          `Page ${page + 1} of ${pageCount}`;
-        previous.disabled = page === 0;
-        next.disabled = page === pageCount - 1;
+        pagers.forEach((pager) => {
+          pager.status.textContent =
+            `Rows ${first + 1}–${last} of ${rows.length} · ` +
+            `Page ${page + 1} of ${pageCount}`;
+          pager.previous.disabled = page === 0;
+          pager.next.disabled = page === pageCount - 1;
+        });
       }
-      previous.addEventListener('click', () => {
-        page = Math.max(0, page - 1);
-        renderPage();
-      });
-      next.addEventListener('click', () => {
-        page = Math.min(pageCount - 1, page + 1);
-        renderPage();
-      });
-      pager.append(pageStatus, previous, next);
-      section.appendChild(pager);
+      section.insertBefore(topPager, tableHolder);
+      section.appendChild(bottomPager);
       renderPage();
       return section;
     }
@@ -2475,6 +2610,13 @@
       });
     }
 
+    function setHelpOpen(open, restoreFocus = false) {
+      helpPanel.hidden = !open;
+      helpButton.setAttribute('aria-expanded', String(open));
+      if (open) closeHelpButton.focus();
+      if (!open && restoreFocus) helpButton.focus();
+    }
+
     function menuKeydown(event) {
       const panel = event.currentTarget;
       const items = Array.from(
@@ -2520,8 +2662,10 @@
     function applyLayout() {
       schemaPane.classList.toggle('collapsed', !state.schemaOpen);
       outputPane.classList.toggle('collapsed', !state.outputOpen);
-      schemaResizer.hidden = !state.schemaOpen;
-      outputResizer.hidden = !state.outputOpen;
+      schemaResizer.classList.toggle('inactive', !state.schemaOpen);
+      outputResizer.classList.toggle('inactive', !state.outputOpen);
+      schemaResizer.disabled = !state.schemaOpen;
+      outputResizer.disabled = !state.outputOpen;
       schemaCollapse.setAttribute('aria-expanded', String(state.schemaOpen));
       outputCollapse.setAttribute('aria-expanded', String(state.outputOpen));
       schemaCollapse.setAttribute('aria-label', state.schemaOpen ?
@@ -2630,10 +2774,17 @@
     saveResultsButton.addEventListener('click', showSaveResultsDialog);
     copyQueryButton.addEventListener('click', () => {
       captureEditor();
-      copyText(activeTab().text, 'Query');
+      copyText(activeTab().text, 'Script');
     });
     copyOutputButton.addEventListener('click', () => {
-      copyText(lastOutputText, 'Output');
+      copyText(lastOutputText, 'Results');
+    });
+    helpButton.addEventListener('click', () => setHelpOpen(true));
+    closeHelpButton.addEventListener('click', () => {
+      setHelpOpen(false, true);
+    });
+    helpPanel.addEventListener('click', (event) => {
+      if (event.target === helpPanel) setHelpOpen(false, true);
     });
     defaultDatabase.addEventListener('change', () => {
       state.defaultDatabase = defaultDatabase.value;
@@ -2671,6 +2822,10 @@
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        if (!helpPanel.hidden) {
+          setHelpOpen(false, true);
+          return;
+        }
         const open = menus.find((menu) => menu.dataset.open === 'true');
         closeMenus();
         closeRelationMenu();
