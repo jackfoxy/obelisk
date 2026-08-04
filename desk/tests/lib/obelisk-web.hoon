@@ -1772,6 +1772,7 @@
   =/  ship=tape  (trip (scot %p our.local))
   ;:  weld
     (expect !>(?=(^ (find "app-header" html))))
+    (expect !>(?=(^ (find "data:image/png;base64," html))))
     (expect !>(?=(^ (find "schema-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
@@ -1779,7 +1780,7 @@
     (expect !>(?=(^ (find "New" html))))
     (expect !>(?=(^ (find "Open..." html))))
     (expect !>(?=(^ (find "Save As..." html))))
-    (expect !>(?=(^ (find "Close" html))))
+    (expect !>(?=(^ (find "Close Current" html))))
     (expect !>(?=(^ (find "Run" html))))
     (expect !>(?=(^ (find "F5" html))))
     (expect !>(?=(^ (find "Parse" html))))
@@ -1973,6 +1974,7 @@
   ;:  weld
     (expect !>(?=(^ (find "save-query-btn" html))))
     (expect !>(?=(^ (find "save-output-btn" html))))
+    (expect !>(?=(^ (find "Save results" html))))
     (expect !>(?=(^ (find "save-context-menu" html))))
     (expect !>(?=(~ (find "save-results-btn" html))))
     (expect !>(?=(^ (find "results-delimiter-fields" html))))
@@ -2000,6 +2002,7 @@
     (expect !>(?=(^ (find "runExportText" script))))
     (expect !>(?=(^ (find "security-time:" script))))
     (expect !>(?=(^ (find "showSaveResultsDialog" script))))
+    (expect !>(?=(^ (find "'click', showSaveResultsDialog" script))))
     (expect !>(?=(^ (find "openSaveContext" script))))
     (expect !>(?=(^ (find "directSaveAvailable" script))))
     (expect !>(?=(^ (find "event.clientX" script))))

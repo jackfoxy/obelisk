@@ -1,11 +1,11 @@
 # Releases
 
-## v-dev
+## v0.9.0-beta
 * BREAKING CHANGES affect interacting apps, re-compile with latest sur/obelisk-ast/hoon
 * BREAKING CHANGE: relation:obelisk-ast -> relation-id
 * BREAKING CHANGE: relation.result:obelisk-ast -> relation-name.result
 * Scry database, namespace, relation, relation restricted by columns
-* new %script and %list-cmd pokes, %tape and %commands deprecated
+* new %script and %list-cmd pokes specify output format, %tape and %commands deprecated
 * %vector, %markdown, %html, %wain, %manx, %tape, %json, and %raw output formats
 
 ## v0.8.1-beta
