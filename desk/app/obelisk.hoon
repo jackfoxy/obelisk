@@ -164,13 +164,11 @@
       (parse-urql +<.act +>.act)
     ?-  -.virtualized
       %.n
-        ~&  "{<(slog p.virtualized)>}"
         :_  this
             :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
                 [%give %kick ~[/server] ~]
                 ==
       %.y
-        ~&  "{<p.virtualized>}"
         :_  this
             :~  [%give %fact ~[/server] %noun !>([& p.virtualized])]
                 [%give %kick ~[/server] ~]

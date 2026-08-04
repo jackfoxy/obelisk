@@ -146,43 +146,71 @@
               ;kbd: F5
             ==
             ;button#parse-btn(type "button"): Parse
-            ;button#save-results-btn
-              =type  "button"
-              =disabled  ""
-              =aria-disabled  "true"
-              Save Results
-            ==
             ;button#help-btn(type "button", aria-expanded "false"): Help
           ==
         ==
         ;main#workbench.workbench
           ;aside#schema-pane.schema-pane
-            =aria-labelledby  "schema-heading"
+            =aria-label  "Obelisk explorer"
             ;div.pane-header
-              ;div
-                ;h1#schema-heading: Schemas
+              ;div.explorer-heading
+                ;div#explorer-tabs.explorer-tabs
+                  =role  "tablist"
+                  =aria-label  "Obelisk explorer"
+                  ;button#schemas-tab.explorer-tab.active
+                    =type  "button"
+                    =role  "tab"
+                    =data-explorer-view  "schemas"
+                    =aria-selected  "true"
+                    =aria-controls  "schema-panel"
+                    Schemas
+                  ==
+                  ;button#files-tab.explorer-tab
+                    =type  "button"
+                    =role  "tab"
+                    =data-explorer-view  "files"
+                    =aria-selected  "false"
+                    =aria-controls  "files-panel"
+                    =tabindex  "-1"
+                    Files
+                  ==
+                ==
                 ;span#local-ship.ship: {(trip (scot %p our))}
               ==
               ;button#schema-collapse.icon-button
                 =type  "button"
-                =aria-label  "Collapse schemas"
+                =aria-label  "Collapse explorer"
                 =aria-expanded  "true"
                 ‹
               ==
             ==
-            ;div#schema-tree.schema-tree
-              =role  "tree"
-              =aria-label  "Database schemas"
-              =aria-busy  "true"
-              ;p.empty-state: Loading schemas…
+            ;div#schema-panel.explorer-panel
+              =role  "tabpanel"
+              =aria-labelledby  "schemas-tab"
+              ;div#schema-tree.schema-tree
+                =role  "tree"
+                =aria-label  "Database schemas"
+                =aria-busy  "true"
+                ;p.empty-state: Loading schemas…
+              ==
+            ==
+            ;div#files-panel.explorer-panel(hidden "")
+              =role  "tabpanel"
+              =aria-labelledby  "files-tab"
+              ;div#files-tree.file-tree
+                =role  "tree"
+                =aria-label  "Saved scripts and results"
+                =aria-busy  "true"
+                ;p.empty-state: Loading files…
+              ==
             ==
           ==
           ;button#schema-resizer.splitter
             =type  "button"
             =role  "separator"
             =aria-orientation  "vertical"
-            =aria-label  "Resize schemas"
-            ;span.visually-hidden: Resize schemas
+            =aria-label  "Resize explorer"
+            ;span.visually-hidden: Resize explorer
           ==
           ;section#workspace.workspace(aria-label "Query workspace")
             ;section#editor-pane.editor-pane
@@ -204,11 +232,21 @@
               ==
               ;div.editor-toolbar
                 ;span: urQL
-                ;button#copy-query-btn.icon-button
-                  =type  "button"
-                  =title  "Copy script"
-                  =aria-label  "Copy script"
-                  ;span.copy-icon(aria-hidden "true");
+                ;div.editor-actions
+                  ;button#save-query-btn.icon-button.save-action
+                    =type  "button"
+                    =title  "Save script"
+                    =aria-label  "Save script"
+                    =aria-haspopup  "menu"
+                    =aria-expanded  "false"
+                    ;span.save-icon(aria-hidden "true");
+                  ==
+                  ;button#copy-query-btn.icon-button
+                    =type  "button"
+                    =title  "Copy script"
+                    =aria-label  "Copy script"
+                    ;span.copy-icon(aria-hidden "true");
+                  ==
                 ==
               ==
               ;textarea#query-editor.query-editor
@@ -230,6 +268,15 @@
               ;div.pane-header
                 ;h2#output-heading: Output
                 ;div.pane-actions
+                  ;button#save-output-btn.icon-button.save-action
+                    =type  "button"
+                    =title  "Save result"
+                    =aria-label  "Save result"
+                    =aria-haspopup  "menu"
+                    =aria-expanded  "false"
+                    =disabled  ""
+                    ;span.save-icon(aria-hidden "true");
+                  ==
                   ;button#copy-output-btn.icon-button
                     =type  "button"
                     =title  "Copy results"
@@ -257,72 +304,93 @@
           ;div.help-card
             ;div.pane-header
               ;h2: Help
-              ;button#close-help(type "button", aria-label "Close help")
-                Close
+              ;button#close-help.icon-button.help-close
+                =type  "button"
+                =title  "Close"
+                =aria-label  "Close help"
+                ;span.close-icon(aria-hidden "true");
               ==
             ==
-            ;nav.help-links(aria-label "Obelisk documentation")
-              ;a
-                =href
-                  "https://github.com/jackfoxy/obelisk/tree/master/".
-                  "desk/doc/usr/reference/"
-                =target  "_blank"
-                =rel  "noopener noreferrer"
-                Reference
-              ==
-              ;a
-                =href
-                  "https://github.com/jackfoxy/obelisk/blob/master/".
-                  "desk/doc/usr/users-guide.md"
-                =target  "_blank"
-                =rel  "noopener noreferrer"
-                Users Guide
-              ==
-              ;a
-                =href
-                  "https://github.com/jackfoxy/obelisk/blob/master/".
-                  "roadmap.md"
-                =target  "_blank"
-                =rel  "noopener noreferrer"
-                Roadmap
-              ==
-            ==
-            ;section.help-section
-              ;h3: For Developers
-              ;nav#developer-help-links.help-links
-                =aria-label  "Obelisk developer documentation"
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/sur/obelisk-ast.hoon"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  API/AST
-                ==
+            ;div#fallback-help-content
+              ;nav.help-links(aria-label "Obelisk documentation")
                 ;a
                   =href
                     "https://github.com/jackfoxy/obelisk/tree/master/".
-                    ".claude/skills/obelisk-urql"
+                    "desk/doc/usr/reference/"
                   =target  "_blank"
                   =rel  "noopener noreferrer"
-                  urQL
+                  Reference
                 ==
                 ;a
                   =href
                     "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/doc/dev/users-guide-script.txt"
+                    "desk/doc/usr/users-guide.md"
                   =target  "_blank"
                   =rel  "noopener noreferrer"
-                  Sample urQL
+                  Users Guide
                 ==
                 ;a
                   =href
                     "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/doc/dev/performance.md"
+                    "roadmap.md"
                   =target  "_blank"
                   =rel  "noopener noreferrer"
-                  Benchmarks
+                  Roadmap
                 ==
+              ==
+              ;section.help-section
+                ;h3: For Developers
+                ;nav#developer-help-links.help-links
+                  =aria-label  "Obelisk developer documentation"
+                  ;a
+                    =href
+                      "https://github.com/jackfoxy/obelisk/blob/master/".
+                      "desk/sur/obelisk-ast.hoon"
+                    =target  "_blank"
+                    =rel  "noopener noreferrer"
+                    API/AST
+                  ==
+                  ;a
+                    =href
+                      "https://github.com/jackfoxy/obelisk/tree/master/".
+                      ".claude/skills/obelisk-urql"
+                    =target  "_blank"
+                    =rel  "noopener noreferrer"
+                    urQL LLM
+                  ==
+                  ;a
+                    =href
+                      "https://github.com/jackfoxy/obelisk/blob/master/".
+                      "desk/doc/dev/users-guide-script.txt"
+                    =target  "_blank"
+                    =rel  "noopener noreferrer"
+                    Sample urQL
+                  ==
+                  ;a
+                    =href
+                      "https://github.com/jackfoxy/obelisk/blob/master/".
+                      "desk/doc/dev/performance.md"
+                    =target  "_blank"
+                    =rel  "noopener noreferrer"
+                    Benchmarks
+                  ==
+                ==
+              ==
+            ==
+            ;div#docs-help-content.docs-help-content.hidden
+              ;nav#docs-help-tree.docs-help-tree
+                =role  "tree"
+                =aria-label  "Obelisk documentation in Docs"
+                ;*  ~[;/("")]
+              ==
+              ;a.docs-llm-button
+                =href
+                  "https://github.com/jackfoxy/obelisk/tree/master/".
+                  ".claude/skills/obelisk-urql"
+                =target  "_blank"
+                =rel  "noopener noreferrer"
+                =role  "button"
+                urQL LLM
               ==
             ==
           ==
@@ -388,6 +456,14 @@
           ==
           ;button#relation-create(type "button", role "menuitem")
             CREATE
+          ==
+        ==
+        ;div#save-context-menu.save-context-menu.hidden(role "menu")
+          ;button#save-context-save(type "button", role "menuitem")
+            Save
+          ==
+          ;button#save-context-save-as(type "button", role "menuitem")
+            Save As...
           ==
         ==
       ==
@@ -703,7 +779,7 @@
     color: var(--accent-text);
   }
 
-  .relation-menu {
+  .relation-menu, .save-context-menu {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.4rem;
@@ -715,7 +791,7 @@
     z-index: 60;
   }
 
-  .relation-menu button {
+  .relation-menu button, .save-context-menu button {
     background: transparent;
     border: 0;
     text-align: left;
@@ -739,7 +815,7 @@
   }
 
   .schema-pane.collapsed .pane-header > div,
-  .schema-pane.collapsed .schema-tree {
+  .schema-pane.collapsed .explorer-panel {
     display: none;
   }
 
@@ -762,6 +838,75 @@
     margin: 0;
   }
 
+  .explorer-heading {
+    min-width: 0;
+  }
+
+  .explorer-tabs {
+    display: flex;
+    gap: 0.2rem;
+    overflow-x: auto;
+  }
+
+  .explorer-tab {
+    background: transparent;
+    border-color: transparent;
+    border-radius: 0;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 0.2rem 0.35rem;
+  }
+
+  .explorer-tab:hover, .explorer-tab:focus-visible {
+    background: var(--surface-alt);
+    color: var(--text);
+  }
+
+  .explorer-tab.active {
+    border-bottom-color: var(--accent);
+    color: var(--text);
+  }
+
+  .docs-tab-control {
+    align-items: center;
+    display: inline-flex;
+  }
+
+  .docs-tab-control.active {
+    box-shadow: inset 0 -2px var(--accent);
+  }
+
+  .docs-tab-control .explorer-tab {
+    max-width: 12rem;
+    overflow: hidden;
+    padding-right: 0.2rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .docs-tab-control.active .explorer-tab {
+    border-bottom-color: transparent;
+  }
+
+  .docs-tab-close {
+    background: transparent;
+    border: 0;
+    min-height: 1.5rem;
+    padding: 0.2rem;
+    width: 1.5rem;
+  }
+
+  .docs-tab-close .close-icon {
+    height: 0.65rem;
+    width: 0.65rem;
+  }
+
+  .docs-tab-close .close-icon::before,
+  .docs-tab-close .close-icon::after {
+    top: 0.3rem;
+    width: 0.65rem;
+  }
+
   .ship {
     color: var(--muted);
     display: block;
@@ -770,9 +915,55 @@
     margin-top: 0.15rem;
   }
 
-  .schema-tree, .results {
+  .explorer-panel {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .docs-panel {
+    padding: 0;
+  }
+
+  .docs-frame {
+    background: var(--surface);
+    border: 0;
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  .schema-tree, .file-tree, .results {
+    height: 100%;
     overflow: auto;
     padding: 0.75rem;
+  }
+
+  .file-node {
+    margin: 0.1rem 0;
+  }
+
+  .file-node > summary {
+    border-radius: 0.25rem;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: ui-monospace, monospace;
+    min-height: 1.9rem;
+    padding: 0.3rem 0.25rem;
+  }
+
+  .file-node > summary:hover, .explorer-file:hover {
+    background: var(--surface-alt);
+  }
+
+  .file-children {
+    border-left: 1px solid var(--border);
+    margin-left: 0.7rem;
+    padding-left: 0.65rem;
+  }
+
+  .explorer-file {
+    border-radius: 0.25rem;
+    padding: 0.15rem 0.25rem;
   }
 
   .schema-node {
@@ -906,6 +1097,11 @@
     padding: 0.35rem 0.65rem;
   }
 
+  .editor-actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+
   .icon-button {
     align-items: center;
     display: inline-flex;
@@ -914,10 +1110,38 @@
     padding: 0.2rem 0.5rem;
   }
 
-  #copy-query-btn, #copy-output-btn {
+  #copy-query-btn, #copy-output-btn,
+  #save-query-btn, #save-output-btn {
     height: 2rem;
     padding: 0;
     width: 2rem;
+  }
+
+  .save-icon {
+    border: 1.5px solid currentcolor;
+    border-radius: 2px;
+    height: 0.9rem;
+    position: relative;
+    width: 0.9rem;
+  }
+
+  .save-icon::before, .save-icon::after {
+    border: 1.5px solid currentcolor;
+    content: '';
+    left: 0.16rem;
+    position: absolute;
+    width: 0.42rem;
+  }
+
+  .save-icon::before {
+    border-top: 0;
+    height: 0.23rem;
+    top: -0.02rem;
+  }
+
+  .save-icon::after {
+    bottom: 0.07rem;
+    height: 0.24rem;
   }
 
   .copy-icon {
@@ -1137,6 +1361,36 @@
     width: 100%;
   }
 
+  .help-close {
+    height: 2rem;
+    padding: 0;
+    width: 2rem;
+  }
+
+  .close-icon {
+    height: 0.9rem;
+    position: relative;
+    width: 0.9rem;
+  }
+
+  .close-icon::before, .close-icon::after {
+    background: currentcolor;
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    top: 0.42rem;
+    width: 0.9rem;
+  }
+
+  .close-icon::before {
+    transform: rotate(45deg);
+  }
+
+  .close-icon::after {
+    transform: rotate(-45deg);
+  }
+
   .help-links {
     display: grid;
     gap: 0.5rem;
@@ -1156,6 +1410,72 @@
   .help-section h3 {
     font-size: 0.9rem;
     margin: 0 0 0.5rem;
+  }
+
+  .docs-help-content {
+    display: grid;
+    gap: 0.8rem;
+  }
+
+  .docs-help-tree {
+    display: grid;
+    gap: 0.4rem;
+    max-height: min(32rem, calc(100vh - 11rem));
+    overflow: auto;
+  }
+
+  .docs-help-branch {
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+  }
+
+  .docs-help-branch > summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0.6rem 0.7rem;
+  }
+
+  .docs-help-branch > summary:hover,
+  .docs-help-link:hover {
+    background: var(--surface-alt);
+  }
+
+  .docs-help-group {
+    border-top: 1px solid var(--border);
+    display: grid;
+    padding: 0.3rem;
+  }
+
+  .docs-help-static {
+    display: grid;
+  }
+
+  .docs-help-label {
+    color: var(--muted);
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 0.45rem 0.65rem 0.25rem;
+  }
+
+  .docs-help-static-children {
+    border-left: 1px solid var(--border);
+    display: grid;
+    margin-left: 0.75rem;
+    padding-left: 0.3rem;
+  }
+
+  .docs-help-link {
+    border-radius: 0.3rem;
+    padding: 0.45rem 0.65rem;
+    text-decoration: none;
+  }
+
+  .docs-llm-button {
+    border: 1px solid var(--accent);
+    border-radius: 0.4rem;
+    padding: 0.65rem 0.75rem;
+    text-align: center;
+    text-decoration: none;
   }
 
   .visually-hidden {
@@ -1249,14 +1569,24 @@
     const newTabButton = byId('new-tab-btn');
     const runButton = byId('run-btn');
     const parseButton = byId('parse-btn');
+    const saveQueryButton = byId('save-query-btn');
+    const saveOutputButton = byId('save-output-btn');
     const copyQueryButton = byId('copy-query-btn');
     const copyOutputButton = byId('copy-output-btn');
-    const saveResultsButton = byId('save-results-btn');
     const helpButton = byId('help-btn');
     const helpPanel = byId('help-panel');
     const closeHelpButton = byId('close-help');
+    const fallbackHelpContent = byId('fallback-help-content');
+    const docsHelpContent = byId('docs-help-content');
+    const docsHelpTree = byId('docs-help-tree');
     const defaultDatabase = byId('default-db');
+    const explorerTabs = byId('explorer-tabs');
+    const schemasTab = byId('schemas-tab');
+    const filesTab = byId('files-tab');
+    const schemaPanel = byId('schema-panel');
+    const filesPanel = byId('files-panel');
     const schemaTree = byId('schema-tree');
+    const filesTree = byId('files-tree');
     const results = byId('results');
     const status = byId('app-status');
     const fileDialog = byId('file-dialog');
@@ -1269,20 +1599,93 @@
     const resultsDelimiterFields = byId('results-delimiter-fields');
     const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
+    const saveContextMenu = byId('save-context-menu');
+    const saveContextSave = byId('save-context-save');
+    const saveContextSaveAs = byId('save-context-save-as');
     let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',
       commands: [],
       text: '',
-      exportable: false
+      exportable: false,
+      path: null
     };
     let busy = false;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
     let fileEntries = [];
+    let explorerFileEntries = [];
     let schemaValue = null;
     let relationContext = null;
+    let saveContextKind = null;
+    let saveContextSource = null;
+    let docsAvailable = null;
+    let docsCheckPending = false;
+    const docsHelpSections = [
+      {
+        children: [
+          {title: 'Users Guide', path: 'usr/users-guide'},
+          {
+            title: 'Reference',
+            children: [
+              {
+                title: 'Preliminaries',
+                path: 'usr/reference/preliminaries'
+              },
+              {
+                title: 'Data Definition Language',
+                children: [
+                  {
+                    title: 'Database',
+                    path: 'usr/reference/ddl/database'
+                  },
+                  {
+                    title: 'Namespace',
+                    path: 'usr/reference/ddl/namespace'
+                  },
+                  {title: 'Table', path: 'usr/reference/ddl/table'},
+                  {title: 'Index', path: 'usr/reference/ddl/index'}
+                ]
+              },
+              {
+                title: 'Data Manipulation Language',
+                children: [
+                  {title: 'Insert', path: 'usr/reference/dml/insert'},
+                  {title: 'Update', path: 'usr/reference/dml/update'},
+                  {title: 'Upsert', path: 'usr/reference/dml/upsert'},
+                  {title: 'Delete', path: 'usr/reference/dml/delete'},
+                  {
+                    title: 'Truncate Table DML',
+                    path: 'usr/reference/dml/truncate-table'
+                  }
+                ]
+              },
+              {title: 'Select', path: 'usr/reference/select'},
+              {
+                title: 'Scries and Subscriptions',
+                path: 'usr/reference/scry'
+              },
+              {title: 'Scalars', path: 'usr/reference/scalars'},
+              {
+                title: 'Security Permissions',
+                path: 'usr/reference/security-permissions'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        title: 'Developer Docs',
+        children: [
+          {title: 'Performance', path: 'dev/performance'},
+          {
+            title: 'Users Guide Scripts',
+            path: 'dev/users-guide-script'
+          }
+        ]
+      }
+    ];
 
     function initialState() {
       return {
@@ -1304,8 +1707,12 @@
         schemaOpen: true,
         outputOpen: true,
         defaultDatabase: 'sys',
+        explorerView: 'schemas',
+        docsTabs: [],
+        nextDocs: 1,
         schemaExpanded: [],
-        schemaDatabaseNames: []
+        schemaDatabaseNames: [],
+        filesCollapsed: []
       };
     }
 
@@ -1317,6 +1724,12 @@
         (tab.savedText === null || typeof tab.savedText === 'string' ||
           typeof tab.savedText === 'undefined') &&
         (tab.path === null || Array.isArray(tab.path));
+    }
+
+    function validDocsTab(tab) {
+      return tab && typeof tab.id === 'string' &&
+        typeof tab.documentTitle === 'string' &&
+        typeof tab.path === 'string';
     }
 
     function loadState() {
@@ -1341,6 +1754,20 @@
         }
         if (!Array.isArray(restored.schemaDatabaseNames)) {
           restored.schemaDatabaseNames = [];
+        }
+        if (!Array.isArray(restored.docsTabs)) restored.docsTabs = [];
+        restored.docsTabs = restored.docsTabs.filter(validDocsTab);
+        if (!Number.isInteger(restored.nextDocs)) restored.nextDocs = 1;
+        const explorerViewExists = ['schemas', 'files'].includes(
+          restored.explorerView
+        ) || restored.docsTabs.some((tab) => {
+          return tab.id === restored.explorerView;
+        });
+        if (!explorerViewExists) {
+          restored.explorerView = 'schemas';
+        }
+        if (!Array.isArray(restored.filesCollapsed)) {
+          restored.filesCollapsed = [];
         }
         return restored;
       } catch (_) {
@@ -1544,10 +1971,15 @@
 
     function updateOutputControls() {
       copyOutputButton.disabled = lastOutputText.length === 0;
-      saveResultsButton.disabled = busy || !outputState.exportable;
-      saveResultsButton.setAttribute(
+      saveQueryButton.disabled = busy;
+      saveOutputButton.disabled = busy || !outputState.exportable;
+      saveQueryButton.setAttribute(
         'aria-disabled',
-        String(saveResultsButton.disabled)
+        String(saveQueryButton.disabled)
+      );
+      saveOutputButton.setAttribute(
+        'aria-disabled',
+        String(saveOutputButton.disabled)
       );
     }
 
@@ -1637,14 +2069,171 @@
     }
 
     function suggestScriptPath(tab) {
-      if (tab.path) return displayScriptPath(tab.path);
+      if (tab.path) return tab.path.slice(1).join('/');
       return tab.name.replace(/\s+\(\d+\)$/, '');
+    }
+
+    function tabStorageRoot(tab) {
+      return tab.path && tab.path[0] === 'results' ? 'results' : 'scripts';
     }
 
     function closeFileDialog() {
       if (fileDialog.open) fileDialog.close();
       selectedFilePath = null;
       resultsDelimiterFields.classList.add('hidden');
+    }
+
+    function samePath(left, right) {
+      return left.length === right.length && left.every((part, index) => {
+        return part === right[index];
+      });
+    }
+
+    function childFileEntries(parent) {
+      return explorerFileEntries.filter((entry) => {
+        if (!Array.isArray(entry.path) ||
+            entry.path.length !== parent.length + 1) {
+          return false;
+        }
+        return samePath(entry.path.slice(0, parent.length), parent);
+      });
+    }
+
+    function fileExpansion(path, details) {
+      const key = pathKey(path);
+      details.open = !state.filesCollapsed.includes(key);
+      details.addEventListener('toggle', () => {
+        const collapsed = new Set(state.filesCollapsed);
+        if (details.open) collapsed.delete(key);
+        else collapsed.add(key);
+        state.filesCollapsed = Array.from(collapsed);
+        persist();
+      });
+    }
+
+    function renderExplorerFile(entry) {
+      if (entry.kind === 'directory') {
+        const details = document.createElement('details');
+        details.className = 'file-node';
+        details.setAttribute('role', 'treeitem');
+        fileExpansion(entry.path, details);
+        const summary = document.createElement('summary');
+        summary.textContent = entry.path[entry.path.length - 1];
+        const children = document.createElement('div');
+        children.className = 'file-children';
+        children.setAttribute('role', 'group');
+        childFileEntries(entry.path).forEach((child) => {
+          children.appendChild(renderExplorerFile(child));
+        });
+        details.append(summary, children);
+        return details;
+      }
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'file-entry explorer-file';
+      button.setAttribute('role', 'treeitem');
+      button.textContent = entry.path[entry.path.length - 1];
+      button.title = entry.path.join('/');
+      button.addEventListener('click', () => {
+        loadFilePath(entry.path);
+      });
+      return button;
+    }
+
+    function renderFiles(entries) {
+      explorerFileEntries = entries.filter((entry) => {
+        return Array.isArray(entry.path) &&
+          ['scripts', 'results'].includes(entry.path[0]);
+      });
+      filesTree.replaceChildren();
+      const roots = childFileEntries([]);
+      if (roots.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-state';
+        empty.textContent = 'No saved scripts or results.';
+        filesTree.appendChild(empty);
+      } else {
+        roots.forEach((entry) => {
+          filesTree.appendChild(renderExplorerFile(entry));
+        });
+      }
+      filesTree.setAttribute('aria-busy', 'false');
+    }
+
+    async function refreshFiles() {
+      filesTree.setAttribute('aria-busy', 'true');
+      try {
+        const body = await api('file-browse', {path: []});
+        const entries = Array.isArray(body.entries) ? body.entries : [];
+        renderFiles(entries);
+      } catch (error) {
+        filesTree.replaceChildren();
+        const failure = document.createElement('p');
+        failure.className = 'error-pane';
+        failure.textContent = error.message;
+        filesTree.appendChild(failure);
+        filesTree.setAttribute('aria-busy', 'false');
+      }
+    }
+
+    function docsTabById(id) {
+      return state.docsTabs.find((tab) => tab.id === id) || null;
+    }
+
+    function validExplorerView(view) {
+      return ['schemas', 'files'].includes(view) ||
+        Boolean(docsTabById(view));
+    }
+
+    function setExplorerView(view, focus = false) {
+      const selected = validExplorerView(view) ? view : 'schemas';
+      const schemas = selected === 'schemas';
+      const files = selected === 'files';
+      state.explorerView = selected;
+      schemasTab.classList.toggle('active', schemas);
+      filesTab.classList.toggle('active', files);
+      schemasTab.setAttribute('aria-selected', String(schemas));
+      filesTab.setAttribute('aria-selected', String(files));
+      schemasTab.tabIndex = schemas ? 0 : -1;
+      filesTab.tabIndex = files ? 0 : -1;
+      schemaPanel.hidden = !schemas;
+      filesPanel.hidden = !files;
+      explorerTabs.querySelectorAll('.docs-tab').forEach((button) => {
+        const active = button.dataset.explorerView === selected;
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+        button.parentElement.classList.toggle('active', active);
+      });
+      schemaPane.querySelectorAll('.docs-panel').forEach((panel) => {
+        panel.hidden = panel.id !== `docs-panel-${selected}`;
+      });
+      persist();
+      if (focus) {
+        const target = Array.from(
+          explorerTabs.querySelectorAll('[role="tab"]')
+        ).find((tab) => tab.dataset.explorerView === selected);
+        if (target) target.focus();
+      }
+    }
+
+    function explorerTabKeydown(event) {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+        return;
+      }
+      event.preventDefault();
+      const tabs = Array.from(
+        explorerTabs.querySelectorAll('[role="tab"]')
+      );
+      const current = Math.max(0, tabs.indexOf(event.currentTarget));
+      let next = current;
+      if (event.key === 'ArrowLeft') next = Math.max(0, current - 1);
+      if (event.key === 'ArrowRight') {
+        next = Math.min(tabs.length - 1, current + 1);
+      }
+      if (event.key === 'Home') next = 0;
+      if (event.key === 'End') next = tabs.length - 1;
+      setExplorerView(tabs[next].dataset.explorerView, true);
     }
 
     function renderFileEntries() {
@@ -1720,14 +2309,18 @@
     function showSaveAsDialog() {
       if (busy) return;
       closeMenus();
-      fileDialogMode = 'save-as';
+      closeSaveContext();
+      const root = tabStorageRoot(activeTab());
+      fileDialogMode = root === 'results' ? 'save-result-as' : 'save-as';
       selectedFilePath = null;
-      fileDialogTitle.textContent = 'Save script as';
+      fileDialogTitle.textContent = root === 'results' ?
+        'Save result as' : 'Save script as';
       fileDialogHelp.textContent =
         'Use lower-case letters, digits, and hyphens in each path part.';
       fileDialogList.classList.add('hidden');
       filePathLabel.classList.remove('hidden');
-      filePathLabel.textContent = 'Script path';
+      filePathLabel.textContent = root === 'results' ?
+        'Result path' : 'Script path';
       filePathInput.classList.remove('hidden');
       resultsDelimiterFields.classList.add('hidden');
       filePathInput.value = suggestScriptPath(activeTab());
@@ -1751,6 +2344,7 @@
     async function showSaveResultsDialog() {
       if (busy || !outputState.exportable) return;
       closeMenus();
+      closeSaveContext();
       setBusy(true, 'browse');
       let entries = [];
       try {
@@ -1771,7 +2365,8 @@
       filePathLabel.classList.remove('hidden');
       filePathLabel.textContent = 'Result path';
       filePathInput.classList.remove('hidden');
-      filePathInput.value = nextResultName(entries);
+      filePathInput.value = outputState.path ?
+        outputState.path.slice(1).join('/') : nextResultName(entries);
       const showDelimiter = outputState.kind === 'run';
       resultsDelimiterFields.classList.toggle('hidden', !showDelimiter);
       const comma = resultsDelimiterFields.querySelector('[value="comma"]');
@@ -1783,14 +2378,14 @@
       filePathInput.select();
     }
 
-    async function openSelectedFile() {
-      if (busy || !selectedFilePath) return;
-      const path = selectedFilePath.slice();
+    async function loadFilePath(filePath, closeDialog = false) {
+      if (busy || !filePath) return;
+      const path = filePath.slice();
       const existing = state.tabs.find((tab) => {
         return tab.path && pathKey(tab.path) === pathKey(path);
       });
       if (existing) {
-        closeFileDialog();
+        if (closeDialog) closeFileDialog();
         activateTab(existing.id, true);
         setStatus(`${displayScriptPath(path)} is already open.`);
         return;
@@ -1799,13 +2394,18 @@
       try {
         const body = await api('file-load', {path});
         addFileTab(body.path, body.content);
-        closeFileDialog();
+        if (closeDialog) closeFileDialog();
         setStatus(`${displayScriptPath(body.path)} opened.`);
       } catch (error) {
         setStatus(error.message, 'error', true);
       } finally {
         setBusy(false);
       }
+    }
+
+    async function openSelectedFile() {
+      if (!selectedFilePath) return;
+      await loadFilePath(selectedFilePath, true);
     }
 
     async function saveTab(tab, path, overwrite) {
@@ -1823,6 +2423,7 @@
         tab.savedText = content;
         renderTabs();
         persist();
+        await refreshFiles();
         setStatus(`${displayScriptPath(body.path)} saved.`);
         return true;
       } catch (error) {
@@ -1831,7 +2432,7 @@
         if (!overwrite && error.status === 409 &&
             window.confirm(overwriteMessage)) {
           setBusy(false);
-          return saveTab(tab, path, true);
+          return await saveTab(tab, path, true);
         }
         setStatus(error.message, 'error', true);
         return false;
@@ -1852,9 +2453,13 @@
     }
 
     async function saveAsFromDialog() {
-      const path = scriptPathFromInput(filePathInput.value);
+      const root = tabStorageRoot(activeTab());
+      const path = root === 'results' ?
+        resultPathFromInput(filePathInput.value) :
+        scriptPathFromInput(filePathInput.value);
       if (!path) {
-        fileDialogHelp.textContent =
+        fileDialogHelp.textContent = root === 'results' ?
+          'Invalid path. Use names like folder/result-name.' :
           'Invalid path. Use names like folder/script-name.';
         filePathInput.focus();
         return;
@@ -1886,6 +2491,8 @@
       setBusy(true, 'save-results');
       try {
         const body = await api('file-save', {path, content, overwrite});
+        outputState.path = body.path.slice();
+        await refreshFiles();
         setStatus(`${body.path.slice(1).join('/')} saved.`);
         return true;
       } catch (error) {
@@ -1893,7 +2500,7 @@
         if (!overwrite && error.status === 409 &&
             window.confirm(`${name} exists. Overwrite it?`)) {
           setBusy(false);
-          return saveResultsFile(path, true);
+          return await saveResultsFile(path, true);
         }
         setStatus(error.message, 'error', true);
         return false;
@@ -2473,7 +3080,8 @@
         kind: 'run',
         commands: safeCommands,
         text: '',
-        exportable
+        exportable,
+        path: null
       };
       lastOutputText = runCopyText(safeCommands);
       results.replaceChildren();
@@ -2496,7 +3104,8 @@
         kind: 'parse',
         commands: [],
         text: value,
-        exportable: value.length > 0
+        exportable: value.length > 0,
+        path: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -2513,7 +3122,8 @@
         kind: 'error',
         commands: [],
         text: value,
-        exportable: false
+        exportable: false,
+        path: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -2610,10 +3220,341 @@
       });
     }
 
+    function directSaveAvailable(kind) {
+      if (kind === 'script') {
+        const tab = activeTab();
+        return Boolean(tab.path) && tab.savedText !== null &&
+          tab.text !== tab.savedText;
+      }
+      return kind === 'result' && outputState.exportable &&
+        Array.isArray(outputState.path);
+    }
+
+    function closeSaveContext(restoreFocus = false) {
+      saveContextMenu.classList.add('hidden');
+      if (saveContextSource) {
+        saveContextSource.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) saveContextSource.focus();
+      }
+      saveContextKind = null;
+      saveContextSource = null;
+    }
+
+    function openSaveContext(kind, event) {
+      if (busy || (kind === 'result' && !outputState.exportable)) return;
+      captureEditor();
+      closeMenus();
+      closeRelationMenu();
+      closeSaveContext();
+      saveContextKind = kind;
+      saveContextSource = kind === 'script' ?
+        saveQueryButton : saveOutputButton;
+      saveContextSave.disabled = !directSaveAvailable(kind);
+      saveContextSaveAs.disabled = false;
+      saveContextSource.setAttribute('aria-expanded', 'true');
+      saveContextMenu.style.left = '0px';
+      saveContextMenu.style.top = '0px';
+      saveContextMenu.classList.remove('hidden');
+      const menuRect = saveContextMenu.getBoundingClientRect();
+      const sourceRect = saveContextSource.getBoundingClientRect();
+      const margin = 8;
+      let left = event.clientX;
+      let top = event.clientY;
+      if (left === 0 && top === 0) {
+        left = sourceRect.left;
+        top = sourceRect.bottom;
+      }
+      if (left + menuRect.width > window.innerWidth - margin) {
+        left -= menuRect.width;
+      }
+      if (top + menuRect.height > window.innerHeight - margin) {
+        top -= menuRect.height;
+      }
+      left = clamp(left, margin, window.innerWidth - menuRect.width - margin);
+      top = clamp(top, margin, window.innerHeight - menuRect.height - margin);
+      saveContextMenu.style.left = `${left}px`;
+      saveContextMenu.style.top = `${top}px`;
+      const first = saveContextMenu.querySelector(
+        '[role="menuitem"]:not(:disabled)'
+      );
+      if (first) first.focus();
+    }
+
+    async function directSaveFromContext() {
+      const kind = saveContextKind;
+      const path = kind === 'result' && outputState.path ?
+        outputState.path.slice() : null;
+      closeSaveContext();
+      if (kind === 'script') await saveActiveTab();
+      else if (path) await saveResultsFile(path, true);
+    }
+
+    function saveAsFromContext() {
+      const kind = saveContextKind;
+      closeSaveContext();
+      if (kind === 'script') showSaveAsDialog();
+      else if (kind === 'result') showSaveResultsDialog();
+    }
+
+    function renderDocsHelpTree() {
+      docsHelpTree.replaceChildren();
+      docsHelpSections.forEach((section, index) => {
+        if (!section.title) {
+          section.children.forEach((child) => {
+            docsHelpTree.appendChild(renderDocsHelpNode(child));
+          });
+          return;
+        }
+        const branch = document.createElement('details');
+        branch.className = 'docs-help-branch';
+        branch.setAttribute('role', 'treeitem');
+        branch.open = index === 0;
+        const summary = document.createElement('summary');
+        summary.textContent = section.title;
+        const group = document.createElement('div');
+        group.className = 'docs-help-group';
+        group.setAttribute('role', 'group');
+        section.children.forEach((child) => {
+          group.appendChild(renderDocsHelpNode(child));
+        });
+        branch.append(summary, group);
+        docsHelpTree.appendChild(branch);
+      });
+    }
+
+    function renderDocsHelpNode(node) {
+      if (node.path) {
+        const link = document.createElement('a');
+        link.className = 'docs-help-link';
+        link.href = `/docs/d/obelisk/${node.path}`;
+        link.setAttribute('role', 'treeitem');
+        link.textContent = node.title;
+        link.addEventListener('click', (event) => {
+          event.preventDefault();
+          openDocsTab(node.title, node.path);
+        });
+        return link;
+      }
+      const directory = document.createElement('div');
+      directory.className = 'docs-help-static';
+      directory.setAttribute('role', 'treeitem');
+      const label = document.createElement('div');
+      label.className = 'docs-help-label';
+      label.textContent = node.title;
+      const children = document.createElement('div');
+      children.className = 'docs-help-static-children';
+      children.setAttribute('role', 'group');
+      node.children.forEach((child) => {
+        children.appendChild(renderDocsHelpNode(child));
+      });
+      directory.append(label, children);
+      return directory;
+    }
+
+    function docsTitleNodes(documentTitle) {
+      const ignored = new Set(['Docs', 'Obelisk', 'User Docs']);
+      return String(documentTitle || '').split(/\s*(?:>|\/)\s*/)
+        .map((node) => {
+          return node.trim();
+        }).filter((node) => node && !ignored.has(node));
+    }
+
+    function docsTabLabel(documentTitle) {
+      const nodes = docsTitleNodes(documentTitle);
+      return nodes.length > 0 ? nodes[nodes.length - 1] : 'Docs';
+    }
+
+    function docsTabTrail(documentTitle) {
+      const aliases = new Map([
+        ['Data Definition Language', 'DDL'],
+        ['Data Manipulation Language', 'DML']
+      ]);
+      const nodes = docsTitleNodes(documentTitle).map((node) => {
+        return aliases.get(node) || node;
+      });
+      const languageIndex = nodes.findIndex((node) => {
+        return node === 'DDL' || node === 'DML';
+      });
+      if (languageIndex > 0) {
+        return nodes.slice(languageIndex - 1).join(' > ');
+      }
+      return nodes.length > 0 ? nodes.slice(-2).join(' > ') : 'Docs';
+    }
+
+    function createDocsTab(tab) {
+      const control = document.createElement('div');
+      control.id = `docs-control-${tab.id}`;
+      control.className = 'docs-tab-control';
+      control.setAttribute('role', 'presentation');
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.id = `explorer-${tab.id}`;
+      button.className = 'explorer-tab docs-tab';
+      button.dataset.explorerView = tab.id;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-controls', `docs-panel-${tab.id}`);
+      button.setAttribute('aria-selected', 'false');
+      button.tabIndex = -1;
+      button.textContent = docsTabLabel(tab.documentTitle);
+      button.title = docsTabTrail(tab.documentTitle);
+      button.addEventListener('click', () => setExplorerView(tab.id));
+      button.addEventListener('keydown', explorerTabKeydown);
+      const close = document.createElement('button');
+      close.type = 'button';
+      close.className = 'docs-tab-close';
+      close.title = 'Close';
+      close.setAttribute(
+        'aria-label', `Close ${docsTabLabel(tab.documentTitle)} document tab`
+      );
+      const closeIcon = document.createElement('span');
+      closeIcon.className = 'close-icon';
+      closeIcon.setAttribute('aria-hidden', 'true');
+      close.appendChild(closeIcon);
+      close.addEventListener('click', (event) => {
+        event.stopPropagation();
+        closeDocsTab(tab.id);
+      });
+      control.append(button, close);
+      explorerTabs.appendChild(control);
+
+      const panel = document.createElement('div');
+      panel.id = `docs-panel-${tab.id}`;
+      panel.className = 'explorer-panel docs-panel';
+      panel.setAttribute('role', 'tabpanel');
+      panel.setAttribute('aria-labelledby', button.id);
+      panel.hidden = true;
+      const frame = document.createElement('iframe');
+      frame.className = 'docs-frame';
+      frame.title = tab.documentTitle;
+      let titleObserver = null;
+      const syncFrameState = () => {
+        try {
+          const documentTitle = frame.contentDocument.title.trim();
+          let changed = false;
+          if (documentTitle && documentTitle !== tab.documentTitle) {
+            tab.documentTitle = documentTitle;
+            button.textContent = docsTabLabel(documentTitle);
+            button.title = docsTabTrail(documentTitle);
+            frame.title = documentTitle;
+            close.setAttribute(
+              'aria-label',
+              `Close ${docsTabLabel(documentTitle)} document tab`
+            );
+            changed = true;
+          }
+          const prefix = '/docs/d/obelisk/';
+          const pathname = frame.contentWindow.location.pathname;
+          if (pathname.startsWith(prefix)) {
+            const path = pathname.slice(prefix.length);
+            if (path && path !== tab.path) {
+              tab.path = path;
+              changed = true;
+            }
+          }
+          if (changed) persist();
+        } catch (_) {
+          //  Keep the selected Help title if the frame is not same-origin.
+        }
+      };
+      frame.addEventListener('load', () => {
+        if (titleObserver) titleObserver.disconnect();
+        syncFrameState();
+        try {
+          const titleRoot = frame.contentDocument.head ||
+            frame.contentDocument.documentElement;
+          if (!titleRoot) return;
+          titleObserver = new MutationObserver(syncFrameState);
+          titleObserver.observe(titleRoot, {
+            childList: true,
+            characterData: true,
+            subtree: true
+          });
+        } catch (_) {
+          titleObserver = null;
+        }
+      });
+      frame.src = `/docs/d/obelisk/${tab.path}`;
+      panel.appendChild(frame);
+      schemaPane.appendChild(panel);
+    }
+
+    function renderDocsTabs() {
+      explorerTabs.querySelectorAll('.docs-tab-control').forEach((node) => {
+        node.remove();
+      });
+      schemaPane.querySelectorAll('.docs-panel').forEach((node) => {
+        node.remove();
+      });
+      state.docsTabs.forEach(createDocsTab);
+    }
+
+    function openDocsTab(documentTitle, path) {
+      const tab = {
+        id: `docs-${state.nextDocs++}`,
+        documentTitle,
+        path
+      };
+      state.docsTabs.push(tab);
+      createDocsTab(tab);
+      if (!state.schemaOpen) {
+        state.schemaOpen = true;
+        applyLayout();
+      }
+      setHelpOpen(false);
+      setExplorerView(tab.id, true);
+    }
+
+    function closeDocsTab(id) {
+      const index = state.docsTabs.findIndex((tab) => tab.id === id);
+      if (index < 0) return;
+      const wasActive = state.explorerView === id;
+      state.docsTabs.splice(index, 1);
+      byId(`docs-control-${id}`).remove();
+      byId(`docs-panel-${id}`).remove();
+      if (wasActive) {
+        const view = index > 0 ? state.docsTabs[index - 1].id : 'files';
+        setExplorerView(view, true);
+      } else {
+        persist();
+      }
+    }
+
+    function setHelpVariant(useDocs) {
+      fallbackHelpContent.classList.toggle('hidden', useDocs);
+      docsHelpContent.classList.toggle('hidden', !useDocs);
+    }
+
+    async function refreshHelpVariant() {
+      if (docsCheckPending || docsAvailable === true) return;
+      docsCheckPending = true;
+      try {
+        const response = await fetch('/docs', {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+        const responseUrl = new URL(response.url, window.location.origin);
+        const contentType = response.headers.get('content-type') || '';
+        docsAvailable = response.ok &&
+          responseUrl.origin === window.location.origin &&
+          responseUrl.pathname.startsWith('/docs') &&
+          contentType.includes('text/html');
+      } catch (_) {
+        docsAvailable = false;
+      } finally {
+        docsCheckPending = false;
+      }
+      setHelpVariant(docsAvailable);
+    }
+
     function setHelpOpen(open, restoreFocus = false) {
       helpPanel.hidden = !open;
       helpButton.setAttribute('aria-expanded', String(open));
-      if (open) closeHelpButton.focus();
+      if (open) {
+        setHelpVariant(docsAvailable === true);
+        refreshHelpVariant();
+        closeHelpButton.focus();
+      }
       if (!open && restoreFocus) helpButton.focus();
     }
 
@@ -2669,7 +3610,7 @@
       schemaCollapse.setAttribute('aria-expanded', String(state.schemaOpen));
       outputCollapse.setAttribute('aria-expanded', String(state.outputOpen));
       schemaCollapse.setAttribute('aria-label', state.schemaOpen ?
-        'Collapse schemas' : 'Expand schemas');
+        'Collapse explorer' : 'Expand explorer');
       outputCollapse.setAttribute('aria-label', state.outputOpen ?
         'Collapse output' : 'Expand output');
       schemaCollapse.textContent = state.schemaOpen ? '‹' : '›';
@@ -2771,7 +3712,15 @@
     });
     runButton.addEventListener('click', () => execute('run'));
     parseButton.addEventListener('click', () => execute('parse'));
-    saveResultsButton.addEventListener('click', showSaveResultsDialog);
+    saveQueryButton.addEventListener('click', (event) => {
+      openSaveContext('script', event);
+    });
+    saveOutputButton.addEventListener('click', (event) => {
+      openSaveContext('result', event);
+    });
+    saveContextSave.addEventListener('click', directSaveFromContext);
+    saveContextSaveAs.addEventListener('click', saveAsFromContext);
+    saveContextMenu.addEventListener('keydown', menuKeydown);
     copyQueryButton.addEventListener('click', () => {
       captureEditor();
       copyText(activeTab().text, 'Script');
@@ -2791,6 +3740,14 @@
       persist();
       refreshSchema();
     });
+    schemasTab.addEventListener('click', () => {
+      setExplorerView('schemas');
+    });
+    filesTab.addEventListener('click', () => {
+      setExplorerView('files');
+    });
+    schemasTab.addEventListener('keydown', explorerTabKeydown);
+    filesTab.addEventListener('keydown', explorerTabKeydown);
     schemaCollapse.addEventListener('click', () => {
       state.schemaOpen = !state.schemaOpen;
       applyLayout();
@@ -2815,6 +3772,10 @@
     });
     document.addEventListener('click', (event) => {
       if (!event.target.closest('.menu')) closeMenus();
+      if (!event.target.closest('#save-context-menu') &&
+          !event.target.closest('.save-action')) {
+        closeSaveContext();
+      }
       if (!event.target.closest('#relation-menu') &&
           !event.target.closest('.relation-actions')) {
         closeRelationMenu();
@@ -2824,6 +3785,10 @@
       if (event.key === 'Escape') {
         if (!helpPanel.hidden) {
           setHelpOpen(false, true);
+          return;
+        }
+        if (!saveContextMenu.classList.contains('hidden')) {
+          closeSaveContext(true);
           return;
         }
         const open = menus.find((menu) => menu.dataset.open === 'true');
@@ -2850,9 +3815,14 @@
     }
     renderTabs();
     restoreEditor(false);
+    renderDocsHelpTree();
+    renderDocsTabs();
+    refreshHelpVariant();
+    setExplorerView(state.explorerView);
     applyLayout();
     setBusy(false);
     refreshSchema();
+    refreshFiles();
     document.documentElement.dataset.obelisk = 'ready';
 
     window.ObeliskWorkbench = {
@@ -2861,16 +3831,21 @@
       addFileTab,
       activateTab,
       closeActiveTab,
+      closeDocsTab,
       execute,
       getState: () => state,
       openRelationAction,
+      openDocsTab,
       persist,
+      refreshFiles,
+      refreshHelpVariant,
       refreshSchema,
       relationTemplate,
       renderCommand,
       runCopyText,
       runExportText,
       saveActiveTab,
+      openSaveContext,
       showSaveResultsDialog,
       showOpenDialog,
       showSaveAsDialog,
