@@ -934,8 +934,14 @@
     [%obelisk u.decoded]
   [%file u.decoded]
 ::
+++  clay-png
+  |=  beam=path
+  ^-  (each @ tang)
+  %-  mule  |.
+  .^(@ %cx beam)
+::
 ++  route-http
-  |=  [eyre-id=@ta req=inbound-request:eyre our=@p]
+  |=  [eyre-id=@ta req=inbound-request:eyre our=@p desk=desk now=@da]
   ^-  route-result
   =/  url=tape  (trip url.request.req)
   =/  method=method:http  method.request.req
@@ -951,6 +957,13 @@
       `['text/javascript; charset=utf-8' javascript:web-lib]
     ?:  =("/apps/obelisk/app.css" url)
       `['text/css; charset=utf-8' css:web-lib]
+    ?:  =("/apps/obelisk/favicon.png" url)
+      =/  beam=path  (clay-beam:file-lib our desk da+now /favicon/png)
+      =/  loaded=(each @ tang)  (clay-png beam)
+      ?-  -.loaded
+        %.n  ~
+        %.y  `['image/png' ^-(@t p.loaded)]
+      ==
     ~
   ?~  route
     :-  %cards
@@ -1016,7 +1029,8 @@
   ?>  ?|  !authenticated.req
           =(src.bowl our.bowl)
       ==
-  =/  routed=route-result  (route-http eyre-id req our.bowl)
+  =/  routed=route-result
+    (route-http eyre-id req our.bowl q.byk.bowl now.bowl)
   ?-  -.routed
     %cards
       :_  this

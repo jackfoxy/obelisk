@@ -1772,7 +1772,7 @@
   =/  ship=tape  (trip (scot %p our.local))
   ;:  weld
     (expect !>(?=(^ (find "app-header" html))))
-    (expect !>(?=(^ (find "data:image/png;base64," html))))
+    (expect !>(?=(^ (find "/apps/obelisk/favicon.png" html))))
     (expect !>(?=(^ (find "schema-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
