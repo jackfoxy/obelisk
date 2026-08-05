@@ -64,7 +64,7 @@
       [%cte-name cte ~]
       :~  :*  %set-table
               join=~
-              relation=~
+              relation-id=~
               schema-tmsp=~
               data-tmsp=~
               columns=columns

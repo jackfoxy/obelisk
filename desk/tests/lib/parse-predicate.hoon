@@ -198,9 +198,9 @@
       alias=[~ 'F1']
       ==
 ++  from-foo
-  [~ [%from relation=foo-table as-of=~ joins=~]]
+  [~ [%from relation-id=foo-table as-of=~ joins=~]]
 ++  from-foo-aliased
-  [~ [%from relation=foo-table-f1 as-of=~ joins=~]]
+  [~ [%from relation-id=foo-table-f1 as-of=~ joins=~]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
@@ -266,11 +266,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -295,11 +295,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -324,11 +324,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -353,11 +353,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -382,11 +382,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -411,11 +411,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -440,11 +440,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -469,11 +469,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -498,11 +498,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -617,11 +617,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -650,11 +650,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -683,11 +683,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -716,11 +716,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -748,11 +748,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -780,11 +780,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -812,11 +812,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -844,11 +844,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -876,11 +876,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -908,11 +908,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -940,11 +940,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -972,11 +972,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1004,11 +1004,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1038,11 +1038,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1080,11 +1080,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1116,11 +1116,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1154,11 +1154,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1195,11 +1195,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1245,11 +1245,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1285,11 +1285,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1322,11 +1322,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1486,11 +1486,11 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    relation=adoptions-t2
+                                    relation-id=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -1528,7 +1528,7 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1561,7 +1561,7 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1597,7 +1597,7 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1633,7 +1633,7 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1658,7 +1658,7 @@
                 :*  %query
                     :-  ~
                         :^  %from
-                            relation=adoptions
+                            relation-id=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1761,7 +1761,7 @@
 ++  cte2-table
   [%cte-name name='cte2' alias=~]
 ++  cte-my-cte
-  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~
@@ -1769,7 +1769,7 @@
               ==
       ==
 ++  cte-cte1
-  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~
@@ -1777,7 +1777,7 @@
               ==
       ==
 ++  cte-cte2
-  =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~
@@ -1785,15 +1785,15 @@
               ==
       ==
 ++  from-my-cte-outer
-  [~ [%from relation=my-cte-table as-of=~ joins=~]]
+  [~ [%from relation-id=my-cte-table as-of=~ joins=~]]
 ++  from-cte1-join-cte2
   :-  ~
   :^  %from
-      relation=cte1-table
+      relation-id=cte1-table
       as-of=~
       :~  :*  %joined-relation
               join=%join
-              relation=cte2-table
+              relation-id=cte2-table
               as-of=~
               predicate=[%eq cte1-col1 cte2-col1]
               ==
@@ -2158,7 +2158,7 @@
 ++  select-col1-col2
   [%select top=~ columns=~[[%unqualified-column 'col1' ~] [%unqualified-column 'col2' ~]]]
 ++  cte-my-cte-cols
-  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~
@@ -2166,7 +2166,7 @@
               ==
       ==
 ++  cte-cte1-cols
-  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~
@@ -2174,7 +2174,7 @@
               ==
       ==
 ++  cte-cte2-cols
-  =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
+  =/  from-clause  [%from relation-id=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
       :-  %query
           :*  %query  [~ from-clause]  scalars=~  ~

@@ -208,7 +208,7 @@
 +$  from
   $+  from
   $:  %from
-    =relation
+    =relation-id
     as-of=(unit as-of)
     joins=(list joined-relation)
     ==
@@ -216,13 +216,56 @@
   $+  joined-relation
   $:  %joined-relation
     =join-type
-    =relation
+    =relation-id
     as-of=(unit as-of)
     =predicate
     ==
 ::
-::  $relation:
-+$  relation  $%(qualified-table cte-name)
+::  $relation-id:
++$  relation-id  $%(qualified-table cte-name)
+::
+::  $relation
+::
+::  invariant: each columns entry is unique
+::             (column & `indexed-row`data-row)
+::             | (qualified-column & `joined-row`data-row)
++$  relation
+  $+  relation
+  $:  %relation
+  relation-id=(unit qualified-table)
+  columns=(lest (lest $%(column qualified-column)))
+  pri-indx=(unit index)
+  ordered=?
+  pri-indexed=(tree [(list @) (map @tas @)])  :: may be bunt
+  data-rows=(list [columns-index=@ud =data-row])
+  ==
+::
++$  indexed-row
+  $:  %indexed-row
+    key=(list @)
+    data=(map @tas @)
+    ==
+::
++$  joined-row
+  $+  joined-row
+  $:  %joined-row
+    key=(list @)
+    ::data=(mip qualified-table @tas @)  :: sux that mip not in standard library
+    data=(map qualified-table (map @tas @))
+    ==
++$  data-row  $%(joined-row indexed-row)
+::
++$  index
+  $:  %index
+    unique=?
+    key=(list key-column)
+    ==
++$  key-column
+  $:  %key-column
+    name=@tas
+    =aura
+    ascending=?
+    ==
 ::
 ::  $select:
 +$  select
@@ -395,9 +438,9 @@
 +$  merge
   $+  merge
   $:  %merge
-    target-table=relation
-    new-table=(unit relation)
-    source-table=relation
+    target-table=relation-id
+    new-table=(unit relation-id)
+    source-table=relation-id
     =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
@@ -1045,17 +1088,23 @@
   ==
 ::
 ::  $action
-::    [%tape @tas tape]          - execute urQL script, parse and runtime
+::    [%script @tas result-format tape]
+::                              - execute urQL script, parse and runtime
+::    [%cmd-list result-format (list command)]
+::                              - execute API commands in runtime
+::    [%tape @tas tape]          - deprecated
 ::    [%tape-print @tas tape]    - execute urQL script, prints result to dojo
-::    [%commands (list command)] - execute API commands in runtime
+::    [%commands (list command)] - deprecated
 ::    [%test @tas tape]          - supports expect-fail-message in unit tests
 ::    [%parse tape]              - parse urQL script, returns (list command)
 ::  
 +$  action
   $%
-    [%tape default-database=@tas urql=tape]
-    [%tape-print default-database=@tas urql=tape]
-    [%commands cmds=(list command)]
+    [%script default-database=@tas format=result-format urql=tape]
+    [%cmd-list format=result-format cmds=(list command)]
+    [%tape default-database=@tas urql=tape]                         ::deprecated
+    [%tape-print default-database=@tas urql=tape]                   ::deprecated
+    [%commands cmds=(list command)]                                 ::deprecated
     [%test default-database=@tas urql=tape]
     [%parse default-database=@tas urql=tape]
     ==
@@ -1080,11 +1129,13 @@
 ::
 ::  OUTPUT
 ::
++$  result-format
+  ?(%vector %markdown %html %wain %manx %tape %json %csv %tab %spac %raw)
 +$  cmd-result  [%results (list result)]
 +$  result
   $%
     [%action action=@t]
-    [%relation relation=@t]
+    [%relation-name name=@t]
     [%message msg=@t]
     [%vector-count count=@ud]
     [%server-time date=@da]
@@ -1092,6 +1143,8 @@
     [%schema-time date=@da]
     [%data-time date=@da]
     [%result-set (list vector)]
+    [%relations (list relation)]
+    [%select-relation relation]
     ==
 ::
 +$  vector-cell  [p=@tas q=dime]

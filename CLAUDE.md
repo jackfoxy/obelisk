@@ -2,18 +2,6 @@
 
 Project-specific guidance for Obelisk, an RDBMS Gall agent implementing urQL.
 
-## Style
-
-Minimize tokens. Keep correctness.
-Start with answer. No filler, no preamble, no postamble, no meta-commentary, no sign-off.
-If code asked: give code.
-If fix asked: give fix.
-If plan asked: give shortest useful complete plan.
-Explain only if asked.
-Do not narrate code or tools.
-Ask one short question only if blocked. If asked if there are any questions, respond with all relevant concise questions. Else assume and proceed.
-Use tiny heartbeat only for long tasks: `checking`, `patching`, `testing`.
-
 ## Critical types
 
 ### `data-row` (in `sur/obelisk.hoon`)
@@ -39,4 +27,4 @@ Built dynamically during query execution, discarded when complete. Accumulates r
 ### Builds and Tests
 
 All builds done manually.
-All tests run manyually.
+All tests run manually.

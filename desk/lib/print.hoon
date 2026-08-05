@@ -32,8 +32,8 @@
       %action
         ~&  "    [ {<-.b>} {<action.b>} ]"
         $(results +.results)
-      %relation
-        ~&  "    [ {<-.b>} {<relation.b>} ]"
+      %relation-name
+        ~&  "    [ {<-.b>} {<name.b>} ]"
         $(results +.results)
       %message
         ~&  "    [ {<-.b>} {<msg.b>} ]"
@@ -54,48 +54,132 @@
         ~&  "    [ {<-.b>} {<date.b>} ]"
         $(results +.results)
       %result-set
-        =/  rc=?  (print-result-set +.b)
+        ~|("print: %result-set output is no longer supported" !!)
+      %relations
+        =/  rc=?  (print-relations +.b)
+        $(results +.results)
+      %select-relation
+        =/  rc=?  (print-select-relation +.b)
         $(results +.results)
       ==
 ::
-++  print-result-set
-  |=  a=(list vector)
+++  print-relations
+  |=  a=(list relation)
   ^-  @f
-  ~&  "    %result-set"
-  ?:  =(~ a)  ~&  "      result set empty"  %.y
-  =/  rc1  (print-heading -.a)
-  =/  i  ?:  (lth (lent a) 11)  0  1
-  =/  print-elipsis=?  (gte (lent a) 11)
+  ~&  "    %relations"
   |-
   ?~  a  %.y
-  =/  rc2  (print-row -.a)
-  =/  rc3   ?:  &(=(i 9) print-elipsis)  ~&  "      ..."  (print-row (rear a))
+  =/  rc=?  (print-relation -.a)
+  $(a +.a)
+::
+++  print-select-relation
+  |=  a=relation
+  ^-  @f
+  ~&  "    %select-relation"
+  (print-relation a)
+::
+++  print-relation
+  |=  a=relation
+  ^-  @f
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  =/  rows=(list [columns-index=@ud =data-row])  data-rows.a
+  ?:  =(~ rows)  ~&  "      result set empty"  %.y
+  =/  i  ?:  (lth (lent rows) 11)  0  1
+  =/  print-elipsis=?  (gte (lent rows) 11)
+  =/  prior-format=(unit @ud)  ~
+  |-
+  ?~  rows  %.y
+  =/  row=[columns-index=@ud =data-row]  i.rows
+  =/  rc2  (print-relation-entry columns row prior-format)
+  =/  rc3  ?:  &(=(i 9) print-elipsis)
+              (print-relation-tail columns (rear rows))
             %.n
   %=  $
-    a  ?:  =(i 9)  ~  +.a
-    i  +(i)
+    rows          ?:  =(i 9)  ~  +.rows
+    i             +(i)
+    prior-format  `columns-index.row
   ==
 ::
-++  print-row
-  |=  a=vector
+++  print-relation-entry
+  |=  $:  columns=(lest (lest $%(column qualified-column)))
+          row=[columns-index=@ud =data-row]
+          prior-format=(unit @ud)
+          ==
   ^-  @f
-  =/  cells=(list vector-cell)  +.a
-  =/  row=tape  "    "
-  |-
-  ?~  cells  ~&  "{<(crip (flop row))>}"  %.y
-  =/  b=vector-cell  -.cells
-  =/  print-cell  ?:  =(p.q.b ~.t)  (trip `@t`q.q.b)
-      ~(rend co %$ q.b)
-  $(cells +.cells, row (weld (flop print-cell) (weld "  " row)))
+  =/  format  (relation-columns-at columns-index.row columns)
+  =/  rc
+    ?:  ?~(prior-format %.y !=(u.prior-format columns-index.row))
+      (print-relation-heading format)
+    %.y
+  (print-relation-row format data-row.row)
 ::
-++  print-heading
-  |=  a=vector
+++  print-relation-tail
+  |=  $:  columns=(lest (lest $%(column qualified-column)))
+          row=[columns-index=@ud =data-row]
+          ==
   ^-  @f
-  =/  cells=(list vector-cell)  +.a
+  ~&  "      ..."
+  (print-relation-entry columns row ~)
+::
+++  relation-columns-at
+  |=  $:  index=@ud
+          columns=(list (lest $%(column qualified-column)))
+          ==
+  ^-  (lest $%(column qualified-column))
+  =/  requested  index
+  |-
+  ?~  columns
+    ~|("print: invalid relation columns index {<requested>}" !!)
+  ?:  =(0 index)
+    i.columns
+  $(index (dec index), columns t.columns)
+::
+++  print-relation-heading
+  |=  columns=(list $%(column qualified-column))
+  ^-  @f
   =/  heading=tape  "    "
   |-
-  ?.  =(~ cells)
-    $(cells +.cells, heading (weld (flop (trip -<.cells)) (weld "  " heading)))
-  =/  head  (flop heading)
-  ~&  "{<(crip head)>}"  %.y
+  ?~  columns
+    ~&  "{<(crip (flop heading))>}"  %.y
+  =/  name  (relation-column-name i.columns)
+  $(columns t.columns, heading (weld (flop (trip name)) (weld "  " heading)))
+::
+++  relation-column-name
+  |=  col=$%(column qualified-column)
+  ^-  @tas
+  ?-  -.col
+      %column
+        name.col
+      %qualified-column
+        name.col
+  ==
+::
+++  print-relation-row
+  |=  [columns=(list $%(column qualified-column)) row=data-row]
+  ^-  @f
+  =/  out=tape  "    "
+  |-
+  ?~  columns  ~&  "{<(crip (flop out))>}"  %.y
+  =/  cell  (print-relation-cell i.columns row)
+  %=  $
+    columns  t.columns
+    out      (weld (flop cell) (weld "  " out))
+  ==
+::
+++  print-relation-cell
+  |=  [col=$%(column qualified-column) row=data-row]
+  ^-  tape
+  ?-  -.row
+    %indexed-row
+      ?>  ?=(%column -.col)
+      =/  c=column  ;;(column col)
+      =/  val  (~(got by data.row) name.c)
+      ?:  =(type.c ~.t)  (trip `@t`val)
+      ~(rend co %$ [type.c val])
+    %joined-row
+      ?>  ?=(%qualified-column -.col)
+      =/  c=qualified-column  ;;(qualified-column col)
+      =/  vals  (~(got by data.row) qualifier.c)
+      (trip (scot %ud (~(got by vals) name.c)))
+  ==
 --

@@ -36,9 +36,9 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ++  reduce-key
-  |=  key=(list key-column)
+  |=  key=(list key-column:ast)
   ^-  (list [@ta ?])
-  (turn key |=(a=key-column [aura.a ascending.a]))
+  (turn key |=(a=key-column:ast [aura.a ascending.a]))
 ::
 ++  idx-comp
   ::  comparator for index mops
@@ -66,7 +66,7 @@
   --
 ::
 ++  pri-key
-  |=  key=(list key-column)
+  |=  key=(list key-column:ast)
   =/  comparator  ~(order idx-comp (reduce-key key))
   ((on (list [@tas ?]) (map @tas @)) comparator)
 ::
@@ -192,12 +192,12 @@
   qualified-table(alias `(crip (cass (trip u.alias.qualified-table))))
 ::
 ++  normalize-relation
-  |=  =relation:ast
-  ^-  relation:ast
-  ?:  =(-.relation %qualified-table)
-    (normalize-qt-alias ;;(qualified-table:ast relation))
-  ?:  =(-.relation %cte-name)
-    =/  cn  ;;(cte-name:ast relation)
+  |=  =relation-id:ast
+  ^-  relation-id:ast
+  ?:  =(-.relation-id %qualified-table)
+    (normalize-qt-alias ;;(qualified-table:ast relation-id))
+  ?:  =(-.relation-id %cte-name)
+    =/  cn  ;;(cte-name:ast relation-id)
     [%cte-name (crip (cass (trip name.cn))) alias.cn]
   ~|("normalize-relation not implemented" !!)
 ::
@@ -205,12 +205,12 @@
   |=  =from:ast
   ^-  from:ast
   :^  %from
-      (normalize-relation relation.from)
+      (normalize-relation relation-id.from)
       as-of.from
       %+  turn  joins.from  |=  j=joined-relation:ast
                             :*  %joined-relation
                                 join-type.j
-                                (normalize-relation relation.j)
+                                (normalize-relation relation-id.j)
                                 as-of.j
                                 predicate.j
                                 ==
@@ -288,13 +288,13 @@
   =/  ta=typ-addr
         %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected ~]
                                              name.selected
-  =/  row=data-row  ?~  joined-rows.cte-st
-                      ?~  indexed-rows.cte-st
-                        ~|  "resolve selected-cte-column: no rows in cte ".
-                            "{<cte.selected>}"
-                            !!
-                      i.indexed-rows.cte-st
-                    i.joined-rows.cte-st
+  =/  row=data-row:ast  ?~  joined-rows.cte-st
+                          ?~  indexed-rows.cte-st
+                            ~|  "resolve selected-cte-column: no rows in cte ".
+                                "{<cte.selected>}"
+                                !!
+                          i.indexed-rows.cte-st
+                        i.joined-rows.cte-st
   =/  x  .*(data.row [%0 addr.ta])
   [type.ta ?@(x x ;;(@ +.x))]
 ::
@@ -305,17 +305,17 @@
   type.rs
 ::
 ++  resolve-selected-scalar
-  |=  [row=data-row rs=resolved-scalar]
+  |=  [row=data-row:ast rs=resolved-scalar]
   ^-  dime
   ?:  ?=(dime rs)  rs
-  =/  f=$-(data-row dime)  +>.rs
+  =/  f=$-(data-row:ast dime)  +>.rs
   (f row)
 ::
-++  mk-rel-vect-templ
+++  mk-rel-row-templ
   ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
-          row=data-row 
+          row=data-row:ast 
           =map-meta
           =resolved-scalars
           =named-ctes
@@ -493,7 +493,7 @@
       `-.a
       ~
       addr.a
-      `vector-cell:ast`[name.qualified-column.a [type.a 0]]
+      [name.qualified-column.a [type.a 0]]
       ==
 ::
 ++  mk-unqualified-typ-addr-lookup
@@ -509,6 +509,31 @@
       %+  turn  kvp
                 |=  e=[qualified-table:ast (list column:ast)]
                 [-.e (mk-unqualified-typ-addr-lookup +.e)]
+::
+++  mk-qualifier-lookup
+  ::  Make lookup qualifier by column name for predicate processing when a
+  ::  column is unqualified.
+  |=  sources=(list set-table)
+  ^-  qualifier-lookup
+  =/  lookup  *qualifier-lookup
+  |-
+  ?~  sources  lookup
+  =/  source=set-table  i.sources
+  ?~  relation-id.source  $(sources t.sources)
+  =/  columns=(list column:ast)  columns.source
+  |-
+  ?~  columns  ^$(sources t.sources)
+  =/  col=column:ast  -.columns
+  %=  $
+    columns  +.columns
+    lookup   ?:  (~(has by lookup) name.col)
+               %+  ~(put by lookup)
+                      name.col
+                      :-  (need relation-id.source)
+                          (~(got by lookup) name.col)
+             %+  ~(put by lookup)  name.col
+                                   (limo ~[(need relation-id.source)])
+  ==
 ::
 ++  qualify-unqualified
   |=  [selected=(list selected-column:ast) =qualifier-lookup]
@@ -574,6 +599,43 @@
                     m=m.dt
                     t=[d=d.t.dt h=h.t.dt m=m.t.dt s=s.t.dt f=f.t.dt]
   ==
+::
+++  date-tape
+  |=  da=@da
+  ^-  tape
+  (drop-date-zeroes (trip (scot %da da)))
+::
+++  drop-date-zeroes
+  |=  txt=tape
+  ^-  tape
+  (drop-date-zeroes-loop txt 0)
+::
+++  drop-date-zeroes-loop
+  |=  [txt=tape count=@ud]
+  ^-  tape
+  ?:  (gte count 5)  txt
+  ?~  txt  ~
+  ?.  =('.' i.txt)
+    [i.txt $(txt t.txt)]
+  ?~  t.txt
+    txt
+  ?.  (digit i.t.txt)
+    [i.txt $(txt t.txt)]
+  [i.txt $(txt (drop-leading-zeroes t.txt), count +(count))]
+::
+++  drop-leading-zeroes
+  |=  txt=tape
+  ^-  tape
+  ?~  txt  ~
+  ?.  =('0' i.txt)  txt
+  ?~  t.txt  txt
+  ?.  (digit i.t.txt)  txt
+  $(txt t.txt)
+::
+++  digit
+  |=  c=@tD
+  ^-  ?
+  &((gte c '0') (lte c '9'))
 ::
 ++  to-column
   |=  [op=?(%insert %upsert) p=@t q=(map @tas [aura @])]
@@ -1137,13 +1199,12 @@
           ==
   ^-  foreign-constraint
   =.  constrained-values.incoming  *constrained-values
-  =/  rows=(list indexed-row)  indexed-rows.child-file
+  =/  rows=(list indexed-row:ast)  indexed-rows.child-file
   |-
   ?~  rows  incoming
-  =/  row=indexed-row  i.rows
-  =/  parent-key=(list @)  (row-column-values data.row source-cols)
+  =/  parent-key=(list @)  (row-column-values data.i.rows source-cols)
   =/  child-pk=(list @)
-        (row-key-values data.row constrained-primary-key.incoming)
+        (row-key-values data.i.rows constrained-primary-key.incoming)
   %=  $
     rows      t.rows
     incoming  (add-constrained-value-reference incoming parent-key child-pk)

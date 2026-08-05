@@ -38,9 +38,9 @@
 ++  select-relation
   ::  crud-txn from a single table without joins
   |=  [q=query:ast is-cte=? =named-ctes]
-  ^-  [join-return (list vector)]
+  ^-  join-return
   =/  from          (normalize-from (need from.q))
-  =/  =full-relation  %:  source-full-relation  relation.from
+  =/  =full-relation  %:  source-full-relation  relation-id.from
                                                 named-ctes
                                                 as-of.from
                                                 ~
@@ -50,7 +50,7 @@
                                                 ==
   =/  selected      (normalize-selected columns.select.q)
   =/  qualifier-lookup
-        (query-qualifier-lookup set-tables.full-relation)
+        (mk-qualifier-lookup set-tables.full-relation)
   =/  resolved-scalars
         %:  resolve-query-scalars  scalars.q
                                    named-ctes
@@ -70,28 +70,15 @@
                             ==
   ::
   ?~  set-tables.full-relation  ~|("select-relation can't get here" !!)
-  :-  :*  %join-return
-          state
-          ?.  is-cte   set-tables.full-relation
-              %-  select-for-cte
-              [q set-tables.full-relation filter named-ctes resolved-scalars]
-          map-meta.full-relation
-          column-metas.full-relation
-          ==
-      ?:  is-cte  *(list vector)
-      %-  relation-vectors
-      :*  filter
-          column-metas.full-relation
-          ?:  is-cte  map-meta.full-relation
-          map-meta.i.set-tables.full-relation
-          ?~  joined-rows.i.set-tables.full-relation
-            indexed-rows.i.set-tables.full-relation
-          joined-rows.i.set-tables.full-relation
-          selected
-          resolved-scalars
-          named-ctes
-          ordered.i.set-tables.full-relation
-          ==
+  =/  jr
+    :*  %join-return
+        state
+        %-  select-set-table
+        [q set-tables.full-relation filter named-ctes resolved-scalars]
+        map-meta.full-relation
+        column-metas.full-relation
+        ==
+  jr
 ::
 ++  join-all
   ::  server state returned because we may have updated the view cache
@@ -101,14 +88,14 @@
   =/  joined-relations=(list joined-relat)
         %+  cross-joins-to-end  :*  %joined-relat
                                      ~
-                                     relation.from
+                                     relation-id.from
                                      as-of.from
                                      ~
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
   =.  joined-relations    +.joined-relations
-  =/  =full-relation  %:  source-full-relation  relation.relat
+  =/  =full-relation  %:  source-full-relation  relation-id.relat
                                                 named-ctes
                                                 as-of.relat
                                                 ~
@@ -120,7 +107,7 @@
   =/  from-objects        (limo ~[prior-join])
   |-
   ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  full-relation  %:  source-full-relation  relation.i.joined-relations
+  =.  full-relation  %:  source-full-relation  relation-id.i.joined-relations
                                                 named-ctes
                                                 as-of.i.joined-relations
                                                 join.i.joined-relations
@@ -157,8 +144,8 @@
 ++  join-natural
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  rel-prior  (need relation.prior)
-  =/  rel-this   (need relation.this)
+  =/  rel-prior  (need relation-id.prior)
+  =/  rel-this   (need relation-id.this)
   ::  accumulated columns from all prior source tables
   ::  (used for matching in multi-table joins where columns.prior
   ::  only has the most recent table's columns)
@@ -194,8 +181,8 @@
   ?:  =(prior-key this-key)
     (joined-set-table this -.count-and-rows +.count-and-rows)
   ::  key is same column sequence, but different ordering
-  ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
-              (turn this-key |=(a=key-column [name.a aura.a]))
+  ?:  ?!  .=  (turn prior-key |=(a=key-column:ast [name.a aura.a]))
+              (turn this-key |=(a=key-column:ast [name.a aura.a]))
     ::  partial key match
     =/  plen  (leading-prefix-len prior-key this-key)
     ?:  =(0 plen)
@@ -234,9 +221,9 @@
           !!
     ::  check if prefix needs re-sort (different ASC/DESC)
     =/  needs-resort  ?!  .=  %+  turn  prior-prefix
-                                  |=(a=key-column ascending.a)
+                                  |=(a=key-column:ast ascending.a)
                               %+  turn  this-prefix
-                                  |=(a=key-column ascending.a)
+                                  |=(a=key-column:ast ascending.a)
     =/  sort-prefix   ?:  (gth rowcount.this rowcount.prior)
                         this-prefix
                       prior-prefix
@@ -358,8 +345,8 @@
   ::  currently only supports equality conditions with AND conjunctions
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  rel-prior  (need relation.prior)
-  =/  rel-this   (need relation.this)
+  =/  rel-prior  (need relation-id.prior)
+  =/  rel-this   (need relation-id.this)
   ::  validate and extract equi-join column pairs from predicate
   =/  raw-pairs  (extract-equi-pairs predicate.this)
   ::  resolve unqualified columns, validate existence, assign to prior/this
@@ -654,40 +641,15 @@
     out-rows  :-  ?:  ?=(%joined-row -.i.a)
                     :+  %joined-row
                         ~
-                        (~(put by data.i.a) (need relation.this) data.i.b)
+                        (~(put by data.i.a) (need relation-id.this) data.i.b)
                   %:  joined-from-indexed  i.a
-                                           (need relation.prior)
+                                           (need relation-id.prior)
                                            i.b
-                                           (need relation.this)
+                                           (need relation-id.this)
                                            ==
                   out-rows
     b  t.b
     i  +(i)
-  ==
-::
-++  query-qualifier-lookup
-  ::  Build lookup qualifier by column name for resolving unqualified columns in
-  ::  scalar functions on a single relation.
-  |=  sources=(list set-table)
-  ^-  qualifier-lookup
-  =/  lookup  *qualifier-lookup
-  |-
-  ?~  sources  lookup
-  =/  source=set-table  i.sources
-  ?~  relation.source  $(sources t.sources)
-  =/  columns=(list column:ast)  columns.source
-  |-
-  ?~  columns  ^$(sources t.sources)
-  =/  col=column:ast  -.columns
-  %=  $
-    columns  +.columns
-    lookup   ?:  (~(has by lookup) name.col)
-               %+  ~(put by lookup)
-                      name.col
-                      :-  (need relation.source)
-                          (~(got by lookup) name.col)
-             %+  ~(put by lookup)  name.col
-                                   (limo ~[(need relation.source)])
   ==
 ::
 ++  resolve-query-scalars
@@ -716,19 +678,8 @@
     seed     seed
   ==
 ::
-++  select-for-cte
-  ::  cons a set-table of the crud-txn
-  ::  1) object=~
-  ::  2) new list of columns
-  ::  3) key preserved w/ updated names or not
-  ::  4) indexed-rows index preserved or not
-  ::  4.5) schema-tmsp=(unit @da)
-  ::      data-tmsp=(unit @da)
-  ::      =map-meta  delete those that do not exist
-  ::      pri-indx=(unit index)
-  ::      =predicate
-  ::      pri-indexed=(tree [(list @) (map @tas @)])
-  ::  5) row count
+++  select-set-table
+  ::  Project selected columns and an optional filter into a result set-table.
   |=  $:  q=query:ast
           set-tables=(list set-table)
           f=(unit $-(data-row ?))
@@ -736,22 +687,21 @@
           =resolved-scalars
           ==
   ^-  (list set-table)
-  ?~  set-tables  ~|("select-for-cte can't get here" !!)
+  ?~  set-tables  ~|("select-set-table can't get here" !!)
   =/  st2  i.set-tables
-  =.  relation.st2      ~
+  =.  relation-id.st2  ~
   =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
-  =/  flipped-cols  (flop columns.i.set-tables)
-  =.  columns.st2     %-  flop
-                        ^-  (list column:ast)  %-  zing
-                            %+  turn  columns.select.q
-                                      |=  a=selected-column:ast
-                                      %-  selected-column-to-column
-                                      :*  named-ctes
-                                          col-map
-                                          flipped-cols
-                                          a
-                                          resolved-scalars
-                                          ==  
+  =.  columns.st2  ^-  (list column:ast)
+                   %-  zing
+                   %+  turn  columns.select.q
+                   |=  a=selected-column:ast
+                   %-  selected-column-to-column
+                   :*  named-ctes
+                       col-map
+                       columns.i.set-tables
+                       a
+                       resolved-scalars
+                       ==
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
                                 (cury selected-table-cols columns.i.set-tables)
@@ -759,7 +709,7 @@
                       =/  st-key  key:(need pri-indx.i.set-tables)
                       =/  count-key-cols
                             %^  fold  st-key
-                                      *(pair @ud (list key-column))
+                                      *(pair @ud (list key-column:ast))
                                       (cury count-keys selected-cols)
                       ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
@@ -774,8 +724,8 @@
   ::  If key exists in selected columns then count, emit, and potentially rename
   ::  to alias.
   |=  $:  key-lookup=(map @tas (pair @tas (unit @t)))
-          a=key-column
-          b=(pair @ud (list key-column))
+          a=key-column:ast
+          b=(pair @ud (list key-column:ast))
           ==
   =/  found  (~(get by key-lookup) name.a)
   ?~  found  b
@@ -823,8 +773,10 @@
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
-     ~[(~(got by col-map) name.selected-column)]
+      ~|  "SELECT: column {<name.selected-column>} not found"
+      ~[(~(got by col-map) name.selected-column)]
     unqualified-column:ast
+      ~|  "SELECT: column {<name.selected-column>} not found"
       ~[(~(got by col-map) name.selected-column)]
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
@@ -838,7 +790,8 @@
               0
           ==
     selected-value:ast
-      ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
+      =/  out-name  (heading selected-column (crip "literal"))
+      ~[[%column out-name p.value.selected-column 0]]
     selected-all:ast
       flipped-cols
     selected-all-table:ast
@@ -850,149 +803,6 @@
                             name.selected-column
       ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
-::
-++  relation-vectors
-  ::  tree address of indexed/joined rows off by one
-  ::  need sample column to determin path
-  |=  $:  filter=(unit $-(data-row ?))
-          column-metas=(list column-meta)
-          =map-meta
-          rows=(list data-row)
-          selected=(list selected-column:ast)
-          =resolved-scalars
-          =named-ctes
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?~  rows         *(list vector)
-  =/  out-rows     *(set vector)
-  =/  templ-cells=(list templ-cell)
-    %-  mk-rel-vect-templ
-    [column-metas selected -.rows map-meta resolved-scalars named-ctes]
-  ::
-  ?~  templ-cells  ~|("relation-vectors can't get here" !!)
-  =/  non-lit  %-  |=  a=(list templ-cell)
-                   |-  ^-  (unit templ-cell)
-                   ?~  a  ~
-                   ?~  column.i.a  $(a t.a)  [~ i.a]
-                   templ-cells
-  ?~  non-lit
-    ?-  -.i.rows
-      %joined-row
-        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
-      %indexed-row
-        (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
-    ==
-  =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
-  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
-  (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
-::
-++  indexed-results
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list indexed-row)
-          templ-cells=(list templ-cell)
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?:  ordered
-    (filter-ordered filter ;;((list data-row) rows) templ-cells)
-  (filter-unordered filter ;;((list data-row) rows) templ-cells)
-::
-++  joined-results
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list joined-row)
-          templ-cells=(list templ-cell)
-          ordered=?
-          ==
-  ^-  (list vector)
-  ?:  ordered
-    (filter-ordered filter ;;((list data-row) rows) templ-cells)
-  (filter-unordered filter ;;((list data-row) rows) templ-cells)
-::
-++  filter-ordered
-  ::  Filter ordered result rows into vectors.
-  ::
-  ::  Uses a set to prevent duplicate rows while preserving the existing
-  ::  ordered output path.
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list data-row)
-          templ-cells=(list templ-cell)
-          ==
-  ^-  (list vector)
-  =/  out   *(list vector)
-  =/  seen  *(set vector)
-  |-
-  ?~  rows  out
-  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
-  ?.  ?~  filter
-        %.y
-      ((need filter) i.rows)
-    $(rows t.rows)
-  =/  cells                  *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    =/  result-vector=vector  (vector %vector cells)
-    ?:  (~(has in seen) result-vector)
-      ^$(rows t.rows)
-    %=  ^$
-      seen  (~(put in seen) result-vector)
-      out   [result-vector out]
-      rows  t.rows
-    ==
-  ?^  scalar.i.cols                                           :: resolved scalar
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
-  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
-  =/  value          ?:  is-indexed-row                       :: value
-                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
-                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
-  %=  $
-    cols   t.cols
-    cells  :-  :-  p.vc.i.cols
-                   [p.q.vc.i.cols value]
-               cells
-  ==
-::
-++  filter-unordered
-  ::  Filter unordered result rows into vectors.
-  ::
-  ::  Uses a set to prevent duplicate rows while preserving the distinct
-  ::  indexed-row and joined-row data-addressing semantics.
-  |=  $:  filter=(unit $-(data-row ?))
-          rows=(list data-row)
-          templ-cells=(list templ-cell)
-          ==
-  ^-  (list vector)
-  =/  out-rows  *(set vector)
-  |-
-  ?~  rows  ~(tap in out-rows)
-  =/  is-indexed-row  ?=(%indexed-row -.i.rows)
-  ?.  ?~  filter
-        %.y
-      ((need filter) i.rows)
-    $(rows t.rows)
-  =/  cells                  *(list vector-cell:ast)
-  =/  cols=(list templ-cell)  templ-cells
-  |-
-  ?~  cols
-    %=  ^$
-      out-rows  (~(put in out-rows) (vector %vector cells))
-      rows      t.rows
-    ==
-  ?^  scalar.i.cols                                           :: resolved scalar
-    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
-    $(cols t.cols, cells [[p.vc.i.cols [p.x q.x]] cells])
-  ?~  column.i.cols  $(cols t.cols, cells [vc.i.cols cells])  :: literal
-  =/  value          ?:  is-indexed-row                       :: value  
-                       ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))
-                     ;;(@ .*(data.i.rows [%0 addr.i.cols]))
-  %=  $
-    cols   t.cols
-    cells  :-  :-  p.vc.i.cols
-                   [p.q.vc.i.cols value]
-               cells
-  ==
 ::
 ++  recalc-addr
   ::  recalculate addr for joined data structure
@@ -1027,7 +837,7 @@
                     ==
 ::
 ++  source-full-relation
-  |=  $:  rel=relation:ast
+  |=  $:  rel=relation-id:ast
           =named-ctes
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
@@ -1205,11 +1015,11 @@
   =/  norm-qt  (normalize-qt-alias qualified-table)
   =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
                   "{<namespace.qualified-table>}.{<name.qualified-table>} ".
-                  "does not exist at schema time {<tmsp.schema>}"
+                  "does not exist at schema time {(date-tape tmsp.schema)}"
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
-  =.  relation.cte-st  [~ norm-qt]
+  =.  relation-id.cte-st  [~ norm-qt]
   =.  join.cte-st      join
   =.  predicate.cte-st  predicate
   =/  cte-col-meta
@@ -1245,7 +1055,7 @@
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
                            `join-type.i.joins
-                            relation.i.joins
+                            relation-id.i.joins
                             as-of.i.joins
                             predicate.i.joins
                             ==
@@ -1255,7 +1065,7 @@
     joins  t.joins
     joined-relations  :-  :*  %joined-relat
                               `join-type.i.joins
-                              relation.i.joins
+                              relation-id.i.joins
                               as-of.i.joins
                               predicate.i.joins
                               ==
@@ -1297,7 +1107,7 @@
           a-qual=qualified-table:ast
           b=(list indexed-row)
           b-qual=qualified-table:ast
-          key=(list key-column)
+          key=(list key-column:ast)
           ==
   ^-  [@ud (list joined-row)]
   =/  c  *(list joined-row)
@@ -1387,7 +1197,7 @@
   |=  $:  st=set-table
           row-count=@ud
           joined-rows=(list joined-row)
-          pk=(list key-column)
+          pk=(list key-column:ast)
           ==
   ^-  set-table
   =.  rowcount.st     row-count
@@ -1397,7 +1207,7 @@
 ::
 ++  leading-prefix-len
   ::  count leading columns matching by name+aura
-  |=  [a=(list key-column) b=(list key-column)]
+  |=  [a=(list key-column:ast) b=(list key-column:ast)]
   ^-  @ud
   =/  i  0
   |-
@@ -1409,8 +1219,8 @@
 ++  find-noncontig-matches
   ::  find key column matches beyond the leading prefix
   ::  returns (list [prior-key-pos this-key-pos])
-  |=  $:  prior-key=(list key-column)
-          this-key=(list key-column)
+  |=  $:  prior-key=(list key-column:ast)
+          this-key=(list key-column:ast)
           plen=@ud
           ==
   ^-  (list [@ud @ud])
@@ -1440,12 +1250,12 @@
   ::  prior-cols: accumulated columns from all prior source tables
   |=  $:  prior-cols=(list column:ast)
           this=set-table
-          prior-key=(list key-column)
-          this-key=(list key-column)
+          prior-key=(list key-column:ast)
+          this-key=(list key-column:ast)
           ==
   ^-  (list @tas)
-  =/  prior-key-names  (silt (turn prior-key |=(a=key-column name.a)))
-  =/  this-key-names   (silt (turn this-key |=(a=key-column name.a)))
+  =/  prior-key-names  (silt (turn prior-key |=(a=key-column:ast name.a)))
+  =/  this-key-names   (silt (turn this-key |=(a=key-column:ast name.a)))
   =/  prior-nonkey  %+  skip  prior-cols
                     |=(c=column:ast (~(has in prior-key-names) name.c))
   =/  this-nonkey   %+  skip  columns.this
@@ -1572,7 +1382,7 @@
           a-qual=qualified-table:ast
           b=(list data-row)
           b-qual=qualified-table:ast
-          prefix-key=(list key-column)
+          prefix-key=(list key-column:ast)
           nonkey-cols=(list @tas)
           noncontig=(list [@ud @ud])
           ==

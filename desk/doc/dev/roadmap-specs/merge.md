@@ -106,9 +106,9 @@ No operation performed.
 +$  merge
   $:
     %merge
-    target-table=relation
-    new-table=(unit relation)
-    source-table=relation
+    target-table=relation-id
+    new-table=(unit relation-id)
+    source-table=relation-id
     predicate=predicate
     matched=(list matching)
     unmatched-by-target=(list matching)

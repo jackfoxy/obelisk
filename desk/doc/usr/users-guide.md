@@ -4,9 +4,32 @@ If you have worked with SQL, Obelisk should seem very familiar. If you have no e
 
 It is recommended to read the [Preliminaries](/docs/usr/reference/preliminaries.md) chapter of the Reference document before proceeding.
 
-Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
+Examples in this article rely on the Urbit `%obelisk` agent, which prints
+results to the dojo.
 
-Use the %hawk Obelisk UI for a SQL Studio-like experience: write and run scripts, save scripts and results, and open script templates.
+## Native web interface
+
+The Obelisk desk installs its native Sail workbench automatically. Open the
+Obelisk landscape tile or visit `/apps/obelisk` on your ship. It does not need
+Hawk or another external application.
+
+The editor supports multiple tabs. Run uses the selected text when there is a
+selection and otherwise uses the active tab; `F5` is the Run shortcut. Parse
+shows the parsed command noun without executing the script. The Default DB
+selector controls how unqualified object names are resolved. The schema tree
+refreshes after successful schema changes and offers SELECT, INSERT, and
+CREATE templates where appropriate.
+
+Use File to create, open, save, save as, or close scripts. Explicitly saved
+scripts and result exports are `%txt` files in the desk's Clay namespace under
+`/data/obelisk`, in the `scripts` and `results` scopes; nested relative paths
+are supported. Unsaved editor state, pane sizes, schema expansion, and the
+current output are retained only for the browser session.
+
+Query results are displayed in command order. Result sets of 800 rows or more
+are paged in groups of 500, while Copy and Save Results still include every
+row. Save Results supports comma, space, and tab delimiters. The interface
+requires an authenticated ship session for database and file operations.
 
 
 # Commands
@@ -53,14 +76,14 @@ SELECT
 The first thing to do is define a database. In the dojo enter the following poke:
 
 ```
-:obelisk &obelisk-action [%tape-print %sys "CREATE DATABASE db1"]
+:obelisk &obelisk-action [%script %sys %vector "CREATE DATABASE db1"]
 ```
 
 Let's review the obelisk-action:
 
-**%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/obelisk-ast.hoon*.
+**%script** -- This indicates we are submitting a script in the form of a hoon tape. The alternative is **%cmd-list**, which submits a list of API commands and skips parsing. The command APIs are in *sur/obelisk-ast.hoon*.
 
-`%tape-print` same as %tape and prints result messages and up to 10 rows of SELECT results to the dojo. If you prefer to execute quietly use `%tape`, but be aware you will not be notified of errors resulting in crash in the dojo.
+**%vector** -- This requests query rows as typed vectors. Use `%raw` to receive relations instead.
 
 **%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in `CREATE DATABASE`, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
 
@@ -106,7 +129,7 @@ From here on we will dispense with the full poke command and only specify the ur
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %relation 'sys.sys.databases' ]
+    [ %relation-name 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -447,7 +470,7 @@ Before we get into queries, let's load some more interesting data to work with. 
 Execute the following in the dojo to load the database. It will take a little over a minute to load.
 
 ```
-:obelisk &obelisk-action [%tape-print %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+:obelisk &obelisk-action [%script %animal-shelter %vector (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 ```
 
 # Query
@@ -545,7 +568,7 @@ SELECT day-name AS Day;
       Monday
       Sunday
     [ %server-time ~2024.9.30..18.07.14..afcc ]
-    [ %relation 'animal-shelter.reference.calendar' ]
+    [ %relation-name 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2024.9.30..14.15.21..ad17 ]
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 7 ]
@@ -794,7 +817,7 @@ FROM sys.sys.databases AS OF NOW SELECT *;
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %relation 'sys.sys.databases' ]
+    [ %relation-name 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -908,7 +931,7 @@ SELECT *;
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.00.48..85c2 ]
-    [ %relation 'db2.dbo.my-table-1' ]
+    [ %relation-name 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
@@ -934,7 +957,7 @@ We did not need to specify the exact time of the content state, only a time equa
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.06.08..4b55 ]
-    [ %relation 'db2.dbo.my-table-1' ]
+    [ %relation-name 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
@@ -1432,11 +1455,79 @@ Click the `Parse` button in the Obelisk UI or in the dojo:
 ```
 
 ```
-~[[%crud-txn ctes=~[[%cte name=%vets body=[%query [%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=34.161.114.843.280.767.114.475.234.646]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]] body=[%set-query [%set-query head=[%query from=[~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]] scalars=~ predicate={} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~] tail=~[[op=%union query=[%query from=[~ [%from relation=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=32.199.642.035.675.469]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]]]]]
+~[[%crud-txn ctes=~[[%cte name=%vets body=[%query [%query from=[~ [%from relation-id=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=34.161.114.843.280.767.114.475.234.646]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]] body=[%set-query [%set-query head=[%query from=[~ [%from relation-id=[%cte-name name=%vets alias=~] as-of=~ joins=~]] scalars=~ predicate={} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~] tail=~[[op=%union query=[%query from=[~ [%from relation-id=[%qualified-table ship=~ database=%animal-shelter namespace=%dbo name=%staff-assignments alias=~] as-of=~ joins=~]] scalars=~ predicate={[%unqualified-column name=%role alias=~] %eq [p=~.t q=32.199.642.035.675.469]} group-by=~ having={} select=[%select top=~ columns=~[[%unqualified-column name=%email alias=~]]] order-by=~]]]]]]]
 ```
 The structure is wrapped in a list because a script potentially consists of multiple commands which the engine will execute in order.
 
 The last two column structures are unqualified. The parser does not have the table definition information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
+
+# Scries and Subscriptions
+
+Relations can be read without a poke through the Gall scry and subscription
+interfaces. Each path names a relation, a namespace, or a whole database, and
+Obelisk executes it as the equivalent query
+
+```
+FROM <relation> [ <as-of> ] SELECT { * | <column> [ ,...n ] }
+```
+
+Every read runs through the same security processing as a poked command, so
+reads by foreign ships are rejected.
+
+Scries use care `%x`. From the dojo (or `.^` in any hoon program) the path
+ends with the output mark, always `noun`:
+
+```
+::  all rows of db1.dbo.my-table
+.^(relation:ast %gx /=obelisk=/obelisk/db1/dbo/my-table/noun)
+
+::  only col1 and col2, in path order
+.^(relation:ast %gx /=obelisk=/obelisk/db1/dbo/my-table/col1/col2/noun)
+
+::  every relation in namespace dbo: name -> relation
+::  '..' is shorthand for dbo
+.^((map @tas relation:ast) %gx /=obelisk=/obelisk/db1/dbo/noun)
+.^((map @tas relation:ast) %gx /=obelisk=/obelisk/db1/'..'/noun)
+
+::  every relation in db1: namespace -> name -> relation
+.^((mip @tas @tas relation:ast) %gx /=obelisk=/obelisk/db1/noun)
+
+::  system views work like any other relation
+.^(relation:ast %gx /=obelisk=/obelisk/db1/sys/tables/noun)
+.^(relation:ast %gx /=obelisk=/obelisk/sys/sys/databases/noun)
+```
+
+Database- and namespace-level reads include the implemented system views under
+namespace `sys`. The `relation` mold is defined in `/sur/obelisk-ast.hoon` and
+`mip` in `/lib/mip.hoon`. A malformed path, an unknown object, or a failed
+query produces `[~ ~]`.
+
+Time travel is supported by an optional `@da` or `@dr` segment directly after
+`/obelisk`. A `@da` is an absolute `AS OF` time; a `@dr` is a timespan back
+from the current time:
+
+```
+::  as of an absolute time
+.^(relation:ast %gx /=obelisk=/obelisk/~2024.10.3/db1/dbo/my-table/noun)
+
+::  30 days ago
+.^(relation:ast %gx /=obelisk=/obelisk/~d30/db1/dbo/my-table/noun)
+```
+
+Subscription paths are identical to scry paths without the care. A watch
+resolves its query once, gives the result as a single `%fact` with mark
+`%noun`, and immediately gives a `%kick` — it does not (yet) push facts on
+subsequent changes to the underlying relations:
+
+```hoon
+[%pass /my-wire %agent [our.bowl %obelisk] %watch /obelisk/db1/dbo/my-table]
+```
+
+An invalid path — and any subscription by a foreign ship — crashes the watch,
+which arrives as a negative `%watch-ack`.
+
+See the `Scries and Subscriptions` reference document for the full path
+grammar.
 
 # APPENDIX I: System Views
 
@@ -1697,10 +1788,10 @@ Additional molds cover DDL (creating databases and manipulating schemas), DML
 ## Prefer urQL text over command ASTs
 
 Obelisk accepts both urQL source text and pre-parsed command ASTs. Almost all
-client code should send urQL text with `%tape` (or `%tape-print`). The parser
-is the first step in the `%tape` pipeline, is quite efficient for most
-purposes, and keeps your code readable. Constructing a `(list command:ast)`
-programmatically and submitting it with `%commands` is supported but advanced;
+client code should send urQL text with `%script %vector`. The parser is the
+first step in the `%script` pipeline, is quite efficient for most purposes,
+and keeps your code readable. Constructing a `(list command:ast)`
+programmatically and submitting it with `%cmd-list %vector` is supported but advanced;
 prefer urQL unless you have a specific reason to skip parsing, such as a
 generator that already produced an AST or a test that wants to exercise the
 runtime in isolation.
@@ -1713,28 +1804,70 @@ script) and a urQL tape.
 
 ```hoon
 +$  action
-  $%  [%tape default-database=@tas urql=tape]
-      [%tape-print default-database=@tas urql=tape]
-      [%commands cmds=(list command)]
+  $%  [%script default-database=@tas format=result-format urql=tape]
+      [%cmd-list format=result-format cmds=(list command)]
       [%parse default-database=@tas urql=tape]
   ==
 ```
-
-- `%tape` — parse and execute a urQL script. Results are sent on `/server`.
-- `%tape-print` — same as `%tape`, and additionally prints formatted output to
-  the dojo via the `print` library in `desk/lib/print.hoon`.
 - `%parse` — parse a urQL script and return the resulting `(list command)`
   without executing it. Useful for inspection and debugging.
-- `%commands` — submit a custom-built list of commands. Bypasses the parser.
+
+- `%script %vector` — parse and execute a urQL script with vector output.
+- `%script %markdown` — parse and execute a urQL script with Markdown output.
+- `%script %html` — parse and execute a urQL script with HTML output.
+- `%script %manx` — parse and execute a urQL script with Manx output.
+- `%script %wain` — parse and execute a urQL script with wain output.
+- `%script %tape` — parse and execute a urQL script with tape output.
+- `%script %json` — parse and execute a urQL script with JSON output.
+- `%script %csv` — parse and execute a urQL script with CSV output.
+- `%script %tab` — parse and execute a urQL script with tab-delimited output.
+- `%script %spac` — parse and execute a urQL script with space-delimited output.
+- `%script %raw` — parse and execute a urQL script with raw relation output.
+
+- `%cmd-list %vector` — submit commands directly with vector output.
+- `%cmd-list %markdown` — submit commands directly with Markdown output.
+- `%cmd-list %html` — submit commands directly with HTML output.
+- `%cmd-list %manx` — submit commands directly with Manx output.
+- `%cmd-list %wain` — submit commands directly with wain output.
+- `%cmd-list %tape` — submit commands directly with tape output.
+- `%cmd-list %json` — submit commands directly with JSON output.
+- `%cmd-list %csv` — submit commands directly with CSV output.
+- `%cmd-list %tab` — submit commands directly with tab-delimited output.
+- `%cmd-list %spac` — submit commands directly with space-delimited output.
+- `%cmd-list %raw` — submit commands directly with raw relation output.
 
 There is also a `%test` action used by the Obelisk test code. Client programs
-should use the four actions above.
+should use the actions above.
 
 The mark for the poke is always `%obelisk-action`.
 
 ```hoon
-[%tape %sys "FROM sys.databases SELECT database;"]
+[%script %sys %vector "FROM sys.databases SELECT database;"]
 ```
+
+## Result formats
+
+`result-format:ast` selects the output representation for `%script` and
+`%cmd-list`.
+
+- `%vector` converts relations to typed `%result-set` vectors.
+- `%markdown` returns GitHub Flavored Markdown tables in `%message` results.
+- `%html` returns HTML `<table>` markup in `%message` results.
+- `%manx` returns serialized Manx table nodes in `%message` results.
+- `%wain` returns rows as cords, with one space between columns.
+- `%tape` returns rows with one space between columns and one line feed between
+  rows.
+- `%json` returns relation rows as JSON objects.
+- `%csv` returns comma-separated header and data rows and one line feed between rows.
+- `%tab` returns rows with one horizontal tab between columns and one line feed
+  between rows.
+- `%spac` returns rows with one space between columns and one line feed between
+  rows.
+- `%raw` preserves `%relations`; each `relation` contains a unique non-empty
+  list of column schemas, and each data row carries the zero-based index of its
+  schema.
+
+Ordered output with multiple schemas is not implemented for formatted results.
 
 ## Result molds
 
@@ -1747,7 +1880,7 @@ shapes:
 +$  parse-output  (each (list command:ast) tang)
 ```
 
-`poke-result` is what comes back from `%tape` and `%tape-print`. `parse-result`
+`poke-result` is what comes back from `%script` and `%cmd-list`. `parse-result`
 is what comes back from `%parse`. `parse-output` is an alias of `parse-result`;
 the template defines it as a separate name so parse rendering can stay
 independent of query rendering without coupling the two through one mold.
@@ -1770,10 +1903,10 @@ Every poke that returns data uses the same flow:
    is `%.y` on success and `%.n` on failure.
 4. Consume the matching `%kick`.
 5. Decode the returned vase using the expected mold (`poke-result` for
-   `%tape`, `%tape-print`, and `%commands`; `parse-result` for `%parse`).
+   `%script` and `%cmd-list`; `parse-result` for `%parse`).
 
 The wire only needs to be unique per outstanding request. The template uses
-`/query/[id]` for `%tape` and `/parse/[id]` for `%parse`, where `id` is a
+`/query/[id]` for `%script` and `/parse/[id]` for `%parse`, where `id` is a
 caller-supplied tag.
 
 ## Example
@@ -1789,16 +1922,21 @@ template. It depends on the standard `strandio` library.
 +$  parse-result  (each (list command:ast) tang)
 ::
 ++  call-obelisk
-  |=  [id=@ta kind=?(%tape %parse) default=@tas query=tape]
+  |=  [id=@ta kind=?(%script %parse) default=@tas query=tape]
   =/  m  (strand ,vase)
   ^-  form:m
   ;<  our=@p     bind:m  get-our
   =/  dock    [our %obelisk]
-  =/  action  ;;(action:ast [kind default query])
+  =/  action
+    ^-  action:ast
+    ?-  kind
+      %script  [%script default %vector query]
+      %parse   [%parse default query]
+    ==
   =/  cage    obelisk-action/!>(action)
   =/  wire=path
     ?-  kind
-      %tape   /query/[id]
+      %script  /query/[id]
       %parse  /parse/[id]
     ==
   ;<  ~                  bind:m  (watch wire dock /server)
@@ -1811,7 +1949,7 @@ template. It depends on the standard `strandio` library.
   |=  [id=@ta default=@tas query=tape]
   =/  m  (strand ,poke-result)
   ^-  form:m
-  ;<  response=vase  bind:m  (call-obelisk id %tape default query)
+  ;<  response=vase  bind:m  (call-obelisk id %script default query)
   (pure:m ;;(poke-result +:response))
 ::
 ++  parse-obelisk
@@ -1832,7 +1970,7 @@ inspecting it.
 
 ## Reading `cmd-result` and `result`
 
-A successful `%tape` poke returns `(list cmd-result:ast)`. One `cmd-result`
+A successful `%script %vector` poke returns `(list cmd-result:ast)`. One `cmd-result`
 corresponds to one command in the script. Each `cmd-result` is just a tagged
 list of `result` entries:
 
@@ -1840,7 +1978,7 @@ list of `result` entries:
 +$  cmd-result  [%results (list result)]
 +$  result
   $%  [%action @t]
-      [%relation @t]
+      [%relation-name @t]
       [%message msg=@t]
       [%vector-count count=@ud]
       [%server-time date=@da]
@@ -1862,20 +2000,11 @@ is a tagged non-empty list of `vector-cell`:
 Each cell pairs a column name or alias (`p`) with a dime carrying the value's
 aura and atom (`q`). Column order in the vector matches the SELECT column order.
 
-## Printing Results
+## Formatting Results
 
-Use `%tape-print` exactly as you would use `%tape` in your code. It runs the
-script and then walks the result list through `desk/lib/print.hoon`. For each
-`result` it prints a labeled line to the dojo; for each
-`%result-set` it prints the heading row followed by data rows. If a result set
-has eleven or more rows, the first ten are printed and an ellipsis (`...`)
-stands in for the remainder, followed by the last row. This is purely a
-display convenience — the `%fact` on `/server` always contains the full result
-list. Use `%tape` for programmatic consumers and reserve `%tape-print` for
-interactive debugging.
-
-Failures are formatted by `print-crash`, which prints `%obelisk-crash:`, any
-pertinent error messages bubbled to the top of the crash, and then the `tang`.
+Use `%script %vector` for typed row vectors or `%script %raw` for relations.
+The `%fact` on `/server` contains the full result list. Failures return a
+`tang` in the failure branch of `poke-result`.
 
 ## Extracting Result Rows
 
@@ -1940,12 +2069,12 @@ the trade-off is often a lack of useful debug information. Sometimes the urQL
 parser will provide a useful crash message, and sometimes it will not. You
 might have to inspect your script closely to find the syntax problem.
 
-## When to use `%commands`
+## When to use `%cmd-list %vector`
 
-`%commands` skips parsing and submits a `(list command:ast)` directly. It is
+`%cmd-list %vector` skips parsing and submits a `(list command:ast)` directly. It is
 the lowest-level entry point and is useful for generators that already build
 ASTs, or for unit tests that want to exercise the runtime independently of the
 parser. The trade-off is that you become responsible for producing a
 well-formed AST: every `command` variant, every nested mold, every `dime`
 aura. Bugs in the AST surface as runtime crashes rather than parser errors.
-For application code, prefer `%tape` and let the parser do this work.
+For application code, prefer `%script %vector` and let the parser do this work.

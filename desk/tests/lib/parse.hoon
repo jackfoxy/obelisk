@@ -100,6 +100,27 @@
     !>  %-  parse:parse(default-database 'dummy')
         "create database my-db as of 4 years ago"
 ::
+:: as of date with leading zero in month and day
+++  test-create-database-10
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.07.04"
+::
+:: as of date with leading zero in month only
+++  test-create-database-11
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.14]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.07.14"
+::
+:: as of date with leading zero in day only
+++  test-create-database-12
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.12.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.12.04"
+::
 :: fail when database name is not a term
 ++  test-fail-create-database-01
   %-  expect-fail
@@ -1129,7 +1150,7 @@
         name='foobar'  alias=~
         ==
   =/  from-clause
-    [%from relation=qt as-of=~ joins=~]
+    [%from relation-id=qt as-of=~ joins=~]
   =/  q
     :*  %query  [~ from-clause]  scalars=~
         :*  %eq
@@ -1150,7 +1171,7 @@
         name='bar'  alias=~
         ==
   =/  from-clause
-    [%from relation=qt as-of=~ joins=~]
+    [%from relation-id=qt as-of=~ joins=~]
   =/  q
     :*  %query  [~ from-clause]  scalars=~
         [%eq [col1 ~ ~] [col2 ~ ~]]
@@ -2283,7 +2304,7 @@
 ++  literal-1              [p=%ud q=1]
 ++  select-all-columns  [%select top=~ columns=~[[%all %all]]]
 ++  from-foo
-  [~ [%from relation=foo-table as-of=~ joins=~]]
+  [~ [%from relation-id=foo-table as-of=~ joins=~]]
 ++  aliased-columns-1
   =/  qt1
     :*  %qualified-table  ship=~
@@ -2371,7 +2392,7 @@
         database='db1'  namespace='dbo'
         name='t1'  alias=[~ 'T1']
         ==
-  [~ [%from relation=qt as-of=~ joins=~]]
+  [~ [%from relation-id=qt as-of=~ joins=~]]
 ++  from-aggregate
     =/  qt
       :*  %qualified-table  ship=~
@@ -2380,7 +2401,7 @@
           ==
     :-  ~
         :^  %from
-            relation=qt
+            relation-id=qt
             as-of=~
             :~  :*  %joined-relation
                     join=%join
@@ -2542,7 +2563,7 @@
         ==
   =/  from  :-  ~
                 :^  %from
-                    relation=qt-ns-table
+                    relation-id=qt-ns-table
                     as-of=~
                     :~  :*  %joined-relation
                             join=%join
@@ -2583,7 +2604,7 @@
               "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' "
   =/  from  :-  ~
                 :^  %from
-                    relation=foo-table-t1
+                    relation-id=foo-table-t1
                     as-of=~
                     :~  :*  %joined-relation
                             join=%join
@@ -2647,7 +2668,7 @@
         ==
   =/  from  :-  ~
                 :^  %from
-                    relation=qt-from
+                    relation-id=qt-from
                     as-of=~
                     :~  :*  %joined-relation
                             join=%join
@@ -2697,7 +2718,7 @@
         ==
   =/  from  :-  ~
                 :^  %from
-                    relation=qt-from
+                    relation-id=qt-from
                     as-of=~
                     :~  :*  %joined-relation
                             join=%join
@@ -3857,7 +3878,7 @@
         ==
   =/  query
     :*  %query
-        [~ [%from relation=foo2-table as-of=~ joins=~]]
+        [~ [%from relation-id=foo2-table as-of=~ joins=~]]
         scalars=~
         predicate=~
         group-by=~
@@ -3905,7 +3926,7 @@
         ==
   =/  second-cte-query
     :*  %query
-        [~ [%from relation=foo2-table as-of=~ joins=~]]
+        [~ [%from relation-id=foo2-table as-of=~ joins=~]]
         scalars=~
         predicate=~
         group-by=~
@@ -3931,7 +3952,7 @@
     [%unqualified-column column='col5' alias=~]
   =/  query
     :*  %query
-        [~ [%from relation=foo3-table as-of=~ joins=~]]
+        [~ [%from relation-id=foo3-table as-of=~ joins=~]]
         scalars=~
         predicate=~
         group-by=~
@@ -3979,7 +4000,7 @@
 ++  bar-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='bar' alias=~]
 ++  from-bar
-  [~ [%from relation=bar-table as-of=~ joins=~]]
+  [~ [%from relation-id=bar-table as-of=~ joins=~]]
 ++  bar-set-query
   :*  %query
       from-bar
@@ -3993,7 +4014,7 @@
 ++  baz-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='baz' alias=~]
 ++  from-baz
-  [~ [%from relation=baz-table as-of=~ joins=~]]
+  [~ [%from relation-id=baz-table as-of=~ joins=~]]
 ++  baz-set-query
   :*  %query
       from-baz
@@ -4113,7 +4134,7 @@
         name='u1'  alias=~
         ==
   =/  outer-from
-    [~ [%from relation=[%cte-name 'u1' ~] as-of=~ joins=~]]
+    [~ [%from relation-id=[%cte-name 'u1' ~] as-of=~ joins=~]]
   =/  outer-q
     :*  %query
         outer-from

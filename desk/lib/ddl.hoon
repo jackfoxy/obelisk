@@ -631,13 +631,13 @@
   ::
   =/  old-key-names=(list ordered-column:ast)
         %+  turn  key.pri-indx.tbl
-                  |=(k=key-column [%ordered-column name.k ascending.k])
+                  |=(k=key-column:ast [%ordered-column name.k ascending.k])
   =/  kept-key=(list ordered-column:ast)
         (rename-ordered-columns old-key-names rename-columns.a)
   =/  req-key=?  !=(pri-indx.a ~)
   =/  final-key-ast=(list ordered-column:ast)  ?:  req-key  pri-indx.a  kept-key
   =/  dummy  (assert-key-columns final-lookup (col-names final-key-ast))
-  =/  final-key=(list key-column)  (mk-key-column final-lookup final-key-ast)
+  =/  final-key=(list key-column:ast)  (mk-key-column final-lookup final-key-ast)
   ?:  ?&(req-key =(final-key key.pri-indx.tbl))
     ~|  "ALTER TABLE: {<name.qualified-table.a>} PRIMARY KEY does not alter ".
         "existing key"
@@ -1704,7 +1704,7 @@
           ==
   ^-  ~
   =/  parent-primary-key  (pri-key key.pri-indx.parent-table)
-  =/  rows=(list indexed-row)  indexed-rows.child-file
+  =/  rows=(list indexed-row:ast)  indexed-rows.child-file
   |-
   ?~  rows  ~
   =/  parent-key=(list @)  (fk-row-values data.i.rows source-cols)
@@ -1778,14 +1778,14 @@
   $(constraints t.constraints)
 ::
 ++  key-names
-  |=  key=(list key-column)
+  |=  key=(list key-column:ast)
   ^-  (list @tas)
-  (turn key |=(k=key-column name.k))
+  (turn key |=(k=key-column:ast name.k))
 ::
 ++  mk-key-column
   |=  [=column-lookup pri-indx=(list ordered-column:ast)]
-  ^-  (list key-column)
-  =/  key  *(list key-column)
+  ^-  (list key-column:ast)
+  =/  key  *(list key-column:ast)
   |-
   ?~  pri-indx  (flop key)
   %=  $
@@ -1809,20 +1809,20 @@
           add-cols=(list column:ast)
           drop-cols=(list @tas)
           renames=(list [@tas @tas])
-          key=(list key-column)
+          key=(list key-column:ast)
           table-name=@tas
           ==
   ^-  file
   =.  indexed-rows.fil
         %+  turn  indexed-rows.fil
-        |=  row=indexed-row
+        |=  row=indexed-row:ast
         =/  dat=(map @tas @)  (alter-row data.row add-cols drop-cols renames)
         [%indexed-row (row-key dat key) dat]
   =/  primary-key  (pri-key key)
   =/  comparator   ~(order idx-comp `(list [@ta ?])`(reduce-key key))
   =.  pri-idx.fil
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-          (turn indexed-rows.fil |=(r=indexed-row [key.r data.r]))
+          (turn indexed-rows.fil |=(r=indexed-row:ast [key.r data.r]))
   ?.  =(~(wyt by pri-idx.fil) rowcount.fil)
     ~|  "ALTER TABLE: {<table-name>} PRIMARY KEY is not unique over ".
         "existing data"
@@ -1874,9 +1874,9 @@
   0
 ::
 ++  row-key
-  |=  [row=(map @tas @) key=(list key-column)]
+  |=  [row=(map @tas @) key=(list key-column:ast)]
   ^-  (list @)
-  (turn key |=(k=key-column (~(got by row) name.k)))
+  (turn key |=(k=key-column:ast (~(got by row) name.k)))
 ::
 ++  column-map
   |=  cols=(list column:ast)

@@ -1,10 +1,10 @@
 # Database Schema
 
-:obelisk &obelisk-action [%tape %db1 uql]
+:obelisk &obelisk-action [%script %db1 %vector uql]
 
 ## CREATE DATABASE
 
-:obelisk &obelisk-action [%tape %sys "CREATE DATABASE db1"]
+:obelisk &obelisk-action [%script %sys %vector "CREATE DATABASE db1"]
 
 =uql "FROM sys.sys.databases ".
 "SELECT *;"
@@ -117,7 +117,7 @@
 
 
 # Sample Database
-:obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+:obelisk &obelisk-action [%script %animal-shelter %vector (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
 
 
 # Query

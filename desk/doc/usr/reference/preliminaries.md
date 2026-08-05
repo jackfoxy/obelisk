@@ -40,6 +40,50 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Queries can operate on previous database states (schema versions and persisted data) through the the AS OF clause.)
 
+## Obelisk Actions
+
+Pokes to the `%obelisk` agent use the `%obelisk-action` mark. Client programs
+may submit urQL text, submit parsed commands, or parse urQL without executing
+it.
+
+```hoon
+[%script default-database=@tas format=result-format urql=tape]
+[%cmd-list format=result-format cmds=(list command)]
+[%parse default-database=@tas urql=tape]
+```
+
+| Action | Operation |
+| :----- | :-------- |
+| `%script` | Parse and execute `urql`, qualifying unqualified objects with `default-database`. |
+| `%cmd-list` | Execute a pre-parsed `(list command)` without invoking the parser. |
+| `%parse` | Parse `urql` and return `(list command)` without executing it. |
+
+`%script` and `%cmd-list` accept the following result formats:
+
+```hoon
++$  result-format
+  ?(%vector %markdown %html %wain %manx %tape %json %csv %tab %spac %raw)
+```
+
+| Format | Representation |
+| :----- | :------------- |
+| `%vector` | Typed row vectors in `%result-set` results. |
+| `%markdown` | GitHub Flavored Markdown tables in `%message` results. |
+| `%html` | HTML `<table>` markup, without a document wrapper, in `%message` results. |
+| `%manx` | Serialized Manx `<table>` nodes, without an outer wrapper, in `%message` results. |
+| `%wain` | Header and data rows built as cords, with one space between columns. |
+| `%tape` | Header and data rows with one space between columns and one line feed between rows. |
+| `%json` | An outer JSON array of table arrays, whose rows are objects keyed by column name. |
+| `%csv` | Comma-separated header and data rows and one line feed between rows.|
+| `%tab` | Header and data rows with one horizontal tab between columns and one line feed between rows. |
+| `%spac` | Header and data rows with one space between columns and one line feed between rows. |
+| `%raw` | Unformatted `%relations`, preserving column schemas and schema-indexed data rows. |
+
+Formatted results produce one table or row block for each column schema.
+Ordered output with multiple column schemas is not implemented. `%parse` does
+not accept a result format. `%test` is reserved for Obelisk's test code; the
+legacy `%tape`, `%tape-print`, and `%commands` actions are deprecated.
+
 ## urQL language diagrams and general syntax
 
 * \[ ] indicate optional entries.

@@ -28,6 +28,16 @@ The object of a permission may be the whole server (the databases currently on t
 
 Granting and revoking permissions may be qualified be a timespan constraint.
 
+
+@@@@@@@@@@@@@@@
+Merkle tree VDB proof each time a sys-log or data-log event completes
+(solve for absolute one stardard representaton of uQL for INSERT, UPDATE, DELETE)
+What are remaining steps to make this a SNARK proof?
+We assert only the actual current state of the DB could result in this merkle tree
+An extra security step is to publish the hash to a blockchain.
+
+@@@@@@@@@@@@@@@
+
 ## GRANT
 
 Grants permission to selected foreign ships and/or paths on foreign ships to read from and/or write to the server or selected `<database>`, `<namespace>`, `<table>`, `<view>`, or column objects on the host ship.

@@ -73,7 +73,7 @@
       [%cte-name cte ~]
       :~  :*  %set-table
               join=~
-              relation=~
+              relation-id=~
               schema-tmsp=~
               data-tmsp=~
               columns=columns
@@ -6631,7 +6631,7 @@
           :~  [%action 'SELECT']
               [%result-set ~[[%vector ~[[%foo2 ~.sd --5]]]]]
               [%server-time ~2012.5.3]
-              [%relation 'db1.dbo.foo']
+              [%relation-name 'db1.dbo.foo']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7403,7 +7403,7 @@
           :~  [%message 'warning: results are non-deterministic']
               [%action 'SELECT']
               [%server-time ~2012.5.3]
-              [%relation 'db1.dbo.rand-tbl']
+              [%relation-name 'db1.dbo.rand-tbl']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 10]
@@ -7441,10 +7441,10 @@
           :~  [%message 'warning: results are non-deterministic']
               [%action 'SELECT']
               [%server-time ~2012.5.3]
-              [%relation 'db1.dbo.rand-tbl-a']
+              [%relation-name 'db1.dbo.rand-tbl-a']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%relation 'db1.dbo.rand-tbl-b']
+              [%relation-name 'db1.dbo.rand-tbl-b']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 10]

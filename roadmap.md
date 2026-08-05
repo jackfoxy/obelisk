@@ -3,6 +3,10 @@
 
 ##  V1.0
 
+* __`INSERT INTO [ FORCE ] \<table>__ -- (complete in dev) INSERT data defined by a query.
+
+* __`Scry`__ -- (complete in dev)
+
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __Outer JOINs__ -- LEFT JOIN, RIGHT JOIN, OUTER JOIN,
@@ -17,8 +21,6 @@
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
-* __INSERT FROM...SELECT... INTO table__ -- INSERT data defined by a query.
-
 * __SELECT TOP n ...__ -- dependent on total ordering
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
@@ -26,6 +28,8 @@
 * __@uv aura__ -- requires research: what flavor of RFC 4648 is urbit supporting?
 
 * __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+
+* __version__ -- Query server version.
 
 ## other planned functionality
 

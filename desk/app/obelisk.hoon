@@ -1,5 +1,5 @@
 /-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
-/+  default-agent, dbug, *main, *migration, *print
+/+  default-agent, dbug, *format, *main, *migration, *print, scry
 |%
 +$  versioned-state
   $%  state-0
@@ -25,18 +25,6 @@
 ++  on-init
   ^-  (quip card _this)
   =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
-  =+  .^(desks=(set desk) %cd /=//=)
-  =/  install-hawk=card  :*  %pass
-                             /init/hawk/install
-                             %agent
-                             [our.bowl %hood]
-                             %poke
-                             %kiln-install
-                             !>([%hawk ~dister-migrev-dolseg %hawk])
-                             ==
-  =/  hawk-cards=(list card)  ?:  (~(has in desks) %hawk)
-                                ~
-                              [install-hawk ~]
   =/  animal-cards=(list card)
     :~  :*  %pass
             /init/animal-shelter
@@ -53,7 +41,7 @@
             ==
         ==
   :_  this(state *state-1)
-  (weld hawk-cards animal-cards)
+  animal-cards
 ++  on-save
   !>(state)
 ++  on-load
@@ -82,57 +70,90 @@
   =/  act  !<(action vase)
   ::
   =/  state-server  process-cmds(state server, bowl bowl)
+  =/  deprecated
+        |=  [default-database=@tas urql=tape print-results=?]
+        ^-  (quip card _this)
+        =/  virtualized
+              ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+              %-  mule
+              |.
+              (state-server (parse-urql default-database urql))
+        ?-  -.virtualized
+          %.n
+            =/  dummy
+              ?:  print-results
+                (print-crash p.virtualized)
+              ~
+            :_  this
+            :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+                [%give %kick ~[/server] ~]
+            ==
+          %.y
+            =/  res  p.virtualized
+            =/  dummy
+              ?:  print-results
+                (print -.res)
+              ~
+            =/  out  (format-results %vector -.res)
+            :_  this(server +.res)
+            :~  [%give %fact ~[/server] %noun !>([& out])]
+                [%give %kick ~[/server] ~]
+            ==
+        ==
   ::
   ?-    -.act
   ::
-  ::  prints results
-  %tape-print
-    =/  virtualized
-        ^-  (each (pair (list cmd-result) server:server-state-1) tang)
-        %-  mule
-          |.
-          %:  state-server
-          (parse-urql +<.act +>.act)
-          ==
-    ?-  -.virtualized
-      %.n
-        =/  dummy  (print-crash p.virtualized)
-        :_  this
-        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
-            [%give %kick ~[/server] ~]
-        ==
-      %.y
-        =/  res  p.virtualized
-        =/  dummy  (print -.res)
-        :_  this(server +.res)
-        :~  [%give %fact ~[/server] %noun !>([& -.res])]
-            [%give %kick ~[/server] ~]
-        ==
-    ==
-  ::
-  ::  action without printing results
-  %tape
+  %script
     =/  virtualized
       ^-  (each (pair (list cmd-result) server:server-state-1) tang)
       %-  mule
       |.
-      %:  state-server
-      ::~>  %bout.[0 %parse-cmds]
-      (parse-urql +<.act +>.act)
-      ==
+      =/  res
+        (state-server (parse-urql default-database.act urql.act))
+      [(format-results format.act -.res) +.res]
     ?-  -.virtualized
       %.n
         :_  this
         :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
             [%give %kick ~[/server] ~]
-        ==
+            ==
       %.y
         =/  res  p.virtualized
         :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>([& -.res])]
             [%give %kick ~[/server] ~]
-        ==
+            ==
     ==
+  ::
+  %cmd-list
+    =/  virtualized
+      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+      %-  mule
+      |.
+      =/  res  (state-server cmds.act)
+      [(format-results format.act -.res) +.res]
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+            ==
+      %.y
+        =/  res  p.virtualized
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+            ==
+    ==
+
+  ::
+  %tape-print
+    ::  prints results
+    (deprecated +<.act +>.act %.y)
+  ::
+  %tape
+    ::  action without printing results
+    (deprecated +<.act +>.act %.n)
   ::
   %parse
     =/  virtualized
@@ -143,25 +164,24 @@
       (parse-urql +<.act +>.act)
     ?-  -.virtualized
       %.n
-        ~&  "{<(slog p.virtualized)>}"
         :_  this
-        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
-            [%give %kick ~[/server] ~]
-        ==
+            :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+                [%give %kick ~[/server] ~]
+                ==
       %.y
-        ~&  "{<p.virtualized>}"
         :_  this
-        :~  [%give %fact ~[/server] %noun !>([& p.virtualized])]
-            [%give %kick ~[/server] ~]
-        ==
+            :~  [%give %fact ~[/server] %noun !>([& p.virtualized])]
+                [%give %kick ~[/server] ~]
+                ==
     ==
   ::
   %commands
     =/  res  (state-server +.act)
+    =/  out  (format-results %vector -.res)
     :_  this(server +.res)
-    :~  [%give %fact ~[/server] %noun !>(-.res)]
-        [%give %kick ~[/server] ~]
-    ==
+        :~  [%give %fact ~[/server] %noun !>(out)]
+            [%give %kick ~[/server] ~]
+            ==
   ::
   ::  for testing with expect-fail-message
   %test
@@ -174,13 +194,29 @@
         [%give %kick ~[/server] ~]
     ==
   ==
-++  on-watch  |=(=path `this)
+++  on-watch
+  ::  /obelisk paths resolve one query, give its result, and kick;
+  ::  the query runs through +process-cmds security in /lib/main
+  |=  =path
+  ^-  (quip card _this)
+  ?.  ?=([%obelisk ^] path)  `this
+  =/  res=(unit (unit cage))
+    (~(peek scry [server bowl]) t.path)
+  ?~  res
+    ~|("invalid obelisk subscription path {<path>}" !!)
+  ?~  u.res
+    ~|("invalid obelisk subscription path {<path>}" !!)
+  :_  this
+      :~  [%give %fact ~ u.u.res]
+          [%give %kick ~ ~]
+          ==
 ++  on-leave  on-leave:default
 ++  on-peek
   |=  =path
   ^-  (unit (unit cage))
   ?+  path  [~ ~]
-    [%x %server ~]  ``noun+!>(server.state)
+    [%x %server ~]   ``noun+!>(server.state)
+    [%x %obelisk ^]  (~(peek scry [server bowl]) t.t.path)
   ==
 ++  on-agent
   |=  [=wire =sign:agent:gall]
@@ -189,8 +225,6 @@
       [%init %animal-shelter %poke ~]
     `this
   ::
-      [%init %hawk %install ~]
-    `this
   ==
 ++  on-arvo
   |=  [=wire =sign-arvo]
@@ -217,7 +251,11 @@
                 [our.bowl dap.bowl]
                 %poke
                 %obelisk-action
-                !>([%tape %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+                !>  :*  %script
+                        %animal-shelter
+                        %raw
+                        (reel txt |=([a=cord b=tape] (weld (trip a) b)))
+                        ==
             ==
         ==
       ==
