@@ -953,4 +953,56 @@
     !>(expected)
   !>  %-  result-message
       (format-relation %manx (vectors-relation columns vectors))
+::
+::  Delimited formats use their designated separators and CSV quoting.
+++  test-delimited-formats-43
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %label ~.t 0]
+        ==
+  =/  vectors=(list vector:ast)
+    :~  :-  %vector
+            :~  [%id [~.ud 1]]
+                [%label [~.t 'alpha,beta']]
+                ==
+        :-  %vector
+            :~  [%id [~.ud 2]]
+                [%label [~.t 'say "hi"']]
+                ==
+        ==
+  =/  relation  (vectors-relation columns vectors)
+  ;:  weld
+    %+  expect-eq
+      !>('id,label\0a1,"alpha,beta"\0a2,"say ""hi"""')
+    !>((result-message (format-relation %csv relation)))
+  ::
+    %+  expect-eq
+      !>('id\09label\0a1\09alpha,beta\0a2\09say "hi"')
+    !>((result-message (format-relation %tab relation)))
+  ::
+    %+  expect-eq
+      !>('id label\0a1 alpha,beta\0a2 say "hi"')
+    !>((result-message (format-relation %spac relation)))
+  ==
+::
+::  Ordered CSV formatting with multiple schemas is not implemented.
+++  test-fail-ordered-multi-schema-csv-44
+  =/  relation  direct-relation
+  =/  ordered-relation  relation(ordered %.y)
+  %+  expect-fail-message
+    'format: ordered multi-schema csv output not implemented'
+  |.  (format-relation %csv ordered-relation)
+::
+::  CSV quotes values containing carriage returns and line feeds.
+++  test-csv-record-boundaries-45
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  vectors=(list vector:ast)
+    ~[[%vector ~[[%value [~.t 'line\0abreak\0dend']]]]]
+  =/  relation  (vectors-relation columns vectors)
+  %+  expect-eq
+    !>('value\0a"line\0abreak\0dend"')
+  !>((result-message (format-relation %csv relation)))
 --

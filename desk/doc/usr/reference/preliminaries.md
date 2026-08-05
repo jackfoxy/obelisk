@@ -62,7 +62,7 @@ it.
 
 ```hoon
 +$  result-format
-  ?(%vector %markdown %html %wain %manx %tape %json %raw)
+  ?(%vector %markdown %html %wain %manx %tape %json %csv %tab %spac %raw)
 ```
 
 | Format | Representation |
@@ -74,6 +74,9 @@ it.
 | `%wain` | Header and data rows built as cords, with one space between columns. |
 | `%tape` | Header and data rows with one space between columns and one line feed between rows. |
 | `%json` | An outer JSON array of table arrays, whose rows are objects keyed by column name. |
+| `%csv` | Comma-separated header and data rows and one line feed between rows.|
+| `%tab` | Header and data rows with one horizontal tab between columns and one line feed between rows. |
+| `%spac` | Header and data rows with one space between columns and one line feed between rows. |
 | `%raw` | Unformatted `%relations`, preserving column schemas and schema-indexed data rows. |
 
 Formatted results produce one table or row block for each column schema.

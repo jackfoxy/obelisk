@@ -1,6 +1,8 @@
 /-  *obelisk-ast
 |%
 ::
++$  delimited-format  ?(%csv %tab %spac %tape)
+::
 ++  format-results
   |=  [fmt=result-format results=(list cmd-result)]
   ^-  (list cmd-result)
@@ -21,6 +23,12 @@
       (turn results format-tape)
     %json
       (turn results format-json)
+    %csv
+      (turn results format-csv)
+    %tab
+      (turn results format-tab)
+    %spac
+      (turn results format-spac)
   ==
 ::
 ::  Format relation results as JSON arrays of row objects.
@@ -259,9 +267,32 @@
     count    +.formatted
   ==
 ::
-::  Format relation results as LF-delimited tape rows.
+::  Format relation results as LF-delimited, space-separated tape rows.
 ++  format-tape
   |=  a=cmd-result
+  ^-  cmd-result
+  (format-delimited %tape a)
+::
+::  Format relation results as comma-separated values.
+++  format-csv
+  |=  a=cmd-result
+  ^-  cmd-result
+  (format-delimited %csv a)
+::
+::  Format relation results as tab-delimited values.
+++  format-tab
+  |=  a=cmd-result
+  ^-  cmd-result
+  (format-delimited %tab a)
+::
+::  Format relation results as space-delimited values.
+++  format-spac
+  |=  a=cmd-result
+  ^-  cmd-result
+  (format-delimited %spac a)
+::
+++  format-delimited
+  |=  [kind=delimited-format a=cmd-result]
   ^-  cmd-result
   :-  %results
   =/  results=(list result)  +.a
@@ -273,28 +304,20 @@
     ?-  -.i.results
       %relations
         =/  relations=(list relation)  +.i.results
-        =/  tape-result=[p=tape q=@ud]
+        =/  delimited-result=[p=tape q=@ud]
           =/  out  *tape
           =/  total  *@ud
           |-
           ?~  relations  [out total]
-          =/  a=relation  i.relations
-          =/  columns
-            ^-  (lest (lest $%(column qualified-column)))
-            columns.a
-          ?:  &(ordered.a (gth (lent columns) 1))
-            ~|  "format: ordered multi-schema tape output not implemented"
-                !!
-          =/  formatted  (relation-wain a)
-          =/  text  (wain-to-tape p.formatted)
+          =/  formatted  (relation-delimited kind i.relations)
           =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
           %=  $
             relations  t.relations
-            out        (weld out (weld separator text))
+            out        (weld out (weld separator p.formatted))
             total      (add total q.formatted)
           ==
-        :-  [%message (crip p.tape-result)]
-            [~ q.tape-result]
+        :-  [%message (crip p.delimited-result)]
+            [~ q.delimited-result]
       %vector-count
         ?~  count  [i.results count]
         [[%vector-count u.count] count]
@@ -313,6 +336,90 @@
     out      [-.formatted out]
     count    +.formatted
   ==
+::
+++  relation-delimited
+  |=  [kind=delimited-format a=relation]
+  ^-  [p=tape q=@ud]
+  =/  columns=(lest (lest $%(column qualified-column)))  columns.a
+  ?:  &(ordered.a (gth (lent columns) 1))
+    ?-  kind
+      %csv
+        ~|("format: ordered multi-schema csv output not implemented" !!)
+      %tab
+        ~|("format: ordered multi-schema tab output not implemented" !!)
+      %spac
+        ~|("format: ordered multi-schema spac output not implemented" !!)
+      %tape
+        ~|("format: ordered multi-schema tape output not implemented" !!)
+    ==
+  =/  columns-index  *@ud
+  =/  remaining  `(list (lest $%(column qualified-column)))`columns
+  =/  out  *tape
+  =/  count  *@ud
+  |-
+  ?~  remaining  [out count]
+  =/  vectors
+    %:  relation-table-vectors
+      =(~ relation-id.a)
+      ordered.a
+      columns-index
+      i.remaining
+      data-rows.a
+    ==
+  =/  heading=tape
+    %-  zing
+    %+  join  (delimiter kind)
+    %+  turn  i.remaining
+    |=  column=$%(column qualified-column)
+    (delimited-value kind (trip (relation-column-name column)))
+  =/  rows=wain
+    %+  turn  vectors
+    |=  vector=vector
+    %-  crip
+    %-  zing
+    %+  join  (delimiter kind)
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    (delimited-value kind (render-dime q.cell))
+  =/  table=tape
+    ?~  rows  heading
+    (weld heading (weld ~['\0a'] (wain-to-tape rows)))
+  =/  separator=tape  ?:(=(~ out) ~ ~['\0a'])
+  %=  $
+    columns-index  +(columns-index)
+    remaining      t.remaining
+    out            (weld out (weld separator table))
+    count          (add count (lent vectors))
+  ==
+::
+++  delimiter
+  |=  kind=delimited-format
+  ^-  tape
+  ?-  kind
+    %csv   ","
+    %tab   "\09"
+    %spac  " "
+    %tape  " "
+  ==
+::
+++  delimited-value
+  |=  [kind=delimited-format value=tape]
+  ^-  tape
+  ?.  =(%csv kind)  value
+  ?.  ?|  ?=(^ (find "," value))
+          ?=(^ (find "\"" value))
+          ?=(^ (find "\0a" value))
+          ?=(^ (find "\0d" value))
+      ==
+    value
+  =/  escaped=tape
+    %-  zing
+    %+  turn  value
+    |=  char=@tD
+    ^-  tape
+    ?:  =(char 34)  "\"\""
+    ~[char]
+  (weld "\"" (weld escaped "\""))
 ::
 ::  Format relation results as GitHub Flavored Markdown tables.
 ++  format-markdown

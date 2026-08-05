@@ -1819,6 +1819,9 @@ script) and a urQL tape.
 - `%script %wain` — parse and execute a urQL script with wain output.
 - `%script %tape` — parse and execute a urQL script with tape output.
 - `%script %json` — parse and execute a urQL script with JSON output.
+- `%script %csv` — parse and execute a urQL script with CSV output.
+- `%script %tab` — parse and execute a urQL script with tab-delimited output.
+- `%script %spac` — parse and execute a urQL script with space-delimited output.
 - `%script %raw` — parse and execute a urQL script with raw relation output.
 
 - `%cmd-list %vector` — submit commands directly with vector output.
@@ -1828,6 +1831,9 @@ script) and a urQL tape.
 - `%cmd-list %wain` — submit commands directly with wain output.
 - `%cmd-list %tape` — submit commands directly with tape output.
 - `%cmd-list %json` — submit commands directly with JSON output.
+- `%cmd-list %csv` — submit commands directly with CSV output.
+- `%cmd-list %tab` — submit commands directly with tab-delimited output.
+- `%cmd-list %spac` — submit commands directly with space-delimited output.
 - `%cmd-list %raw` — submit commands directly with raw relation output.
 
 There is also a `%test` action used by the Obelisk test code. Client programs
@@ -1852,6 +1858,11 @@ The mark for the poke is always `%obelisk-action`.
 - `%tape` returns rows with one space between columns and one line feed between
   rows.
 - `%json` returns relation rows as JSON objects.
+- `%csv` returns comma-separated header and data rows and one line feed between rows.
+- `%tab` returns rows with one horizontal tab between columns and one line feed
+  between rows.
+- `%spac` returns rows with one space between columns and one line feed between
+  rows.
 - `%raw` preserves `%relations`; each `relation` contains a unique non-empty
   list of column schemas, and each data row carries the zero-based index of its
   schema.

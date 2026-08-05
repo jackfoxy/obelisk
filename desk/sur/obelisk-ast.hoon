@@ -1129,7 +1129,8 @@
 ::
 ::  OUTPUT
 ::
-+$  result-format  ?(%vector %markdown %html %wain %manx %tape %json %raw)
++$  result-format
+  ?(%vector %markdown %html %wain %manx %tape %json %csv %tab %spac %raw)
 +$  cmd-result  [%results (list result)]
 +$  result
   $%
@@ -1141,7 +1142,7 @@
     [%security-time date=@da]
     [%schema-time date=@da]
     [%data-time date=@da]
-    [%result-set (list vector)]   ::to do, trap core vector, md, csv
+    [%result-set (list vector)]
     [%relations (list relation)]
     [%select-relation relation]
     ==
