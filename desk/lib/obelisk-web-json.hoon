@@ -29,10 +29,7 @@
   ?~  val  ~
   =/  parsed=(each @t tang)
     (mule |.((so:dejs:format u.val)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  path-field
   |=  [key=@t jon=json]
@@ -43,10 +40,7 @@
     %-  mule  |.
     =/  parts=(list @t)  ((ar so):dejs:format u.val)
     (turn parts |=(part=@t ;;(@ta part)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  bool-field
   |=  [key=@t jon=json]
@@ -104,41 +98,37 @@
   ==
 ::
 ++  request-from-json
+  ::  Decode a request; any missing or ill-typed field crashes into ~.
+  ::
   |=  jon=json
   ^-  (unit web-request:web)
   =/  parsed=(each web-request:web tang)
-    (mule |.((request-from-json-unsafe jon)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
-::
-++  request-from-json-unsafe
-  |=  jon=json
-  ^-  web-request:web
-  =/  kind=@t  (need (text-field 'type' jon))
-  ?:  =(kind 'run')
-    =/  database=@t  (need (text-field 'defaultDatabase' jon))
-    =/  script=@t  (need (text-field 'script' jon))
-    [%run (term-text database) script]
-  ?:  =(kind 'parse')
-    =/  database=@t  (need (text-field 'defaultDatabase' jon))
-    =/  script=@t  (need (text-field 'script' jon))
-    [%parse (term-text database) script]
-  ?:  =(kind 'schema')
-    =/  database=(unit @t)  (text-field 'defaultDatabase' jon)
-    [%schema ?~(database ~ `(term-text u.database))]
-  ?:  =(kind 'file-browse')
-    [%file-browse (need (path-field 'path' jon))]
-  ?:  =(kind 'file-load')
-    [%file-load (need (path-field 'path' jon))]
-  ?:  =(kind 'file-save')
-    :*  %file-save
-        (need (path-field 'path' jon))
-        (need (text-field 'content' jon))
-        (need (bool-field 'overwrite' jon))
-    ==
-  !!
+    %-  mule  |.
+    ^-  web-request:web
+    =/  kind=@t  (need (text-field 'type' jon))
+    ?:  =(kind 'run')
+      =/  database=@t  (need (text-field 'defaultDatabase' jon))
+      =/  script=@t  (need (text-field 'script' jon))
+      [%run (term-text database) script]
+    ?:  =(kind 'parse')
+      =/  database=@t  (need (text-field 'defaultDatabase' jon))
+      =/  script=@t  (need (text-field 'script' jon))
+      [%parse (term-text database) script]
+    ?:  =(kind 'schema')
+      =/  database=(unit @t)  (text-field 'defaultDatabase' jon)
+      [%schema ?~(database ~ `(term-text u.database))]
+    ?:  =(kind 'file-browse')
+      [%file-browse (need (path-field 'path' jon))]
+    ?:  =(kind 'file-load')
+      [%file-load (need (path-field 'path' jon))]
+    ?:  =(kind 'file-save')
+      :*  %file-save
+          (need (path-field 'path' jon))
+          (need (text-field 'content' jon))
+          (need (bool-field 'overwrite' jon))
+      ==
+    !!
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  request-from-text
   |=  txt=@t

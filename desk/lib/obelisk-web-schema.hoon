@@ -118,11 +118,11 @@
   |=  command=cmd-result:ast
   ^-  (unit (list vector:ast))
   =/  sets=(list (list vector:ast))
-    %+  turn
-      (skim +.command |=(result=result:ast ?=(%result-set -.result)))
+    %+  murn  +.command
     |=  result=result:ast
-    ?>  ?=(%result-set -.result)
-    +.result
+    ^-  (unit (list vector:ast))
+    ?.  ?=(%result-set -.result)  ~
+    `+.result
   ?~  sets  ~
   ?.  ?=(~ t.sets)  ~
   `i.sets
@@ -215,12 +215,11 @@
 ++  default-database
   |=  [requested=(unit @tas) databases=(list @tas)]
   ^-  @tas
-  ?^  requested
-    ?:  (has-database u.requested databases)  u.requested
+  =/  fallback=@tas
     ?:  (has-database %sys databases)  %sys
     ?~(databases %sys i.databases)
-  ?:  (has-database %sys databases)  %sys
-  ?~(databases %sys i.databases)
+  ?~  requested  fallback
+  ?:((has-database u.requested databases) u.requested fallback)
 ::
 ++  column-lte
   |=  [a=column-dto:web b=column-dto:web]
@@ -429,26 +428,17 @@
       $(databases t.databases)
     ?~  rest  ~
     `[(database-dto %sys default-database ~ ~ ~ ~) u.rest]
-  ?~  commands  ~
-  =/  namespace-command=cmd-result:ast  i.commands
-  =/  after-namespace=(list cmd-result:ast)  t.commands
-  ?~  after-namespace  ~
-  =/  table-command=cmd-result:ast  i.after-namespace
-  =/  after-table=(list cmd-result:ast)  t.after-namespace
-  ?~  after-table  ~
-  =/  key-command=cmd-result:ast  i.after-table
-  =/  after-key=(list cmd-result:ast)  t.after-table
-  ?~  after-key  ~
-  =/  column-command=cmd-result:ast  i.after-key
-  =/  remaining=(list cmd-result:ast)  t.after-key
+  ::  Each non-sys database contributes four result sets, in query order.
+  ::
+  ?.  ?=([* * * * *] commands)  ~
   =/  namespaces-vectors=(unit (list vector:ast))
-    (command-vectors namespace-command)
+    (command-vectors i.commands)
   =/  tables-vectors=(unit (list vector:ast))
-    (command-vectors table-command)
+    (command-vectors i.t.commands)
   =/  keys-vectors=(unit (list vector:ast))
-    (command-vectors key-command)
+    (command-vectors i.t.t.commands)
   =/  columns-vectors=(unit (list vector:ast))
-    (command-vectors column-command)
+    (command-vectors i.t.t.t.commands)
   ?~  namespaces-vectors  ~
   ?~  tables-vectors  ~
   ?~  keys-vectors  ~
@@ -464,7 +454,7 @@
   ?~  keys  ~
   ?~  columns  ~
   =/  rest=(unit (list database-dto:web))
-    $(databases t.databases, commands remaining)
+    $(databases t.databases, commands t.t.t.t.commands)
   ?~  rest  ~
   =/  node=database-dto:web
     %:  database-dto
@@ -491,32 +481,19 @@
 ::
 ::  +|  Schema Mutation Detection
 ::
-++  schema-changing-command
-  |=  command=command:ast
-  ^-  ?
-  ?-  -.command
-    %alter-database  %.y
-    %alter-index  %.y
-    %alter-namespace  %.y
-    %alter-table  %.y
-    %create-database  %.y
-    %create-index  %.y
-    %create-namespace  %.y
-    %create-table  %.y
-    %create-view  %.y
-    %drop-database  %.y
-    %drop-index  %.y
-    %drop-namespace  %.y
-    %drop-table  %.y
-    %drop-view  %.y
-    %grant  %.n
-    %revoke  %.n
-    %crud-txn  %.n
-    %truncate-table  %.n
-  ==
-::
 ++  schema-changing
+  ::  Only DDL invalidates the schema the browser has cached.
+  ::
   |=  commands=(list command:ast)
   ^-  ?
-  ?=(^ (skim commands schema-changing-command))
+  %+  lien  commands
+  |=  command=command:ast
+  ?-  -.command
+    ?(%grant %revoke %crud-txn %truncate-table)  %.n
+    ?(%alter-database %alter-index %alter-namespace %alter-table)  %.y
+    ?(%create-database %create-index %create-namespace)  %.y
+    ?(%create-table %create-view)  %.y
+    ?(%drop-database %drop-index %drop-namespace)  %.y
+    ?(%drop-table %drop-view)  %.y
+  ==
 --

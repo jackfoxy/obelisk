@@ -32,8 +32,13 @@
 ++  connect-card
   |=  app=term
   ^-  card
-  :*  %pass  /eyre/connect  %arvo  %e
-      %connect  `/apps/obelisk  app
+  [%pass /eyre/connect %arvo %e %connect `/apps/obelisk app]
+::
+++  json-headers
+  ^-  (list [key=@t value=@t])
+  :~  ['content-type' 'application/json; charset=utf-8']
+      ['cache-control' 'no-store']
+      ['x-content-type-options' 'nosniff']
   ==
 ::
 ++  respond
@@ -77,14 +82,8 @@
   %:  respond
     eyre-id
     status.error
-    %+  weld
-      :~  ['content-type' 'application/json; charset=utf-8']
-          ['cache-control' 'no-store']
-          ['x-content-type-options' 'nosniff']
-      ==
-    extra-headers
-    %-  json-text:json-lib
-    (response-json:json-lib [%error error])
+    (weld json-headers extra-headers)
+    (json-text:json-lib (response-json:json-lib [%error error]))
   ==
 ::
 ++  json-content-type
@@ -140,29 +139,25 @@
 ++  poke-card
   |=  [=wire our=@p action=action:ast]
   ^-  card
-  :*  %pass  wire  %agent  [our %obelisk]
-      %poke  %obelisk-action  !>(action)
-  ==
+  [%pass wire %agent [our %obelisk] %poke %obelisk-action !>(action)]
 ::
 ++  work-for
+  ::  File requests are served locally, so they plan no Obelisk work.
+  ::
   |=  request=web-request:web
   ^-  (unit work-plan)
   ?-  -.request
-    %run
+    ?(%file-browse %file-load %file-save)  ~
+    ?(%run %parse)
       =/  action=action:ast
         [%parse default-database.request (trip script.request)]
-      `[action %run-parse %parse [%none ~]]
-    %parse
-      =/  action=action:ast
-        [%parse default-database.request (trip script.request)]
-      `[action %parse %parse [%none ~]]
+      =/  kind=obelisk-work-kind:web
+        ?:(?=(%run -.request) %run-parse %parse)
+      `[action kind %parse [%none ~]]
     %schema
       =/  action=action:ast
         [%script %sys %vector databases-query:schema-lib]
       `[action %schema %query [%schema-databases default-database.request]]
-    %file-browse  ~
-    %file-load  ~
-    %file-save  ~
   ==
 ::
 ++  decode-reply
@@ -188,10 +183,7 @@
   %:  respond
     eyre-id
     200
-    :~  ['content-type' 'application/json; charset=utf-8']
-        ['cache-control' 'no-store']
-        ['x-content-type-options' 'nosniff']
-    ==
+    json-headers
     (json-text:json-lib (response-json:json-lib response))
   ==
 ::
@@ -207,55 +199,27 @@
   %-  mule  |.
   .^(? %cx (tomb-beam:file-lib beam))
 ::
-++  clay-arch
-  |=  beam=path
-  ^-  (each arch tang)
-  %-  mule  |.
-  .^(arch %cy beam)
-::
 ++  clay-physical-paths
+  ::  Every stored file at or under +clay-path, node before its children.
+  ::
   |=  [our=@p desk=desk now=@da clay-path=path]
   ^-  (each (list path) tang)
-  =/  beam=path
-    (clay-beam:file-lib our desk da+now clay-path)
-  =/  loaded=(each arch tang)  (clay-arch beam)
-  ?-  -.loaded
-    %.n  loaded
-    %.y
-      =/  here=(list path)
-        ?~(fil.p.loaded ~ ~[clay-path])
-      =/  names=(list @ta)
-        (sort ~(tap in ~(key by dir.p.loaded)) aor)
-      =/  children=(each (list path) tang)
-        (clay-child-paths our desk now clay-path names)
-      ?-  -.children
-        %.n  children
-        %.y  [%.y (weld here p.children)]
-      ==
-  ==
-::
-++  clay-child-paths
-  |=  [our=@p desk=desk now=@da parent=path names=(list @ta)]
-  ^-  (each (list path) tang)
-  ?~  names  [%.y ~]
-  =/  child=(each (list path) tang)
-    (clay-physical-paths our desk now (snoc parent i.names))
-  ?-  -.child
-    %.n  child
-    %.y
-      =/  rest=(each (list path) tang)
-        $(names t.names)
-      ?-  -.rest
-        %.n  rest
-        %.y  [%.y (weld p.child p.rest)]
-      ==
-  ==
-::
-++  clay-text
-  |=  beam=path
-  ^-  (each @t tang)
+  ::  Each recursive result is bound to a typed =/ before +weld sees it:
+  ::  +weld is wet, and mulling it against the in-progress trap type
+  ::  loops.
+  ::
   %-  mule  |.
-  (of-wain:format .^(wain %cx beam))
+  |-  ^-  (list path)
+  =/  =arch  .^(arch %cy (clay-beam:file-lib our desk da+now clay-path))
+  =/  here=(list path)  ?~(fil.arch ~ ~[clay-path])
+  =/  names=(list @ta)  (sort ~(tap in ~(key by dir.arch)) aor)
+  =/  children=(list path)
+    |-  ^-  (list path)
+    ?~  names  ~
+    =/  head=(list path)  ^$(clay-path (snoc clay-path i.names))
+    =/  rest=(list path)  $(names t.names)
+    (weld head rest)
+  (weld here children)
 ::
 ++  browse-file-cards
   |=  $:  eyre-id=@ta
@@ -271,13 +235,11 @@
   =/  clay-path=path  (browse-path:file-lib relative)
   =/  loaded=(each (list path) tang)
     (clay-physical-paths our desk now clay-path)
-  ?-  -.loaded
-    %.n  (file-error-cards eyre-id 'Clay browse failed' p.loaded)
-    %.y
-      =/  entries=(list file-entry-dto:web)
-        (entries-from-physical:file-lib relative p.loaded)
-      (respond-json eyre-id [%file-list entries])
-  ==
+  ?:  ?=(%.n -.loaded)
+    (file-error-cards eyre-id 'Clay browse failed' p.loaded)
+  =/  entries=(list file-entry-dto:web)
+    (entries-from-physical:file-lib relative p.loaded)
+  (respond-json eyre-id [%file-list entries])
 ::
 ++  load-file-cards
   |=  $:  eyre-id=@ta
@@ -294,30 +256,22 @@
   =/  beam=path
     (clay-beam:file-lib our desk da+now clay-path)
   =/  exists=(each ? tang)  (clay-exists beam)
-  ?-  -.exists
-    %.n  (file-error-cards eyre-id 'Clay load failed' p.exists)
-    %.y
-      ?.  p.exists
-        %+  respond-error  eyre-id
-        (make-error %not-found 404 'saved file not found' %.n)
-      =/  loaded=(each @t tang)  (clay-text beam)
-      ?-  -.loaded
-        %.n  (file-error-cards eyre-id 'Clay load failed' p.loaded)
-        %.y  (respond-json eyre-id [%file relative p.loaded])
-      ==
-  ==
+  ?:  ?=(%.n -.exists)
+    (file-error-cards eyre-id 'Clay load failed' p.exists)
+  ?.  p.exists
+    %+  respond-error  eyre-id
+    (make-error %not-found 404 'saved file not found' %.n)
+  =/  loaded=(each @t tang)
+    %-  mule  |.
+    (of-wain:format .^(wain %cx beam))
+  ?:  ?=(%.n -.loaded)
+    (file-error-cards eyre-id 'Clay load failed' p.loaded)
+  (respond-json eyre-id [%file relative p.loaded])
 ::
 ++  file-verify-card
-  |=  $:  =wire
-          our=@p
-          desk=desk
-          now=@da
-          clay-path=path
-      ==
+  |=  [=wire our=@p desk=desk now=@da clay-path=path]
   ^-  card
-  :*  %pass  wire  %arvo  %c
-      %warp  our  desk  ~  %next  %x  da+now  clay-path
-  ==
+  [%pass wire %arvo %c %warp our desk ~ %next %x da+now clay-path]
 ::
 ++  file-write-card
   |=  [=wire desk=desk clay-path=path content=@t]
@@ -347,6 +301,8 @@
     :_  state
     %+  respond-error  eyre-id
     (make-error %bad-request 400 'invalid file path' %.n)
+  ::  Copy the slot out first: testing it in place would narrow +state.
+  ::
   =/  current=(unit pending-file-save:web)  file-save.transient.state
   ?^  current
     :_  state
@@ -356,34 +312,13 @@
   =/  beam=path
     (clay-beam:file-lib our desk da+now clay-path)
   =/  exists=(each ? tang)  (clay-exists beam)
-  ?-  -.exists
-    %.n
-      :_  state
-      (file-error-cards eyre-id 'Clay save check failed' p.exists)
-    %.y
-      %:  save-file-after-check
-        eyre-id  relative  content  overwrite  p.exists
-        state  our  desk  now
-      ==
-  ==
-::
-++  save-file-after-check
-  |=  $:  eyre-id=@ta
-          relative=relative-path:web
-          content=@t
-          overwrite=?
-          exists=?
-          state=live-state:web
-          our=@p
-          desk=desk
-          now=@da
-      ==
-  ^-  (quip card live-state:web)
-  ?:  (save-conflict:file-lib exists overwrite)
+  ?:  ?=(%.n -.exists)
+    :_  state
+    (file-error-cards eyre-id 'Clay save check failed' p.exists)
+  ?:  (save-conflict:file-lib p.exists overwrite)
     :_  state
     %+  respond-error  eyre-id
     (make-error %conflict 409 'saved file already exists' %.n)
-  =/  clay-path=path  (storage-path:file-lib relative)
   =/  request-id=request-id:web  next-request-id.transient.state
   =/  verify-wire=wire
     /obelisk-web/file-save/(scot %ud request-id)/verify
@@ -396,9 +331,7 @@
   =.  next-request-id.transient.state  +(request-id)
   =.  file-save.transient.state  `pending
   :_  state
-  :~  %:  file-verify-card
-          verify-wire  our  desk  now  clay-path
-      ==
+  :~  (file-verify-card verify-wire our desk now clay-path)
       (file-write-card write-wire desk clay-path content)
       (wait-card timeout-wire (add now file-timeout:file-lib))
   ==
@@ -455,12 +388,7 @@
   =/  message=@t
     ?-(kind %query 'Obelisk execution failed', %parse 'urQL parse failed')
   %+  respond-error  eyre-id
-  :*  %unprocessable
-      422
-      message
-      %.n
-      (tang-details:result-lib trace)
-  ==
+  [%unprocessable 422 message %.n (tang-details:result-lib trace)]
 ::
 ++  coordinated-response
   |=  eyre-id=@ta
@@ -518,14 +446,12 @@
 ++  start-next
   |=  [state=live-state:web now=@da our=@p]
   ^-  (quip card live-state:web)
-  ?~  queue.transient.state
-    :_  state
-    ~
-  =/  job=queued-request:web  i.queue.transient.state
-  =/  next-state=live-state:web
-    ^-(live-state:web state)
-  =.  queue.transient.next-state  t.queue.transient.state
-  (begin-readiness job next-state our)
+  ::  Copy the queue out first: testing it in place would narrow +state.
+  ::
+  =/  queue=(list queued-request:web)  queue.transient.state
+  ?~  queue  [~ state]
+  =.  queue.transient.state  t.queue
+  (begin-readiness i.queue state our)
 ::
 ++  start-work
   |=  $:  job=queued-request:web
@@ -569,9 +495,8 @@
   ^-  (quip card live-state:web)
   =/  work=(unit work-plan)  (work-for request.job)
   ?~  work
-    =/  next=(quip card live-state:web)  (start-next state now our)
-    :_  +.next
-    (weld (coordinated-response eyre-id.job) -.next)
+    =^  cards  state  (start-next state now our)
+    [(weld (coordinated-response eyre-id.job) cards) state]
   (start-work job retries 0 u.work state now our)
 ::
 ++  continue-active
@@ -582,18 +507,9 @@
           our=@p
       ==
   ^-  (quip card live-state:web)
-  =/  next=(quip card live-state:web)
-    %:  start-work
-      job.active
-      retries.active
-      +(stage.active)
-      work
-      state
-      now
-      our
-    ==
-  :_  +.next
-  [(leave-card watch-wire.active our) -.next]
+  =^  cards  state
+    (start-work job.active retries.active +(stage.active) work state now our)
+  [[(leave-card watch-wire.active our) cards] state]
 ::
 ++  complete-active
   |=  $:  active=active-obelisk:web
@@ -608,8 +524,7 @@
   =/  next=(quip card live-state:web)  (start-next state now our)
   =/  cleanup-cards=(list card)
     ?:  cleanup  ~[(leave-card watch-wire.active our)]  ~
-  :_  +.next
-  (weld cleanup-cards (weld response-cards -.next))
+  [:(weld cleanup-cards response-cards -.next) +.next]
 ::
 ++  complete-with-response
   |=  $:  active=active-obelisk:web
@@ -690,8 +605,7 @@
       =/  work=work-plan
         [action %run-script %query [%run commands]]
       (continue-active active work state now our)
-    %run-script  (complete-with-malformed active state now our)
-    %schema  (complete-with-malformed active state now our)
+    ?(%run-script %schema)  (complete-with-malformed active state now our)
   ==
 ::
 ++  handle-schema-databases
@@ -765,11 +679,9 @@
           ?~  response
             (complete-with-malformed active state now our)
           (complete-with-response active u.response state now our)
-        %none  (complete-with-malformed active state now our)
-        %run  (complete-with-malformed active state now our)
+        ?(%none %run)  (complete-with-malformed active state now our)
       ==
-    %run-parse  (complete-with-malformed active state now our)
-    %parse  (complete-with-malformed active state now our)
+    ?(%run-parse %parse)  (complete-with-malformed active state now our)
   ==
 ::
 ++  handle-active-fact
@@ -787,23 +699,13 @@
   ?-  -.decoded
     %malformed  (complete-with-malformed active state now our)
     %parse
-      ?-  -.reply.decoded
-        %.n
-          %:  complete-with-error
-            active  %parse  p.reply.decoded  state  now  our
-          ==
-        %.y
-          (handle-parse-success active p.reply.decoded state now our)
-      ==
+      ?:  ?=(%.n -.reply.decoded)
+        (complete-with-error active %parse p.reply.decoded state now our)
+      (handle-parse-success active p.reply.decoded state now our)
     %query
-      ?-  -.reply.decoded
-        %.n
-          %:  complete-with-error
-            active  %query  p.reply.decoded  state  now  our
-          ==
-        %.y
-          (handle-query-success active p.reply.decoded state now our)
-      ==
+      ?:  ?=(%.n -.reply.decoded)
+        (complete-with-error active %query p.reply.decoded state now our)
+      (handle-query-success active p.reply.decoded state now our)
   ==
 ::
 ++  advance-readiness
@@ -858,8 +760,7 @@
     %exhausted
       =/  next=(quip card live-state:web)  (start-next state now our)
       :_  +.next
-      %+  weld  cleanup-cards
-      (weld (unavailable-response eyre-id.job.active) -.next)
+      :(weld cleanup-cards (unavailable-response eyre-id.job.active) -.next)
   ==
 ::
 ++  accept-job
@@ -885,8 +786,7 @@
   =.  next-request-id.transient.state  +(request-id)
   ?:  busy
     =.  queue.transient.state  (snoc queue.transient.state job)
-    :_  state
-    ~
+    [~ state]
   (begin-readiness job state our)
 ::
 ++  route-api
@@ -934,12 +834,6 @@
     [%obelisk u.decoded]
   [%file u.decoded]
 ::
-++  clay-png
-  |=  beam=path
-  ^-  (each @ tang)
-  %-  mule  |.
-  .^(@ %cx beam)
-::
 ++  route-http
   |=  [eyre-id=@ta req=inbound-request:eyre our=@p desk=desk now=@da]
   ^-  route-result
@@ -959,11 +853,10 @@
       `['text/css; charset=utf-8' css:web-lib]
     ?:  =("/apps/obelisk/favicon.png" url)
       =/  beam=path  (clay-beam:file-lib our desk da+now /favicon/png)
-      =/  loaded=(each @ tang)  (clay-png beam)
-      ?-  -.loaded
-        %.n  ~
-        %.y  `['image/png' ^-(@t p.loaded)]
-      ==
+      =/  loaded=(each @ tang)
+        %-  mule  |.
+        .^(@ %cx beam)
+      ?:(?=(%.n -.loaded) ~ `['image/png' ^-(@t p.loaded)])
     ~
   ?~  route
     :-  %cards
@@ -1004,12 +897,9 @@
   =/  loaded=(each live-state:web tang)
     (load-vase:web-lib old-vase)
   =/  next=live-state:web
-    ?-  -.loaded
-      %.y  p.loaded
-      %.n
-        %-  (slog 'obelisk-web state corrupt; using empty state' p.loaded)
-        empty-live-state:web-lib
-    ==
+    ?:  ?=(%.y -.loaded)  p.loaded
+    %-  (slog 'obelisk-web state corrupt; using empty state' p.loaded)
+    empty-live-state:web-lib
   =.  binding.transient.next  %binding
   :_  this(state next)
   ~[(connect-card dap.bowl)]
@@ -1032,22 +922,13 @@
   =/  routed=route-result
     (route-http eyre-id req our.bowl q.byk.bowl now.bowl)
   ?-  -.routed
-    %cards
-      :_  this
-      value.routed
+    %cards  [value.routed this]
     %obelisk
-      =/  accepted=(quip card live-state:web)
-        %:  accept-job
-          eyre-id
-          request.routed
-          state
-          now.bowl
-          our.bowl
-        ==
-      :_  this(state +.accepted)
-      -.accepted
+      =^  cards  state
+        (accept-job eyre-id request.routed state now.bowl our.bowl)
+      [cards this]
     %file
-      =/  handled=(quip card live-state:web)
+      =^  cards  state
         %:  handle-file-request
           eyre-id
           request.routed
@@ -1056,8 +937,7 @@
           q.byk.bowl
           now.bowl
         ==
-      :_  this(state +.handled)
-      -.handled
+      [cards this]
   ==
 ::
 ++  on-watch
@@ -1080,8 +960,9 @@
           =(wire retry-wire.u.pending)
       ==
     ?-  -.sign
+      ?(%fact %poke-ack)  `this
       %watch-ack
-        =/  advanced=(quip card live-state:web)
+        =^  cards  state
           %:  advance-readiness
             u.pending
             ?~(p.sign %.y %.n)
@@ -1089,51 +970,40 @@
             now.bowl
             our.bowl
           ==
-        :_  this(state +.advanced)
-        ?~  p.sign
-          (weld ~[(leave-card wire our.bowl)] -.advanced)
-        -.advanced
+        :_  this
+        ?~  p.sign  [(leave-card wire our.bowl) cards]
+        cards
       %kick
-        =/  advanced=(quip card live-state:web)
+        =^  cards  state
           (advance-readiness u.pending %.n state now.bowl our.bowl)
-        :_  this(state +.advanced)
-        -.advanced
-      %fact  `this
-      %poke-ack  `this
+        [cards this]
     ==
-  ?~  active.transient.state
+  ::  Copy the slot out first: testing it in place would narrow +state.
+  ::
+  =/  current=(unit active-obelisk:web)  active.transient.state
+  ?~  current
     ?:  ?=([%obelisk-web %work *] wire)
       `this
     (on-agent:default wire sign)
-  =/  active=active-obelisk:web  u.active.transient.state
+  =/  active=active-obelisk:web  u.current
   ?:  =(wire watch-wire.active)
     ?-  -.sign
+      %poke-ack  `this
       %watch-ack
         ?^  p.sign
-          =/  retried=(quip card live-state:web)
-            %:  retry-active
-              active  %.n  state  now.bowl  our.bowl
-            ==
-          :_  this(state +.retried)
-          -.retried
+          =^  cards  state  (retry-active active %.n state now.bowl our.bowl)
+          [cards this]
         ?.  =(%watching phase.active)  `this
         =.  phase.active  %poking
         =.  active.transient.state  `active
-        :_  this(state state)
+        :_  this
         ~[(poke-card poke-wire.active our.bowl action.active)]
       %fact
-        =/  handled=(quip card live-state:web)
-          %:  handle-active-fact
-            active
-            cage.sign
-            state
-            now.bowl
-            our.bowl
-          ==
-        :_  this(state +.handled)
-        -.handled
+        =^  cards  state
+          (handle-active-fact active cage.sign state now.bowl our.bowl)
+        [cards this]
       %kick
-        =/  completed=(quip card live-state:web)
+        =^  cards  state
           %:  complete-active
             active
             (lost-subscription-response eyre-id.job.active)
@@ -1142,27 +1012,19 @@
             now.bowl
             our.bowl
           ==
-        :_  this(state +.completed)
-        -.completed
-      %poke-ack  `this
+        [cards this]
     ==
   ?:  =(wire poke-wire.active)
     ?-  -.sign
+      ?(%watch-ack %kick %fact)  `this
       %poke-ack
         ?^  p.sign
-          =/  retried=(quip card live-state:web)
-            %:  retry-active
-              active  %.y  state  now.bowl  our.bowl
-            ==
-          :_  this(state +.retried)
-          -.retried
+          =^  cards  state  (retry-active active %.y state now.bowl our.bowl)
+          [cards this]
         ?.  =(%poking phase.active)  `this
         =.  phase.active  %waiting
         =.  active.transient.state  `active
-        `this(state state)
-      %watch-ack  `this
-      %kick  `this
-      %fact  `this
+        `this
     ==
   ?:  ?=([%obelisk-web %work *] wire)
     `this
@@ -1176,15 +1038,13 @@
       (on-arvo:default wire sign-arvo)
     =.  binding.transient.state
       (binding-after-connect:web-lib accepted.sign-arvo)
-    `this(state state)
+    `this
   =/  pending=(unit pending-file-save:web)  file-save.transient.state
   ?:  ?&  ?=(^ pending)
           =(wire verify-wire.u.pending)
       ==
-    =/  completed=(quip card live-state:web)
-      (complete-file-save u.pending sign-arvo state)
-    :_  this(state +.completed)
-    -.completed
+    =^  cards  state  (complete-file-save u.pending sign-arvo state)
+    [cards this]
   ?:  ?&  ?=(^ pending)
           =(wire timeout-wire.u.pending)
       ==
@@ -1193,32 +1053,31 @@
     =/  cancel=card
       (cancel-file-verify-card verify-wire.u.pending our.bowl desk.u.pending)
     =.  file-save.transient.state  ~
-    :_  this(state state)
+    :_  this
     :-  cancel
     %+  respond-error  eyre-id.u.pending
     (make-error %timeout 504 'Clay save timed out' %.y)
   ?:  ?=([%obelisk-web %readiness *] wire)
-    ?~  readiness.transient.state  `this
-    =/  pending=pending-readiness:web  u.readiness.transient.state
+    =/  current=(unit pending-readiness:web)  readiness.transient.state
+    ?~  current  `this
+    =/  pending=pending-readiness:web  u.current
     ?.  =(wire retry-wire.pending)  `this
     ?.  ?=([%behn %wake *] sign-arvo)
       (on-arvo:default wire sign-arvo)
     ?~  error.sign-arvo
       :_  this
       ~[(watch-card wire our.bowl)]
-    =/  advanced=(quip card live-state:web)
-      %:  advance-readiness
-        pending  %.n  state  now.bowl  our.bowl
-      ==
-    :_  this(state +.advanced)
-    -.advanced
+    =^  cards  state
+      (advance-readiness pending %.n state now.bowl our.bowl)
+    [cards this]
   ?:  ?=([%obelisk-web %work *] wire)
-    ?~  active.transient.state  `this
-    =/  active=active-obelisk:web  u.active.transient.state
+    =/  current=(unit active-obelisk:web)  active.transient.state
+    ?~  current  `this
+    =/  active=active-obelisk:web  u.current
     ?.  =(wire timeout-wire.active)  `this
     ?.  ?=([%behn %wake *] sign-arvo)
       (on-arvo:default wire sign-arvo)
-    =/  completed=(quip card live-state:web)
+    =^  cards  state
       %:  complete-active
         active
         (timeout-response eyre-id.job.active)
@@ -1227,8 +1086,7 @@
         now.bowl
         our.bowl
       ==
-    :_  this(state +.completed)
-    -.completed
+    [cards this]
   ?:  ?=([%obelisk-web %file-save *] wire)
     `this
   (on-arvo:default wire sign-arvo)

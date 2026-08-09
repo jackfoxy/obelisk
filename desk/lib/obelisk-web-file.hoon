@@ -31,10 +31,7 @@
   =/  parsed=(each @tas tang)
     %-  mule  |.
     `@tas`(slav %tas part)
-  ?-  -.parsed
-    %.n  %.n
-    %.y  =(part p.parsed)
-  ==
+  ?:(?=(%.n -.parsed) %.n =(part p.parsed))
 ::
 ++  valid-scope
   |=  scope=@ta
@@ -46,10 +43,7 @@
 ++  valid-parts
   |=  parts=relative-path:web
   ^-  ?
-  ?~  parts  %.y
-  ?&  (valid-part i.parts)
-      $(parts t.parts)
-  ==
+  (levy parts valid-part)
 ::
 ++  valid-browse-path
   |=  relative=relative-path:web
@@ -103,11 +97,7 @@
 ++  path-prefix
   |=  [prefix=path candidate=path]
   ^-  ?
-  ?~  prefix  %.y
-  ?~  candidate  %.n
-  ?&  =(i.prefix i.candidate)
-      $(prefix t.prefix, candidate t.candidate)
-  ==
+  =(prefix (scag (lent prefix) candidate))
 ::
 ++  logical-path
   |=  physical=path
@@ -144,13 +134,7 @@
 ++  entries-from-physical
   |=  [base=relative-path:web physical=(list path)]
   ^-  (list file-entry-dto:web)
-  =/  logical=(list relative-path:web)
-    %+  turn
-      %+  skim  (turn physical logical-path)
-      |=(relative=(unit relative-path:web) ?=(^ relative))
-    |=  relative=(unit relative-path:web)
-    ?>  ?=(^ relative)
-    u.relative
+  =/  logical=(list relative-path:web)  (murn physical logical-path)
   =.  logical
     %+  skim  logical
     |=  relative=relative-path:web
@@ -165,23 +149,16 @@
       %+  turn  (parent-paths relative)
       |=  parent=relative-path:web
       ^-(file-entry-dto:web [parent %directory])
-    =/  file=file-entry-dto:web  [relative %file]
-    (weld parents ~[file])
+    (snoc parents ^-(file-entry-dto:web [relative %file]))
   =/  index=(map relative-path:web file-kind:web)
     %+  roll  candidates
     |=  [entry=file-entry-dto:web index=(map relative-path:web file-kind:web)]
-    =/  old=(unit file-kind:web)  (~(get by index) path.entry)
-    ?:  ?&  ?=(^ old)
-            =(%file u.old)
-        ==
-      index
+    ::  A file entry always wins over a directory entry at the same path.
+    ::
+    ?:  ?=([~ %file] (~(get by index) path.entry))  index
     (~(put by index) path.entry kind.entry)
   =/  entries=(list file-entry-dto:web)
-    %+  turn  ~(tap by index)
-    |=  [relative=relative-path:web kind=file-kind:web]
-    [relative kind]
-  =.  entries
-    (skim entries |=(entry=file-entry-dto:web !=(base path.entry)))
+    (skim ~(tap by index) |=(entry=file-entry-dto:web !=(base path.entry)))
   (sort entries entry-lte)
 ::
 ++  storage-wain
@@ -205,10 +182,7 @@
   =/  decoded=(each @t tang)
     %-  mule  |.
     (of-wain:format ;;(wain q.q.cage))
-  ?-  -.decoded
-    %.n  ~
-    %.y  `p.decoded
-  ==
+  ?:(?=(%.n -.decoded) ~ `p.decoded)
 ::
 ++  save-verifies
   |=  [expected=@t result=riot:clay]
