@@ -158,6 +158,19 @@
       ['key' ?~(key.column ~ (key-json u.key.column))]
   ==
 ::
+++  foreign-key-json
+  |=  foreign-key=foreign-key-dto:web
+  ^-  json
+  %-  pairs:enjs:format
+  :~  ['parentNamespace' s+parent-namespace.foreign-key]
+      ['parentTable' s+parent-table.foreign-key]
+      ['ordinal' n+(scot %ud ordinal.foreign-key)]
+      ['parentColumn' s+parent-column.foreign-key]
+      ['childColumn' s+child-column.foreign-key]
+      ['onDelete' s+on-delete.foreign-key]
+      ['onUpdate' s+on-update.foreign-key]
+  ==
+::
 ++  relation-json
   |=  relation=relation-dto:web
   ^-  json
@@ -167,6 +180,7 @@
       ['name' s+name.relation]
       ['kind' s+kind.relation]
       ['columns' [%a (turn columns.relation column-json)]]
+      ['foreignKeys' [%a (turn foreign-keys.relation foreign-key-json)]]
   ==
 ::
 ++  namespace-json

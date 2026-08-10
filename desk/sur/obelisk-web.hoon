@@ -149,6 +149,16 @@
       key=(unit key-dto)
   ==
 ::
++$  foreign-key-dto
+  $:  parent-namespace=@tas
+      parent-table=@tas
+      ordinal=@ud
+      parent-column=@tas
+      child-column=@tas
+      on-delete=@tas
+      on-update=@tas
+  ==
+::
 +$  relation-kind  ?(%table %view)
 ::
 +$  relation-dto
@@ -157,6 +167,7 @@
       name=@tas
       kind=relation-kind
       columns=(list column-dto)
+      foreign-keys=(list foreign-key-dto)
   ==
 ::
 +$  namespace-dto

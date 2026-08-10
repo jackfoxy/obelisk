@@ -1292,6 +1292,32 @@
     padding: 0.5rem 0.65rem;
   }
 
+  .command-tabs {
+    align-items: end;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    min-height: 2.65rem;
+    padding: 0.35rem 0.5rem 0;
+  }
+
+  .command-tab {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 2.3rem;
+    margin-right: 0.25rem;
+  }
+
+  .command-tab[aria-selected="true"] {
+    background: var(--surface);
+    border-bottom-color: var(--surface);
+    font-weight: 600;
+  }
+
+  .command-tab-panel .command-group {
+    margin-bottom: 0;
+  }
+
   .result-tabs {
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -1665,6 +1691,7 @@
     let outputState = {
       kind: 'empty',
       commands: [],
+      activeCommand: null,
       text: '',
       exportable: false,
       path: null
@@ -1675,6 +1702,7 @@
     let fileEntries = [];
     let explorerFileEntries = [];
     let schemaValue = null;
+    const foreignKeysUnavailable = new Set();
     let relationContext = null;
     let saveContextKind = null;
     let saveContextSource = null;
@@ -2568,8 +2596,10 @@
       if (outputState.kind === 'parse') {
         return ensureTrailingNewline(outputState.text);
       }
+      const command = Number.isInteger(outputState.activeCommand) ?
+        outputState.commands[outputState.activeCommand] : null;
       return runExportText(
-        outputState.commands,
+        command ? [command] : [],
         selectedResultsDelimiter()
       );
     }
@@ -2651,6 +2681,43 @@
       return text.startsWith('@') ? text : `@${text}`;
     }
 
+    function foreignKeyGroups(relation) {
+      const groups = [];
+      const buckets = new Map();
+      (relation.foreignKeys || []).forEach((foreignKey) => {
+        const key = [
+          foreignKey.parentNamespace,
+          foreignKey.parentTable,
+          foreignKey.onDelete,
+          foreignKey.onUpdate
+        ].join('\u0000');
+        const bucket = buckets.get(key) || [];
+        let group = bucket.find((candidate) => {
+          return foreignKey.ordinal > 1 &&
+            candidate.rows.length === foreignKey.ordinal - 1;
+        });
+        if (!group) {
+          group = {
+            parentNamespace: foreignKey.parentNamespace,
+            parentTable: foreignKey.parentTable,
+            onDelete: foreignKey.onDelete,
+            onUpdate: foreignKey.onUpdate,
+            rows: [foreignKey]
+          };
+          bucket.push(group);
+          buckets.set(key, bucket);
+          groups.push(group);
+        } else {
+          group.rows.push(foreignKey);
+        }
+      });
+      return groups;
+    }
+
+    function foreignKeyAction(action) {
+      return String(action || 'restrict').replaceAll('-', ' ').toUpperCase();
+    }
+
     function relationTemplate(action, relation) {
       const qualified = `${relation.database}.${relation.namespace}.` +
         relation.name;
@@ -2679,8 +2746,24 @@
             return `${column.name} ` +
               (column.key.ascending ? 'ASC' : 'DESC');
           });
+        const foreignKeys = foreignKeyGroups(relation).map((foreignKey) => {
+          const childColumns = foreignKey.rows.map((row) => row.childColumn);
+          const parentColumns = foreignKey.rows.map((row) => row.parentColumn);
+          let clause = `(${childColumns.join(', ')}) REFERENCES ` +
+            `${foreignKey.parentNamespace}.${foreignKey.parentTable} ` +
+            `(${parentColumns.join(', ')})`;
+          if (foreignKey.onDelete !== 'restrict') {
+            clause += ` ON DELETE ${foreignKeyAction(foreignKey.onDelete)}`;
+          }
+          if (foreignKey.onUpdate !== 'restrict') {
+            clause += ` ON UPDATE ${foreignKeyAction(foreignKey.onUpdate)}`;
+          }
+          return clause;
+        });
+        const foreignKeyClause = foreignKeys.length > 0 ?
+          `\n  FOREIGN KEY ${foreignKeys.join(',\n    ')}` : '';
         return `CREATE TABLE ${qualified}\n  (\n${definitions}\n  )\n` +
-          `  PRIMARY KEY (${keys.join(', ')});`;
+          `  PRIMARY KEY (${keys.join(', ')})${foreignKeyClause};`;
       }
       return '';
     }
@@ -2712,7 +2795,7 @@
       if (text) addDraft(text);
     }
 
-    function renderColumn(column) {
+    function renderColumn(column, relation) {
       const row = document.createElement('div');
       row.className = 'schema-column';
       row.setAttribute('role', 'treeitem');
@@ -2728,6 +2811,15 @@
       aura.textContent = auraText(column.aura);
       const name = document.createElement('span');
       name.textContent = column.name;
+      const foreignKey = (relation.foreignKeys || []).some((candidate) => {
+        return candidate.childColumn === column.name;
+      });
+      if (foreignKey) {
+        const marker = document.createElement('span');
+        marker.className = 'schema-column-aura';
+        marker.textContent = 'fk';
+        name.append(' ', marker);
+      }
       row.append(key, aura, name);
       return row;
     }
@@ -2758,7 +2850,7 @@
       summary.appendChild(actions);
       const children = schemaChildren();
       relation.columns.forEach((column) => {
-        children.appendChild(renderColumn(column));
+        children.appendChild(renderColumn(column, relation));
       });
       details.append(summary, children);
       return details;
@@ -2822,6 +2914,68 @@
       schemaTree.setAttribute('aria-busy', 'false');
     }
 
+    function schemaTerm(value) {
+      return String(value || '').replace(/^%/, '');
+    }
+
+    function foreignKeyRow(row) {
+      const values = {};
+      (Array.isArray(row) ? row : []).forEach((cell) => {
+        values[cell.name] = cell.value;
+      });
+      return {
+        parentNamespace: schemaTerm(values['parent-namespace']),
+        parentTable: schemaTerm(values['parent-table']),
+        childNamespace: schemaTerm(values['child-namespace']),
+        childTable: schemaTerm(values['child-table']),
+        ordinal: Number(String(values.ordinal || '0').replaceAll('.', '')),
+        parentColumn: schemaTerm(values['parent-column']),
+        childColumn: schemaTerm(values['child-column']),
+        onDelete: schemaTerm(values['on-delete']),
+        onUpdate: schemaTerm(values['on-update'])
+      };
+    }
+
+    function attachForeignKeys(database, commands) {
+      const resultSet = allResultSets(commands)[0];
+      if (!resultSet || !Array.isArray(resultSet.rows)) return;
+      resultSet.rows.map(foreignKeyRow).forEach((foreignKey) => {
+        const namespace = database.namespaces.find((candidate) => {
+          return candidate.name === foreignKey.childNamespace;
+        });
+        if (!namespace) return;
+        const relation = namespace.relations.find((candidate) => {
+          return candidate.kind === 'table' &&
+            candidate.name === foreignKey.childTable;
+        });
+        if (!relation) return;
+        if (!Array.isArray(relation.foreignKeys)) relation.foreignKeys = [];
+        relation.foreignKeys.push(foreignKey);
+      });
+    }
+
+    async function loadForeignKeys(schema) {
+      for (const database of schema.databases) {
+        if (database.name === 'sys' ||
+            foreignKeysUnavailable.has(database.name)) continue;
+        const script = `FROM ${database.name}.sys.foreign-keys\n` +
+          `SELECT parent-namespace, parent-table, child-namespace, ` +
+          `child-table, ordinal, parent-column, child-column, ` +
+          `on-delete, on-update;`;
+        try {
+          const body = await api('run', {
+            defaultDatabase: database.name,
+            script
+          });
+          attachForeignKeys(database, body.commands || []);
+        } catch (error) {
+          if (String(error.message).includes('foreign-keys does not exist')) {
+            foreignKeysUnavailable.add(database.name);
+          }
+        }
+      }
+    }
+
     async function refreshSchema(options = {}) {
       schemaTree.setAttribute('aria-busy', 'true');
       try {
@@ -2843,6 +2997,8 @@
         schemaValue = schema;
         renderSchema(schemaValue);
         persist();
+        await loadForeignKeys(schema);
+        if (schemaValue === schema) renderSchema(schemaValue);
       } catch (error) {
         schemaTree.replaceChildren();
         const failure = document.createElement('p');
@@ -2922,6 +3078,13 @@
 
     function allResultSets(commands) {
       return commands.flatMap(resultSetsForCommand);
+    }
+
+    function commandIsExportable(command) {
+      return resultSetsForCommand(command).some((resultSet) => {
+        return Array.isArray(resultSet.columns) &&
+          resultSet.columns.length > 0;
+      });
     }
 
     function runExportText(commands, delimiter) {
@@ -3093,15 +3256,17 @@
       return section;
     }
 
-    function renderCommand(command, position) {
+    function renderCommand(command, position, showHeading = true) {
       const group = document.createElement('article');
       group.className = 'command-group';
-      const heading = document.createElement('h3');
-      heading.className = 'command-heading';
       const commandIndex = Number.isInteger(command.index) ?
         command.index + 1 : position + 1;
-      heading.textContent = `Command ${commandIndex}`;
-      group.appendChild(heading);
+      if (showHeading) {
+        const heading = document.createElement('h3');
+        heading.className = 'command-heading';
+        heading.textContent = `Command ${commandIndex}`;
+        group.appendChild(heading);
+      }
       const resultSets = resultSetsForCommand(command);
       const metadata = metadataForCommand(command);
       if (resultSets.length === 0) {
@@ -3158,6 +3323,56 @@
       return group;
     }
 
+    function renderCommandTabs(commands) {
+      const container = document.createElement('div');
+      container.className = 'command-tab-set';
+      const tabList = document.createElement('div');
+      tabList.className = 'command-tabs';
+      tabList.setAttribute('role', 'tablist');
+      tabList.setAttribute('aria-label', 'Command results');
+      const tabs = [];
+      const panels = [];
+      function selectCommand(selected) {
+        tabs.forEach((tab, position) => {
+          const active = position === selected;
+          tab.setAttribute('aria-selected', String(active));
+          tab.tabIndex = active ? 0 : -1;
+          panels[position].hidden = !active;
+        });
+        outputState.activeCommand = selected;
+        outputState.exportable = commandIsExportable(commands[selected]);
+        lastOutputText = runCopyText([commands[selected]]);
+        updateOutputControls();
+      }
+      commands.forEach((command, position) => {
+        const commandIndex = Number.isInteger(command.index) ?
+          command.index + 1 : position + 1;
+        const tab = document.createElement('button');
+        const panel = document.createElement('div');
+        const tabId = `command-tab-${position}`;
+        const panelId = `command-tab-panel-${position}`;
+        tab.type = 'button';
+        tab.id = tabId;
+        tab.className = 'command-tab';
+        tab.textContent = `Command ${commandIndex}`;
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', panelId);
+        panel.id = panelId;
+        panel.className = 'command-tab-panel';
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', tabId);
+        panel.appendChild(renderCommand(command, position, false));
+        tab.addEventListener('click', () => selectCommand(position));
+        tabs.push(tab);
+        panels.push(panel);
+        tabList.appendChild(tab);
+        container.appendChild(panel);
+      });
+      container.prepend(tabList);
+      selectCommand(0);
+      return container;
+    }
+
     function revealOutput() {
       state.outputOpen = true;
       applyLayout();
@@ -3167,13 +3382,13 @@
 
     function showRunOutput(commands) {
       const safeCommands = Array.isArray(commands) ? commands : [];
-      const exportable = allResultSets(safeCommands).some((resultSet) => {
-        return Array.isArray(resultSet.columns) &&
-          resultSet.columns.length > 0;
-      });
+      const activeCommand = safeCommands.length > 0 ? 0 : null;
+      const exportable = activeCommand === null ? false :
+        commandIsExportable(safeCommands[activeCommand]);
       outputState = {
         kind: 'run',
         commands: safeCommands,
+        activeCommand,
         text: '',
         exportable,
         path: null
@@ -3185,10 +3400,10 @@
         empty.className = 'empty-state';
         empty.textContent = 'No command results.';
         results.appendChild(empty);
+      } else if (safeCommands.length === 1) {
+        results.appendChild(renderCommand(safeCommands[0], 0));
       } else {
-        safeCommands.forEach((command, position) => {
-          results.appendChild(renderCommand(command, position));
-        });
+        results.appendChild(renderCommandTabs(safeCommands));
       }
       revealOutput();
     }
@@ -3198,6 +3413,7 @@
       outputState = {
         kind: 'parse',
         commands: [],
+        activeCommand: null,
         text: value,
         exportable: value.length > 0,
         path: null
@@ -3216,6 +3432,7 @@
       outputState = {
         kind: 'error',
         commands: [],
+        activeCommand: null,
         text: value,
         exportable: false,
         path: null

@@ -803,8 +803,10 @@
     ==
   =/  key=key-dto:web  [0 %.y]
   =/  column=column-dto:web  [%id '@ud' 0 `key]
+  =/  foreign-key=foreign-key-dto:web
+    [%public %parent 1 %id %parent-id %restrict %cascade]
   =/  relation=relation-dto:web
-    [%example %public %items %table ~[column]]
+    [%example %public %items %table ~[column] ~[foreign-key]]
   =/  namespace=namespace-dto:web  [%public ~[relation]]
   =/  database=database-dto:web  [%example %.y ~[namespace]]
   =/  schema=schema-dto:web  [%example ~[database]]
@@ -1434,6 +1436,7 @@
     %+  expect-eq
       !>(expected)
     !>((detail-script:schema-lib ~[%sys %alpha]))
+    (expect !>(?=(~ (find "foreign-keys" expected))))
   ==
 ::
 ++  test-schema-refresh-decisions-52
@@ -1988,6 +1991,12 @@
     (expect !>(?=(^ (find "'vw'" script))))
     (expect !>(?=(^ (find "DEFAULT" script))))
     (expect !>(?=(^ (find "PRIMARY KEY" script))))
+    (expect !>(?=(^ (find "FOREIGN KEY" script))))
+    (expect !>(?=(^ (find "foreignKeys" script))))
+    (expect !>(?=(^ (find "marker.textContent = 'fk'" script))))
+    (expect !>(?=(^ (find "loadForeignKeys" script))))
+    (expect !>(?=(^ (find "foreignKeysUnavailable" script))))
+    (expect !>(?=(^ (find "foreign-keys does not exist" script))))
   ==
 ::
 ++  test-output-ui-contract-74
@@ -2018,7 +2027,15 @@
     (expect !>(?=(^ (find "showParseOutput" script))))
     (expect !>(?=(^ (find "showErrorOutput" script))))
     (expect !>(?=(^ (find "renderCommand" script))))
+    (expect !>(?=(^ (find "renderCommandTabs" script))))
+    (expect !>(?=(^ (find "safeCommands.length === 1" script))))
+    (expect !>(?=(^ (find "command-tab-panel" script))))
+    (expect !>(?=(^ (find "runCopyText([commands[selected]])" script))))
+    (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
+    (expect !>(?=(^ (find "command ? [command] : []" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
+    (expect !>(?=(^ (find ".command-tabs" style))))
+    (expect !>(?=(^ (find ".command-tab" style))))
     (expect !>(?=(^ (find "resultPageSize = 500" script))))
     (expect !>(?=(^ (find "resultPagingThreshold = 800" script))))
     (expect !>(?=(^ (find "makePager('top')" script))))

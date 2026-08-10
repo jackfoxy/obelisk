@@ -293,6 +293,7 @@
       name.row
       %table
       (table-columns namespace name.row keys columns)
+      ~
   ==
 ::
 ++  make-column
@@ -306,7 +307,7 @@
           columns=(list column-dto:web)
       ==
   ^-  relation-dto:web
-  [database %sys name %view columns]
+  [database %sys name %view columns ~]
 ::
 ++  databases-view
   |=  database=@tas
