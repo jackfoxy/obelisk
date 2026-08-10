@@ -158,22 +158,26 @@
                 ;div#explorer-tabs.explorer-tabs
                   =role  "tablist"
                   =aria-label  "Obelisk explorer"
-                  ;button#schemas-tab.explorer-tab.active
-                    =type  "button"
-                    =role  "tab"
-                    =data-explorer-view  "schemas"
-                    =aria-selected  "true"
-                    =aria-controls  "schema-panel"
-                    Schemas
+                  ;div.explorer-tab-control.active(role "presentation")
+                    ;button#schemas-tab.explorer-tab.active
+                      =type  "button"
+                      =role  "tab"
+                      =data-explorer-view  "schemas"
+                      =aria-selected  "true"
+                      =aria-controls  "schema-panel"
+                      Schemas
+                    ==
                   ==
-                  ;button#files-tab.explorer-tab
-                    =type  "button"
-                    =role  "tab"
-                    =data-explorer-view  "files"
-                    =aria-selected  "false"
-                    =aria-controls  "files-panel"
-                    =tabindex  "-1"
-                    Files
+                  ;div.explorer-tab-control(role "presentation")
+                    ;button#files-tab.explorer-tab
+                      =type  "button"
+                      =role  "tab"
+                      =data-explorer-view  "files"
+                      =aria-selected  "false"
+                      =aria-controls  "files-panel"
+                      =tabindex  "-1"
+                      Files
+                    ==
                   ==
                 ==
                 ;span#local-ship.ship: {(trip (scot %p our))}
@@ -838,10 +842,12 @@
   }
 
   .explorer-heading {
+    flex: 1;
     min-width: 0;
   }
 
   .explorer-tabs {
+    border-bottom: 1px solid var(--border);
     display: flex;
     gap: 0.2rem;
     overflow-x: auto;
@@ -849,10 +855,11 @@
 
   .explorer-tab {
     background: transparent;
-    border-color: transparent;
+    border: 0;
     border-radius: 0;
     color: var(--muted);
     font-weight: 600;
+    height: 100%;
     padding: 0.2rem 0.35rem;
   }
 
@@ -862,17 +869,31 @@
   }
 
   .explorer-tab.active {
-    border-bottom-color: var(--accent);
     color: var(--text);
   }
 
-  .docs-tab-control {
+  .explorer-tab-control, .docs-tab-control {
     align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
     display: inline-flex;
+    overflow: hidden;
   }
 
-  .docs-tab-control.active {
-    box-shadow: inset 0 -2px var(--accent);
+  .explorer-tab-control {
+    height: 2rem;
+  }
+
+  .explorer-tab-control .explorer-tab {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    line-height: 1;
+    padding-block: 0;
+  }
+
+  .docs-tab-control {
+    height: 2.3rem;
   }
 
   .docs-tab-control .explorer-tab {
@@ -883,13 +904,15 @@
     white-space: nowrap;
   }
 
-  .docs-tab-control.active .explorer-tab {
-    border-bottom-color: transparent;
-  }
-
   .docs-tab-close {
+    align-items: center;
+    align-self: stretch;
     background: transparent;
     border: 0;
+    border-left: 0;
+    border-radius: 0;
+    display: inline-flex;
+    justify-content: center;
     min-height: 1.5rem;
     padding: 0.2rem;
     width: 1.5rem;
@@ -1064,11 +1087,47 @@
     padding: 0.35rem 0.5rem 0;
   }
 
-  .editor-tabs button {
+  .editor-tabs > button, .editor-tab-control {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     height: 2.3rem;
     margin-right: 0.25rem;
+  }
+
+  .editor-tab-control {
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    display: inline-flex;
+    overflow: hidden;
+  }
+
+  .editor-tab-control .tab, .editor-tab-close {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    height: 100%;
+    margin: 0;
+  }
+
+  .editor-tab-close {
+    align-items: center;
+    border-left: 0;
+    display: inline-flex;
+    justify-content: center;
+    padding: 0.2rem;
+    width: 1.75rem;
+  }
+
+  .editor-tab-close .close-icon {
+    height: 0.65rem;
+    width: 0.65rem;
+  }
+
+  .editor-tab-close .close-icon::before,
+  .editor-tab-close .close-icon::after {
+    top: 0.3rem;
+    width: 0.65rem;
   }
 
   .editor-tabs .active {
@@ -1808,15 +1867,22 @@
     }
 
     function renderTabs() {
-      tabsElement.querySelectorAll('[role="tab"]').forEach((tab) => {
+      const controls = tabsElement.querySelectorAll(
+        '.editor-tab-control, .tab'
+      );
+      controls.forEach((tab) => {
         tab.remove();
       });
       state.tabs.forEach((tab) => {
+        const control = document.createElement('div');
         const button = document.createElement('button');
         const selected = tab.id === state.activeId;
+        control.className = selected ?
+          'editor-tab-control active' : 'editor-tab-control';
+        control.setAttribute('role', 'presentation');
         button.type = 'button';
         button.id = `tab-${tab.id}`;
-        button.className = selected ? 'tab active' : 'tab';
+        button.className = 'tab';
         button.setAttribute('role', 'tab');
         button.setAttribute('aria-selected', String(selected));
         button.setAttribute('aria-controls', 'query-editor');
@@ -1827,7 +1893,21 @@
         button.title = tab.path ? tab.path.join('/') : tab.name;
         button.addEventListener('click', () => activateTab(tab.id, true));
         button.addEventListener('keydown', tabKeydown);
-        tabsElement.insertBefore(button, newTabButton);
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'editor-tab-close';
+        close.title = 'Close';
+        close.setAttribute('aria-label', `Close ${tab.name} script tab`);
+        const closeIcon = document.createElement('span');
+        closeIcon.className = 'close-icon';
+        closeIcon.setAttribute('aria-hidden', 'true');
+        close.appendChild(closeIcon);
+        close.addEventListener('click', (event) => {
+          event.stopPropagation();
+          closeTab(tab.id);
+        });
+        control.append(button, close);
+        tabsElement.insertBefore(control, newTabButton);
       });
     }
 
@@ -1932,9 +2012,11 @@
       return tab;
     }
 
-    function closeActiveTab() {
-      captureEditor();
-      const index = state.tabs.findIndex((tab) => tab.id === state.activeId);
+    function closeTab(id) {
+      const active = id === state.activeId;
+      if (active) captureEditor();
+      const index = state.tabs.findIndex((tab) => tab.id === id);
+      if (index < 0) return;
       state.tabs.splice(index, 1);
       if (state.tabs.length === 0) {
         const name = nextDraftName();
@@ -1948,12 +2030,18 @@
           selectionEnd: 0
         });
       }
-      const next = Math.min(index, state.tabs.length - 1);
-      state.activeId = state.tabs[next].id;
+      if (active) {
+        const next = Math.min(index, state.tabs.length - 1);
+        state.activeId = state.tabs[next].id;
+      }
       renderTabs();
-      restoreEditor(true);
+      if (active) restoreEditor(true);
       persist();
       closeMenus();
+    }
+
+    function closeActiveTab() {
+      closeTab(state.activeId);
     }
 
     function setStatus(message, kind = 'info', sticky = false) {
@@ -2191,6 +2279,8 @@
       state.explorerView = selected;
       schemasTab.classList.toggle('active', schemas);
       filesTab.classList.toggle('active', files);
+      schemasTab.parentElement.classList.toggle('active', schemas);
+      filesTab.parentElement.classList.toggle('active', files);
       schemasTab.setAttribute('aria-selected', String(schemas));
       filesTab.setAttribute('aria-selected', String(files));
       schemasTab.tabIndex = schemas ? 0 : -1;
