@@ -1380,7 +1380,13 @@
     |=  relation=relation-dto:web
     name.relation
   ;:  weld
-    (expect-eq !>(%sys) !>(default-database.schema))
+    (expect-eq !>(%alpha) !>(default-database.schema))
+    %+  expect-eq
+      !>(%sys)
+    !>((default-database:schema-lib `%sys ~[%alpha %sys]))
+    %+  expect-eq
+      !>(%sys)
+    !>((default-database:schema-lib ~ ~[%sys]))
     %+  expect-eq
       !>(~[%alpha %sys])
     !>((turn databases.schema |=(database=database-dto:web name.database)))
@@ -1396,8 +1402,8 @@
     %+  expect-eq
       !>(expected-views)
     !>((turn relations.sys-namespace |=(r=relation-dto:web name.r)))
-    (expect-eq !>(%.n) !>(default.alpha))
-    (expect-eq !>(%.y) !>(default.system))
+    (expect-eq !>(%.y) !>(default.alpha))
+    (expect-eq !>(%.n) !>(default.system))
     (expect-eq !>(~[%databases]) !>(system-relations))
   ==
 ::
@@ -1492,7 +1498,7 @@
     !>(-.details-watched)
     (expect-eq !>(200) !>((response-status response-cards)))
     %+  expect-eq
-      !>(`'sys')
+      !>(`'alpha')
     !>((text-field:json-lib 'defaultDatabase' response-value))
   ==
 ::
@@ -1958,6 +1964,12 @@
     (expect !>(?=(^ (find "details.open = state.schemaExpanded" script))))
     (expect !>(?=(^ (find "schemaChanged" script))))
     (expect !>(?=(^ (find "preferNewDatabase" script))))
+    (expect !>(?=(^ (find "defaultDatabase: null" script))))
+    (expect !>(?=(^ (find "::WITH (FROM..." script))))
+    (expect !>(?=(^ (find "::      SELECT...) AS ..." script))))
+    (expect !>(?=(^ (find "::JOIN" script))))
+    (expect !>(?=(^ (find "::SCALARS" script))))
+    (expect !>(?=(^ (find "::WHERE" script))))
     (expect !>(?=(^ (find "'tbl'" script))))
     (expect !>(?=(^ (find "'vw'" script))))
     (expect !>(?=(^ (find "DEFAULT" script))))

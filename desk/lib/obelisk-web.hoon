@@ -1705,7 +1705,7 @@
         outputSize: 260,
         schemaOpen: true,
         outputOpen: true,
-        defaultDatabase: 'sys',
+        defaultDatabase: null,
         explorerView: 'schemas',
         docsTabs: [],
         nextDocs: 1,
@@ -2566,7 +2566,13 @@
         relation.name;
       const columns = relation.columns.map((column) => column.name);
       if (action === 'SELECT') {
-        return `FROM ${qualified}\nSELECT ${columns.join(', ') || '*'};`;
+        return `::WITH (FROM...\n` +
+          `::      SELECT...) AS ...\n` +
+          `FROM ${qualified}\n` +
+          `::JOIN\n` +
+          `::SCALARS\n` +
+          `::WHERE\n` +
+          `SELECT ${columns.join(', ') || '*'} ;`;
       }
       if (action === 'INSERT' && relation.kind === 'table') {
         const values = columns.map(() => 'DEFAULT').join(', ');
@@ -3805,11 +3811,7 @@
     });
 
     updateOutputControls();
-    defaultDatabase.value = state.defaultDatabase;
-    if (!defaultDatabase.value) {
-      state.defaultDatabase = 'sys';
-      defaultDatabase.value = 'sys';
-    }
+    defaultDatabase.value = state.defaultDatabase || 'sys';
     renderTabs();
     restoreEditor(false);
     renderDocsHelpTree();

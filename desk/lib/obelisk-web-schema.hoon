@@ -215,7 +215,10 @@
 ++  default-database
   |=  [requested=(unit @tas) databases=(list @tas)]
   ^-  @tas
+  =/  user-databases=(list @tas)
+    (skim databases |=(database=@tas !=(%sys database)))
   =/  fallback=@tas
+    ?^  user-databases  i.user-databases
     ?:  (has-database %sys databases)  %sys
     ?~(databases %sys i.databases)
   ?~  requested  fallback
