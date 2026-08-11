@@ -518,7 +518,7 @@
       =/  action=action:ast
         :*  %script
             default-database.request.job.active
-            %vector
+            %raw
             (trip script.request.job.active)
         ==
       =/  work=work-plan

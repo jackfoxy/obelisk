@@ -28,7 +28,9 @@ current output are retained only for the browser session.
 
 Query results are displayed in command order. Result sets of 800 rows or more
 are paged in groups of 500, while Copy and Save Results still include every
-row. Save Results supports comma, space, and tab delimiters. The interface
+row. Save Results supports comma-separated, tab-separated, space-separated,
+Markdown, HTML, text, JSON, `%wain`, `%manx`, `%vector`, and `%raw` formats.
+The selected format's mark is appended to the result path when absent. The interface
 requires an authenticated ship session for database and file operations.
 
 

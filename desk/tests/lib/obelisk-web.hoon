@@ -1002,7 +1002,7 @@
           ==
     !>(-.fact)
     %+  expect-eq
-      !>  ~[(work-poke-card-at 0 0 1 [%script %sys %vector "SELECT 1;"])]
+      !>  ~[(work-poke-card-at 0 0 1 [%script %sys %raw "SELECT 1;"])]
     !>(-.script-watched)
     (expect-eq !>((work-leave-card-at 0 0 1)) !>((first-card -.finished)))
     (expect-eq !>(200) !>((response-status (tail-cards -.finished))))
@@ -1225,6 +1225,7 @@
                 ==
                 [%vector-count 1]
             ==
+            ~
         ==
         %.n
     ==
@@ -1584,8 +1585,8 @@
         ~[~[[%zeta '@t' 'last']]]
     ==
   =/  commands=(list command-dto:web)
-    :~  [0 ~[[%message hostile-text] [%result-set first]]]
-        [1 ~[[%result-set second] [%vector-count 1]]]
+    :~  [0 ~[[%message hostile-text] [%result-set first]] ~]
+        [1 ~[[%result-set second] [%vector-count 1]] ~]
     ==
   ;:  weld
     %+  expect-eq
@@ -1602,13 +1603,43 @@
     !>((result-sets:result-lib commands))
   ==
 ::
+++  test-result-format-exports-55-a
+  =/  columns
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %value ~.t 0]]
+  =/  data=(map @tas @)
+    (~(gas by *(map @tas @)) ~[[%value 'safe']])
+  =/  row=data-row:ast  [%indexed-row ~ data]
+  =/  relation=relation:ast
+    :*  %relation
+        ~
+        ~[columns]
+        ~
+        %.n
+        *(tree [(list @) (map @tas @)])
+        ~[[0 row]]
+    ==
+  =/  command=cmd-result:ast
+    [%results ~[[%relations ~[relation]]]]
+  =/  exports=(list result-export-dto:web)
+    (result-exports:result-lib command)
+  ;:  weld
+    %+  expect-eq
+      !>  :~  %csv  %tab  %spac  %markdown  %html  %tape
+              %json  %wain  %manx  %vector  %raw
+          ==
+    !>((turn exports |=(export=result-export-dto:web format.export)))
+    (expect-eq !>([%csv 'value\0asafe']) !>(i.exports))
+    (expect-eq !>(11) !>((lent exports)))
+  ==
+::
 ++  test-result-export-empty-and-metadata-56
   =/  empty-set=result-set-dto:web  [~ ~]
   =/  header-only=result-set-dto:web  [~[[%value 't']] ~]
   =/  metadata=(list command-dto:web)
-    ~[[0 ~[[%message hostile-text]]]]
+    ~[[0 ~[[%message hostile-text]] ~]]
   =/  empty-command=(list command-dto:web)
-    ~[[0 ~[[%result-set empty-set]]]]
+    ~[[0 ~[[%result-set empty-set]] ~]]
   =/  line=@t  (cat 3 'message: ' hostile-text)
   =/  expected=@t  (cat 3 line '\0a')
   ;:  weld
@@ -1618,7 +1649,8 @@
     !>((result-export-text:result-lib empty-command %comma))
     %+  expect-eq
       !>('value\0a')
-    !>((result-export-text:result-lib ~[[0 ~[[%result-set header-only]]]] %tab))
+    !>  %-  result-export-text:result-lib
+        [~[[0 ~[[%result-set header-only]] ~]] %tab]
     (expect-eq !>(expected) !>((metadata-text:result-lib metadata)))
     %+  expect-eq
       !>(expected)
@@ -1632,7 +1664,7 @@
   =/  table=result-set-dto:web
     [~[[%value '@t']] ~[~[[%value '@t' 'safe']]]]
   =/  commands=(list command-dto:web)
-    ~[[0 ~[[%result-set table] [%message hostile-text]]]]
+    ~[[0 ~[[%result-set table] [%message hostile-text]] ~]]
   =/  expected=@t
     (cat 3 'value\0asafe\0a\0amessage: ' (cat 3 hostile-text '\0a'))
   %+  expect-eq
@@ -1654,7 +1686,7 @@
   =/  vectors=(list vector:ast)  (numbered-vectors 800)
   =/  table=result-set-dto:web  (result-set:result-lib vectors)
   =/  commands=(list command-dto:web)
-    ~[[0 ~[[%result-set table]]]]
+    ~[[0 ~[[%result-set table]] ~]]
   =/  exported=@t  (result-export-text:result-lib commands %comma)
   ;:  weld
     (expect !>(!(should-page:result-lib 799)))
@@ -1681,10 +1713,30 @@
     (expect !>(!(valid-file-path:file-lib ~[%scripts '' %query-1])))
     (expect !>(!(valid-file-path:file-lib ~[%scripts 'bad path'])))
     (expect !>((valid-storage-mark:file-lib %txt)))
+    (expect !>((valid-storage-mark:file-lib %csv)))
+    (expect !>((valid-storage-mark:file-lib %tab)))
+    (expect !>((valid-storage-mark:file-lib %md)))
+    (expect !>((valid-storage-mark:file-lib %html)))
+    (expect !>((valid-storage-mark:file-lib %json)))
+    (expect !>((valid-storage-mark:file-lib %noun)))
     (expect !>(!(valid-storage-mark:file-lib %hoon)))
     %+  expect-eq
       !>(/data/obelisk/scripts/nested/query-1/txt)
     !>((storage-path:file-lib ~[%scripts %nested %query-1]))
+    %+  expect-eq
+      !>(/data/obelisk/results/results-1/csv)
+    !>((storage-path:file-lib ~[%results %results-1 %csv]))
+    %+  expect-eq
+      !>(/data/obelisk/results/results-2/txt)
+    !>((storage-path:file-lib ~[%results %results-2 %txt]))
+    %+  expect-eq
+      !>(`~[%results %results-1 %csv])
+    !>  %-  logical-path:file-lib
+        /data/obelisk/results/results-1/csv
+    %+  expect-eq
+      !>(`~[%scripts %nested %query-1])
+    !>  %-  logical-path:file-lib
+        /data/obelisk/scripts/nested/query-1/txt
     %+  expect-eq
       !>(/~zod//~2026.8.1/tomb/~zod/obelisk/~2026.8.1/data/obelisk/txt)
     !>  %:  tomb-beam:file-lib
@@ -1756,14 +1808,31 @@
 ++  test-file-save-persistence-64
   =/  relative=relative-path:web  ~[%scripts %step-10-persist]
   =/  content=@t  hostile-text
+  =/  json-content=@t  '{"value":"safe"}\0a'
   =/  clay-path=path  (storage-path:file-lib relative)
   =/  riot=riot:clay
     `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
+  =/  csv-riot=riot:clay
+    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/csv
+      [%csv !>((storage-wain:file-lib content))]]
+  =/  html-riot=riot:clay
+    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/html
+      [%html !>(content)]]
+  =/  json-riot=riot:clay
+    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/json
+      [%json !>((need (de:json:html json-content)))]]
+  =/  tab-riot=riot:clay
+    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/tab
+      [%tab !>((storage-wain:file-lib content))]]
   ;:  weld
     %+  expect-eq
       !>(/data/obelisk/scripts/step-10-persist/txt)
     !>(clay-path)
     (expect !>((save-verifies:file-lib content riot)))
+    (expect !>((save-verifies:file-lib content csv-riot)))
+    (expect !>((save-verifies:file-lib content html-riot)))
+    (expect !>((save-verifies:file-lib json-content json-riot)))
+    (expect !>((save-verifies:file-lib content tab-riot)))
   ==
 ::
 ++  test-file-save-clay-failure-65
@@ -2012,10 +2081,18 @@
     (expect !>(?=(^ (find "Save results" html))))
     (expect !>(?=(^ (find "save-context-menu" html))))
     (expect !>(?=(~ (find "save-results-btn" html))))
-    (expect !>(?=(^ (find "results-delimiter-fields" html))))
-    (expect !>(?=(^ (find "value=\"comma\"" html))))
-    (expect !>(?=(^ (find "value=\"space\"" html))))
-    (expect !>(?=(^ (find "value=\"tab\"" html))))
+    (expect !>(?=(^ (find "results-format-select" html))))
+    (expect !>(?=(^ (find "value=\"%csv\"" html))))
+    (expect !>(?=(^ (find "value=\"%tab\"" html))))
+    (expect !>(?=(^ (find "value=\"%spac\"" html))))
+    (expect !>(?=(^ (find "value=\"%markdown\"" html))))
+    (expect !>(?=(^ (find "value=\"%html\"" html))))
+    (expect !>(?=(^ (find "value=\"%tape\"" html))))
+    (expect !>(?=(^ (find "value=\"%json\"" html))))
+    (expect !>(?=(^ (find "value=\"%wain\"" html))))
+    (expect !>(?=(^ (find "value=\"%manx\"" html))))
+    (expect !>(?=(^ (find "value=\"%vector\"" html))))
+    (expect !>(?=(^ (find "value=\"%raw\"" html))))
     (expect !>(?=(^ (find "result-table-wrap" style))))
     (expect !>(?=(^ (find "white-space: nowrap" style))))
     (expect !>(?=(^ (find "height: 2.3rem" style))))
@@ -2032,7 +2109,7 @@
     (expect !>(?=(^ (find "command-tab-panel" script))))
     (expect !>(?=(^ (find "runCopyText([commands[selected]])" script))))
     (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
-    (expect !>(?=(^ (find "command ? [command] : []" script))))
+    (expect !>(?=(^ (find "command.exports" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
     (expect !>(?=(^ (find ".command-tabs" style))))
     (expect !>(?=(^ (find ".command-tab" style))))
@@ -2051,6 +2128,8 @@
     (expect !>(?=(^ (find "event.clientX" script))))
     (expect !>(?=(^ (find "window.innerWidth" script))))
     (expect !>(?=(^ (find "outputState.path" script))))
+    (expect !>(?=(^ (find "resultFormatMarks" script))))
+    (expect !>(?=(^ (find "path[path.length - 1] === mark" script))))
     (expect !>(?=(^ (find "nextResultName" script))))
     (expect !>(?=(^ (find "path: ['results']" script))))
     (expect !>(?=(^ (find "error.status === 409" script))))

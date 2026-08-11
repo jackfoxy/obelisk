@@ -419,29 +419,20 @@
               Script path
             ==
             ;input#file-path-input.hidden(placeholder "folder/script-name");
-            ;fieldset#results-delimiter-fields.hidden
-              ;legend: Format
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "comma"
-                  =checked  "";
-                Comma
-              ==
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "space";
-                Space
-              ==
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "tab";
-                Tab
+            ;label#results-format-field.hidden(for "results-format-select")
+              Format
+              ;select#results-format-select(name "results-format")
+                ;option(value "%csv"): comma-separated
+                ;option(value "%tab"): tab-separated
+                ;option(value "%spac"): space-separated
+                ;option(value "%markdown"): markdown
+                ;option(value "%html"): html
+                ;option(value "%tape"): text
+                ;option(value "%json"): json
+                ;option(value "%wain"): %wain
+                ;option(value "%manx"): %manx
+                ;option(value "%vector"): %vector
+                ;option(value "%raw"): %raw
               ==
             ==
             ;div.dialog-actions
@@ -745,25 +736,21 @@
     width: 100%;
   }
 
-  #results-delimiter-fields {
-    border: 1px solid var(--border);
-    border-radius: 0.35rem;
-    display: flex;
-    gap: 1rem;
-    margin: 0;
-    padding: 0.55rem 0.7rem 0.65rem;
-  }
-
-  #results-delimiter-fields legend {
+  #results-format-field {
     color: var(--muted);
+    display: grid;
     font-size: 0.8rem;
-    padding: 0 0.25rem;
+    gap: 0.3rem;
   }
 
-  #results-delimiter-fields label {
-    align-items: center;
-    display: flex;
-    gap: 0.3rem;
+  #results-format-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+    color: var(--text);
+    min-height: 2.25rem;
+    padding: 0.4rem 0.55rem;
+    width: 100%;
   }
 
   .dialog-actions {
@@ -1680,7 +1667,8 @@
     const fileDialogList = byId('file-dialog-list');
     const filePathLabel = byId('file-path-label');
     const filePathInput = byId('file-path-input');
-    const resultsDelimiterFields = byId('results-delimiter-fields');
+    const resultsFormatField = byId('results-format-field');
+    const resultsFormatSelect = byId('results-format-select');
     const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
     const saveContextMenu = byId('save-context-menu');
@@ -1694,7 +1682,8 @@
       activeCommand: null,
       text: '',
       exportable: false,
-      path: null
+      path: null,
+      format: null
     };
     let busy = false;
     let fileDialogMode = 'open';
@@ -2174,8 +2163,10 @@
       return relativePathFromInput(value, 'scripts');
     }
 
-    function resultPathFromInput(value) {
-      return relativePathFromInput(value, 'results');
+    function resultPathFromInput(value, mark = null) {
+      const path = relativePathFromInput(value, 'results');
+      if (!path || !mark || path[path.length - 1] === mark) return path;
+      return [...path, mark];
     }
 
     function displayScriptPath(path) {
@@ -2195,7 +2186,7 @@
     function closeFileDialog() {
       if (fileDialog.open) fileDialog.close();
       selectedFilePath = null;
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
     }
 
     function samePath(left, right) {
@@ -2406,7 +2397,7 @@
       fileDialogList.classList.remove('hidden');
       filePathLabel.classList.add('hidden');
       filePathInput.classList.add('hidden');
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
       fileDialogConfirm.textContent = 'Open';
       fileDialogConfirm.disabled = true;
       fileDialog.showModal();
@@ -2439,7 +2430,7 @@
       filePathLabel.textContent = root === 'results' ?
         'Result path' : 'Script path';
       filePathInput.classList.remove('hidden');
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
       filePathInput.value = suggestScriptPath(activeTab());
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
@@ -2450,7 +2441,7 @@
 
     function nextResultName(entries) {
       const names = new Set(entries.filter((entry) => {
-        return Array.isArray(entry.path) && entry.path.length === 2 &&
+        return Array.isArray(entry.path) && entry.path.length >= 2 &&
           entry.path[0] === 'results';
       }).map((entry) => entry.path[1]));
       let number = 1;
@@ -2484,10 +2475,10 @@
       filePathInput.classList.remove('hidden');
       filePathInput.value = outputState.path ?
         outputState.path.slice(1).join('/') : nextResultName(entries);
-      const showDelimiter = outputState.kind === 'run';
-      resultsDelimiterFields.classList.toggle('hidden', !showDelimiter);
-      const comma = resultsDelimiterFields.querySelector('[value="comma"]');
-      comma.checked = true;
+      const showFormat = outputState.kind === 'run';
+      resultsFormatField.classList.toggle('hidden', !showFormat);
+      resultsFormatSelect.value = showFormat ?
+        (outputState.format || '%csv') : '%tape';
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
       fileDialog.showModal();
@@ -2585,32 +2576,49 @@
       if (saved) closeFileDialog();
     }
 
-    function selectedResultsDelimiter() {
-      const selected = resultsDelimiterFields.querySelector(
-        'input[name="results-delimiter"]:checked'
-      );
-      return selected ? selected.value : 'comma';
+    const resultFormatMarks = {
+      '%csv': 'csv',
+      '%tab': 'tab',
+      '%spac': 'txt',
+      '%markdown': 'md',
+      '%html': 'html',
+      '%tape': 'txt',
+      '%json': 'json',
+      '%wain': 'noun',
+      '%manx': 'noun',
+      '%vector': 'noun',
+      '%raw': 'noun'
+    };
+
+    function selectedResultsFormat() {
+      return resultsFormatSelect.value || '%csv';
     }
 
-    function resultSaveText() {
+    function resultSaveText(format) {
       if (outputState.kind === 'parse') {
         return ensureTrailingNewline(outputState.text);
       }
       const command = Number.isInteger(outputState.activeCommand) ?
         outputState.commands[outputState.activeCommand] : null;
-      return runExportText(
-        command ? [command] : [],
-        selectedResultsDelimiter()
-      );
+      const exports = command && command.exports &&
+        typeof command.exports === 'object' ? command.exports : {};
+      const exportKey = String(format || '').replace(/^%/, '');
+      return Object.prototype.hasOwnProperty.call(exports, exportKey) ?
+        ensureTrailingNewline(String(exports[exportKey])) : null;
     }
 
-    async function saveResultsFile(path, overwrite) {
+    async function saveResultsFile(path, overwrite, format) {
       if (busy || !outputState.exportable) return false;
-      const content = resultSaveText();
+      const content = resultSaveText(format);
+      if (content === null) {
+        setStatus(`Results are unavailable as ${format}.`, 'error', true);
+        return false;
+      }
       setBusy(true, 'save-results');
       try {
         const body = await api('file-save', {path, content, overwrite});
         outputState.path = body.path.slice();
+        outputState.format = format;
         await refreshFiles();
         setStatus(`${body.path.slice(1).join('/')} saved.`);
         return true;
@@ -2619,7 +2627,7 @@
         if (!overwrite && error.status === 409 &&
             window.confirm(`${name} exists. Overwrite it?`)) {
           setBusy(false);
-          return await saveResultsFile(path, true);
+          return await saveResultsFile(path, true, format);
         }
         setStatus(error.message, 'error', true);
         return false;
@@ -2629,14 +2637,17 @@
     }
 
     async function saveResultsFromDialog() {
-      const path = resultPathFromInput(filePathInput.value);
+      const format = outputState.kind === 'run' ?
+        selectedResultsFormat() : '%tape';
+      const mark = resultFormatMarks[format];
+      const path = resultPathFromInput(filePathInput.value, mark);
       if (!path) {
         fileDialogHelp.textContent =
           'Invalid path. Use names like folder/results-name.';
         filePathInput.focus();
         return;
       }
-      const saved = await saveResultsFile(path, false);
+      const saved = await saveResultsFile(path, false, format);
       if (saved) closeFileDialog();
     }
 
@@ -3391,7 +3402,8 @@
         activeCommand,
         text: '',
         exportable,
-        path: null
+        path: null,
+        format: null
       };
       lastOutputText = runCopyText(safeCommands);
       results.replaceChildren();
@@ -3416,7 +3428,8 @@
         activeCommand: null,
         text: value,
         exportable: value.length > 0,
-        path: null
+        path: null,
+        format: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -3435,7 +3448,8 @@
         activeCommand: null,
         text: value,
         exportable: false,
-        path: null
+        path: null,
+        format: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -3598,7 +3612,9 @@
         outputState.path.slice() : null;
       closeSaveContext();
       if (kind === 'script') await saveActiveTab();
-      else if (path) await saveResultsFile(path, true);
+      else if (path) {
+        await saveResultsFile(path, true, outputState.format || '%csv');
+      }
     }
 
     function saveAsFromContext() {

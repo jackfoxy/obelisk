@@ -220,9 +220,13 @@
       [%select-relation value=@t]
   ==
 ::
++$  result-export-dto
+  [format=result-format:ast content=@t]
+::
 +$  command-dto
   $:  index=@ud
       results=(list result-dto)
+      exports=(list result-export-dto)
   ==
 ::
 ::  +|  File DTOs

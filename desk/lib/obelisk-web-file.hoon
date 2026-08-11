@@ -16,9 +16,16 @@
   ~s10
 ::
 ++  valid-storage-mark
-  |=  mark=@tas
+  |=  mark=@ta
   ^-  ?
-  =(%txt mark)
+  ?|  =(%csv mark)
+      =(%html mark)
+      =(%json mark)
+      =(%md mark)
+      =(%noun mark)
+      =(%tab mark)
+      =(%txt mark)
+  ==
 ::
 ++  valid-part
   |=  part=@ta
@@ -75,6 +82,13 @@
 ++  storage-path
   |=  relative=relative-path:web
   ^-  path
+  =/  marked-result=?
+    ?&  (gte (lent relative) 3)
+        ?=(^ relative)
+        =(%results i.relative)
+        (valid-storage-mark (rear relative))
+    ==
+  ?:  marked-result  (browse-path relative)
   (snoc (browse-path relative) storage-mark)
 ::
 ++  clay-beam
@@ -107,9 +121,14 @@
       (slag (lent storage-root) physical)
     physical
   ?:  (lth (lent normalized) 3)  ~
-  ?.  =(%txt (rear normalized))  ~
+  =/  result-file=?  =(%results (snag 0 normalized))
+  =/  valid-mark=?
+    ?:  result-file
+      (valid-storage-mark (rear normalized))
+    =(%txt (rear normalized))
+  ?.  valid-mark  ~
   =/  relative=relative-path:web
-    (scag (dec (lent normalized)) normalized)
+    ?:(result-file normalized (scag (dec (lent normalized)) normalized))
   ?.  (valid-file-path relative)  ~
   `relative
 ::
@@ -178,9 +197,16 @@
 ++  text-from-cage
   |=  =cage
   ^-  (unit @t)
-  ?.  =(%txt p.cage)  ~
+  ?.  ?|  =(%csv p.cage)
+          =(%html p.cage)
+          =(%tab p.cage)
+          =(%txt p.cage)
+      ==
+    ~
   =/  decoded=(each @t tang)
     %-  mule  |.
+    ?:  =(%html p.cage)
+      ;;(@t q.q.cage)
     (of-wain:format ;;(wain q.q.cage))
   ?:(?=(%.n -.decoded) ~ `p.decoded)
 ::
@@ -188,6 +214,14 @@
   |=  [expected=@t result=riot:clay]
   ^-  ?
   ?~  result  %.n
+  ?:  =(%json p.r.u.result)
+    =/  expected-json=(unit json)  (de:json:html expected)
+    ?~  expected-json  %.n
+    =/  actual-json=(each json tang)
+      %-  mule  |.
+      ;;(json q.q.r.u.result)
+    ?:  ?=(%.n -.actual-json)  %.n
+    =(u.expected-json p.actual-json)
   =/  decoded=(unit @t)  (text-from-cage r.u.result)
   ?~  decoded  %.n
   =(expected u.decoded)

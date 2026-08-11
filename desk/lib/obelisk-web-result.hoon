@@ -9,24 +9,22 @@
   ^-  (list @t)
   (turn tang |=(=tank (crip ~(ram re tank))))
 ::
-++  result-column
-  |=  cell=vector-cell:ast
-  ^-  result-column-dto:web
-  [p.cell p.q.cell]
-::
-++  result-cell
-  |=  cell=vector-cell:ast
-  ^-  result-cell-dto:web
-  [p.cell p.q.cell (crip (render-dime:format q.cell))]
-::
 ++  result-set
   |=  vectors=(list vector:ast)
   ^-  result-set-dto:web
   =/  columns=(list result-column-dto:web)
     ?~  vectors  ~
-    (turn +.i.vectors result-column)
+    %+  turn  +.i.vectors
+    |=  cell=vector-cell:ast
+    ^-  result-column-dto:web
+    [p.cell p.q.cell]
   =/  rows=(list (list result-cell-dto:web))
-    (turn vectors |=(vector=vector:ast (turn +.vector result-cell)))
+    %+  turn  vectors
+    |=  vector=vector:ast
+    %+  turn  +.vector
+    |=  cell=vector-cell:ast
+    ^-  result-cell-dto:web
+    [p.cell p.q.cell (crip (render-dime:format q.cell))]
   [columns rows]
 ::
 ++  result-dto
@@ -50,8 +48,63 @@
   |=  [commands=(list cmd-result:ast) index=@ud]
   ^-  (list command-dto:web)
   ?~  commands  ~
-  :-  [index (turn +.i.commands result-dto)]
+  =/  vector=(list cmd-result:ast)
+    (format-results:format %vector ~[i.commands])
+  ?>  ?=(^ vector)
+  :-  [index (turn +.i.vector result-dto) (result-exports i.commands)]
   $(commands t.commands, index +(index))
+::
+++  relation-only
+  |=  command=cmd-result:ast
+  ^-  cmd-result:ast
+  :-  %results
+  %+  skim  +.command
+  |=(result=result:ast ?=(%relations -.result))
+::
+++  formatted-messages
+  |=  commands=(list cmd-result:ast)
+  ^-  @t
+  =/  messages=(list @t)
+    %-  zing
+    %+  turn  commands
+    |=  command=cmd-result:ast
+    %+  murn  +.command
+    |=  result=result:ast
+    ^-  (unit @t)
+    ?.  ?=(%message -.result)  ~
+    `msg.result
+  ?~  messages  ''
+  %-  crip
+  (join-tapes "\0a\0a" (turn messages trip))
+::
+++  result-export
+  |=  [fmt=result-format:ast command=cmd-result:ast]
+  ^-  @t
+  =/  formatted=(list cmd-result:ast)
+    (format-results:format fmt ~[(relation-only command)])
+  ?:  ?|  =(%wain fmt)
+          =(%manx fmt)
+          =(%vector fmt)
+          =(%raw fmt)
+      ==
+    (crip (text !>(formatted)))
+  (formatted-messages formatted)
+::
+++  result-exports
+  |=  command=cmd-result:ast
+  ^-  (list result-export-dto:web)
+  =/  relation-command=cmd-result:ast  (relation-only command)
+  ?~  +.relation-command  ~
+  =/  formats=(list result-format:ast)
+    :~  %csv  %tab  %spac  %markdown  %html  %tape
+        %json  %wain  %manx  %vector  %raw
+    ==
+  %+  murn  formats
+  |=  format=result-format:ast
+  ^-  (unit result-export-dto:web)
+  =/  exported=(each @t tang)
+    (mule |.((result-export format relation-command)))
+  ?:(?=(%.n -.exported) ~ `[format p.exported])
 ::
 ++  run-response
   |=  commands=(list cmd-result:ast)

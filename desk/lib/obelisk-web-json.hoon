@@ -256,6 +256,12 @@
   %-  pairs:enjs:format
   :~  ['index' n+(scot %ud index.command)]
       ['results' [%a (turn results.command result-json)]]
+      :-  'exports'
+      %-  pairs:enjs:format
+      %+  turn  exports.command
+      |=  export=result-export-dto:web
+      =/  key=@t  `@t`format.export
+      [key s+content.export]
   ==
 ::
 ++  file-entry-json

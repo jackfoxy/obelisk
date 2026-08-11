@@ -262,7 +262,8 @@ qualified and escaped correctly.
 - Parse output displays the parsed command noun in readable form.
 - Tang output includes a concise summary and expandable full details.
 - Multiple result sets remain distinct.
-- Save Results supports comma, space, and tab delimiters and separates result
+- Save Results offers every Obelisk result format and appends its mark to the
+  saved path when absent. It separates result
   sets with a blank line.
 
 ## Known Baseline Drift and Risks
