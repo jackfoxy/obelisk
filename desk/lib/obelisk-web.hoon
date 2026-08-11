@@ -2195,14 +2195,30 @@
       });
     }
 
+    function explorerFileParent(entry) {
+      const result = entry.kind === 'file' && entry.path[0] === 'results';
+      return entry.path.slice(0, result ? -2 : -1);
+    }
+
     function childFileEntries(parent) {
       return explorerFileEntries.filter((entry) => {
-        if (!Array.isArray(entry.path) ||
-            entry.path.length !== parent.length + 1) {
-          return false;
-        }
-        return samePath(entry.path.slice(0, parent.length), parent);
+        return Array.isArray(entry.path) &&
+          samePath(explorerFileParent(entry), parent);
       });
+    }
+
+    function neededExplorerDirectory(directory, entries) {
+      return entries.some((entry) => {
+        if (entry.kind !== 'file') return false;
+        const parent = explorerFileParent(entry);
+        return directory.path.length <= parent.length &&
+          samePath(directory.path, parent.slice(0, directory.path.length));
+      });
+    }
+
+    function explorerFileLabel(entry) {
+      const result = entry.kind === 'file' && entry.path[0] === 'results';
+      return entry.path.slice(result ? -2 : -1).join('/');
     }
 
     function fileExpansion(path, details) {
@@ -2238,7 +2254,7 @@
       button.type = 'button';
       button.className = 'file-entry explorer-file';
       button.setAttribute('role', 'treeitem');
-      button.textContent = entry.path[entry.path.length - 1];
+      button.textContent = explorerFileLabel(entry);
       button.title = entry.path.join('/');
       button.addEventListener('click', () => {
         loadFilePath(entry.path);
@@ -2247,9 +2263,13 @@
     }
 
     function renderFiles(entries) {
-      explorerFileEntries = entries.filter((entry) => {
+      const candidates = entries.filter((entry) => {
         return Array.isArray(entry.path) &&
           ['scripts', 'results'].includes(entry.path[0]);
+      });
+      explorerFileEntries = candidates.filter((entry) => {
+        return entry.kind !== 'directory' ||
+          neededExplorerDirectory(entry, candidates);
       });
       filesTree.replaceChildren();
       const roots = childFileEntries([]);

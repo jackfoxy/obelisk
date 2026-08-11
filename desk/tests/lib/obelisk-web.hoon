@@ -2024,6 +2024,8 @@
     (expect !>(?=(^ (find "openSelectedFile" script))))
     (expect !>(?=(^ (find "loadFilePath" script))))
     (expect !>(?=(^ (find "refreshFiles" script))))
+    (expect !>(?=(^ (find "explorerFileParent" script))))
+    (expect !>(?=(^ (find "explorerFileLabel" script))))
     (expect !>(?=(^ (find "path: []" script))))
     (expect !>(?=(^ (find "filesCollapsed" script))))
     (expect !>(?=(^ (find "explorerView" script))))
