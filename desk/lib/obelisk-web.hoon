@@ -242,6 +242,8 @@
               =role  "separator"
               =aria-orientation  "horizontal"
               =aria-label  "Resize output"
+              =aria-valuemin  "15"
+              =aria-valuemax  "70"
               ;span.visually-hidden: Resize output
             ==
             ;section#output-pane.output-pane
@@ -1041,7 +1043,7 @@
 
   .workspace {
     display: grid;
-    grid-template-rows: minmax(12rem, 3fr) 0.35rem minmax(9rem, 2fr);
+    grid-template-rows: minmax(0, 2fr) 0.35rem minmax(0, 1fr);
     min-height: 0;
     min-width: 0;
   }
@@ -1368,7 +1370,7 @@
 
   .result-pager-status {
     color: var(--muted);
-    margin-right: auto;
+    margin-left: 3.25rem;
   }
 
   .metadata-list {
@@ -1688,6 +1690,7 @@
     let saveContextSource = null;
     let docsAvailable = null;
     let docsCheckPending = false;
+    const prefetchedDocs = new Set();
     const docsHelpSections = [
       {
         children: [
@@ -1769,7 +1772,7 @@
         nextDraft: 2,
         nextFile: 1,
         schemaSize: 320,
-        outputSize: 260,
+        outputRatio: 1 / 3,
         schemaOpen: true,
         outputOpen: true,
         defaultDatabase: null,
@@ -1835,6 +1838,7 @@
         if (!Array.isArray(restored.filesCollapsed)) {
           restored.filesCollapsed = [];
         }
+        delete restored.outputSize;
         return restored;
       } catch (_) {
         return initialState();
@@ -2073,7 +2077,7 @@
     }
 
     function updateOutputControls() {
-      copyOutputButton.disabled = lastOutputText.length === 0;
+      copyOutputButton.disabled = !outputCopyAvailable();
       saveQueryButton.disabled = busy || activeTabIsResult();
       saveOutputButton.disabled = busy || !outputState.exportable;
       saveQueryButton.setAttribute(
@@ -2438,6 +2442,16 @@
       schemaPane.querySelectorAll('.docs-panel').forEach((panel) => {
         panel.hidden = panel.id !== `docs-panel-${selected}`;
       });
+      const docsTab = docsTabById(selected);
+      if (docsTab) {
+        const frame = byId(`docs-panel-${selected}`).querySelector(
+          '.docs-frame'
+        );
+        if (frame.dataset.loaded !== 'true') {
+          frame.dataset.loaded = 'true';
+          frame.src = `/docs/d/obelisk/${docsTab.path}`;
+        }
+      }
       persist();
       if (focus) {
         const target = Array.from(
@@ -2730,11 +2744,19 @@
       }
       const command = Number.isInteger(outputState.activeCommand) ?
         outputState.commands[outputState.activeCommand] : null;
+      if (!command) return null;
       const exports = command && command.exports &&
         typeof command.exports === 'object' ? command.exports : {};
       const exportKey = String(format || '').replace(/^%/, '');
-      return Object.prototype.hasOwnProperty.call(exports, exportKey) ?
-        ensureTrailingNewline(String(exports[exportKey])) : null;
+      if (Object.prototype.hasOwnProperty.call(exports, exportKey)) {
+        return ensureTrailingNewline(String(exports[exportKey]));
+      }
+      const delimiter = {
+        '%csv': 'comma',
+        '%tab': 'tab',
+        '%spac': 'space'
+      }[format];
+      return delimiter ? runExportText([command], delimiter) : null;
     }
 
     async function saveResultsFile(path, overwrite, format) {
@@ -3228,6 +3250,24 @@
       });
     }
 
+    function outputCopyAvailable() {
+      if (outputState.kind !== 'run') return lastOutputText.length > 0;
+      const index = outputState.activeCommand;
+      const command = Number.isInteger(index) ?
+        outputState.commands[index] : null;
+      return Boolean(command) &&
+        (resultSetsForCommand(command).length > 0 ||
+          metadataForCommand(command).length > 0);
+    }
+
+    function outputCopyText() {
+      if (outputState.kind !== 'run') return lastOutputText;
+      const index = outputState.activeCommand;
+      const command = Number.isInteger(index) ?
+        outputState.commands[index] : null;
+      return command ? runCopyText([command]) : '';
+    }
+
     function runExportText(commands, delimiter) {
       const chunks = allResultSets(commands).map((resultSet) => {
         return exportResultSet(resultSet, delimiter);
@@ -3372,7 +3412,7 @@
           renderPage();
         });
         pagers.push({status, previous, next});
-        pager.append(status, previous, next);
+        pager.append(previous, next, status);
         return pager;
       }
       const topPager = makePager('top');
@@ -3482,7 +3522,6 @@
         });
         outputState.activeCommand = selected;
         outputState.exportable = commandIsExportable(commands[selected]);
-        lastOutputText = runCopyText([commands[selected]]);
         updateOutputControls();
       }
       commands.forEach((command, position) => {
@@ -3535,7 +3574,7 @@
         path: null,
         format: null
       };
-      lastOutputText = runCopyText(safeCommands);
+      lastOutputText = '';
       results.replaceChildren();
       if (safeCommands.length === 0) {
         const empty = document.createElement('p');
@@ -3599,9 +3638,25 @@
       else showParseOutput(text);
     }
 
+    function clearOutput() {
+      outputState = {
+        kind: 'empty',
+        commands: [],
+        activeCommand: null,
+        text: '',
+        exportable: false,
+        path: null,
+        format: null
+      };
+      lastOutputText = '';
+      results.replaceChildren();
+      updateOutputControls();
+    }
+
     async function execute(operation) {
       if (busy) return;
       const script = selectedScript();
+      clearOutput();
       setBusy(true, operation);
       setStatus(operation === 'run' ? 'Running query…' : 'Parsing query…');
       try {
@@ -3781,6 +3836,24 @@
       });
     }
 
+    function prefetchDocsPath(path) {
+      if (prefetchedDocs.has(path)) return;
+      prefetchedDocs.add(path);
+      const hint = document.createElement('link');
+      hint.rel = 'prefetch';
+      hint.href = `/docs/d/obelisk/${path}`;
+      document.head.appendChild(hint);
+    }
+
+    function prefetchHelpDocs(nodes = docsHelpSections) {
+      nodes.forEach((node) => {
+        if (node.path) prefetchDocsPath(node.path);
+        else if (Array.isArray(node.children)) {
+          prefetchHelpDocs(node.children);
+        }
+      });
+    }
+
     function renderDocsHelpNode(node) {
       if (node.path) {
         const link = document.createElement('a');
@@ -3788,6 +3861,9 @@
         link.href = `/docs/d/obelisk/${node.path}`;
         link.setAttribute('role', 'treeitem');
         link.textContent = node.title;
+        const prefetch = () => prefetchDocsPath(node.path);
+        link.addEventListener('pointerenter', prefetch, {once: true});
+        link.addEventListener('focus', prefetch, {once: true});
         link.addEventListener('click', (event) => {
           event.preventDefault();
           openDocsTab(node.title, node.path);
@@ -3885,6 +3961,7 @@
       const frame = document.createElement('iframe');
       frame.className = 'docs-frame';
       frame.title = tab.documentTitle;
+      frame.loading = 'lazy';
       let titleObserver = null;
       const syncFrameState = () => {
         try {
@@ -3932,7 +4009,6 @@
           titleObserver = null;
         }
       });
-      frame.src = `/docs/d/obelisk/${tab.path}`;
       panel.appendChild(frame);
       schemaPane.appendChild(panel);
     }
@@ -3948,6 +4024,12 @@
     }
 
     function openDocsTab(documentTitle, path) {
+      const existing = state.docsTabs.find((tab) => tab.path === path);
+      if (existing) {
+        setHelpOpen(false);
+        setExplorerView(existing.id, true);
+        return;
+      }
       const tab = {
         id: `docs-${state.nextDocs++}`,
         documentTitle,
@@ -4004,6 +4086,7 @@
         docsCheckPending = false;
       }
       setHelpVariant(docsAvailable);
+      if (docsAvailable) prefetchHelpDocs();
     }
 
     function setHelpOpen(open, restoreFocus = false) {
@@ -4089,13 +4172,18 @@
           `${size}px .35rem minmax(0, 1fr)` :
           '3rem 0 minmax(0, 1fr)';
       }
-      const outputSize = clamp(state.outputSize, 96,
-        Math.max(96, workspace.clientHeight - 180));
+      const outputRatio = clamp(state.outputRatio, 0.15, 0.7);
+      state.outputRatio = outputRatio;
+      const scriptRatio = 1 - outputRatio;
       workspace.style.gridTemplateRows = state.outputOpen ?
-        `minmax(12rem, 1fr) .35rem ${outputSize}px` :
-        'minmax(12rem, 1fr) 0 3rem';
+        `minmax(0, ${scriptRatio}fr) .35rem ` +
+          `minmax(0, ${outputRatio}fr)` :
+        'minmax(0, 1fr) 0 3rem';
       schemaResizer.setAttribute('aria-valuenow', String(state.schemaSize));
-      outputResizer.setAttribute('aria-valuenow', String(state.outputSize));
+      outputResizer.setAttribute(
+        'aria-valuenow',
+        String(Math.round(outputRatio * 100))
+      );
     }
 
     function beginResize(kind, event) {
@@ -4112,7 +4200,7 @@
             next.clientY - rect.top : next.clientX - rect.left;
         } else {
           const rect = workspace.getBoundingClientRect();
-          state.outputSize = rect.bottom - next.clientY;
+          state.outputRatio = (rect.bottom - next.clientY) / rect.height;
         }
         applyLayout();
       };
@@ -4143,7 +4231,7 @@
       if (delta === 0) return;
       event.preventDefault();
       if (kind === 'schema') state.schemaSize += delta;
-      if (kind === 'output') state.outputSize -= delta;
+      if (kind === 'output') state.outputRatio -= delta / 800;
       applyLayout();
       persist();
     }
@@ -4197,7 +4285,7 @@
       copyText(activeTab().text, 'Script');
     });
     copyOutputButton.addEventListener('click', () => {
-      copyText(lastOutputText, 'Results');
+      copyText(outputCopyText(), 'Results');
     });
     helpButton.addEventListener('click', () => setHelpOpen(true));
     closeHelpButton.addEventListener('click', () => {

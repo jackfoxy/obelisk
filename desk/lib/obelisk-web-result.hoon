@@ -27,6 +27,32 @@
     [p.cell p.q.cell (crip (render-dime:format q.cell))]
   [columns rows]
 ::
+++  command-row-count
+  |=  command=cmd-result:ast
+  ^-  @ud
+  =/  counts=(list @ud)
+    %+  murn  +.command
+    |=  result=result:ast
+    ^-  (unit @ud)
+    ?:  ?=(%vector-count -.result)  `count.result
+    ?:  ?=(%result-set -.result)  `(lent +.result)
+    ~
+  ?~  counts  0
+  =/  highest=@ud  i.counts
+  =/  remaining=(list @ud)  t.counts
+  |-
+  ?~  remaining  highest
+  %=  $
+    highest    (max highest i.remaining)
+    remaining  t.remaining
+  ==
+::
+++  command-exports
+  |=  [source=cmd-result:ast vector=cmd-result:ast]
+  ^-  (list result-export-dto:web)
+  ?:  (should-page (command-row-count vector))  ~
+  (result-exports source)
+::
 ++  result-dto
   |=  result=result:ast
   ^-  result-dto:web
@@ -51,7 +77,10 @@
   =/  vector=(list cmd-result:ast)
     (format-results:format %vector ~[i.commands])
   ?>  ?=(^ vector)
-  :-  [index (turn +.i.vector result-dto) (result-exports i.commands)]
+  =/  command=cmd-result:ast  i.vector
+  =/  exports=(list result-export-dto:web)
+    (command-exports i.commands command)
+  :-  [index (turn +.command result-dto) exports]
   $(commands t.commands, index +(index))
 ::
 ++  relation-only

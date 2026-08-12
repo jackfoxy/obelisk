@@ -1704,6 +1704,21 @@
     (expect !>(?=(^ (find "\0a799\0a" (trip exported)))))
   ==
 ::
+++  test-large-result-response-paging-59-a
+  =/  vectors=(list vector:ast)  (numbered-vectors 800)
+  =/  source=(list cmd-result:ast)
+    ~[[%results ~[[%result-set vectors]]]]
+  =/  commands=(list command-dto:web)
+    (command-dtos:result-lib source 0)
+  =/  command=command-dto:web  (snag 0 commands)
+  =/  result=result-dto:web  (snag 0 results.command)
+  ?>  ?=(%result-set -.result)
+  =/  table=result-set-dto:web  value.result
+  ;:  weld
+    (expect-eq !>(800) !>((lent rows.table)))
+    (expect-eq !>(~) !>(exports.command))
+  ==
+::
 ++  test-file-path-validation-60
   ;:  weld
     (expect !>((valid-browse-path:file-lib ~)))
@@ -1955,6 +1970,8 @@
     (expect !>(?=(^ (find "classList.toggle('inactive'" script))))
     (expect !>(?=(^ (find "schemaOpen" script))))
     (expect !>(?=(^ (find "outputOpen" script))))
+    (expect !>(?=(^ (find "outputRatio: 1 / 3" script))))
+    (expect !>(?=(^ (find "scriptRatio = 1 - outputRatio" script))))
     (expect !>(?=(^ (find "event.key === 'Escape'" script))))
     (expect !>(?=(^ (find "setBusy" script))))
     (expect !>(?=(^ (find "setHelpOpen" script))))
@@ -2147,12 +2164,13 @@
     (expect !>(?=(^ (find "renderCommandTabs" script))))
     (expect !>(?=(^ (find "safeCommands.length === 1" script))))
     (expect !>(?=(^ (find "command-tab-panel" script))))
-    (expect !>(?=(^ (find "runCopyText([commands[selected]])" script))))
     (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
     (expect !>(?=(^ (find "command.exports" script))))
     (expect !>(?=(^ (find "setPointerCapture" script))))
     (expect !>(?=(^ (find "lostpointercapture" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
+    (expect !>(?=(^ (find "outputCopyAvailable" script))))
+    (expect !>(?=(^ (find "outputCopyText" script))))
     (expect !>(?=(^ (find ".command-tabs" style))))
     (expect !>(?=(^ (find ".command-tab" style))))
     (expect !>(?=(^ (find "resultPageSize = 500" script))))
