@@ -24,6 +24,7 @@
       active=(unit active-obelisk)
       readiness=(unit pending-readiness)
       file-save=(unit pending-file-save)
+      file-delete=(unit pending-file-delete)
   ==
 ::
 +$  live-state
@@ -35,7 +36,7 @@
 ::  +|  HTTP Work
 ::
 +$  api-operation
-  ?(%run %parse %schema %file-browse %file-load %file-save)
+  ?(%run %parse %schema %file-browse %file-load %file-save %file-delete)
 ::
 +$  relative-path  (list @ta)
 ::
@@ -45,6 +46,7 @@
       [%schema default-database=(unit @tas)]
       [%file-browse path=relative-path]
       [%file-load path=relative-path]
+      [%file-delete path=relative-path]
       $:  %file-save
           path=relative-path
           content=@t
@@ -63,6 +65,14 @@
   $:  eyre-id=@ta
       path=relative-path
       content=@t
+      verify-wire=wire
+      timeout-wire=wire
+      desk=desk
+  ==
+::
++$  pending-file-delete
+  $:  eyre-id=@ta
+      path=relative-path
       verify-wire=wire
       timeout-wire=wire
       desk=desk
@@ -250,6 +260,7 @@
       [%file-list entries=(list file-entry-dto)]
       [%file path=relative-path content=@t]
       [%saved path=relative-path]
+      [%deleted path=relative-path]
       [%error value=web-error]
   ==
 --

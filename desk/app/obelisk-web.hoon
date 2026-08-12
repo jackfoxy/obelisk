@@ -57,6 +57,7 @@
   ?:  =("/apps/obelisk/api/files/browse" url)  `%file-browse
   ?:  =("/apps/obelisk/api/files/load" url)  `%file-load
   ?:  =("/apps/obelisk/api/files/save" url)  `%file-save
+  ?:  =("/apps/obelisk/api/files/delete" url)  `%file-delete
   ~
 ::
 ++  make-error
@@ -143,7 +144,7 @@
   |=  request=web-request:web
   ^-  (unit work-plan)
   ?-  -.request
-    ?(%file-browse %file-load %file-save)  ~
+    ?(%file-browse %file-load %file-save %file-delete)  ~
     ?(%run %parse)
       =/  action=action:ast
         [%parse default-database.request (trip script.request)]
@@ -281,10 +282,66 @@
       ~[[clay-path %ins (text-cage:file-lib content)]]
   ==
 ::
+++  file-delete-card
+  |=  [=wire desk=desk clay-path=path]
+  ^-  card
+  :*  %pass  wire  %arvo  %c
+      %info  desk  %&
+      ~[[clay-path %del ~]]
+  ==
+::
 ++  cancel-file-verify-card
   |=  [=wire our=@p desk=desk]
   ^-  card
   [%pass wire %arvo %c %warp our desk ~]
+::
+++  delete-file
+  |=  $:  eyre-id=@ta
+          relative=relative-path:web
+          state=live-state:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (quip card live-state:web)
+  ?.  (valid-file-path:file-lib relative)
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'invalid file path' %.n)
+  =/  saving=(unit pending-file-save:web)  file-save.transient.state
+  =/  deleting=(unit pending-file-delete:web)  file-delete.transient.state
+  ?:  ?|  ?=(^ saving)
+          ?=(^ deleting)
+      ==
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %unavailable 503 'another file change is pending' %.y)
+  =/  clay-path=path  (storage-path:file-lib relative)
+  =/  beam=path  (clay-beam:file-lib our desk da+now clay-path)
+  =/  exists=(each ? tang)  (clay-exists beam)
+  ?:  ?=(%.n -.exists)
+    :_  state
+    (file-error-cards eyre-id 'Clay delete check failed' p.exists)
+  ?.  p.exists
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %not-found 404 'saved file not found' %.n)
+  =/  request-id=request-id:web  next-request-id.transient.state
+  =/  verify-wire=wire
+    /obelisk-web/file-delete/(scot %ud request-id)/verify
+  =/  write-wire=wire
+    /obelisk-web/file-delete/(scot %ud request-id)/write
+  =/  timeout-wire=wire
+    /obelisk-web/file-delete/(scot %ud request-id)/timeout
+  =/  pending=pending-file-delete:web
+    [eyre-id relative verify-wire timeout-wire desk]
+  =.  next-request-id.transient.state  +(request-id)
+  =.  file-delete.transient.state  `pending
+  :_  state
+  :~  (file-verify-card verify-wire our desk now clay-path)
+      (file-delete-card write-wire desk clay-path)
+      (wait-card timeout-wire (add now file-timeout:file-lib))
+  ==
 ::
 ++  save-file
   |=  $:  eyre-id=@ta
@@ -304,10 +361,13 @@
   ::  Copy the slot out first: testing it in place would narrow +state.
   ::
   =/  current=(unit pending-file-save:web)  file-save.transient.state
-  ?^  current
+  =/  deleting=(unit pending-file-delete:web)  file-delete.transient.state
+  ?:  ?|  ?=(^ current)
+          ?=(^ deleting)
+      ==
     :_  state
     %+  respond-error  eyre-id
-    (make-error %unavailable 503 'another file save is pending' %.y)
+    (make-error %unavailable 503 'another file change is pending' %.y)
   =/  clay-path=path  (storage-path:file-lib relative)
   =/  beam=path
     (clay-beam:file-lib our desk da+now clay-path)
@@ -352,6 +412,21 @@
     (respond-json eyre-id.pending [%saved path.pending])
   (file-error-cards eyre-id.pending 'Clay save verification failed' ~)
 ::
+++  complete-file-delete
+  |=  $:  pending=pending-file-delete:web
+          =sign-arvo
+          state=live-state:web
+  ==
+  ^-  (quip card live-state:web)
+  =/  valid=?
+    ?.  ?=([%clay %writ *] sign-arvo)  %.n
+    ?=(~ +.+.sign-arvo)
+  =.  file-delete.transient.state  ~
+  :_  state
+  ?:  valid
+    (respond-json eyre-id.pending [%deleted path.pending])
+  (file-error-cards eyre-id.pending 'Clay delete verification failed' ~)
+::
 ++  handle-file-request
   |=  $:  eyre-id=@ta
           request=web-request:web
@@ -368,6 +443,8 @@
     %file-load
       :_  state
       (load-file-cards eyre-id path.request our desk now)
+    %file-delete
+      (delete-file eyre-id path.request state our desk now)
     %file-save
       %:  save-file
         eyre-id
@@ -945,6 +1022,28 @@
     :-  cancel
     %+  respond-error  eyre-id.u.pending
     (make-error %timeout 504 'Clay save timed out' %.y)
+  =/  deleting=(unit pending-file-delete:web)  file-delete.transient.state
+  ?:  ?&  ?=(^ deleting)
+          =(wire verify-wire.u.deleting)
+      ==
+    =^  cards  state  (complete-file-delete u.deleting sign-arvo state)
+    [cards this]
+  ?:  ?&  ?=(^ deleting)
+          =(wire timeout-wire.u.deleting)
+      ==
+    ?.  ?=([%behn %wake *] sign-arvo)
+      (on-arvo:default wire sign-arvo)
+    =/  cancel=card
+      %:  cancel-file-verify-card
+        verify-wire.u.deleting
+        our.bowl
+        desk.u.deleting
+      ==
+    =.  file-delete.transient.state  ~
+    :_  this
+    :-  cancel
+    %+  respond-error  eyre-id.u.deleting
+    (make-error %timeout 504 'Clay delete timed out' %.y)
   ?:  ?=([%obelisk-web %readiness *] wire)
     =/  current=(unit pending-readiness:web)  readiness.transient.state
     ?~  current  `this
@@ -982,6 +1081,8 @@
       ==
     [cards this]
   ?:  ?=([%obelisk-web %file-save *] wire)
+    `this
+  ?:  ?=([%obelisk-web %file-delete *] wire)
     `this
   (on-arvo:default wire sign-arvo)
 ::

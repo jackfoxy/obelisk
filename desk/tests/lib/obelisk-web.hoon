@@ -40,6 +40,7 @@
       active=`active-fixture
       readiness=~
       file-save=~
+      file-delete=~
   ==
 ::
 ++  test-state-bunts-00
@@ -63,7 +64,7 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~]])
+    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
 ++  test-save-load-roundtrip-02
@@ -759,6 +760,7 @@
         [%file-browse ~]
         [%file-browse ~[%scripts %nested]]
         [%file-load ~[%scripts %query-1]]
+        [%file-delete ~[%scripts %query-1]]
         [%file-save ~[%results %result-1] hostile-text %.y]
     ==
   %-  zing
@@ -819,6 +821,7 @@
         [%file-list ~[[~[%scripts %query-1] %file]]]
         [%file ~[%scripts %query-1] hostile-text]
         [%saved ~[%scripts %query-1]]
+        [%deleted ~[%scripts %query-1]]
         [%error error]
     ==
   =/  checks=tang
@@ -1802,13 +1805,24 @@
       `load-body
       `'application/json'
     ==
+  =/  delete-body  (request-text [%file-delete ~[%outside %query]])
+  =/  delete-req
+    %:  api-request
+      '/apps/obelisk/api/files/delete'
+      %.y
+      `delete-body
+      `'application/json'
+    ==
   =/  save-out  (poke-http save-req)
   =/  load-out  (poke-http load-req)
+  =/  delete-out  (poke-http delete-req)
   ;:  weld
     (expect-eq !>(400) !>((response-status -.save-out)))
     (expect-eq !>('bad-request') !>((response-error-code -.save-out)))
     (expect-eq !>(400) !>((response-status -.load-out)))
     (expect-eq !>('bad-request') !>((response-error-code -.load-out)))
+    (expect-eq !>(400) !>((response-status -.delete-out)))
+    (expect-eq !>('bad-request') !>((response-error-code -.delete-out)))
   ==
 ::
 ++  test-file-save-persistence-64
@@ -1864,11 +1878,6 @@
     (expect !>(?=(^ (find "schema-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
-    (expect !>(?=(^ (find "File" html))))
-    (expect !>(?=(^ (find "New" html))))
-    (expect !>(?=(^ (find "Open..." html))))
-    (expect !>(?=(^ (find "Save As..." html))))
-    (expect !>(?=(^ (find "Close Current" html))))
     (expect !>(?=(^ (find "Run" html))))
     (expect !>(?=(^ (find "F5" html))))
     (expect !>(?=(^ (find "Parse" html))))
@@ -1891,7 +1900,7 @@
     (expect !>(?=(^ (find "Copy results" html))))
     (expect !>(?=(^ (find "Default DB" html))))
     (expect !>(?=(^ (find "For Developers" html))))
-    (expect !>(?=(^ (find "header-file-menu" html))))
+    (expect !>(?=(~ (find "header-file-menu" html))))
     (expect !>(?=(^ (find "developer-help-links" html))))
     (expect !>(?=(~ (find "dev-menu-toggle" html))))
     (expect !>(?=(^ (find "API/AST" html))))
@@ -2030,6 +2039,16 @@
     (expect !>(?=(^ (find "files/browse" script))))
     (expect !>(?=(^ (find "files/load" script))))
     (expect !>(?=(^ (find "files/save" script))))
+    (expect !>(?=(^ (find "files/delete" script))))
+    (expect !>(?=(^ (find "file-context-menu" html))))
+    (expect !>(?=(^ (find "file-context-open" html))))
+    (expect !>(?=(^ (find "file-context-delete" html))))
+    (expect !>(?=(^ (find "openFileContext" script))))
+    (expect !>(?=(^ (find "deleteContextFile" script))))
+    (expect !>(?=(^ (find "explorer-file-row" script))))
+    (expect !>(?=(^ (find "contextmenu" script))))
+    (expect !>(?=(^ (find "file-actions" script))))
+    (expect !>(?=(^ (find "This cannot be undone" script))))
     (expect !>(?=(^ (find "scriptPathFromInput" script))))
     (expect !>(?=(^ (find "openSelectedFile" script))))
     (expect !>(?=(^ (find "loadFilePath" script))))
@@ -2043,6 +2062,7 @@
     (expect !>(?=(^ (find "updateDisplayedResultMark" script))))
     (expect !>(?=(^ (find "activeTabIsResult" script))))
     (expect !>(?=(^ (find "updateExecutionControls" script))))
+    (expect !>(?=(^ (find "saveQueryButton.disabled = busy ||" script))))
     (expect !>(?=(^ (find "if (!runButton.disabled) execute('run')" script))))
     (expect !>(?=(^ (find "path: []" script))))
     (expect !>(?=(^ (find "filesCollapsed" script))))
@@ -2130,6 +2150,8 @@
     (expect !>(?=(^ (find "runCopyText([commands[selected]])" script))))
     (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
     (expect !>(?=(^ (find "command.exports" script))))
+    (expect !>(?=(^ (find "setPointerCapture" script))))
+    (expect !>(?=(^ (find "lostpointercapture" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
     (expect !>(?=(^ (find ".command-tabs" style))))
     (expect !>(?=(^ (find ".command-tab" style))))

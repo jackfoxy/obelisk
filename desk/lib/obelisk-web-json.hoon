@@ -88,6 +88,10 @@
     %-  pairs:enjs:format
     ~[['type' s+'file-load'] ['path' (path-json path.req)]]
   ::
+      %file-delete
+    %-  pairs:enjs:format
+    ~[['type' s+'file-delete'] ['path' (path-json path.req)]]
+  ::
       %file-save
     %-  pairs:enjs:format
     :~  ['type' s+'file-save']
@@ -121,6 +125,8 @@
       [%file-browse (need (path-field 'path' jon))]
     ?:  =(kind 'file-load')
       [%file-load (need (path-field 'path' jon))]
+    ?:  =(kind 'file-delete')
+      [%file-delete (need (path-field 'path' jon))]
     ?:  =(kind 'file-save')
       :*  %file-save
           (need (path-field 'path' jon))
@@ -319,6 +325,10 @@
       %saved
     %-  pairs:enjs:format
     ~[['type' s+'saved'] ['path' (path-json path.response)]]
+  ::
+      %deleted
+    %-  pairs:enjs:format
+    ~[['type' s+'deleted'] ['path' (path-json path.response)]]
   ::
       %error
     %-  pairs:enjs:format

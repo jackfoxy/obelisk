@@ -15,6 +15,7 @@
       ~
       ~
       ~
+      ~
   ==
 ::
 ++  binding-after-connect
@@ -109,31 +110,6 @@
         ;header#app-header.app-header
           ;a.brand(href "/apps/obelisk", aria-label "Obelisk home")
             Obelisk
-          ==
-          ;div#file-menu.menu.header-file-menu(data-open "false")
-            ;button#file-menu-toggle.menu-toggle
-              =type  "button"
-              =aria-haspopup  "menu"
-              =aria-expanded  "false"
-              File
-            ==
-            ;div#file-menu-panel.menu-panel.hidden(role "menu")
-              ;button#new-tab-menu-item(type "button", role "menuitem")
-                New
-              ==
-              ;button#open-menu-item(type "button", role "menuitem")
-                Open...
-              ==
-              ;button#save-tab-menu-item(type "button", role "menuitem")
-                Save
-              ==
-              ;button#save-as-menu-item(type "button", role "menuitem")
-                Save As...
-              ==
-              ;button#close-tab-menu-item(type "button", role "menuitem")
-                Close Current
-              ==
-            ==
           ==
           ;nav.toolbar(aria-label "Obelisk workbench controls")
             ;div.default-database
@@ -460,6 +436,14 @@
             Save As...
           ==
         ==
+        ;div#file-context-menu.file-context-menu.hidden(role "menu")
+          ;button#file-context-open(type "button", role "menuitem")
+            Open
+          ==
+          ;button#file-context-delete(type "button", role "menuitem")
+            Delete
+          ==
+        ==
       ==
     ==
   ==
@@ -564,15 +548,6 @@
     font-size: 1.05rem;
     font-weight: 700;
     text-decoration: none;
-  }
-
-  .header-file-menu {
-    margin-left: 0.25rem;
-  }
-
-  #file-menu-toggle {
-    background: transparent;
-    border: 0;
   }
 
   .toolbar {
@@ -769,7 +744,7 @@
     color: var(--accent-text);
   }
 
-  .relation-menu, .save-context-menu {
+  .relation-menu, .save-context-menu, .file-context-menu {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.4rem;
@@ -781,7 +756,8 @@
     z-index: 60;
   }
 
-  .relation-menu button, .save-context-menu button {
+  .relation-menu button, .save-context-menu button,
+  .file-context-menu button {
     background: transparent;
     border: 0;
     text-align: left;
@@ -960,7 +936,7 @@
     padding: 0.3rem 0.25rem;
   }
 
-  .file-node > summary:hover, .explorer-file:hover {
+  .file-node > summary:hover, .explorer-file-row:hover {
     background: var(--surface-alt);
   }
 
@@ -970,9 +946,25 @@
     padding-left: 0.65rem;
   }
 
-  .explorer-file {
+  .explorer-file-row {
+    align-items: center;
     border-radius: 0.25rem;
+    display: flex;
+  }
+
+  .explorer-file {
+    min-width: 0;
     padding: 0.15rem 0.25rem;
+  }
+
+  .relation-actions, .file-actions {
+    margin-left: auto;
+    min-height: 1.55rem;
+    padding: 0 0.45rem;
+  }
+
+  .file-actions {
+    flex: 0 0 auto;
   }
 
   .schema-node {
@@ -1013,12 +1005,6 @@
   .relation-summary {
     padding-right: 2.3rem !important;
     position: relative;
-  }
-
-  .relation-actions {
-    margin-left: auto;
-    min-height: 1.55rem;
-    padding: 0 0.45rem;
   }
 
   .schema-column {
@@ -1674,6 +1660,9 @@
     const saveContextMenu = byId('save-context-menu');
     const saveContextSave = byId('save-context-save');
     const saveContextSaveAs = byId('save-context-save-as');
+    const fileContextMenu = byId('file-context-menu');
+    const fileContextOpen = byId('file-context-open');
+    const fileContextDelete = byId('file-context-delete');
     let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
@@ -1688,6 +1677,8 @@
     let busy = false;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
+    let contextFilePath = null;
+    let contextFileSource = null;
     let fileEntries = [];
     let explorerFileEntries = [];
     let schemaValue = null;
@@ -1927,6 +1918,7 @@
         tabsElement.insertBefore(control, newTabButton);
       });
       updateExecutionControls();
+      updateOutputControls();
     }
 
     function tabKeydown(event) {
@@ -2082,7 +2074,7 @@
 
     function updateOutputControls() {
       copyOutputButton.disabled = lastOutputText.length === 0;
-      saveQueryButton.disabled = busy;
+      saveQueryButton.disabled = busy || activeTabIsResult();
       saveOutputButton.disabled = busy || !outputState.exportable;
       saveQueryButton.setAttribute(
         'aria-disabled',
@@ -2110,11 +2102,8 @@
       app.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
       updateExecutionControls();
-      byId('open-menu-item').disabled = value;
-      byId('save-tab-menu-item').disabled = value;
-      byId('save-as-menu-item').disabled = value;
-      byId('new-tab-menu-item').disabled = value;
-      byId('close-tab-menu-item').disabled = value;
+      fileContextOpen.disabled = value;
+      fileContextDelete.disabled = value;
       runButton.firstElementChild.textContent = value && label === 'run' ?
         'Running…' : 'Run';
       parseButton.textContent = value && label === 'parse' ?
@@ -2138,7 +2127,8 @@
       const route = {
         'file-browse': 'files/browse',
         'file-load': 'files/load',
-        'file-save': 'files/save'
+        'file-save': 'files/save',
+        'file-delete': 'files/delete'
       }[operation] || operation;
       const response = await fetch(`/apps/obelisk/api/${route}`, {
         method: 'POST',
@@ -2238,6 +2228,81 @@
       return entry.path.slice(result ? -2 : -1).join('/');
     }
 
+    function closeFileContext(restoreFocus = false) {
+      fileContextMenu.classList.add('hidden');
+      if (contextFileSource) {
+        contextFileSource.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) contextFileSource.focus();
+      }
+      contextFilePath = null;
+      contextFileSource = null;
+    }
+
+    function openFileContext(path, source, event = null) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      closeMenus();
+      closeRelationMenu();
+      closeSaveContext();
+      closeFileContext();
+      contextFilePath = path.slice();
+      contextFileSource = source;
+      source.setAttribute('aria-expanded', 'true');
+      fileContextMenu.style.left = '0px';
+      fileContextMenu.style.top = '0px';
+      fileContextMenu.classList.remove('hidden');
+      const menuRect = fileContextMenu.getBoundingClientRect();
+      const sourceRect = source.getBoundingClientRect();
+      const margin = 8;
+      const maximumLeft = window.innerWidth - menuRect.width - margin;
+      const maximumTop = window.innerHeight - menuRect.height - margin;
+      const pointer = event && event.type === 'contextmenu';
+      const left = clamp(
+        pointer ? event.clientX : sourceRect.right,
+        margin,
+        maximumLeft
+      );
+      const top = clamp(
+        pointer ? event.clientY : sourceRect.top,
+        margin,
+        maximumTop
+      );
+      fileContextMenu.style.left = `${left}px`;
+      fileContextMenu.style.top = `${top}px`;
+      fileContextOpen.focus();
+    }
+
+    async function openContextFile() {
+      const path = contextFilePath ? contextFilePath.slice() : null;
+      closeFileContext();
+      if (path) await loadFilePath(path);
+    }
+
+    async function deleteContextFile() {
+      const path = contextFilePath ? contextFilePath.slice() : null;
+      const source = contextFileSource;
+      if (!path) return;
+      const name = path.slice(1).join('/');
+      if (!window.confirm(`Delete ${name}? This cannot be undone.`)) {
+        closeFileContext();
+        if (source) source.focus();
+        return;
+      }
+      closeFileContext();
+      setBusy(true, 'delete');
+      try {
+        await api('file-delete', {path});
+        await refreshFiles();
+        setStatus(`${name} deleted.`);
+      } catch (error) {
+        setStatus(error.message, 'error', true);
+      } finally {
+        setBusy(false);
+      }
+    }
+
     function fileExpansion(path, details) {
       const key = pathKey(path);
       details.open = !state.filesCollapsed.includes(key);
@@ -2267,16 +2332,36 @@
         details.append(summary, children);
         return details;
       }
+      const row = document.createElement('div');
+      row.className = 'explorer-file-row';
+      row.setAttribute('role', 'treeitem');
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'file-entry explorer-file';
-      button.setAttribute('role', 'treeitem');
       button.textContent = explorerFileLabel(entry);
       button.title = entry.path.join('/');
       button.addEventListener('click', () => {
+        closeFileContext();
         loadFilePath(entry.path);
       });
-      return button;
+      row.addEventListener('contextmenu', (event) => {
+        openFileContext(entry.path, button, event);
+      });
+      const actions = document.createElement('button');
+      actions.type = 'button';
+      actions.className = 'file-actions';
+      actions.setAttribute(
+        'aria-label',
+        `Actions for ${explorerFileLabel(entry)}`
+      );
+      actions.setAttribute('aria-haspopup', 'menu');
+      actions.setAttribute('aria-expanded', 'false');
+      actions.textContent = '…';
+      actions.addEventListener('click', (event) => {
+        openFileContext(entry.path, actions, event);
+      });
+      row.append(button, actions);
+      return row;
     }
 
     function renderFiles(entries) {
@@ -2584,7 +2669,7 @@
     }
 
     async function saveActiveTab() {
-      if (busy) return;
+      if (busy || activeTabIsResult()) return;
       closeMenus();
       const tab = activeTab();
       if (!tab.path) {
@@ -3612,7 +3697,8 @@
     }
 
     function openSaveContext(kind, event) {
-      if (busy || (kind === 'result' && !outputState.exportable)) return;
+      if (busy || (kind === 'script' && activeTabIsResult()) ||
+          (kind === 'result' && !outputState.exportable)) return;
       captureEditor();
       closeMenus();
       closeRelationMenu();
@@ -4015,7 +4101,11 @@
     function beginResize(kind, event) {
       if (event.button !== 0) return;
       event.preventDefault();
+      const resizer = event.currentTarget;
+      const pointerId = event.pointerId;
+      let resizing = true;
       const move = (next) => {
+        if (next.pointerId !== pointerId) return;
         if (kind === 'schema') {
           const rect = workbench.getBoundingClientRect();
           state.schemaSize = narrowLayout() ?
@@ -4026,13 +4116,24 @@
         }
         applyLayout();
       };
-      const finish = () => {
-        document.removeEventListener('pointermove', move);
-        document.removeEventListener('pointerup', finish);
+      const finish = (next) => {
+        if (!resizing || (next.pointerId !== undefined &&
+            next.pointerId !== pointerId)) return;
+        resizing = false;
+        resizer.removeEventListener('pointermove', move);
+        resizer.removeEventListener('pointerup', finish);
+        resizer.removeEventListener('pointercancel', finish);
+        resizer.removeEventListener('lostpointercapture', finish);
+        if (resizer.hasPointerCapture(pointerId)) {
+          resizer.releasePointerCapture(pointerId);
+        }
         persist();
       };
-      document.addEventListener('pointermove', move);
-      document.addEventListener('pointerup', finish);
+      resizer.setPointerCapture(pointerId);
+      resizer.addEventListener('pointermove', move);
+      resizer.addEventListener('pointerup', finish);
+      resizer.addEventListener('pointercancel', finish);
+      resizer.addEventListener('lostpointercapture', finish);
     }
 
     function resizeKeydown(kind, event) {
@@ -4062,12 +4163,10 @@
       });
     });
     newTabButton.addEventListener('click', () => addDraft());
-    byId('new-tab-menu-item').addEventListener('click', () => addDraft());
-    byId('open-menu-item').addEventListener('click', showOpenDialog);
-    byId('save-tab-menu-item').addEventListener('click', saveActiveTab);
-    byId('save-as-menu-item').addEventListener('click', showSaveAsDialog);
-    byId('close-tab-menu-item').addEventListener('click', closeActiveTab);
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
+    fileContextOpen.addEventListener('click', openContextFile);
+    fileContextDelete.addEventListener('click', deleteContextFile);
+    fileContextMenu.addEventListener('keydown', menuKeydown);
     resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
     fileDialogForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -4152,6 +4251,10 @@
           !event.target.closest('.relation-actions')) {
         closeRelationMenu();
       }
+      if (!event.target.closest('#file-context-menu') &&
+          !event.target.closest('.explorer-file-row')) {
+        closeFileContext();
+      }
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
@@ -4161,6 +4264,10 @@
         }
         if (!saveContextMenu.classList.contains('hidden')) {
           closeSaveContext(true);
+          return;
+        }
+        if (!fileContextMenu.classList.contains('hidden')) {
+          closeFileContext(true);
           return;
         }
         const open = menus.find((menu) => menu.dataset.open === 'true');
