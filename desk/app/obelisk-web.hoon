@@ -259,7 +259,11 @@
     (make-error %not-found 404 'saved file not found' %.n)
   =/  loaded=(each @t tang)
     %-  mule  |.
-    (of-wain:format .^(wain %cx beam))
+    =/  stored=*  .^(* %cq beam)
+    =/  decoded=(unit @t)
+      (text-from-stored:file-lib (rear clay-path) stored)
+    ~|  "unsupported stored file format {(trip (rear clay-path))}"
+        (need decoded)
   ?:  ?=(%.n -.loaded)
     (file-error-cards eyre-id 'Clay load failed' p.loaded)
   (respond-json eyre-id [%file relative p.loaded])

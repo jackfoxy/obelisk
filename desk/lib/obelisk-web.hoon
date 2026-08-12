@@ -1926,6 +1926,7 @@
         control.append(button, close);
         tabsElement.insertBefore(control, newTabButton);
       });
+      updateExecutionControls();
     }
 
     function tabKeydown(event) {
@@ -2001,6 +2002,13 @@
       return path.join('/');
     }
 
+    function savedFileTabName(path) {
+      if (path[0] === 'results' && path.length >= 3) {
+        return path.slice(-2).join('/');
+      }
+      return path[path.length - 1] || 'script';
+    }
+
     function addFileTab(path, text) {
       const key = pathKey(path);
       const existing = state.tabs.find((tab) => {
@@ -2011,10 +2019,9 @@
         return existing;
       }
       captureEditor();
-      const leaf = path[path.length - 1] || 'script';
       const tab = {
         id: `file-${state.nextFile++}`,
-        name: uniqueTabName(leaf),
+        name: uniqueTabName(savedFileTabName(path)),
         path: path.slice(),
         text,
         savedText: text,
@@ -2087,12 +2094,22 @@
       );
     }
 
+    function activeTabIsResult() {
+      const tab = activeTab();
+      return Array.isArray(tab.path) && tab.path[0] === 'results';
+    }
+
+    function updateExecutionControls() {
+      const blocked = busy || activeTabIsResult();
+      runButton.disabled = blocked;
+      parseButton.disabled = blocked;
+    }
+
     function setBusy(value, label = '') {
       busy = value;
       app.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
-      runButton.disabled = value;
-      parseButton.disabled = value;
+      updateExecutionControls();
       byId('open-menu-item').disabled = value;
       byId('save-tab-menu-item').disabled = value;
       byId('save-as-menu-item').disabled = value;
@@ -2493,12 +2510,12 @@
       filePathLabel.classList.remove('hidden');
       filePathLabel.textContent = 'Result path';
       filePathInput.classList.remove('hidden');
-      filePathInput.value = outputState.path ?
-        outputState.path.slice(1).join('/') : nextResultName(entries);
       const showFormat = outputState.kind === 'run';
       resultsFormatField.classList.toggle('hidden', !showFormat);
       resultsFormatSelect.value = showFormat ?
         (outputState.format || '%csv') : '%tape';
+      filePathInput.value = outputState.path ?
+        outputState.path.slice(1).join('/') : nextResultName(entries);
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
       fileDialog.showModal();
@@ -2544,10 +2561,7 @@
       try {
         const body = await api('file-save', {path, content, overwrite});
         tab.path = body.path.slice();
-        tab.name = uniqueTabName(
-          body.path[body.path.length - 1] || 'script',
-          tab.id
-        );
+        tab.name = uniqueTabName(savedFileTabName(body.path), tab.id);
         tab.savedText = content;
         renderTabs();
         persist();
@@ -2609,9 +2623,20 @@
       '%vector': 'noun',
       '%raw': 'noun'
     };
+    const resultStorageMarks = new Set(Object.values(resultFormatMarks));
 
     function selectedResultsFormat() {
       return resultsFormatSelect.value || '%csv';
+    }
+
+    function updateDisplayedResultMark() {
+      const nextMark = resultFormatMarks[selectedResultsFormat()];
+      const parts = filePathInput.value.split('/');
+      const shownMark = parts[parts.length - 1];
+      if (!nextMark || parts.length < 2 ||
+          !resultStorageMarks.has(shownMark)) return;
+      parts[parts.length - 1] = nextMark;
+      filePathInput.value = parts.join('/');
     }
 
     function resultSaveText(format) {
@@ -4043,6 +4068,7 @@
     byId('save-as-menu-item').addEventListener('click', showSaveAsDialog);
     byId('close-tab-menu-item').addEventListener('click', closeActiveTab);
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
+    resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
     fileDialogForm.addEventListener('submit', (event) => {
       event.preventDefault();
       if (fileDialogMode === 'open') openSelectedFile();
@@ -4144,7 +4170,7 @@
       }
       if (event.key === 'F5') {
         event.preventDefault();
-        execute('run');
+        if (!runButton.disabled) execute('run');
       }
     });
     window.addEventListener('resize', applyLayout);

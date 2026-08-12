@@ -194,21 +194,26 @@
   ^-  cage
   [%txt !>((storage-wain content))]
 ::
+++  text-from-stored
+  |=  [mark=@ta stored=*]
+  ^-  (unit @t)
+  =/  decoded=(each @t tang)
+    %-  mule  |.
+    ?+  mark  !!
+      %csv   (of-wain:format ;;(wain stored))
+      %html  ;;(@t stored)
+      %json  (en:json:html ;;(json stored))
+      %md    ;;(@t stored)
+      %noun  (of-wain:format ;;(wain stored))
+      %tab   (of-wain:format ;;(wain stored))
+      %txt   (of-wain:format ;;(wain stored))
+    ==
+  ?:(?=(%.n -.decoded) ~ `p.decoded)
+::
 ++  text-from-cage
   |=  =cage
   ^-  (unit @t)
-  ?.  ?|  =(%csv p.cage)
-          =(%html p.cage)
-          =(%tab p.cage)
-          =(%txt p.cage)
-      ==
-    ~
-  =/  decoded=(each @t tang)
-    %-  mule  |.
-    ?:  =(%html p.cage)
-      ;;(@t q.q.cage)
-    (of-wain:format ;;(wain q.q.cage))
-  ?:(?=(%.n -.decoded) ~ `p.decoded)
+  (text-from-stored p.cage q.q.cage)
 ::
 ++  save-verifies
   |=  [expected=@t result=riot:clay]

@@ -813,7 +813,7 @@
   =/  error=web-error:web
     [%unprocessable 422 hostile-text %.n ~[hostile-text]]
   =/  responses=(list web-response:web)
-    :~  [%run ~[[0 results]] %.y]
+    :~  [%run ~[[0 results ~]] %.y]
         [%parse ~[hostile-text ''] hostile-text]
         [%schema schema]
         [%file-list ~[[~[%scripts %query-1] %file]]]
@@ -1217,15 +1217,16 @@
   =/  response-cards  (tail-cards -.out)
   =/  expected=web-response:web
     :*  %run
-        :~  :-  0
-            :~  [%action 'SELECT']
-                :*  %result-set
-                    ~[[%answer %ud]]
-                    ~[~[[%answer %ud '42']]]
+        :~  :*  0
+                :~  [%action 'SELECT']
+                    :*  %result-set
+                        ~[[%answer %ud]]
+                        ~[~[[%answer %ud '42']]]
+                    ==
+                    [%vector-count 1]
                 ==
-                [%vector-count 1]
+                ~
             ==
-            ~
         ==
         %.n
     ==
@@ -1629,7 +1630,7 @@
               %json  %wain  %manx  %vector  %raw
           ==
     !>((turn exports |=(export=result-export-dto:web format.export)))
-    (expect-eq !>([%csv 'value\0asafe']) !>(i.exports))
+    (expect-eq !>([%csv 'value\0asafe']) !>((snag 0 exports)))
     (expect-eq !>(11) !>((lent exports)))
   ==
 ::
@@ -1768,11 +1769,16 @@
   =/  text-cage-value=cage  (text-cage:file-lib hostile-text)
   =/  trailing=@t  'first\0a\0a'
   =/  trailing-cage=cage  (text-cage:file-lib trailing)
+  =/  md-cage=cage  [%md !>(hostile-text)]
+  =/  noun-cage=cage
+    [%noun !>((storage-wain:file-lib hostile-text))]
   ;:  weld
     %+  expect-eq
       !>(`hostile-text)
     !>((text-from-cage:file-lib text-cage-value))
     (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
+    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
+    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
     (expect !>((save-conflict:file-lib %.y %.n)))
     (expect !>(!(save-conflict:file-lib %.y %.y)))
     (expect !>(!(save-conflict:file-lib %.n %.n)))
@@ -1812,18 +1818,21 @@
   =/  clay-path=path  (storage-path:file-lib relative)
   =/  riot=riot:clay
     `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
-  =/  csv-riot=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/csv
-      [%csv !>((storage-wain:file-lib content))]]
-  =/  html-riot=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/html
-      [%html !>(content)]]
-  =/  json-riot=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/json
-      [%json !>((need (de:json:html json-content)))]]
-  =/  tab-riot=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/results-1/tab
-      [%tab !>((storage-wain:file-lib content))]]
+  =/  csv-path=path  /data/obelisk/results/results-1/csv
+  =/  csv-cage=cage  [%csv !>((storage-wain:file-lib content))]
+  =/  csv-riot=riot:clay  `[[%x ud+1 %obelisk] csv-path csv-cage]
+  =/  html-path=path  /data/obelisk/results/results-1/html
+  =/  html-cage=cage  [%html !>(content)]
+  =/  html-riot=riot:clay  `[[%x ud+1 %obelisk] html-path html-cage]
+  =/  md-path=path  /data/obelisk/results/results-1/md
+  =/  md-cage=cage  [%md !>(content)]
+  =/  md-riot=riot:clay  `[[%x ud+1 %obelisk] md-path md-cage]
+  =/  json-path=path  /data/obelisk/results/results-1/json
+  =/  json-cage=cage  [%json !>((need (de:json:html json-content)))]
+  =/  json-riot=riot:clay  `[[%x ud+1 %obelisk] json-path json-cage]
+  =/  tab-path=path  /data/obelisk/results/results-1/tab
+  =/  tab-cage=cage  [%tab !>((storage-wain:file-lib content))]
+  =/  tab-riot=riot:clay  `[[%x ud+1 %obelisk] tab-path tab-cage]
   ;:  weld
     %+  expect-eq
       !>(/data/obelisk/scripts/step-10-persist/txt)
@@ -1831,6 +1840,7 @@
     (expect !>((save-verifies:file-lib content riot)))
     (expect !>((save-verifies:file-lib content csv-riot)))
     (expect !>((save-verifies:file-lib content html-riot)))
+    (expect !>((save-verifies:file-lib content md-riot)))
     (expect !>((save-verifies:file-lib json-content json-riot)))
     (expect !>((save-verifies:file-lib content tab-riot)))
   ==
@@ -2026,6 +2036,14 @@
     (expect !>(?=(^ (find "refreshFiles" script))))
     (expect !>(?=(^ (find "explorerFileParent" script))))
     (expect !>(?=(^ (find "explorerFileLabel" script))))
+    (expect !>(?=(^ (find "savedFileTabName" script))))
+    (expect !>(?=(^ (find "uniqueTabName(savedFileTabName(path))" script))))
+    (expect !>(?=(^ (find "savedFileTabName(body.path)" script))))
+    (expect !>(?=(^ (find "resultStorageMarks" script))))
+    (expect !>(?=(^ (find "updateDisplayedResultMark" script))))
+    (expect !>(?=(^ (find "activeTabIsResult" script))))
+    (expect !>(?=(^ (find "updateExecutionControls" script))))
+    (expect !>(?=(^ (find "if (!runButton.disabled) execute('run')" script))))
     (expect !>(?=(^ (find "path: []" script))))
     (expect !>(?=(^ (find "filesCollapsed" script))))
     (expect !>(?=(^ (find "explorerView" script))))
