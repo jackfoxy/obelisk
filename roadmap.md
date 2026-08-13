@@ -3,7 +3,7 @@
 
 ##  V1.0
 
-* __`INSERT INTO [ FORCE ] \<table>__ -- (complete in dev) INSERT data defined by a query.
+* __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
 
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
