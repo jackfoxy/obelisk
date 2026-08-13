@@ -15,6 +15,7 @@
   $%  [%cards value=(list card)]
       [%obelisk request=web-request:web]
       [%file request=web-request:web]
+      [%result-save request=web-request:web]
   ==
 +$  work-plan  work-plan:readiness-lib
 +$  query-reply  (each (list cmd-result:ast) tang)
@@ -54,6 +55,7 @@
   ?:  =("/apps/obelisk/api/run" url)  `%run
   ?:  =("/apps/obelisk/api/parse" url)  `%parse
   ?:  =("/apps/obelisk/api/schema" url)  `%schema
+  ?:  =("/apps/obelisk/api/results/save" url)  `%result-save
   ?:  =("/apps/obelisk/api/files/browse" url)  `%file-browse
   ?:  =("/apps/obelisk/api/files/load" url)  `%file-load
   ?:  =("/apps/obelisk/api/files/save" url)  `%file-save
@@ -64,6 +66,19 @@
   |=  [code=error-code:web status=@ud message=@t retryable=?]
   ^-  web-error:web
   [code status message retryable ~]
+::
+++  result-storage-mark
+  |=  result-format=result-format:ast
+  ^-  @tas
+  ?-  result-format
+    %csv       %csv
+    %html      %html
+    %json      %json
+    %markdown  %md
+    %tab       %tab
+    ?(%manx %raw %vector %wain)  %noun
+    ?(%spac %tape)  %txt
+  ==
 ::
 ++  respond-error
   |=  [eyre-id=@ta error=web-error:web]
@@ -144,7 +159,8 @@
   |=  request=web-request:web
   ^-  (unit work-plan)
   ?-  -.request
-    ?(%file-browse %file-load %file-save %file-delete)  ~
+    ?(%result-save %file-browse %file-load %file-save %file-delete)
+      ~
     ?(%run %parse)
       =/  action=action:ast
         [%parse default-database.request (trip script.request)]
@@ -275,11 +291,11 @@
   [%pass wire %arvo %c %warp our desk ~ %next %x da+now clay-path]
 ::
 ++  file-write-card
-  |=  [=wire desk=desk clay-path=path content=@t]
+  |=  [=wire desk=desk clay-path=path =cage]
   ^-  card
   :*  %pass  wire  %arvo  %c
       %info  desk  %&
-      ~[[clay-path %ins (text-cage:file-lib content)]]
+      ~[[clay-path %ins cage]]
   ==
 ::
 ++  file-delete-card
@@ -369,6 +385,20 @@
     %+  respond-error  eyre-id
     (make-error %unavailable 503 'another file change is pending' %.y)
   =/  clay-path=path  (storage-path:file-lib relative)
+  =/  encoded=(each cage tang)
+    (cage-from-text:file-lib (rear clay-path) content)
+  ?.  ?=(%.y -.encoded)
+    :_  state
+    %:  respond-error-with
+      eyre-id
+      :*  %unprocessable
+          422
+          'File content does not match its format'
+          %.n
+          (tang-details:result-lib p.encoded)
+      ==
+      ~
+    ==
   =/  beam=path
     (clay-beam:file-lib our desk da+now clay-path)
   =/  exists=(each ? tang)  (clay-exists beam)
@@ -392,7 +422,7 @@
   =.  file-save.transient.state  `pending
   :_  state
   :~  (file-verify-card verify-wire our desk now clay-path)
-      (file-write-card write-wire desk clay-path content)
+      (file-write-card write-wire desk clay-path p.encoded)
       (wait-card timeout-wire (add now file-timeout:file-lib))
   ==
 ::
@@ -456,7 +486,68 @@
         desk
         now
       ==
-    ?(%run %parse %schema)  !!
+    ?(%run %parse %schema %result-save)  !!
+  ==
+::
+++  handle-result-save
+  |=  $:  eyre-id=@ta
+          request=web-request:web
+          state=live-state:web
+          our=@p
+          desk=desk
+          now=@da
+      ==
+  ^-  (quip card live-state:web)
+  ?>  ?=(%result-save -.request)
+  ?.  ?&  (valid-file-path:file-lib path.request)
+          ?=(^ path.request)
+          =(%results i.path.request)
+      ==
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'invalid result path' %.n)
+  ?.  =((result-storage-mark format.request) (rear path.request))
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'result path mark does not match format' %.n)
+  =/  cached=(unit result-cache:web)  result-cache.transient.state
+  ?~  cached
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %not-found 404 'Query results are no longer available' %.n)
+  ?.  =(result-id.request result-id.u.cached)
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %not-found 404 'Query results are no longer available' %.n)
+  ?:  (gte command-index.request (lent commands.u.cached))
+    :_  state
+    %+  respond-error  eyre-id
+    (make-error %bad-request 400 'Result command index is out of range' %.n)
+  =/  command=cmd-result:ast
+    (snag command-index.request commands.u.cached)
+  =/  exported=(each @t tang)
+    (mule |.((result-export:result-lib format.request command)))
+  ?.  ?=(%.y -.exported)
+    :_  state
+    %:  respond-error-with
+      eyre-id
+      :*  %unprocessable
+          422
+          'Result formatting failed'
+          %.n
+          (tang-details:result-lib p.exported)
+      ==
+      ~
+    ==
+  %:  save-file
+    eyre-id
+    path.request
+    p.exported
+    overwrite.request
+    state
+    our
+    desk
+    now
   ==
 ::
 ++  reply-error-cards
@@ -651,9 +742,12 @@
         (complete-with-malformed active state now our)
       =/  changed=?
         (schema-changing:schema-lib commands.context.active)
+      =/  result-id=request-id:web  request-id.job.active
+      =.  result-cache.transient.state
+        `[result-id commands]
       %:  complete-with-response
         active
-        (run-response-with:result-lib commands changed)
+        (run-response-with:result-lib result-id commands changed)
         state
         now
         our
@@ -777,6 +871,8 @@
     (make-error %bad-request 400 'request type does not match route' %.n)
   ?:  (obelisk-backed operation)
     [%obelisk u.decoded]
+  ?:  =(%result-save operation)
+    [%result-save u.decoded]
   [%file u.decoded]
 ::
 ++  route-http
@@ -875,6 +971,17 @@
     %file
       =^  cards  state
         %:  handle-file-request
+          eyre-id
+          request.routed
+          state
+          our.bowl
+          q.byk.bowl
+          now.bowl
+        ==
+      [cards this]
+    %result-save
+      =^  cards  state
+        %:  handle-result-save
           eyre-id
           request.routed
           state

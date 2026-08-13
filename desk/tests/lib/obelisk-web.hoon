@@ -41,6 +41,7 @@
       readiness=~
       file-save=~
       file-delete=~
+      result-cache=~
   ==
 ::
 ++  test-state-bunts-00
@@ -64,7 +65,7 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~]])
+    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
 ++  test-save-load-roundtrip-02
@@ -757,6 +758,13 @@
         [%parse %my-db '']
         [%schema ~]
         [%schema `%other-db]
+        :*  %result-save
+            7
+            2
+            %markdown
+            ~[%results %result-1 %md]
+            %.n
+        ==
         [%file-browse ~]
         [%file-browse ~[%scripts %nested]]
         [%file-load ~[%scripts %query-1]]
@@ -815,7 +823,7 @@
   =/  error=web-error:web
     [%unprocessable 422 hostile-text %.n ~[hostile-text]]
   =/  responses=(list web-response:web)
-    :~  [%run ~[[0 results ~]] %.y]
+    :~  [%run 7 ~[[0 results]] %.y]
         [%parse ~[hostile-text ''] hostile-text]
         [%schema schema]
         [%file-list ~[[~[%scripts %query-1] %file]]]
@@ -1220,6 +1228,7 @@
   =/  response-cards  (tail-cards -.out)
   =/  expected=web-response:web
     :*  %run
+        0
         :~  :*  0
                 :~  [%action 'SELECT']
                     :*  %result-set
@@ -1228,7 +1237,6 @@
                     ==
                     [%vector-count 1]
                 ==
-                ~
             ==
         ==
         %.n
@@ -1238,6 +1246,23 @@
     %+  expect-eq
       !>((response-json:json-lib expected))
     !>((response-json response-cards))
+  ==
+::
+++  test-result-save-rejects-missing-cache-42-a
+  =/  save-body
+    %-  request-text
+    [%result-save 0 0 %csv ~[%results %result-1 %csv] %.n]
+  =/  save-request
+    %:  api-request
+      '/apps/obelisk/api/results/save'
+      %.y
+      `save-body
+      `'application/json'
+    ==
+  =/  saved  (poke-http save-request)
+  ;:  weld
+    (expect-eq !>(404) !>((response-status -.saved)))
+    (expect-eq !>('not-found') !>((response-error-code -.saved)))
   ==
 ::
 ++  test-parse-typed-success-43
@@ -1319,7 +1344,7 @@
     [%parse ~ (crip (text !>(empty-commands)))]
   ;:  weld
     %+  expect-eq
-      !>((response-json:json-lib [%run ~ %.n]))
+      !>((response-json:json-lib [%run 0 ~ %.n]))
     !>((response-json (tail-cards -.run-out)))
     %+  expect-eq
       !>(expected-parse)
@@ -1455,7 +1480,7 @@
   ;:  weld
     (expect !>((schema-changing:schema-lib ddl)))
     %+  expect-eq
-      !>((response-json:json-lib [%run ~ %.y]))
+      !>((response-json:json-lib [%run 0 ~ %.y]))
     !>((response-json response-cards))
   ==
 ::
@@ -1589,8 +1614,8 @@
         ~[~[[%zeta '@t' 'last']]]
     ==
   =/  commands=(list command-dto:web)
-    :~  [0 ~[[%message hostile-text] [%result-set first]] ~]
-        [1 ~[[%result-set second] [%vector-count 1]] ~]
+    :~  [0 ~[[%message hostile-text] [%result-set first]]]
+        [1 ~[[%result-set second] [%vector-count 1]]]
     ==
   ;:  weld
     %+  expect-eq
@@ -1607,7 +1632,7 @@
     !>((result-sets:result-lib commands))
   ==
 ::
-++  test-result-format-exports-55-a
+++  test-result-format-on-demand-55-a
   =/  columns
     ^-  (lest $%(column:ast qualified-column:ast))
     ~[[%column %value ~.t 0]]
@@ -1625,25 +1650,20 @@
     ==
   =/  command=cmd-result:ast
     [%results ~[[%relations ~[relation]]]]
-  =/  exports=(list result-export-dto:web)
-    (result-exports:result-lib command)
+  =/  csv=@t  (result-export:result-lib %csv command)
+  =/  markdown=@t  (result-export:result-lib %markdown command)
   ;:  weld
-    %+  expect-eq
-      !>  :~  %csv  %tab  %spac  %markdown  %html  %tape
-              %json  %wain  %manx  %vector  %raw
-          ==
-    !>((turn exports |=(export=result-export-dto:web format.export)))
-    (expect-eq !>([%csv 'value\0asafe']) !>((snag 0 exports)))
-    (expect-eq !>(11) !>((lent exports)))
+    (expect-eq !>('value\0asafe') !>(csv))
+    (expect !>(?=(^ (find "| value |" (trip markdown)))))
   ==
 ::
 ++  test-result-export-empty-and-metadata-56
   =/  empty-set=result-set-dto:web  [~ ~]
   =/  header-only=result-set-dto:web  [~[[%value 't']] ~]
   =/  metadata=(list command-dto:web)
-    ~[[0 ~[[%message hostile-text]] ~]]
+    ~[[0 ~[[%message hostile-text]]]]
   =/  empty-command=(list command-dto:web)
-    ~[[0 ~[[%result-set empty-set]] ~]]
+    ~[[0 ~[[%result-set empty-set]]]]
   =/  line=@t  (cat 3 'message: ' hostile-text)
   =/  expected=@t  (cat 3 line '\0a')
   ;:  weld
@@ -1654,7 +1674,7 @@
     %+  expect-eq
       !>('value\0a')
     !>  %-  result-export-text:result-lib
-        [~[[0 ~[[%result-set header-only]] ~]] %tab]
+        [~[[0 ~[[%result-set header-only]]]] %tab]
     (expect-eq !>(expected) !>((metadata-text:result-lib metadata)))
     %+  expect-eq
       !>(expected)
@@ -1668,7 +1688,7 @@
   =/  table=result-set-dto:web
     [~[[%value '@t']] ~[~[[%value '@t' 'safe']]]]
   =/  commands=(list command-dto:web)
-    ~[[0 ~[[%result-set table] [%message hostile-text]] ~]]
+    ~[[0 ~[[%result-set table] [%message hostile-text]]]]
   =/  expected=@t
     (cat 3 'value\0asafe\0a\0amessage: ' (cat 3 hostile-text '\0a'))
   %+  expect-eq
@@ -1690,7 +1710,7 @@
   =/  vectors=(list vector:ast)  (numbered-vectors 800)
   =/  table=result-set-dto:web  (result-set:result-lib vectors)
   =/  commands=(list command-dto:web)
-    ~[[0 ~[[%result-set table]] ~]]
+    ~[[0 ~[[%result-set table]]]]
   =/  exported=@t  (result-export-text:result-lib commands %comma)
   ;:  weld
     (expect !>(!(should-page:result-lib 799)))
@@ -1714,10 +1734,7 @@
   =/  result=result-dto:web  (snag 0 results.command)
   ?>  ?=(%result-set -.result)
   =/  table=result-set-dto:web  value.result
-  ;:  weld
-    (expect-eq !>(800) !>((lent rows.table)))
-    (expect-eq !>(~) !>(exports.command))
-  ==
+  (expect-eq !>(800) !>((lent rows.table)))
 ::
 ++  test-file-path-validation-60
   ;:  weld
@@ -1790,6 +1807,14 @@
   =/  md-cage=cage  [%md !>(hostile-text)]
   =/  noun-cage=cage
     [%noun !>((storage-wain:file-lib hostile-text))]
+  =/  encoded-md=(each cage tang)
+    (cage-from-text:file-lib %md hostile-text)
+  =/  encoded-noun=(each cage tang)
+    (cage-from-text:file-lib %noun hostile-text)
+  =/  invalid-json=(each cage tang)
+    (cage-from-text:file-lib %json '{]')
+  ?>  ?=(%.y -.encoded-md)
+  ?>  ?=(%.y -.encoded-noun)
   ;:  weld
     %+  expect-eq
       !>(`hostile-text)
@@ -1797,6 +1822,15 @@
     (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
     (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
     (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
+    (expect !>(=(%md p.p.encoded-md)))
+    %+  expect-eq
+      !>(`hostile-text)
+    !>((text-from-cage:file-lib p.encoded-md))
+    (expect !>(=(%noun p.p.encoded-noun)))
+    %+  expect-eq
+      !>(`hostile-text)
+    !>((text-from-cage:file-lib p.encoded-noun))
+    (expect !>(?=(%.n -.invalid-json)))
     (expect !>((save-conflict:file-lib %.y %.n)))
     (expect !>(!(save-conflict:file-lib %.y %.y)))
     (expect !>(!(save-conflict:file-lib %.n %.n)))
@@ -2087,7 +2121,9 @@
     (expect !>(?=(^ (find "setExplorerView" script))))
     (expect !>(?=(^ (find "error.status === 409" script))))
     (expect !>(?=(^ (find "savedText" script))))
-    (expect !>(?=(^ (find "is already open" script))))
+    (expect !>(?=(^ (find "existing.text = text" script))))
+    (expect !>(?=(^ (find "existing.savedText = text" script))))
+    (expect !>(?=(^ (find "existing ? 'reloaded' : 'opened'" script))))
   ==
 ::
 ++  test-schema-ui-contract-73
@@ -2137,6 +2173,11 @@
     (expect !>(?=(^ (find "save-output-btn" html))))
     (expect !>(?=(^ (find "Save results" html))))
     (expect !>(?=(^ (find "save-context-menu" html))))
+    (expect !>(?=(^ (find "markdown-view-toggle" html))))
+    (expect !>(?=(^ (find "markdown-source-btn" html))))
+    (expect !>(?=(^ (find "markdown-preview-btn" html))))
+    (expect !>(?=(^ (find "html-preview" html))))
+    (expect !>(?=(^ (find "sandbox" html))))
     (expect !>(?=(~ (find "save-results-btn" html))))
     (expect !>(?=(^ (find "results-format-select" html))))
     (expect !>(?=(^ (find "value=\"%csv\"" html))))
@@ -2157,6 +2198,8 @@
     (expect !>(?=(^ (find ".copy-icon" style))))
     (expect !>(?=(^ (find ".save-icon" style))))
     (expect !>(?=(^ (find ".help-panel" style))))
+    (expect !>(?=(^ (find ".markdown-preview" style))))
+    (expect !>(?=(^ (find ".html-preview" style))))
     (expect !>(?=(^ (find "showRunOutput" script))))
     (expect !>(?=(^ (find "showParseOutput" script))))
     (expect !>(?=(^ (find "showErrorOutput" script))))
@@ -2165,7 +2208,9 @@
     (expect !>(?=(^ (find "safeCommands.length === 1" script))))
     (expect !>(?=(^ (find "command-tab-panel" script))))
     (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
-    (expect !>(?=(^ (find "command.exports" script))))
+    (expect !>(?=(~ (find "command.exports" script))))
+    (expect !>(?=(^ (find "results/save" script))))
+    (expect !>(?=(^ (find "outputState.resultId" script))))
     (expect !>(?=(^ (find "setPointerCapture" script))))
     (expect !>(?=(^ (find "lostpointercapture" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
@@ -2188,6 +2233,11 @@
     (expect !>(?=(^ (find "event.clientX" script))))
     (expect !>(?=(^ (find "window.innerWidth" script))))
     (expect !>(?=(^ (find "outputState.path" script))))
+    (expect !>(?=(^ (find "previewResultMark" script))))
+    (expect !>(?=(^ (find "setResultView" script))))
+    (expect !>(?=(^ (find "renderMarkdown" script))))
+    (expect !>(?=(^ (find "safeMarkdownHref" script))))
+    (expect !>(?=(^ (find "htmlPreview.srcdoc" script))))
     (expect !>(?=(^ (find "resultFormatMarks" script))))
     (expect !>(?=(^ (find "path[path.length - 1] === mark" script))))
     (expect !>(?=(^ (find "nextResultName" script))))

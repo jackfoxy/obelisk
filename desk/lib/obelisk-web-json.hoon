@@ -1,6 +1,6 @@
 ::  Typed JSON boundary for %obelisk-web.
 ::
-/-  web=obelisk-web
+/-  ast=obelisk-ast, web=obelisk-web
 |%
 ::
 ++  max-body-bytes  1.048.576
@@ -50,10 +50,24 @@
   ?.  ?=(%b -.u.val)  ~
   `p.u.val
 ::
+++  unsigned-text-field
+  |=  [key=@t jon=json]
+  ^-  (unit @ud)
+  =/  val=(unit @t)  (text-field key jon)
+  ?~  val  ~
+  =/  parsed=(each @ud tang)
+    (mule |.(^-(@ud (slav %ud u.val))))
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
+::
 ++  term-text
   |=  txt=@t
   ^-  @tas
   `@tas`(slav %tas txt)
+::
+++  result-format-text
+  |=  txt=@t
+  ^-  result-format:ast
+  ;;(result-format:ast (term-text txt))
 ::
 ++  request-json
   |=  req=web-request:web
@@ -78,6 +92,16 @@
     :~  ['type' s+'schema']
         :-  'defaultDatabase'
         ?~(default-database.req ~ s+u.default-database.req)
+    ==
+  ::
+      %result-save
+    %-  pairs:enjs:format
+    :~  ['type' s+'result-save']
+        ['resultId' s+(scot %ud result-id.req)]
+        ['commandIndex' s+(scot %ud command-index.req)]
+        ['format' s+`@t`format.req]
+        ['path' (path-json path.req)]
+        ['overwrite' b+overwrite.req]
     ==
   ::
       %file-browse
@@ -121,6 +145,14 @@
     ?:  =(kind 'schema')
       =/  database=(unit @t)  (text-field 'defaultDatabase' jon)
       [%schema ?~(database ~ `(term-text u.database))]
+    ?:  =(kind 'result-save')
+      :*  %result-save
+          (need (unsigned-text-field 'resultId' jon))
+          (need (unsigned-text-field 'commandIndex' jon))
+          (result-format-text (need (text-field 'format' jon)))
+          (need (path-field 'path' jon))
+          (need (bool-field 'overwrite' jon))
+      ==
     ?:  =(kind 'file-browse')
       [%file-browse (need (path-field 'path' jon))]
     ?:  =(kind 'file-load')
@@ -262,12 +294,6 @@
   %-  pairs:enjs:format
   :~  ['index' n+(scot %ud index.command)]
       ['results' [%a (turn results.command result-json)]]
-      :-  'exports'
-      %-  pairs:enjs:format
-      %+  turn  exports.command
-      |=  export=result-export-dto:web
-      =/  key=@t  `@t`format.export
-      [key s+content.export]
   ==
 ::
 ++  file-entry-json
@@ -294,6 +320,7 @@
       %run
     %-  pairs:enjs:format
     :~  ['type' s+'run']
+        ['resultId' s+(scot %ud result-id.response)]
         ['commands' [%a (turn commands.response command-json)]]
         ['schemaChanged' b+schema-changed.response]
     ==

@@ -17,6 +17,11 @@
 ::
 +$  request-id  @ud
 ::
++$  result-cache
+  $:  result-id=request-id
+      commands=(list cmd-result:ast)
+  ==
+::
 +$  transient-state
   $:  binding=binding-state
       next-request-id=request-id
@@ -25,6 +30,7 @@
       readiness=(unit pending-readiness)
       file-save=(unit pending-file-save)
       file-delete=(unit pending-file-delete)
+      result-cache=(unit result-cache)
   ==
 ::
 +$  live-state
@@ -36,7 +42,15 @@
 ::  +|  HTTP Work
 ::
 +$  api-operation
-  ?(%run %parse %schema %file-browse %file-load %file-save %file-delete)
+  $?  %run
+      %parse
+      %schema
+      %result-save
+      %file-browse
+      %file-load
+      %file-save
+      %file-delete
+  ==
 ::
 +$  relative-path  (list @ta)
 ::
@@ -47,6 +61,13 @@
       [%file-browse path=relative-path]
       [%file-load path=relative-path]
       [%file-delete path=relative-path]
+      $:  %result-save
+          result-id=request-id
+          command-index=@ud
+          format=result-format:ast
+          path=relative-path
+          overwrite=?
+      ==
       $:  %file-save
           path=relative-path
           content=@t
@@ -230,13 +251,9 @@
       [%select-relation value=@t]
   ==
 ::
-+$  result-export-dto
-  [format=result-format:ast content=@t]
-::
 +$  command-dto
   $:  index=@ud
       results=(list result-dto)
-      exports=(list result-export-dto)
   ==
 ::
 ::  +|  File DTOs
@@ -252,6 +269,7 @@
 ::
 +$  web-response
   $%  $:  %run
+          result-id=request-id
           commands=(list command-dto)
           schema-changed=?
       ==

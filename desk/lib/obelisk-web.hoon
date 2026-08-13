@@ -16,6 +16,7 @@
       ~
       ~
       ~
+      ~
   ==
 ::
 ++  binding-after-connect
@@ -212,7 +213,23 @@
                 ==
               ==
               ;div.editor-toolbar
-                ;span: urQL
+                ;div.editor-mode
+                  ;span#editor-language: urQL
+                  ;div#markdown-view-toggle.markdown-view-toggle.hidden
+                    =role  "group"
+                    =aria-label  "Markdown view"
+                    ;button#markdown-source-btn.active
+                      =type  "button"
+                      =aria-pressed  "true"
+                      Source
+                    ==
+                    ;button#markdown-preview-btn
+                      =type  "button"
+                      =aria-pressed  "false"
+                      Preview
+                    ==
+                  ==
+                ==
                 ;div.editor-actions
                   ;button#save-query-btn.icon-button.save-action
                     =type  "button"
@@ -234,6 +251,18 @@
                 =aria-label  "urQL query"
                 =spellcheck  "false"
                 =placeholder  "Enter urQL here…"
+                ;*  ~[;/("")]
+              ==
+              ;div#markdown-preview.markdown-preview.hidden
+                =role  "document"
+                =tabindex  "0"
+                =aria-label  "Rendered Markdown"
+                ;*  ~[;/("")]
+              ==
+              ;iframe#html-preview.html-preview.hidden
+                =title  "Rendered HTML"
+                =sandbox  ""
+                =referrerpolicy  "no-referrer"
                 ;*  ~[;/("")]
               ==
             ==
@@ -1135,6 +1164,39 @@
     gap: 0.35rem;
   }
 
+  .editor-mode, .markdown-view-toggle {
+    align-items: center;
+    display: flex;
+  }
+
+  .editor-mode {
+    gap: 0.65rem;
+  }
+
+  .markdown-view-toggle {
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    overflow: hidden;
+  }
+
+  .markdown-view-toggle button {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    min-height: 1.65rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .markdown-view-toggle button + button {
+    border-left: 1px solid var(--border);
+  }
+
+  .markdown-view-toggle button.active {
+    background: var(--surface-alt);
+    color: var(--text);
+    font-weight: 600;
+  }
+
   .icon-button {
     align-items: center;
     display: inline-flex;
@@ -1214,6 +1276,92 @@
     resize: none;
     tab-size: 2;
     width: 100%;
+  }
+
+  .query-editor, .markdown-preview, .html-preview {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .html-preview {
+    background: #fff;
+    border: 0;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .markdown-preview {
+    background: var(--surface);
+    color: var(--text);
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  .markdown-preview > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-preview > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-preview h1, .markdown-preview h2,
+  .markdown-preview h3, .markdown-preview h4,
+  .markdown-preview h5, .markdown-preview h6 {
+    line-height: 1.25;
+    margin: 1.2em 0 0.55em;
+  }
+
+  .markdown-preview p, .markdown-preview ul,
+  .markdown-preview ol, .markdown-preview blockquote {
+    line-height: 1.6;
+    margin: 0.7em 0;
+  }
+
+  .markdown-preview blockquote {
+    border-left: 0.25rem solid var(--border);
+    color: var(--muted);
+    padding-left: 0.85rem;
+  }
+
+  .markdown-preview code {
+    background: var(--surface-alt);
+    border-radius: 0.25rem;
+    font-family: ui-monospace, monospace;
+    padding: 0.1rem 0.25rem;
+  }
+
+  .markdown-preview pre {
+    background: var(--surface-alt);
+    border-radius: 0.35rem;
+    overflow: auto;
+    padding: 0.75rem;
+  }
+
+  .markdown-preview pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .markdown-preview table {
+    border-collapse: collapse;
+    margin: 0.8rem 0;
+  }
+
+  .markdown-preview th, .markdown-preview td {
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.55rem;
+    text-align: left;
+  }
+
+  .markdown-preview th {
+    background: var(--surface-alt);
+  }
+
+  .markdown-preview a {
+    color: var(--accent);
   }
 
   .output-pane {
@@ -1624,6 +1772,12 @@
     const outputResizer = byId('output-resizer');
     const outputCollapse = byId('output-collapse');
     const editor = byId('query-editor');
+    const editorLanguage = byId('editor-language');
+    const markdownViewToggle = byId('markdown-view-toggle');
+    const markdownSourceButton = byId('markdown-source-btn');
+    const markdownPreviewButton = byId('markdown-preview-btn');
+    const markdownPreview = byId('markdown-preview');
+    const htmlPreview = byId('html-preview');
     const tabsElement = document.querySelector('.editor-tabs');
     const newTabButton = byId('new-tab-btn');
     const runButton = byId('run-btn');
@@ -1669,6 +1823,7 @@
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',
+      resultId: null,
       commands: [],
       activeCommand: null,
       text: '',
@@ -1766,7 +1921,8 @@
           text: '',
           savedText: null,
           selectionStart: 0,
-          selectionEnd: 0
+          selectionEnd: 0,
+          resultView: 'source'
         }],
         activeId: 'draft-1',
         nextDraft: 2,
@@ -1792,6 +1948,8 @@
         Number.isInteger(tab.selectionEnd) &&
         (tab.savedText === null || typeof tab.savedText === 'string' ||
           typeof tab.savedText === 'undefined') &&
+        (typeof tab.resultView === 'undefined' ||
+          ['source', 'preview'].includes(tab.resultView)) &&
         (tab.path === null || Array.isArray(tab.path));
     }
 
@@ -1817,6 +1975,10 @@
           if (typeof tab.savedText === 'undefined') {
             tab.savedText = tab.path ? tab.text : null;
           }
+          if (typeof tab.resultView === 'undefined') {
+            tab.resultView = tab.markdownView || 'source';
+          }
+          delete tab.markdownView;
         });
         if (!Array.isArray(restored.schemaExpanded)) {
           restored.schemaExpanded = [];
@@ -1860,6 +2022,280 @@
         state.tabs[0];
     }
 
+    function previewResultMark(tab) {
+      if (!Array.isArray(tab.path) || tab.path[0] !== 'results') return null;
+      const mark = tab.path[tab.path.length - 1];
+      return ['md', 'html'].includes(mark) ? mark : null;
+    }
+
+    function safeMarkdownHref(value) {
+      if (value.startsWith('#')) return value;
+      try {
+        const url = new URL(value, window.location.href);
+        if (['http:', 'https:', 'mailto:'].includes(url.protocol)) {
+          return url.href;
+        }
+      } catch (_) {
+        return null;
+      }
+      return null;
+    }
+
+    function appendMarkdownInline(parent, value) {
+      const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|\[[^\]\n]+\]\([^) \n]+\))/g;
+      let offset = 0;
+      for (const match of value.matchAll(pattern)) {
+        parent.appendChild(document.createTextNode(
+          value.slice(offset, match.index)
+        ));
+        const token = match[0];
+        let node;
+        if (token.startsWith('`')) {
+          node = document.createElement('code');
+          node.textContent = token.slice(1, -1);
+        } else if (token.startsWith('**') || token.startsWith('__')) {
+          node = document.createElement('strong');
+          node.textContent = token.slice(2, -2);
+        } else if (token.startsWith('*') || token.startsWith('_')) {
+          node = document.createElement('em');
+          node.textContent = token.slice(1, -1);
+        } else {
+          const parts = /^\[([^\]]+)\]\(([^) ]+)\)$/.exec(token);
+          const href = parts ? safeMarkdownHref(parts[2]) : null;
+          if (parts && href) {
+            node = document.createElement('a');
+            node.textContent = parts[1];
+            node.href = href;
+            node.rel = 'noreferrer';
+            if (!href.startsWith(window.location.origin)) {
+              node.target = '_blank';
+            }
+          } else {
+            node = document.createTextNode(token);
+          }
+        }
+        parent.appendChild(node);
+        offset = match.index + token.length;
+      }
+      parent.appendChild(document.createTextNode(value.slice(offset)));
+    }
+
+    function markdownTableCells(line) {
+      let value = line.trim();
+      if (value.startsWith('|')) value = value.slice(1);
+      if (value.endsWith('|') && !value.endsWith('\\|')) {
+        value = value.slice(0, -1);
+      }
+      const cells = [];
+      let cell = '';
+      let escaped = false;
+      for (const character of value) {
+        if (escaped) {
+          cell += character;
+          escaped = false;
+        } else if (character === '\\') {
+          escaped = true;
+        } else if (character === '|') {
+          cells.push(cell.trim());
+          cell = '';
+        } else {
+          cell += character;
+        }
+      }
+      if (escaped) cell += '\\';
+      cells.push(cell.trim());
+      return cells;
+    }
+
+    function markdownTableDelimiter(line) {
+      const cells = markdownTableCells(line);
+      return cells.length > 0 && cells.every((cell) => {
+        return /^:?-{3,}:?$/.test(cell);
+      });
+    }
+
+    function markdownBlockStart(lines, index) {
+      const line = lines[index] || '';
+      const next = lines[index + 1] || '';
+      return /^ {0,3}```/.test(line) || /^ {0,3}#{1,6}\s+/.test(line) ||
+        /^ {0,3}(?:[-*_]\s*){3,}$/.test(line) ||
+        /^\s*>\s?/.test(line) ||
+        /^\s*(?:[-+*]|\d+\.)\s+/.test(line) ||
+        (line.includes('|') && markdownTableDelimiter(next));
+    }
+
+    function renderMarkdown(text) {
+      const fragment = document.createDocumentFragment();
+      const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+      let index = 0;
+      while (index < lines.length) {
+        const line = lines[index];
+        if (!line.trim()) {
+          index += 1;
+          continue;
+        }
+        const fence = /^ {0,3}```\s*([^ ]*)\s*$/.exec(line);
+        if (fence) {
+          const codeLines = [];
+          index += 1;
+          while (index < lines.length && !/^ {0,3}```\s*$/.test(
+            lines[index]
+          )) {
+            codeLines.push(lines[index]);
+            index += 1;
+          }
+          if (index < lines.length) index += 1;
+          const pre = document.createElement('pre');
+          const code = document.createElement('code');
+          if (fence[1]) code.dataset.language = fence[1];
+          code.textContent = codeLines.join('\n');
+          pre.appendChild(code);
+          fragment.appendChild(pre);
+          continue;
+        }
+        if (index + 1 < lines.length && line.includes('|') &&
+            markdownTableDelimiter(lines[index + 1])) {
+          const table = document.createElement('table');
+          const head = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          const headers = markdownTableCells(line);
+          const delimiters = markdownTableCells(lines[index + 1]);
+          headers.forEach((header, cellIndex) => {
+            const cell = document.createElement('th');
+            const delimiter = delimiters[cellIndex] || '';
+            if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
+              cell.style.textAlign = 'center';
+            } else if (delimiter.endsWith(':')) {
+              cell.style.textAlign = 'right';
+            }
+            appendMarkdownInline(cell, header);
+            headRow.appendChild(cell);
+          });
+          head.appendChild(headRow);
+          table.appendChild(head);
+          const body = document.createElement('tbody');
+          index += 2;
+          while (index < lines.length && lines[index].trim() &&
+              lines[index].includes('|')) {
+            const row = document.createElement('tr');
+            markdownTableCells(lines[index]).forEach((value, cellIndex) => {
+              const cell = document.createElement('td');
+              const delimiter = delimiters[cellIndex] || '';
+              if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
+                cell.style.textAlign = 'center';
+              } else if (delimiter.endsWith(':')) {
+                cell.style.textAlign = 'right';
+              }
+              appendMarkdownInline(cell, value);
+              row.appendChild(cell);
+            });
+            body.appendChild(row);
+            index += 1;
+          }
+          table.appendChild(body);
+          fragment.appendChild(table);
+          continue;
+        }
+        const heading = /^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+        if (heading) {
+          const node = document.createElement(`h${heading[1].length}`);
+          appendMarkdownInline(node, heading[2]);
+          fragment.appendChild(node);
+          index += 1;
+          continue;
+        }
+        if (/^ {0,3}(?:[-*_]\s*){3,}$/.test(line)) {
+          fragment.appendChild(document.createElement('hr'));
+          index += 1;
+          continue;
+        }
+        if (/^\s*>\s?/.test(line)) {
+          const quote = document.createElement('blockquote');
+          const quoteLines = [];
+          while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+            quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+            index += 1;
+          }
+          appendMarkdownInline(quote, quoteLines.join(' '));
+          fragment.appendChild(quote);
+          continue;
+        }
+        const listItem = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(line);
+        if (listItem) {
+          const ordered = /\d+\./.test(listItem[1]);
+          const list = document.createElement(ordered ? 'ol' : 'ul');
+          while (index < lines.length) {
+            const item = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(lines[index]);
+            if (!item || /\d+\./.test(item[1]) !== ordered) break;
+            const node = document.createElement('li');
+            appendMarkdownInline(node, item[2]);
+            list.appendChild(node);
+            index += 1;
+          }
+          fragment.appendChild(list);
+          continue;
+        }
+        const paragraphLines = [line.trim()];
+        index += 1;
+        while (index < lines.length && lines[index].trim() &&
+            !markdownBlockStart(lines, index)) {
+          paragraphLines.push(lines[index].trim());
+          index += 1;
+        }
+        const paragraph = document.createElement('p');
+        appendMarkdownInline(paragraph, paragraphLines.join(' '));
+        fragment.appendChild(paragraph);
+      }
+      markdownPreview.replaceChildren(fragment);
+    }
+
+    function updateEditorView(focus = false) {
+      const tab = activeTab();
+      const mark = previewResultMark(tab);
+      const preview = Boolean(mark) && tab.resultView === 'preview';
+      editorLanguage.textContent = mark === 'md' ? 'Markdown' :
+        mark === 'html' ? 'HTML' : 'urQL';
+      markdownViewToggle.classList.toggle('hidden', !mark);
+      markdownViewToggle.setAttribute(
+        'aria-label', mark === 'html' ? 'HTML view' : 'Markdown view'
+      );
+      markdownSourceButton.classList.toggle('active', !preview);
+      markdownPreviewButton.classList.toggle('active', preview);
+      markdownSourceButton.setAttribute('aria-pressed', String(!preview));
+      markdownPreviewButton.setAttribute('aria-pressed', String(preview));
+      editor.classList.toggle('hidden', preview);
+      markdownPreview.classList.toggle(
+        'hidden', !(preview && mark === 'md')
+      );
+      htmlPreview.classList.toggle(
+        'hidden', !(preview && mark === 'html')
+      );
+      editor.setAttribute(
+        'aria-label', mark === 'md' ? 'Markdown source' :
+          mark === 'html' ? 'HTML source' : 'urQL query'
+      );
+      if (preview && mark === 'md') renderMarkdown(tab.text);
+      if (preview && mark === 'html' && htmlPreview.srcdoc !== tab.text) {
+        htmlPreview.srcdoc = tab.text;
+      }
+      if (focus) {
+        requestAnimationFrame(() => {
+          if (preview && mark === 'md') markdownPreview.focus();
+          else if (preview && mark === 'html') htmlPreview.focus();
+          else editor.focus();
+        });
+      }
+    }
+
+    function setResultView(view) {
+      const tab = activeTab();
+      if (!previewResultMark(tab)) return;
+      captureEditor();
+      tab.resultView = view;
+      updateEditorView(true);
+      persist();
+    }
+
     function captureEditor() {
       const tab = activeTab();
       tab.text = editor.value;
@@ -1870,11 +2306,12 @@
     function restoreEditor(focus) {
       const tab = activeTab();
       editor.value = tab.text;
+      updateEditorView(focus);
       const start = Math.min(tab.selectionStart, tab.text.length);
       const end = Math.min(tab.selectionEnd, tab.text.length);
       requestAnimationFrame(() => {
         editor.setSelectionRange(start, end);
-        if (focus) editor.focus();
+        if (focus && tab.resultView !== 'preview') editor.focus();
       });
     }
 
@@ -1944,7 +2381,15 @@
 
     function activateTab(id, focusEditor) {
       if (id === state.activeId) {
-        if (focusEditor) editor.focus();
+        if (focusEditor) {
+          const mark = previewResultMark(activeTab());
+          if (mark && activeTab().resultView === 'preview') {
+            if (mark === 'md') markdownPreview.focus();
+            else htmlPreview.focus();
+          } else {
+            editor.focus();
+          }
+        }
         return;
       }
       captureEditor();
@@ -1983,7 +2428,8 @@
         text,
         savedText: null,
         selectionStart: 0,
-        selectionEnd: 0
+        selectionEnd: 0,
+        resultView: 'source'
       };
       state.tabs.push(tab);
       state.activeId = tab.id;
@@ -2011,7 +2457,17 @@
         return tab.path && pathKey(tab.path) === key;
       });
       if (existing) {
-        activateTab(existing.id, true);
+        captureEditor();
+        existing.path = path.slice();
+        existing.name = uniqueTabName(savedFileTabName(path), existing.id);
+        existing.text = text;
+        existing.savedText = text;
+        existing.selectionStart = 0;
+        existing.selectionEnd = 0;
+        state.activeId = existing.id;
+        renderTabs();
+        restoreEditor(true);
+        persist();
         return existing;
       }
       captureEditor();
@@ -2022,7 +2478,8 @@
         text,
         savedText: text,
         selectionStart: 0,
-        selectionEnd: 0
+        selectionEnd: 0,
+        resultView: 'source'
       };
       state.tabs.push(tab);
       state.activeId = tab.id;
@@ -2047,7 +2504,8 @@
           text: '',
           savedText: null,
           selectionStart: 0,
-          selectionEnd: 0
+          selectionEnd: 0,
+          resultView: 'source'
         });
       }
       if (active) {
@@ -2129,6 +2587,7 @@
 
     async function api(operation, payload) {
       const route = {
+        'result-save': 'results/save',
         'file-browse': 'files/browse',
         'file-load': 'files/load',
         'file-save': 'files/save',
@@ -2628,18 +3087,13 @@
       const existing = state.tabs.find((tab) => {
         return tab.path && pathKey(tab.path) === pathKey(path);
       });
-      if (existing) {
-        if (closeDialog) closeFileDialog();
-        activateTab(existing.id, true);
-        setStatus(`${displayScriptPath(path)} is already open.`);
-        return;
-      }
       setBusy(true, 'open');
       try {
         const body = await api('file-load', {path});
         addFileTab(body.path, body.content);
         if (closeDialog) closeFileDialog();
-        setStatus(`${displayScriptPath(body.path)} opened.`);
+        const action = existing ? 'reloaded' : 'opened';
+        setStatus(`${displayScriptPath(body.path)} ${action}.`);
       } catch (error) {
         setStatus(error.message, 'error', true);
       } finally {
@@ -2738,37 +3192,39 @@
       filePathInput.value = parts.join('/');
     }
 
-    function resultSaveText(format) {
+    function resultSaveText() {
       if (outputState.kind === 'parse') {
         return ensureTrailingNewline(outputState.text);
       }
-      const command = Number.isInteger(outputState.activeCommand) ?
-        outputState.commands[outputState.activeCommand] : null;
-      if (!command) return null;
-      const exports = command && command.exports &&
-        typeof command.exports === 'object' ? command.exports : {};
-      const exportKey = String(format || '').replace(/^%/, '');
-      if (Object.prototype.hasOwnProperty.call(exports, exportKey)) {
-        return ensureTrailingNewline(String(exports[exportKey]));
-      }
-      const delimiter = {
-        '%csv': 'comma',
-        '%tab': 'tab',
-        '%spac': 'space'
-      }[format];
-      return delimiter ? runExportText([command], delimiter) : null;
+      return null;
     }
 
     async function saveResultsFile(path, overwrite, format) {
       if (busy || !outputState.exportable) return false;
-      const content = resultSaveText(format);
-      if (content === null) {
-        setStatus(`Results are unavailable as ${format}.`, 'error', true);
-        return false;
-      }
       setBusy(true, 'save-results');
       try {
-        const body = await api('file-save', {path, content, overwrite});
+        let body;
+        if (outputState.kind === 'run') {
+          const command = Number.isInteger(outputState.activeCommand) ?
+            outputState.commands[outputState.activeCommand] : null;
+          if (!command || outputState.resultId === null) {
+            setStatus('Results are no longer available.', 'error', true);
+            return false;
+          }
+          const commandIndex = Number.isInteger(command.index) ?
+            command.index : outputState.activeCommand;
+          body = await api('result-save', {
+            resultId: String(outputState.resultId),
+            commandIndex: String(commandIndex),
+            format: String(format || '').replace(/^%/, ''),
+            path,
+            overwrite
+          });
+        } else {
+          const content = resultSaveText();
+          if (content === null) return false;
+          body = await api('file-save', {path, content, overwrite});
+        }
         outputState.path = body.path.slice();
         outputState.format = format;
         await refreshFiles();
@@ -3560,13 +4016,14 @@
       updateOutputControls();
     }
 
-    function showRunOutput(commands) {
+    function showRunOutput(commands, resultId = null) {
       const safeCommands = Array.isArray(commands) ? commands : [];
       const activeCommand = safeCommands.length > 0 ? 0 : null;
       const exportable = activeCommand === null ? false :
         commandIsExportable(safeCommands[activeCommand]);
       outputState = {
         kind: 'run',
+        resultId,
         commands: safeCommands,
         activeCommand,
         text: '',
@@ -3593,6 +4050,7 @@
       const value = String(text || '');
       outputState = {
         kind: 'parse',
+        resultId: null,
         commands: [],
         activeCommand: null,
         text: value,
@@ -3613,6 +4071,7 @@
       const value = String(text || 'Unknown error.');
       outputState = {
         kind: 'error',
+        resultId: null,
         commands: [],
         activeCommand: null,
         text: value,
@@ -3641,6 +4100,7 @@
     function clearOutput() {
       outputState = {
         kind: 'empty',
+        resultId: null,
         commands: [],
         activeCommand: null,
         text: '',
@@ -3668,7 +4128,7 @@
           showParseOutput(body.text || '');
           setStatus('Parse complete.');
         } else {
-          showRunOutput(body.commands || []);
+          showRunOutput(body.commands || [], body.resultId ?? null);
           if (body.schemaChanged) {
             await refreshSchema({preferNewDatabase: true});
           }
@@ -4249,6 +4709,12 @@
         captureEditor();
         persist();
       });
+    });
+    markdownSourceButton.addEventListener('click', () => {
+      setResultView('source');
+    });
+    markdownPreviewButton.addEventListener('click', () => {
+      setResultView('preview');
     });
     newTabButton.addEventListener('click', () => addDraft());
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);

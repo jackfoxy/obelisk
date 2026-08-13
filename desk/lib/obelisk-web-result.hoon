@@ -27,32 +27,6 @@
     [p.cell p.q.cell (crip (render-dime:format q.cell))]
   [columns rows]
 ::
-++  command-row-count
-  |=  command=cmd-result:ast
-  ^-  @ud
-  =/  counts=(list @ud)
-    %+  murn  +.command
-    |=  result=result:ast
-    ^-  (unit @ud)
-    ?:  ?=(%vector-count -.result)  `count.result
-    ?:  ?=(%result-set -.result)  `(lent +.result)
-    ~
-  ?~  counts  0
-  =/  highest=@ud  i.counts
-  =/  remaining=(list @ud)  t.counts
-  |-
-  ?~  remaining  highest
-  %=  $
-    highest    (max highest i.remaining)
-    remaining  t.remaining
-  ==
-::
-++  command-exports
-  |=  [source=cmd-result:ast vector=cmd-result:ast]
-  ^-  (list result-export-dto:web)
-  ?:  (should-page (command-row-count vector))  ~
-  (result-exports source)
-::
 ++  result-dto
   |=  result=result:ast
   ^-  result-dto:web
@@ -78,9 +52,7 @@
     (format-results:format %vector ~[i.commands])
   ?>  ?=(^ vector)
   =/  command=cmd-result:ast  i.vector
-  =/  exports=(list result-export-dto:web)
-    (command-exports i.commands command)
-  :-  [index (turn +.command result-dto) exports]
+  :-  [index (turn +.command result-dto)]
   $(commands t.commands, index +(index))
 ::
 ++  relation-only
@@ -119,31 +91,18 @@
     (crip (text !>(formatted)))
   (formatted-messages formatted)
 ::
-++  result-exports
-  |=  command=cmd-result:ast
-  ^-  (list result-export-dto:web)
-  =/  relation-command=cmd-result:ast  (relation-only command)
-  ?~  +.relation-command  ~
-  =/  formats=(list result-format:ast)
-    :~  %csv  %tab  %spac  %markdown  %html  %tape
-        %json  %wain  %manx  %vector  %raw
-    ==
-  %+  murn  formats
-  |=  format=result-format:ast
-  ^-  (unit result-export-dto:web)
-  =/  exported=(each @t tang)
-    (mule |.((result-export format relation-command)))
-  ?:(?=(%.n -.exported) ~ `[format p.exported])
-::
 ++  run-response
   |=  commands=(list cmd-result:ast)
   ^-  web-response:web
-  (run-response-with commands %.n)
+  (run-response-with 0 commands %.n)
 ::
 ++  run-response-with
-  |=  [commands=(list cmd-result:ast) schema-changed=?]
+  |=  $:  result-id=request-id:web
+          commands=(list cmd-result:ast)
+          schema-changed=?
+      ==
   ^-  web-response:web
-  [%run (command-dtos commands 0) schema-changed]
+  [%run result-id (command-dtos commands 0) schema-changed]
 ::
 ++  parse-response
   |=  commands=(list command:ast)

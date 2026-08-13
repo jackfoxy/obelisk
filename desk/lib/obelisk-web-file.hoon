@@ -194,6 +194,21 @@
   ^-  cage
   [%txt !>((storage-wain content))]
 ::
+++  cage-from-text
+  |=  [mark=@ta content=@t]
+  ^-  (each cage tang)
+  %-  mule  |.
+  ^-  cage
+  ?+  mark  !!
+    %csv   [%csv !>((storage-wain content))]
+    %html  [%html !>(content)]
+    %json  [%json !>((need (de:json:html content)))]
+    %md    [%md !>(content)]
+    %noun  [%noun !>((storage-wain content))]
+    %tab   [%tab !>((storage-wain content))]
+    %txt   [%txt !>((storage-wain content))]
+  ==
+::
 ++  text-from-stored
   |=  [mark=@ta stored=*]
   ^-  (unit @t)
