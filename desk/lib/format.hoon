@@ -767,7 +767,22 @@
   |=  value=dime
   ^-  tape
   ?:  =(-.value ~.t)
-    (trip `@t`+.value)
+    =/  backslash  `@tD`92
+    =/  quote      `@tD`39
+    =/  slash      `@tD`47
+    =/  escaped=tape
+      %-  zing
+      %+  turn  (trip +.value)
+      |=  char=@tD
+      ^-  tape
+      ?:  =(char backslash)  ~[backslash backslash]
+      ?:  =(char quote)      ~[backslash quote]
+      ?:  ?|  (gth char 126)
+              (lth char 32)
+          ==
+        [backslash (welp ~(rux at char) ~[slash])]
+      ~[char]
+    (weld "'" (weld escaped "'"))
   ~(rend co %$ value)
 ::
 ++  markdown-escape

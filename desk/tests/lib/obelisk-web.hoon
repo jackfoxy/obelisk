@@ -1563,8 +1563,9 @@
   =/  result-set=result-dto:web  (snag 8 dtos)
   ?>  ?=(%result-set -.result-set)
   =/  table=result-set-dto:web  value.result-set
+  =/  expected-text=@t  (crip ~(rt at hostile-text))
   =/  expected-row=(list result-cell-dto:web)
-    :~  [%text 't' hostile-text]
+    :~  [%text 't' expected-text]
         [%name 'tas' 'alpha']
         [%count 'ud' '42']
         [%flag 'f' '.y']
@@ -1653,8 +1654,8 @@
   =/  csv=@t  (result-export:result-lib %csv command)
   =/  markdown=@t  (result-export:result-lib %markdown command)
   ;:  weld
-    (expect-eq !>('value\0asafe') !>(csv))
-    (expect !>(?=(^ (find "| value |" (trip markdown)))))
+    (expect-eq !>('value\0a\'safe\'') !>(csv))
+    (expect !>(?=(^ (find "| 'safe' |" (trip markdown)))))
   ==
 ::
 ++  test-result-export-empty-and-metadata-56

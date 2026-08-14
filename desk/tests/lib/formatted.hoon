@@ -303,7 +303,11 @@
     ~[[%vector ~[[%value [~.t 'a&<b>']]]]]
   =/  relation  (vectors-relation columns vectors)
   =/  expected
-    '<table><tr><th>value</th></tr><tr><td>a&amp;&lt;b&gt;</td></tr></table>'
+    %-  crip
+    ;:  weld
+      "<table><tr><th>value</th></tr>"
+      "<tr><td>'a&amp;&lt;b&gt;'</td></tr></table>"
+    ==
   %+  expect-eq
     !>(expected)
   !>((result-message (format-relation %html relation)))
@@ -363,8 +367,8 @@
     %-  crip
     %-  zing
     :~  "<table><tr><th>id</th><th>label</th></tr>"
-        "<tr><td>1</td><td>alpha</td></tr>"
-        "<tr><td>2</td><td>beta</td></tr></table>"
+        "<tr><td>1</td><td>'alpha'</td></tr>"
+        "<tr><td>2</td><td>'beta'</td></tr></table>"
         ==
   %+  expect-eq
     !>(expected)
@@ -467,7 +471,7 @@
     ~[[%vector ~[[%value [~.t 'a|b']]]]]
   =/  relation  (vectors-relation columns vectors)
   %+  expect-eq
-    !>('| value |\0a| --- |\0a| a\\|b |')
+    !>('| value |\0a| --- |\0a| \'a\\|b\' |')
   !>((result-message (format-relation %markdown relation)))
 ::
 ::  Ordered Markdown formatting with multiple schemas is not implemented.
@@ -502,9 +506,9 @@
         ~['\0a']
         "| --- | --- |"
         ~['\0a']
-        "| 1 | alpha |"
+        "| 1 | 'alpha' |"
         ~['\0a']
-        "| 2 | beta |"
+        "| 2 | 'beta' |"
         ==
   %+  expect-eq
     !>(expected)
@@ -582,7 +586,7 @@
     ~[[%vector ~[[%value [~.t 'a"b\\c']]]]]
   =/  relation  (vectors-relation columns vectors)
   %+  expect-eq
-    !>('[[{"value":"a\\"b\\\\c"}]]')
+    !>('[[{"value":"\'a\\"b\\\\\\\\c\'"}]]')
   !>((result-message (format-relation %json relation)))
 ::
 ::  Ordered JSON formatting with multiple schemas is not implemented.
@@ -611,7 +615,7 @@
                 ==
         ==
   %+  expect-eq
-    !>('[[{"id":1,"label":"alpha"},{"id":2,"label":"beta"}]]')
+    !>('[[{"id":1,"label":"\'alpha\'"},{"id":2,"label":"\'beta\'"}]]')
   !>  %-  result-message
       (format-relation %json (vectors-relation columns vectors))
 ::
@@ -704,7 +708,7 @@
                 ==
         ==
   %+  expect-eq
-    !>('id label\0a1 alpha\0a2 beta')
+    !>('id label\0a1 \'alpha\'\0a2 \'beta\'')
   !>  %-  result-message
       (format-relation %wain (vectors-relation columns vectors))
 ::
@@ -794,7 +798,7 @@
                 ==
         ==
   %+  expect-eq
-    !>('id label\0a1 alpha\0a2 beta')
+    !>('id label\0a1 \'alpha\'\0a2 \'beta\'')
   !>  %-  result-message
       (format-relation %tape (vectors-relation columns vectors))
 ::
@@ -879,7 +883,11 @@
   =/  vectors=(list vector:ast)
     ~[[%vector ~[[%value [~.t 'a&<b>']]]]]
   =/  expected
-    '<table><tr><th>value</th></tr><tr><td>a&amp;&lt;b&gt;</td></tr></table>'
+    %-  crip
+    ;:  weld
+      "<table><tr><th>value</th></tr>"
+      "<tr><td>&#39;a&amp;&lt;b&gt;&#39;</td></tr></table>"
+    ==
   %+  expect-eq
     !>(expected)
   !>  %-  result-message
@@ -914,8 +922,8 @@
     %-  crip
     %-  zing
     :~  "<table><tr><th>id</th><th>label</th></tr>"
-        "<tr><td>1</td><td>alpha</td></tr>"
-        "<tr><td>2</td><td>beta</td></tr></table>"
+        "<tr><td>1</td><td>&#39;alpha&#39;</td></tr>"
+        "<tr><td>2</td><td>&#39;beta&#39;</td></tr></table>"
         ==
   %+  expect-eq
     !>(expected)
@@ -974,15 +982,15 @@
   =/  relation  (vectors-relation columns vectors)
   ;:  weld
     %+  expect-eq
-      !>('id,label\0a1,"alpha,beta"\0a2,"say ""hi"""')
+      !>('id,label\0a1,"\'alpha,beta\'"\0a2,"\'say ""hi""\'"')
     !>((result-message (format-relation %csv relation)))
   ::
     %+  expect-eq
-      !>('id\09label\0a1\09alpha,beta\0a2\09say "hi"')
+      !>('id\09label\0a1\09\'alpha,beta\'\0a2\09\'say "hi"\'')
     !>((result-message (format-relation %tab relation)))
   ::
     %+  expect-eq
-      !>('id label\0a1 alpha,beta\0a2 say "hi"')
+      !>('id label\0a1 \'alpha,beta\'\0a2 \'say "hi"\'')
     !>((result-message (format-relation %spac relation)))
   ==
 ::
@@ -994,7 +1002,7 @@
     'format: ordered multi-schema csv output not implemented'
   |.  (format-relation %csv ordered-relation)
 ::
-::  CSV quotes values containing carriage returns and line feeds.
+::  CSV retains cord quotes and escapes carriage returns and line feeds.
 ++  test-csv-record-boundaries-45
   =/  columns
     ^-  (lest $%(column:ast qualified-column:ast))
@@ -1003,6 +1011,22 @@
     ~[[%vector ~[[%value [~.t 'line\0abreak\0dend']]]]]
   =/  relation  (vectors-relation columns vectors)
   %+  expect-eq
-    !>('value\0a"line\0abreak\0dend"')
+    !>('value\0a\'line\\0xa/break\\0xd/end\'')
   !>((result-message (format-relation %csv relation)))
+::
+::  Cord dime rendering retains its literal delimiters.
+++  test-render-dime-text-quotes-46
+  =/  escaped-input=@t
+    (crip ~['c' 'o' 'r' '\\' '\'' 'd'])
+  =/  escaped-output=tape
+    ~['\'' 'c' 'o' 'r' '\\' '\\' '\\' '\'' 'd' '\'']
+  ;:  weld
+    %+  expect-eq
+      !>("'alpha'")
+    !>((render-dime [~.t 'alpha']))
+  ::
+    %+  expect-eq
+      !>(escaped-output)
+    !>((render-dime [~.t escaped-input]))
+  ==
 --
