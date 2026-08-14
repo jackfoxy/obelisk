@@ -650,7 +650,7 @@
     !>(expected)
   !>((result-message (format-relation %json relation)))
 ::
-::  Wain renders one header and its rows for each columns entry.
+::  Wain renders each header and row as a separate message.
 ++  test-wain-multiple-schemas-27
   =/  relation  direct-relation
   =/  rows  data-rows.relation
@@ -660,7 +660,10 @@
   =/  input=(list cmd-result:ast)
     ~[[%results ~[[%relations ~[wain-relation]] [%vector-count 99]]]]
   =/  expected-items=(list result:ast)
-    :~  [%message 'value\0a1\0avalue\0a0x2']
+    :~  [%message 'value']
+        [%message '1']
+        [%message 'value']
+        [%message '0x2']
         [%vector-count 2]
         ==
   =/  expected-output=(list cmd-result:ast)
@@ -707,10 +710,17 @@
                 [%label [~.t 'beta']]
                 ==
         ==
+  =/  expected-items=(list result:ast)
+    :~  [%message 'id label']
+        [%message '1 \'alpha\'']
+        [%message '2 \'beta\'']
+        [%vector-count 2]
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
   %+  expect-eq
-    !>('id label\0a1 \'alpha\'\0a2 \'beta\'')
-  !>  %-  result-message
-      (format-relation %wain (vectors-relation columns vectors))
+    !>(expected-output)
+  !>((format-relation %wain (vectors-relation columns vectors)))
 ::
 ::  Wain preserves date, duration, signed, and floating auras.
 ++  test-wain-aura-values-31
@@ -731,17 +741,16 @@
                 [%double [~.rd .~1.5]]
                 ==
         ==
-  =/  expected
-    %-  crip
-    %-  zing
-    :~  "date duration signed single double"
-        ~['\0a']
-        "~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5"
+  =/  expected-items=(list result:ast)
+    :~  [%message 'date duration signed single double']
+        [%message '~2024.01.02..03.04.05 ~s5 --42 .1.5 .~1.5']
+        [%vector-count 1]
         ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results expected-items]]
   %+  expect-eq
-    !>(expected)
-  !>  %-  result-message
-      (format-relation %wain (vectors-relation columns vectors))
+    !>(expected-output)
+  !>((format-relation %wain (vectors-relation columns vectors)))
 ::
 ::  Tape renders one header and its rows for each columns entry.
 ++  test-tape-multiple-schemas-32

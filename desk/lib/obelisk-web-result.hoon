@@ -62,18 +62,22 @@
   %+  skim  +.command
   |=(result=result:ast ?=(%relations -.result))
 ::
+++  message-values
+  |=  commands=(list cmd-result:ast)
+  ^-  wain
+  %-  zing
+  %+  turn  commands
+  |=  command=cmd-result:ast
+  %+  murn  +.command
+  |=  result=result:ast
+  ^-  (unit @t)
+  ?.  ?=(%message -.result)  ~
+  `msg.result
+::
 ++  formatted-messages
   |=  commands=(list cmd-result:ast)
   ^-  @t
-  =/  messages=(list @t)
-    %-  zing
-    %+  turn  commands
-    |=  command=cmd-result:ast
-    %+  murn  +.command
-    |=  result=result:ast
-    ^-  (unit @t)
-    ?.  ?=(%message -.result)  ~
-    `msg.result
+  =/  messages=wain  (message-values commands)
   ?~  messages  ''
   %-  crip
   (join-tapes "\0a\0a" (turn messages trip))
@@ -83,8 +87,12 @@
   ^-  @t
   =/  formatted=(list cmd-result:ast)
     (format-results:format fmt ~[(relation-only command)])
-  ?:  ?|  =(%wain fmt)
-          =(%manx fmt)
+  ?:  =(%wain fmt)
+    =/  lines=wain  (message-values formatted)
+    ?~  lines  ''
+    %-  crip
+    (join-tapes "\0a" (turn lines trip))
+  ?:  ?|  =(%manx fmt)
           =(%vector fmt)
           =(%raw fmt)
       ==

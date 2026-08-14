@@ -75,7 +75,7 @@
   |=  request=web-request:web
   ^-  (unit work-plan)
   ?-  -.request
-    ?(%file-browse %file-load %file-save %file-delete)  ~
+    ?(%result-save %file-browse %file-load %file-save %file-delete)  ~
     ?(%run %parse %schema)  `work
   ==
 ::

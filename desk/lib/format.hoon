@@ -221,7 +221,7 @@
     count    +.formatted
   ==
 ::
-::  Format relation results as space-delimited cord lines.
+::  Format relation results as one message per space-delimited Wain cord.
 ++  format-wain
   |=  a=cmd-result
   ^-  cmd-result
@@ -231,7 +231,7 @@
   =/  count=(unit @ud)       ~
   |-
   ?~  results  (flop out)
-  =/  formatted=[result (unit @ud)]
+  =/  formatted=[p=(list result) q=(unit @ud)]
     ?-  -.i.results
       %relations
         =/  relations=(list relation)  +.i.results
@@ -246,25 +246,31 @@
             lines      (weld lines p.formatted)
             total      (add total q.formatted)
           ==
-        :-  [%message (crip (wain-to-tape p.wain-result))]
-            [~ q.wain-result]
+        =/  messages=(list result)
+          %+  turn  p.wain-result
+          |=  line=@t
+          ^-  result
+          [%message line]
+        [messages [~ q.wain-result]]
       %vector-count
-        ?~  count  [i.results count]
-        [[%vector-count u.count] count]
-      %result-set  [i.results count]
-      %action  [i.results count]
-      %relation-name  [i.results count]
-      %message  [i.results count]
-      %server-time  [i.results count]
-      %security-time  [i.results count]
-      %schema-time  [i.results count]
-      %data-time  [i.results count]
-      %select-relation  [i.results count]
+        =/  formatted-result=result
+          ?~  count  i.results
+          [%vector-count u.count]
+        [~[formatted-result] count]
+      %result-set  [~[i.results] count]
+      %action  [~[i.results] count]
+      %relation-name  [~[i.results] count]
+      %message  [~[i.results] count]
+      %server-time  [~[i.results] count]
+      %security-time  [~[i.results] count]
+      %schema-time  [~[i.results] count]
+      %data-time  [~[i.results] count]
+      %select-relation  [~[i.results] count]
     ==
   %=  $
     results  t.results
-    out      [-.formatted out]
-    count    +.formatted
+    out      (weld (flop p.formatted) out)
+    count    q.formatted
   ==
 ::
 ::  Format relation results as LF-delimited, space-separated tape rows.

@@ -1653,9 +1653,11 @@
     [%results ~[[%relations ~[relation]]]]
   =/  csv=@t  (result-export:result-lib %csv command)
   =/  markdown=@t  (result-export:result-lib %markdown command)
+  =/  wain=@t  (result-export:result-lib %wain command)
   ;:  weld
     (expect-eq !>('value\0a\'safe\'') !>(csv))
     (expect !>(?=(^ (find "| 'safe' |" (trip markdown)))))
+    (expect-eq !>('value\0a\'safe\'') !>(wain))
   ==
 ::
 ++  test-result-export-empty-and-metadata-56
