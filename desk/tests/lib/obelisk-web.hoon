@@ -812,7 +812,7 @@
         [%select-relation hostile-text]
     ==
   =/  key=key-dto:web  [0 %.y]
-  =/  column=column-dto:web  [%id '@ud' 0 `key]
+  =/  column=column-dto:web  [%id '@ud' '0' 0 `key]
   =/  foreign-key=foreign-key-dto:web
     [%public %parent 1 %id %parent-id %restrict %cascade]
   =/  relation=relation-dto:web
@@ -1397,6 +1397,7 @@
   =/  widgets=relation-dto:web  (snag 0 relations.public)
   =/  label=column-dto:web  (snag 0 columns.widgets)
   =/  id=column-dto:web  (snag 1 columns.widgets)
+  =/  date=column-dto:web  (make-column:schema-lib 1 %date %da)
   =/  expected-key=(unit key-dto:web)  `[1 %.y]
   =/  expected-views=(list @tas)
     :~  %columns
@@ -1428,6 +1429,9 @@
     %+  expect-eq
       !>(~[%label %id])
     !>((turn columns.widgets |=(column=column-dto:web name.column)))
+    (expect-eq !>("''") !>((trip bunt.label)))
+    (expect-eq !>("0") !>((trip bunt.id)))
+    (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
     (expect-eq !>(~) !>(key.label))
     (expect-eq !>(expected-key) !>(key.id))
     (expect-eq !>(7) !>((lent relations.sys-namespace)))
@@ -2154,7 +2158,7 @@
     (expect !>(?=(^ (find "::WHERE" script))))
     (expect !>(?=(^ (find "'tbl'" script))))
     (expect !>(?=(^ (find "'vw'" script))))
-    (expect !>(?=(^ (find "DEFAULT" script))))
+    (expect !>(?=(^ (find "column.bunt" script))))
     (expect !>(?=(^ (find "PRIMARY KEY" script))))
     (expect !>(?=(^ (find "FOREIGN KEY" script))))
     (expect !>(?=(^ (find "foreignKeys" script))))

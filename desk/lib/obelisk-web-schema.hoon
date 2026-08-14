@@ -1,6 +1,7 @@
 ::  Pure schema construction for %obelisk-web.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
+/+  format
 |%
 ::
 ::  +|  System View Rows
@@ -253,6 +254,12 @@
   ?~  found  ~
   `[ordinal.i.found ascending.i.found]
 ::
+++  column-bunt
+  |=  aura=@ta
+  ^-  @t
+  ?:  =("da" (scag 2 (trip aura)))  '~2000.1.1'
+  (crip (render-dime:format [aura 0]))
+::
 ++  table-columns
   |=  $:  namespace=@tas
           table=@tas
@@ -271,6 +278,7 @@
     |=  row=column-row
     :*  column.row
         aura.row
+        (column-bunt aura.row)
         ordinal.row
         (key-for-column namespace table column.row keys)
     ==
@@ -299,7 +307,7 @@
 ++  make-column
   |=  [ordinal=@ud name=@tas aura=@ta]
   ^-  column-dto:web
-  [name aura ordinal ~]
+  [name aura (column-bunt aura) ordinal ~]
 ::
 ++  make-view
   |=  $:  database=@tas

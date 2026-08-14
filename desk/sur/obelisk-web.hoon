@@ -176,6 +176,7 @@
 +$  column-dto
   $:  name=@tas
       aura=@ta
+      bunt=@t
       ordinal=@ud
       key=(unit key-dto)
   ==

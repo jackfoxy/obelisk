@@ -192,6 +192,7 @@
   %-  pairs:enjs:format
   :~  ['name' s+name.column]
       ['aura' s+aura.column]
+      ['bunt' s+bunt.column]
       ['ordinal' n+(scot %ud ordinal.column)]
       ['key' ?~(key.column ~ (key-json u.key.column))]
   ==

@@ -3351,7 +3351,8 @@
           `SELECT ${columns.join(', ') || '*'} ;`;
       }
       if (action === 'INSERT' && relation.kind === 'table') {
-        const values = columns.map(() => 'DEFAULT').join(', ');
+        const values = relation.columns.map((column) => column.bunt)
+          .join(', ');
         return `INSERT INTO ${qualified}\n` +
           `  (${columns.join(', ')})\nVALUES\n  (${values});`;
       }
