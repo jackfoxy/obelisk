@@ -102,7 +102,7 @@
       ;meta(charset "utf-8");
       ;meta(name "viewport", content "width=device-width, initial-scale=1");
       ;title: Obelisk
-      ;link#favicon(rel "icon", type "image/png", href "/apps/obelisk/favicon.png");
+      ;link#favicon(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
       ;link(rel "stylesheet", href "/apps/obelisk/app.css");
       ;script(src "/apps/obelisk/app.js", defer "");
     ==

@@ -9,6 +9,7 @@
 /+  readiness-lib=readiness-state
 /+  schema-lib=obelisk-web-schema
 /+  web-lib=obelisk-web
+/*  favicon  %ico  /favicon/ico
 |%
 +$  card  card:agent:gall
 +$  route-result
@@ -48,6 +49,17 @@
   %+  give-simple-payload:app:server  eyre-id
   ^-  simple-payload:http
   [[status headers] `(as-octt:mimes:html (trip body))]
+::
+++  respond-octs
+  |=  $:  eyre-id=@ta
+          status=@ud
+          headers=(list [key=@t value=@t])
+          body=octs
+      ==
+  ^-  (list card)
+  %+  give-simple-payload:app:server  eyre-id
+  ^-  simple-payload:http
+  [[status headers] `body]
 ::
 ++  api-operation-for
   |=  url=tape
@@ -883,6 +895,17 @@
   =/  operation=(unit api-operation:web)  (api-operation-for url)
   ?^  operation
     (route-api eyre-id req u.operation)
+  ?:  =("/apps/obelisk/favicon.ico" url)
+    ?.  =(%'GET' method)
+      :-  %cards
+      %:  respond
+        eyre-id
+        405
+        ~[['content-type' 'text/plain'] ['allow' 'GET']]
+        'method not allowed'
+      ==
+    :-  %cards
+    (respond-octs eyre-id 200 ~[['content-type' 'image/x-icon']] favicon)
   =/  route=(unit [content-type=@t body=@t])
     ?:  ?|  =("/apps/obelisk" url)
             =("/apps/obelisk/" url)
@@ -892,12 +915,6 @@
       `['text/javascript; charset=utf-8' javascript:web-lib]
     ?:  =("/apps/obelisk/app.css" url)
       `['text/css; charset=utf-8' css:web-lib]
-    ?:  =("/apps/obelisk/favicon.png" url)
-      =/  beam=path  (clay-beam:file-lib our desk da+now /favicon/png)
-      =/  loaded=(each @ tang)
-        %-  mule  |.
-        .^(@ %cx beam)
-      ?:(?=(%.n -.loaded) ~ `['image/png' ^-(@t p.loaded)])
     ~
   ?~  route
     :-  %cards
