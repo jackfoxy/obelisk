@@ -1,5 +1,8 @@
 # Releases
 
+## v0.9.1-beta
+* updates to UI
+
 ## v0.9.0-beta
 * BREAKING CHANGES affect interacting apps, re-compile with latest sur/obelisk-ast/hoon
 * BREAKING CHANGE: relation:obelisk-ast -> relation-id
@@ -7,6 +10,7 @@
 * Scry database, namespace, relation, relation restricted by columns
 * new %script and %list-cmd pokes specify output format, %tape and %commands deprecated
 * output formats: %vector, %markdown, %html, %wain, %manx, %tape, %json, %raw
+* native sail UI
 
 ## v0.8.1-beta
 

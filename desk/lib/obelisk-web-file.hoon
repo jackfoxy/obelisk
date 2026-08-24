@@ -16,9 +16,16 @@
   ~s10
 ::
 ++  valid-storage-mark
-  |=  mark=@tas
+  |=  mark=@ta
   ^-  ?
-  =(%txt mark)
+  ?|  =(%csv mark)
+      =(%html mark)
+      =(%json mark)
+      =(%md mark)
+      =(%noun mark)
+      =(%tab mark)
+      =(%txt mark)
+  ==
 ::
 ++  valid-part
   |=  part=@ta
@@ -31,10 +38,7 @@
   =/  parsed=(each @tas tang)
     %-  mule  |.
     `@tas`(slav %tas part)
-  ?-  -.parsed
-    %.n  %.n
-    %.y  =(part p.parsed)
-  ==
+  ?:(?=(%.n -.parsed) %.n =(part p.parsed))
 ::
 ++  valid-scope
   |=  scope=@ta
@@ -46,10 +50,7 @@
 ++  valid-parts
   |=  parts=relative-path:web
   ^-  ?
-  ?~  parts  %.y
-  ?&  (valid-part i.parts)
-      $(parts t.parts)
-  ==
+  (levy parts valid-part)
 ::
 ++  valid-browse-path
   |=  relative=relative-path:web
@@ -81,6 +82,13 @@
 ++  storage-path
   |=  relative=relative-path:web
   ^-  path
+  =/  marked-result=?
+    ?&  (gte (lent relative) 3)
+        ?=(^ relative)
+        =(%results i.relative)
+        (valid-storage-mark (rear relative))
+    ==
+  ?:  marked-result  (browse-path relative)
   (snoc (browse-path relative) storage-mark)
 ::
 ++  clay-beam
@@ -103,11 +111,7 @@
 ++  path-prefix
   |=  [prefix=path candidate=path]
   ^-  ?
-  ?~  prefix  %.y
-  ?~  candidate  %.n
-  ?&  =(i.prefix i.candidate)
-      $(prefix t.prefix, candidate t.candidate)
-  ==
+  =(prefix (scag (lent prefix) candidate))
 ::
 ++  logical-path
   |=  physical=path
@@ -117,9 +121,14 @@
       (slag (lent storage-root) physical)
     physical
   ?:  (lth (lent normalized) 3)  ~
-  ?.  =(%txt (rear normalized))  ~
+  =/  result-file=?  =(%results (snag 0 normalized))
+  =/  valid-mark=?
+    ?:  result-file
+      (valid-storage-mark (rear normalized))
+    =(%txt (rear normalized))
+  ?.  valid-mark  ~
   =/  relative=relative-path:web
-    (scag (dec (lent normalized)) normalized)
+    ?:(result-file normalized (scag (dec (lent normalized)) normalized))
   ?.  (valid-file-path relative)  ~
   `relative
 ::
@@ -144,13 +153,7 @@
 ++  entries-from-physical
   |=  [base=relative-path:web physical=(list path)]
   ^-  (list file-entry-dto:web)
-  =/  logical=(list relative-path:web)
-    %+  turn
-      %+  skim  (turn physical logical-path)
-      |=(relative=(unit relative-path:web) ?=(^ relative))
-    |=  relative=(unit relative-path:web)
-    ?>  ?=(^ relative)
-    u.relative
+  =/  logical=(list relative-path:web)  (murn physical logical-path)
   =.  logical
     %+  skim  logical
     |=  relative=relative-path:web
@@ -165,23 +168,16 @@
       %+  turn  (parent-paths relative)
       |=  parent=relative-path:web
       ^-(file-entry-dto:web [parent %directory])
-    =/  file=file-entry-dto:web  [relative %file]
-    (weld parents ~[file])
+    (snoc parents ^-(file-entry-dto:web [relative %file]))
   =/  index=(map relative-path:web file-kind:web)
     %+  roll  candidates
     |=  [entry=file-entry-dto:web index=(map relative-path:web file-kind:web)]
-    =/  old=(unit file-kind:web)  (~(get by index) path.entry)
-    ?:  ?&  ?=(^ old)
-            =(%file u.old)
-        ==
-      index
+    ::  A file entry always wins over a directory entry at the same path.
+    ::
+    ?:  ?=([~ %file] (~(get by index) path.entry))  index
     (~(put by index) path.entry kind.entry)
   =/  entries=(list file-entry-dto:web)
-    %+  turn  ~(tap by index)
-    |=  [relative=relative-path:web kind=file-kind:web]
-    [relative kind]
-  =.  entries
-    (skim entries |=(entry=file-entry-dto:web !=(base path.entry)))
+    (skim ~(tap by index) |=(entry=file-entry-dto:web !=(base path.entry)))
   (sort entries entry-lte)
 ::
 ++  storage-wain
@@ -198,22 +194,54 @@
   ^-  cage
   [%txt !>((storage-wain content))]
 ::
+++  cage-from-text
+  |=  [mark=@ta content=@t]
+  ^-  (each cage tang)
+  %-  mule  |.
+  ^-  cage
+  ?+  mark  !!
+    %csv   [%csv !>((storage-wain content))]
+    %html  [%html !>(content)]
+    %json  [%json !>((need (de:json:html content)))]
+    %md    [%md !>(content)]
+    %noun  [%noun !>((storage-wain content))]
+    %tab   [%tab !>((storage-wain content))]
+    %txt   [%txt !>((storage-wain content))]
+  ==
+::
+++  text-from-stored
+  |=  [mark=@ta stored=*]
+  ^-  (unit @t)
+  =/  decoded=(each @t tang)
+    %-  mule  |.
+    ?+  mark  !!
+      %csv   (of-wain:format ;;(wain stored))
+      %html  ;;(@t stored)
+      %json  (en:json:html ;;(json stored))
+      %md    ;;(@t stored)
+      %noun  (of-wain:format ;;(wain stored))
+      %tab   (of-wain:format ;;(wain stored))
+      %txt   (of-wain:format ;;(wain stored))
+    ==
+  ?:(?=(%.n -.decoded) ~ `p.decoded)
+::
 ++  text-from-cage
   |=  =cage
   ^-  (unit @t)
-  ?.  =(%txt p.cage)  ~
-  =/  decoded=(each @t tang)
-    %-  mule  |.
-    (of-wain:format ;;(wain q.q.cage))
-  ?-  -.decoded
-    %.n  ~
-    %.y  `p.decoded
-  ==
+  (text-from-stored p.cage q.q.cage)
 ::
 ++  save-verifies
   |=  [expected=@t result=riot:clay]
   ^-  ?
   ?~  result  %.n
+  ?:  =(%json p.r.u.result)
+    =/  expected-json=(unit json)  (de:json:html expected)
+    ?~  expected-json  %.n
+    =/  actual-json=(each json tang)
+      %-  mule  |.
+      ;;(json q.q.r.u.result)
+    ?:  ?=(%.n -.actual-json)  %.n
+    =(u.expected-json p.actual-json)
   =/  decoded=(unit @t)  (text-from-cage r.u.result)
   ?~  decoded  %.n
   =(expected u.decoded)

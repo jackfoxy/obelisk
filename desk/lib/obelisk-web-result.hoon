@@ -4,39 +4,27 @@
 /+  format
 |%
 ::
-++  tank-text
-  |=  =tank
-  ^-  @t
-  (crip ~(ram re tank))
-::
 ++  tang-details
   |=  =tang
   ^-  (list @t)
-  (turn tang tank-text)
-::
-++  dime-text
-  |=  value=dime
-  ^-  @t
-  (crip (render-dime:format value))
-::
-++  result-column
-  |=  cell=vector-cell:ast
-  ^-  result-column-dto:web
-  [p.cell p.q.cell]
-::
-++  result-cell
-  |=  cell=vector-cell:ast
-  ^-  result-cell-dto:web
-  [p.cell p.q.cell (dime-text q.cell)]
+  (turn tang |=(=tank (crip ~(ram re tank))))
 ::
 ++  result-set
   |=  vectors=(list vector:ast)
   ^-  result-set-dto:web
   =/  columns=(list result-column-dto:web)
     ?~  vectors  ~
-    (turn +.i.vectors result-column)
+    %+  turn  +.i.vectors
+    |=  cell=vector-cell:ast
+    ^-  result-column-dto:web
+    [p.cell p.q.cell]
   =/  rows=(list (list result-cell-dto:web))
-    (turn vectors |=(vector=vector:ast (turn +.vector result-cell)))
+    %+  turn  vectors
+    |=  vector=vector:ast
+    %+  turn  +.vector
+    |=  cell=vector-cell:ast
+    ^-  result-cell-dto:web
+    [p.cell p.q.cell (crip (render-dime:format q.cell))]
   [columns rows]
 ::
 ++  result-dto
@@ -60,18 +48,69 @@
   |=  [commands=(list cmd-result:ast) index=@ud]
   ^-  (list command-dto:web)
   ?~  commands  ~
-  :-  [index (turn +.i.commands result-dto)]
+  =/  vector=(list cmd-result:ast)
+    (format-results:format %vector ~[i.commands])
+  ?>  ?=(^ vector)
+  =/  command=cmd-result:ast  i.vector
+  :-  [index (turn +.command result-dto)]
   $(commands t.commands, index +(index))
+::
+++  relation-only
+  |=  command=cmd-result:ast
+  ^-  cmd-result:ast
+  :-  %results
+  %+  skim  +.command
+  |=(result=result:ast ?=(%relations -.result))
+::
+++  message-values
+  |=  commands=(list cmd-result:ast)
+  ^-  wain
+  %-  zing
+  %+  turn  commands
+  |=  command=cmd-result:ast
+  %+  murn  +.command
+  |=  result=result:ast
+  ^-  (unit @t)
+  ?.  ?=(%message -.result)  ~
+  `msg.result
+::
+++  formatted-messages
+  |=  commands=(list cmd-result:ast)
+  ^-  @t
+  =/  messages=wain  (message-values commands)
+  ?~  messages  ''
+  %-  crip
+  (join-tapes "\0a\0a" (turn messages trip))
+::
+++  result-export
+  |=  [fmt=result-format:ast command=cmd-result:ast]
+  ^-  @t
+  =/  formatted=(list cmd-result:ast)
+    (format-results:format fmt ~[(relation-only command)])
+  ?:  =(%wain fmt)
+    =/  lines=wain  (message-values formatted)
+    ?~  lines  ''
+    %-  crip
+    (join-tapes "\0a" (turn lines trip))
+  ?:  ?|  =(%manx fmt)
+          =(%vector fmt)
+          =(%raw fmt)
+      ==
+    (crip (text !>(formatted)))
+  (formatted-messages formatted)
 ::
 ++  run-response
   |=  commands=(list cmd-result:ast)
   ^-  web-response:web
-  (run-response-with commands %.n)
+  (run-response-with 0 commands %.n)
 ::
 ++  run-response-with
-  |=  [commands=(list cmd-result:ast) schema-changed=?]
+  |=  $:  result-id=request-id:web
+          commands=(list cmd-result:ast)
+          schema-changed=?
+      ==
   ^-  web-response:web
-  [%run (command-dtos commands 0) schema-changed]
+  [%run result-id (command-dtos commands 0) schema-changed]
 ::
 ++  parse-response
   |=  commands=(list command:ast)
@@ -140,22 +179,19 @@
     %+  turn  rows.result-set
     |=  row=(list result-cell-dto:web)
     (export-row row delimiter)
-  =/  lines=(list tape)  [header row-lines]
-  (crip (join-tapes "\0a" lines))
+  (crip (join-tapes "\0a" [header row-lines]))
 ::
 ++  result-sets
   |=  commands=(list command-dto:web)
   ^-  (list result-set-dto:web)
-  ?~  commands  ~
-  =/  sets=(list result-set-dto:web)
-    %+  turn
-      %+  skim  results.i.commands
-      |=  result=result-dto:web
-      ?=(%result-set -.result)
-    |=  result=result-dto:web
-    ?>  ?=(%result-set -.result)
-    value.result
-  (weld sets $(commands t.commands))
+  %-  zing
+  %+  turn  commands
+  |=  command=command-dto:web
+  %+  murn  results.command
+  |=  result=result-dto:web
+  ^-  (unit result-set-dto:web)
+  ?.  ?=(%result-set -.result)  ~
+  `value.result
 ::
 ++  result-export-text
   |=  $:  commands=(list command-dto:web)
@@ -176,6 +212,7 @@
 ++  metadata-line
   |=  result=result-dto:web
   ^-  (unit @t)
+  ?:  ?=(%result-set -.result)  ~
   =/  label=tape
     ?-  -.result
       ?(%action %relation-name %message)  "message: "
@@ -184,11 +221,9 @@
       %security-time  "security-time: "
       %schema-time  "schema-time: "
       %data-time  "data-time: "
-      %result-set  ""
       %relations  "relations: "
       %select-relation  "select-relation: "
     ==
-  ?:  =(%result-set -.result)  ~
   =/  value=tape
     ?-  -.result
       ?(%action %relation-name %message %relations %select-relation)
@@ -196,24 +231,20 @@
       %vector-count  (scow %ud value.result)
       ?(%server-time %security-time %schema-time %data-time)
         (scow %da value.result)
-      %result-set  ""
     ==
   `(crip (weld label value))
 ::
 ++  metadata-results
   |=  results=(list result-dto:web)
   ^-  (list @t)
-  ?~  results  ~
-  =/  line=(unit @t)  (metadata-line i.results)
-  ?~  line  $(results t.results)
-  [u.line $(results t.results)]
+  (murn results metadata-line)
 ::
 ++  metadata-lines
   |=  commands=(list command-dto:web)
   ^-  (list @t)
-  ?~  commands  ~
-  %+  weld  (metadata-results results.i.commands)
-  $(commands t.commands)
+  %-  zing
+  %+  turn  commands
+  |=(command=command-dto:web (metadata-results results.command))
 ::
 ++  metadata-text
   |=  commands=(list command-dto:web)

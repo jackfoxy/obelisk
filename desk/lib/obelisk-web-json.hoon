@@ -1,6 +1,6 @@
 ::  Typed JSON boundary for %obelisk-web.
 ::
-/-  web=obelisk-web
+/-  ast=obelisk-ast, web=obelisk-web
 |%
 ::
 ++  max-body-bytes  1.048.576
@@ -29,10 +29,7 @@
   ?~  val  ~
   =/  parsed=(each @t tang)
     (mule |.((so:dejs:format u.val)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  path-field
   |=  [key=@t jon=json]
@@ -43,10 +40,7 @@
     %-  mule  |.
     =/  parts=(list @t)  ((ar so):dejs:format u.val)
     (turn parts |=(part=@t ;;(@ta part)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  bool-field
   |=  [key=@t jon=json]
@@ -56,10 +50,24 @@
   ?.  ?=(%b -.u.val)  ~
   `p.u.val
 ::
+++  unsigned-text-field
+  |=  [key=@t jon=json]
+  ^-  (unit @ud)
+  =/  val=(unit @t)  (text-field key jon)
+  ?~  val  ~
+  =/  parsed=(each @ud tang)
+    (mule |.(^-(@ud (slav %ud u.val))))
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
+::
 ++  term-text
   |=  txt=@t
   ^-  @tas
   `@tas`(slav %tas txt)
+::
+++  result-format-text
+  |=  txt=@t
+  ^-  result-format:ast
+  ;;(result-format:ast (term-text txt))
 ::
 ++  request-json
   |=  req=web-request:web
@@ -86,6 +94,16 @@
         ?~(default-database.req ~ s+u.default-database.req)
     ==
   ::
+      %result-save
+    %-  pairs:enjs:format
+    :~  ['type' s+'result-save']
+        ['resultId' s+(scot %ud result-id.req)]
+        ['commandIndex' s+(scot %ud command-index.req)]
+        ['format' s+`@t`format.req]
+        ['path' (path-json path.req)]
+        ['overwrite' b+overwrite.req]
+    ==
+  ::
       %file-browse
     %-  pairs:enjs:format
     ~[['type' s+'file-browse'] ['path' (path-json path.req)]]
@@ -93,6 +111,10 @@
       %file-load
     %-  pairs:enjs:format
     ~[['type' s+'file-load'] ['path' (path-json path.req)]]
+  ::
+      %file-delete
+    %-  pairs:enjs:format
+    ~[['type' s+'file-delete'] ['path' (path-json path.req)]]
   ::
       %file-save
     %-  pairs:enjs:format
@@ -104,41 +126,47 @@
   ==
 ::
 ++  request-from-json
+  ::  Decode a request; any missing or ill-typed field crashes into ~.
+  ::
   |=  jon=json
   ^-  (unit web-request:web)
   =/  parsed=(each web-request:web tang)
-    (mule |.((request-from-json-unsafe jon)))
-  ?-  -.parsed
-    %.n  ~
-    %.y  `p.parsed
-  ==
-::
-++  request-from-json-unsafe
-  |=  jon=json
-  ^-  web-request:web
-  =/  kind=@t  (need (text-field 'type' jon))
-  ?:  =(kind 'run')
-    =/  database=@t  (need (text-field 'defaultDatabase' jon))
-    =/  script=@t  (need (text-field 'script' jon))
-    [%run (term-text database) script]
-  ?:  =(kind 'parse')
-    =/  database=@t  (need (text-field 'defaultDatabase' jon))
-    =/  script=@t  (need (text-field 'script' jon))
-    [%parse (term-text database) script]
-  ?:  =(kind 'schema')
-    =/  database=(unit @t)  (text-field 'defaultDatabase' jon)
-    [%schema ?~(database ~ `(term-text u.database))]
-  ?:  =(kind 'file-browse')
-    [%file-browse (need (path-field 'path' jon))]
-  ?:  =(kind 'file-load')
-    [%file-load (need (path-field 'path' jon))]
-  ?:  =(kind 'file-save')
-    :*  %file-save
-        (need (path-field 'path' jon))
-        (need (text-field 'content' jon))
-        (need (bool-field 'overwrite' jon))
-    ==
-  !!
+    %-  mule  |.
+    ^-  web-request:web
+    =/  kind=@t  (need (text-field 'type' jon))
+    ?:  =(kind 'run')
+      =/  database=@t  (need (text-field 'defaultDatabase' jon))
+      =/  script=@t  (need (text-field 'script' jon))
+      [%run (term-text database) script]
+    ?:  =(kind 'parse')
+      =/  database=@t  (need (text-field 'defaultDatabase' jon))
+      =/  script=@t  (need (text-field 'script' jon))
+      [%parse (term-text database) script]
+    ?:  =(kind 'schema')
+      =/  database=(unit @t)  (text-field 'defaultDatabase' jon)
+      [%schema ?~(database ~ `(term-text u.database))]
+    ?:  =(kind 'result-save')
+      :*  %result-save
+          (need (unsigned-text-field 'resultId' jon))
+          (need (unsigned-text-field 'commandIndex' jon))
+          (result-format-text (need (text-field 'format' jon)))
+          (need (path-field 'path' jon))
+          (need (bool-field 'overwrite' jon))
+      ==
+    ?:  =(kind 'file-browse')
+      [%file-browse (need (path-field 'path' jon))]
+    ?:  =(kind 'file-load')
+      [%file-load (need (path-field 'path' jon))]
+    ?:  =(kind 'file-delete')
+      [%file-delete (need (path-field 'path' jon))]
+    ?:  =(kind 'file-save')
+      :*  %file-save
+          (need (path-field 'path' jon))
+          (need (text-field 'content' jon))
+          (need (bool-field 'overwrite' jon))
+      ==
+    !!
+  ?:(?=(%.n -.parsed) ~ `p.parsed)
 ::
 ++  request-from-text
   |=  txt=@t
@@ -164,8 +192,22 @@
   %-  pairs:enjs:format
   :~  ['name' s+name.column]
       ['aura' s+aura.column]
+      ['bunt' s+bunt.column]
       ['ordinal' n+(scot %ud ordinal.column)]
       ['key' ?~(key.column ~ (key-json u.key.column))]
+  ==
+::
+++  foreign-key-json
+  |=  foreign-key=foreign-key-dto:web
+  ^-  json
+  %-  pairs:enjs:format
+  :~  ['parentNamespace' s+parent-namespace.foreign-key]
+      ['parentTable' s+parent-table.foreign-key]
+      ['ordinal' n+(scot %ud ordinal.foreign-key)]
+      ['parentColumn' s+parent-column.foreign-key]
+      ['childColumn' s+child-column.foreign-key]
+      ['onDelete' s+on-delete.foreign-key]
+      ['onUpdate' s+on-update.foreign-key]
   ==
 ::
 ++  relation-json
@@ -177,6 +219,7 @@
       ['name' s+name.relation]
       ['kind' s+kind.relation]
       ['columns' [%a (turn columns.relation column-json)]]
+      ['foreignKeys' [%a (turn foreign-keys.relation foreign-key-json)]]
   ==
 ::
 ++  namespace-json
@@ -278,6 +321,7 @@
       %run
     %-  pairs:enjs:format
     :~  ['type' s+'run']
+        ['resultId' s+(scot %ud result-id.response)]
         ['commands' [%a (turn commands.response command-json)]]
         ['schemaChanged' b+schema-changed.response]
     ==
@@ -309,6 +353,10 @@
       %saved
     %-  pairs:enjs:format
     ~[['type' s+'saved'] ['path' (path-json path.response)]]
+  ::
+      %deleted
+    %-  pairs:enjs:format
+    ~[['type' s+'deleted'] ['path' (path-json path.response)]]
   ::
       %error
     %-  pairs:enjs:format

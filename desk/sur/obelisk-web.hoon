@@ -17,6 +17,11 @@
 ::
 +$  request-id  @ud
 ::
++$  result-cache
+  $:  result-id=request-id
+      commands=(list cmd-result:ast)
+  ==
+::
 +$  transient-state
   $:  binding=binding-state
       next-request-id=request-id
@@ -24,6 +29,8 @@
       active=(unit active-obelisk)
       readiness=(unit pending-readiness)
       file-save=(unit pending-file-save)
+      file-delete=(unit pending-file-delete)
+      result-cache=(unit result-cache)
   ==
 ::
 +$  live-state
@@ -35,7 +42,15 @@
 ::  +|  HTTP Work
 ::
 +$  api-operation
-  ?(%run %parse %schema %file-browse %file-load %file-save)
+  $?  %run
+      %parse
+      %schema
+      %result-save
+      %file-browse
+      %file-load
+      %file-save
+      %file-delete
+  ==
 ::
 +$  relative-path  (list @ta)
 ::
@@ -45,6 +60,14 @@
       [%schema default-database=(unit @tas)]
       [%file-browse path=relative-path]
       [%file-load path=relative-path]
+      [%file-delete path=relative-path]
+      $:  %result-save
+          result-id=request-id
+          command-index=@ud
+          format=result-format:ast
+          path=relative-path
+          overwrite=?
+      ==
       $:  %file-save
           path=relative-path
           content=@t
@@ -63,6 +86,14 @@
   $:  eyre-id=@ta
       path=relative-path
       content=@t
+      verify-wire=wire
+      timeout-wire=wire
+      desk=desk
+  ==
+::
++$  pending-file-delete
+  $:  eyre-id=@ta
+      path=relative-path
       verify-wire=wire
       timeout-wire=wire
       desk=desk
@@ -145,8 +176,19 @@
 +$  column-dto
   $:  name=@tas
       aura=@ta
+      bunt=@t
       ordinal=@ud
       key=(unit key-dto)
+  ==
+::
++$  foreign-key-dto
+  $:  parent-namespace=@tas
+      parent-table=@tas
+      ordinal=@ud
+      parent-column=@tas
+      child-column=@tas
+      on-delete=@tas
+      on-update=@tas
   ==
 ::
 +$  relation-kind  ?(%table %view)
@@ -157,6 +199,7 @@
       name=@tas
       kind=relation-kind
       columns=(list column-dto)
+      foreign-keys=(list foreign-key-dto)
   ==
 ::
 +$  namespace-dto
@@ -227,6 +270,7 @@
 ::
 +$  web-response
   $%  $:  %run
+          result-id=request-id
           commands=(list command-dto)
           schema-changed=?
       ==
@@ -235,6 +279,7 @@
       [%file-list entries=(list file-entry-dto)]
       [%file path=relative-path content=@t]
       [%saved path=relative-path]
+      [%deleted path=relative-path]
       [%error value=web-error]
   ==
 --

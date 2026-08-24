@@ -15,6 +15,8 @@
       ~
       ~
       ~
+      ~
+      ~
   ==
 ::
 ++  binding-after-connect
@@ -100,7 +102,7 @@
       ;meta(charset "utf-8");
       ;meta(name "viewport", content "width=device-width, initial-scale=1");
       ;title: Obelisk
-      ;link#favicon(rel "icon", type "image/png", href "/apps/obelisk/favicon.png");
+      ;link#favicon(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
       ;link(rel "stylesheet", href "/apps/obelisk/app.css");
       ;script(src "/apps/obelisk/app.js", defer "");
     ==
@@ -109,31 +111,6 @@
         ;header#app-header.app-header
           ;a.brand(href "/apps/obelisk", aria-label "Obelisk home")
             Obelisk
-          ==
-          ;div#file-menu.menu.header-file-menu(data-open "false")
-            ;button#file-menu-toggle.menu-toggle
-              =type  "button"
-              =aria-haspopup  "menu"
-              =aria-expanded  "false"
-              File
-            ==
-            ;div#file-menu-panel.menu-panel.hidden(role "menu")
-              ;button#new-tab-menu-item(type "button", role "menuitem")
-                New
-              ==
-              ;button#open-menu-item(type "button", role "menuitem")
-                Open...
-              ==
-              ;button#save-tab-menu-item(type "button", role "menuitem")
-                Save
-              ==
-              ;button#save-as-menu-item(type "button", role "menuitem")
-                Save As...
-              ==
-              ;button#close-tab-menu-item(type "button", role "menuitem")
-                Close Current
-              ==
-            ==
           ==
           ;nav.toolbar(aria-label "Obelisk workbench controls")
             ;div.default-database
@@ -158,22 +135,26 @@
                 ;div#explorer-tabs.explorer-tabs
                   =role  "tablist"
                   =aria-label  "Obelisk explorer"
-                  ;button#schemas-tab.explorer-tab.active
-                    =type  "button"
-                    =role  "tab"
-                    =data-explorer-view  "schemas"
-                    =aria-selected  "true"
-                    =aria-controls  "schema-panel"
-                    Schemas
+                  ;div.explorer-tab-control.active(role "presentation")
+                    ;button#schemas-tab.explorer-tab.active
+                      =type  "button"
+                      =role  "tab"
+                      =data-explorer-view  "schemas"
+                      =aria-selected  "true"
+                      =aria-controls  "schema-panel"
+                      Schemas
+                    ==
                   ==
-                  ;button#files-tab.explorer-tab
-                    =type  "button"
-                    =role  "tab"
-                    =data-explorer-view  "files"
-                    =aria-selected  "false"
-                    =aria-controls  "files-panel"
-                    =tabindex  "-1"
-                    Files
+                  ;div.explorer-tab-control(role "presentation")
+                    ;button#files-tab.explorer-tab
+                      =type  "button"
+                      =role  "tab"
+                      =data-explorer-view  "files"
+                      =aria-selected  "false"
+                      =aria-controls  "files-panel"
+                      =tabindex  "-1"
+                      Files
+                    ==
                   ==
                 ==
                 ;span#local-ship.ship: {(trip (scot %p our))}
@@ -232,7 +213,23 @@
                 ==
               ==
               ;div.editor-toolbar
-                ;span: urQL
+                ;div.editor-mode
+                  ;span#editor-language: urQL
+                  ;div#markdown-view-toggle.markdown-view-toggle.hidden
+                    =role  "group"
+                    =aria-label  "Markdown view"
+                    ;button#markdown-source-btn.active
+                      =type  "button"
+                      =aria-pressed  "true"
+                      Source
+                    ==
+                    ;button#markdown-preview-btn
+                      =type  "button"
+                      =aria-pressed  "false"
+                      Preview
+                    ==
+                  ==
+                ==
                 ;div.editor-actions
                   ;button#save-query-btn.icon-button.save-action
                     =type  "button"
@@ -256,12 +253,26 @@
                 =placeholder  "Enter urQL here…"
                 ;*  ~[;/("")]
               ==
+              ;div#markdown-preview.markdown-preview.hidden
+                =role  "document"
+                =tabindex  "0"
+                =aria-label  "Rendered Markdown"
+                ;*  ~[;/("")]
+              ==
+              ;iframe#html-preview.html-preview.hidden
+                =title  "Rendered HTML"
+                =sandbox  ""
+                =referrerpolicy  "no-referrer"
+                ;*  ~[;/("")]
+              ==
             ==
             ;button#output-resizer.splitter.horizontal
               =type  "button"
               =role  "separator"
               =aria-orientation  "horizontal"
               =aria-label  "Resize output"
+              =aria-valuemin  "15"
+              =aria-valuemax  "70"
               ;span.visually-hidden: Resize output
             ==
             ;section#output-pane.output-pane
@@ -415,29 +426,20 @@
               Script path
             ==
             ;input#file-path-input.hidden(placeholder "folder/script-name");
-            ;fieldset#results-delimiter-fields.hidden
-              ;legend: Format
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "comma"
-                  =checked  "";
-                Comma
-              ==
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "space";
-                Space
-              ==
-              ;label
-                ;input
-                  =type  "radio"
-                  =name  "results-delimiter"
-                  =value  "tab";
-                Tab
+            ;label#results-format-field.hidden(for "results-format-select")
+              Format
+              ;select#results-format-select(name "results-format")
+                ;option(value "%csv"): comma-separated
+                ;option(value "%tab"): tab-separated
+                ;option(value "%spac"): space-separated
+                ;option(value "%markdown"): markdown
+                ;option(value "%html"): html
+                ;option(value "%tape"): text
+                ;option(value "%json"): json
+                ;option(value "%wain"): %wain
+                ;option(value "%manx"): %manx
+                ;option(value "%vector"): %vector
+                ;option(value "%raw"): %raw
               ==
             ==
             ;div.dialog-actions
@@ -463,6 +465,14 @@
           ==
           ;button#save-context-save-as(type "button", role "menuitem")
             Save As...
+          ==
+        ==
+        ;div#file-context-menu.file-context-menu.hidden(role "menu")
+          ;button#file-context-open(type "button", role "menuitem")
+            Open
+          ==
+          ;button#file-context-delete(type "button", role "menuitem")
+            Delete
           ==
         ==
       ==
@@ -569,15 +579,6 @@
     font-size: 1.05rem;
     font-weight: 700;
     text-decoration: none;
-  }
-
-  .header-file-menu {
-    margin-left: 0.25rem;
-  }
-
-  #file-menu-toggle {
-    background: transparent;
-    border: 0;
   }
 
   .toolbar {
@@ -741,25 +742,21 @@
     width: 100%;
   }
 
-  #results-delimiter-fields {
-    border: 1px solid var(--border);
-    border-radius: 0.35rem;
-    display: flex;
-    gap: 1rem;
-    margin: 0;
-    padding: 0.55rem 0.7rem 0.65rem;
-  }
-
-  #results-delimiter-fields legend {
+  #results-format-field {
     color: var(--muted);
+    display: grid;
     font-size: 0.8rem;
-    padding: 0 0.25rem;
+    gap: 0.3rem;
   }
 
-  #results-delimiter-fields label {
-    align-items: center;
-    display: flex;
-    gap: 0.3rem;
+  #results-format-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.3rem;
+    color: var(--text);
+    min-height: 2.25rem;
+    padding: 0.4rem 0.55rem;
+    width: 100%;
   }
 
   .dialog-actions {
@@ -778,7 +775,7 @@
     color: var(--accent-text);
   }
 
-  .relation-menu, .save-context-menu {
+  .relation-menu, .save-context-menu, .file-context-menu {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.4rem;
@@ -790,7 +787,8 @@
     z-index: 60;
   }
 
-  .relation-menu button, .save-context-menu button {
+  .relation-menu button, .save-context-menu button,
+  .file-context-menu button {
     background: transparent;
     border: 0;
     text-align: left;
@@ -838,10 +836,12 @@
   }
 
   .explorer-heading {
+    flex: 1;
     min-width: 0;
   }
 
   .explorer-tabs {
+    border-bottom: 1px solid var(--border);
     display: flex;
     gap: 0.2rem;
     overflow-x: auto;
@@ -849,10 +849,11 @@
 
   .explorer-tab {
     background: transparent;
-    border-color: transparent;
+    border: 0;
     border-radius: 0;
     color: var(--muted);
     font-weight: 600;
+    height: 100%;
     padding: 0.2rem 0.35rem;
   }
 
@@ -862,17 +863,31 @@
   }
 
   .explorer-tab.active {
-    border-bottom-color: var(--accent);
     color: var(--text);
   }
 
-  .docs-tab-control {
+  .explorer-tab-control, .docs-tab-control {
     align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
     display: inline-flex;
+    overflow: hidden;
   }
 
-  .docs-tab-control.active {
-    box-shadow: inset 0 -2px var(--accent);
+  .explorer-tab-control {
+    height: 2rem;
+  }
+
+  .explorer-tab-control .explorer-tab {
+    align-items: center;
+    display: inline-flex;
+    justify-content: center;
+    line-height: 1;
+    padding-block: 0;
+  }
+
+  .docs-tab-control {
+    height: 2.3rem;
   }
 
   .docs-tab-control .explorer-tab {
@@ -883,13 +898,15 @@
     white-space: nowrap;
   }
 
-  .docs-tab-control.active .explorer-tab {
-    border-bottom-color: transparent;
-  }
-
   .docs-tab-close {
+    align-items: center;
+    align-self: stretch;
     background: transparent;
     border: 0;
+    border-left: 0;
+    border-radius: 0;
+    display: inline-flex;
+    justify-content: center;
     min-height: 1.5rem;
     padding: 0.2rem;
     width: 1.5rem;
@@ -950,7 +967,7 @@
     padding: 0.3rem 0.25rem;
   }
 
-  .file-node > summary:hover, .explorer-file:hover {
+  .file-node > summary:hover, .explorer-file-row:hover {
     background: var(--surface-alt);
   }
 
@@ -960,9 +977,25 @@
     padding-left: 0.65rem;
   }
 
-  .explorer-file {
+  .explorer-file-row {
+    align-items: center;
     border-radius: 0.25rem;
+    display: flex;
+  }
+
+  .explorer-file {
+    min-width: 0;
     padding: 0.15rem 0.25rem;
+  }
+
+  .relation-actions, .file-actions {
+    margin-left: auto;
+    min-height: 1.55rem;
+    padding: 0 0.45rem;
+  }
+
+  .file-actions {
+    flex: 0 0 auto;
   }
 
   .schema-node {
@@ -1005,12 +1038,6 @@
     position: relative;
   }
 
-  .relation-actions {
-    margin-left: auto;
-    min-height: 1.55rem;
-    padding: 0 0.45rem;
-  }
-
   .schema-column {
     align-items: center;
     display: grid;
@@ -1045,7 +1072,7 @@
 
   .workspace {
     display: grid;
-    grid-template-rows: minmax(12rem, 3fr) 0.35rem minmax(9rem, 2fr);
+    grid-template-rows: minmax(0, 2fr) 0.35rem minmax(0, 1fr);
     min-height: 0;
     min-width: 0;
   }
@@ -1064,11 +1091,47 @@
     padding: 0.35rem 0.5rem 0;
   }
 
-  .editor-tabs button {
+  .editor-tabs > button, .editor-tab-control {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     height: 2.3rem;
     margin-right: 0.25rem;
+  }
+
+  .editor-tab-control {
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    display: inline-flex;
+    overflow: hidden;
+  }
+
+  .editor-tab-control .tab, .editor-tab-close {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    height: 100%;
+    margin: 0;
+  }
+
+  .editor-tab-close {
+    align-items: center;
+    border-left: 0;
+    display: inline-flex;
+    justify-content: center;
+    padding: 0.2rem;
+    width: 1.75rem;
+  }
+
+  .editor-tab-close .close-icon {
+    height: 0.65rem;
+    width: 0.65rem;
+  }
+
+  .editor-tab-close .close-icon::before,
+  .editor-tab-close .close-icon::after {
+    top: 0.3rem;
+    width: 0.65rem;
   }
 
   .editor-tabs .active {
@@ -1099,6 +1162,39 @@
   .editor-actions {
     display: flex;
     gap: 0.35rem;
+  }
+
+  .editor-mode, .markdown-view-toggle {
+    align-items: center;
+    display: flex;
+  }
+
+  .editor-mode {
+    gap: 0.65rem;
+  }
+
+  .markdown-view-toggle {
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    overflow: hidden;
+  }
+
+  .markdown-view-toggle button {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    min-height: 1.65rem;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .markdown-view-toggle button + button {
+    border-left: 1px solid var(--border);
+  }
+
+  .markdown-view-toggle button.active {
+    background: var(--surface-alt);
+    color: var(--text);
+    font-weight: 600;
   }
 
   .icon-button {
@@ -1182,6 +1278,92 @@
     width: 100%;
   }
 
+  .query-editor, .markdown-preview, .html-preview {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .html-preview {
+    background: #fff;
+    border: 0;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+  }
+
+  .markdown-preview {
+    background: var(--surface);
+    color: var(--text);
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem 1.25rem;
+  }
+
+  .markdown-preview > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-preview > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-preview h1, .markdown-preview h2,
+  .markdown-preview h3, .markdown-preview h4,
+  .markdown-preview h5, .markdown-preview h6 {
+    line-height: 1.25;
+    margin: 1.2em 0 0.55em;
+  }
+
+  .markdown-preview p, .markdown-preview ul,
+  .markdown-preview ol, .markdown-preview blockquote {
+    line-height: 1.6;
+    margin: 0.7em 0;
+  }
+
+  .markdown-preview blockquote {
+    border-left: 0.25rem solid var(--border);
+    color: var(--muted);
+    padding-left: 0.85rem;
+  }
+
+  .markdown-preview code {
+    background: var(--surface-alt);
+    border-radius: 0.25rem;
+    font-family: ui-monospace, monospace;
+    padding: 0.1rem 0.25rem;
+  }
+
+  .markdown-preview pre {
+    background: var(--surface-alt);
+    border-radius: 0.35rem;
+    overflow: auto;
+    padding: 0.75rem;
+  }
+
+  .markdown-preview pre code {
+    background: transparent;
+    padding: 0;
+  }
+
+  .markdown-preview table {
+    border-collapse: collapse;
+    margin: 0.8rem 0;
+  }
+
+  .markdown-preview th, .markdown-preview td {
+    border: 1px solid var(--border);
+    padding: 0.35rem 0.55rem;
+    text-align: left;
+  }
+
+  .markdown-preview th {
+    background: var(--surface-alt);
+  }
+
+  .markdown-preview a {
+    color: var(--accent);
+  }
+
   .output-pane {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
@@ -1231,6 +1413,32 @@
     font-size: 0.88rem;
     margin: 0;
     padding: 0.5rem 0.65rem;
+  }
+
+  .command-tabs {
+    align-items: end;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    min-height: 2.65rem;
+    padding: 0.35rem 0.5rem 0;
+  }
+
+  .command-tab {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    height: 2.3rem;
+    margin-right: 0.25rem;
+  }
+
+  .command-tab[aria-selected="true"] {
+    background: var(--surface);
+    border-bottom-color: var(--surface);
+    font-weight: 600;
+  }
+
+  .command-tab-panel .command-group {
+    margin-bottom: 0;
   }
 
   .result-tabs {
@@ -1310,7 +1518,7 @@
 
   .result-pager-status {
     color: var(--muted);
-    margin-right: auto;
+    margin-left: 3.25rem;
   }
 
   .metadata-list {
@@ -1564,6 +1772,12 @@
     const outputResizer = byId('output-resizer');
     const outputCollapse = byId('output-collapse');
     const editor = byId('query-editor');
+    const editorLanguage = byId('editor-language');
+    const markdownViewToggle = byId('markdown-view-toggle');
+    const markdownSourceButton = byId('markdown-source-btn');
+    const markdownPreviewButton = byId('markdown-preview-btn');
+    const markdownPreview = byId('markdown-preview');
+    const htmlPreview = byId('html-preview');
     const tabsElement = document.querySelector('.editor-tabs');
     const newTabButton = byId('new-tab-btn');
     const runButton = byId('run-btn');
@@ -1595,32 +1809,43 @@
     const fileDialogList = byId('file-dialog-list');
     const filePathLabel = byId('file-path-label');
     const filePathInput = byId('file-path-input');
-    const resultsDelimiterFields = byId('results-delimiter-fields');
+    const resultsFormatField = byId('results-format-field');
+    const resultsFormatSelect = byId('results-format-select');
     const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
     const saveContextMenu = byId('save-context-menu');
     const saveContextSave = byId('save-context-save');
     const saveContextSaveAs = byId('save-context-save-as');
+    const fileContextMenu = byId('file-context-menu');
+    const fileContextOpen = byId('file-context-open');
+    const fileContextDelete = byId('file-context-delete');
     let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',
+      resultId: null,
       commands: [],
+      activeCommand: null,
       text: '',
       exportable: false,
-      path: null
+      path: null,
+      format: null
     };
     let busy = false;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
+    let contextFilePath = null;
+    let contextFileSource = null;
     let fileEntries = [];
     let explorerFileEntries = [];
     let schemaValue = null;
+    const foreignKeysUnavailable = new Set();
     let relationContext = null;
     let saveContextKind = null;
     let saveContextSource = null;
     let docsAvailable = null;
     let docsCheckPending = false;
+    const prefetchedDocs = new Set();
     const docsHelpSections = [
       {
         children: [
@@ -1696,16 +1921,17 @@
           text: '',
           savedText: null,
           selectionStart: 0,
-          selectionEnd: 0
+          selectionEnd: 0,
+          resultView: 'source'
         }],
         activeId: 'draft-1',
         nextDraft: 2,
         nextFile: 1,
         schemaSize: 320,
-        outputSize: 260,
+        outputRatio: 1 / 3,
         schemaOpen: true,
         outputOpen: true,
-        defaultDatabase: 'sys',
+        defaultDatabase: null,
         explorerView: 'schemas',
         docsTabs: [],
         nextDocs: 1,
@@ -1722,6 +1948,8 @@
         Number.isInteger(tab.selectionEnd) &&
         (tab.savedText === null || typeof tab.savedText === 'string' ||
           typeof tab.savedText === 'undefined') &&
+        (typeof tab.resultView === 'undefined' ||
+          ['source', 'preview'].includes(tab.resultView)) &&
         (tab.path === null || Array.isArray(tab.path));
     }
 
@@ -1747,6 +1975,10 @@
           if (typeof tab.savedText === 'undefined') {
             tab.savedText = tab.path ? tab.text : null;
           }
+          if (typeof tab.resultView === 'undefined') {
+            tab.resultView = tab.markdownView || 'source';
+          }
+          delete tab.markdownView;
         });
         if (!Array.isArray(restored.schemaExpanded)) {
           restored.schemaExpanded = [];
@@ -1768,6 +2000,7 @@
         if (!Array.isArray(restored.filesCollapsed)) {
           restored.filesCollapsed = [];
         }
+        delete restored.outputSize;
         return restored;
       } catch (_) {
         return initialState();
@@ -1789,6 +2022,280 @@
         state.tabs[0];
     }
 
+    function previewResultMark(tab) {
+      if (!Array.isArray(tab.path) || tab.path[0] !== 'results') return null;
+      const mark = tab.path[tab.path.length - 1];
+      return ['md', 'html'].includes(mark) ? mark : null;
+    }
+
+    function safeMarkdownHref(value) {
+      if (value.startsWith('#')) return value;
+      try {
+        const url = new URL(value, window.location.href);
+        if (['http:', 'https:', 'mailto:'].includes(url.protocol)) {
+          return url.href;
+        }
+      } catch (_) {
+        return null;
+      }
+      return null;
+    }
+
+    function appendMarkdownInline(parent, value) {
+      const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|\[[^\]\n]+\]\([^) \n]+\))/g;
+      let offset = 0;
+      for (const match of value.matchAll(pattern)) {
+        parent.appendChild(document.createTextNode(
+          value.slice(offset, match.index)
+        ));
+        const token = match[0];
+        let node;
+        if (token.startsWith('`')) {
+          node = document.createElement('code');
+          node.textContent = token.slice(1, -1);
+        } else if (token.startsWith('**') || token.startsWith('__')) {
+          node = document.createElement('strong');
+          node.textContent = token.slice(2, -2);
+        } else if (token.startsWith('*') || token.startsWith('_')) {
+          node = document.createElement('em');
+          node.textContent = token.slice(1, -1);
+        } else {
+          const parts = /^\[([^\]]+)\]\(([^) ]+)\)$/.exec(token);
+          const href = parts ? safeMarkdownHref(parts[2]) : null;
+          if (parts && href) {
+            node = document.createElement('a');
+            node.textContent = parts[1];
+            node.href = href;
+            node.rel = 'noreferrer';
+            if (!href.startsWith(window.location.origin)) {
+              node.target = '_blank';
+            }
+          } else {
+            node = document.createTextNode(token);
+          }
+        }
+        parent.appendChild(node);
+        offset = match.index + token.length;
+      }
+      parent.appendChild(document.createTextNode(value.slice(offset)));
+    }
+
+    function markdownTableCells(line) {
+      let value = line.trim();
+      if (value.startsWith('|')) value = value.slice(1);
+      if (value.endsWith('|') && !value.endsWith('\\|')) {
+        value = value.slice(0, -1);
+      }
+      const cells = [];
+      let cell = '';
+      let escaped = false;
+      for (const character of value) {
+        if (escaped) {
+          cell += character;
+          escaped = false;
+        } else if (character === '\\') {
+          escaped = true;
+        } else if (character === '|') {
+          cells.push(cell.trim());
+          cell = '';
+        } else {
+          cell += character;
+        }
+      }
+      if (escaped) cell += '\\';
+      cells.push(cell.trim());
+      return cells;
+    }
+
+    function markdownTableDelimiter(line) {
+      const cells = markdownTableCells(line);
+      return cells.length > 0 && cells.every((cell) => {
+        return /^:?-{3,}:?$/.test(cell);
+      });
+    }
+
+    function markdownBlockStart(lines, index) {
+      const line = lines[index] || '';
+      const next = lines[index + 1] || '';
+      return /^ {0,3}```/.test(line) || /^ {0,3}#{1,6}\s+/.test(line) ||
+        /^ {0,3}(?:[-*_]\s*){3,}$/.test(line) ||
+        /^\s*>\s?/.test(line) ||
+        /^\s*(?:[-+*]|\d+\.)\s+/.test(line) ||
+        (line.includes('|') && markdownTableDelimiter(next));
+    }
+
+    function renderMarkdown(text) {
+      const fragment = document.createDocumentFragment();
+      const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+      let index = 0;
+      while (index < lines.length) {
+        const line = lines[index];
+        if (!line.trim()) {
+          index += 1;
+          continue;
+        }
+        const fence = /^ {0,3}```\s*([^ ]*)\s*$/.exec(line);
+        if (fence) {
+          const codeLines = [];
+          index += 1;
+          while (index < lines.length && !/^ {0,3}```\s*$/.test(
+            lines[index]
+          )) {
+            codeLines.push(lines[index]);
+            index += 1;
+          }
+          if (index < lines.length) index += 1;
+          const pre = document.createElement('pre');
+          const code = document.createElement('code');
+          if (fence[1]) code.dataset.language = fence[1];
+          code.textContent = codeLines.join('\n');
+          pre.appendChild(code);
+          fragment.appendChild(pre);
+          continue;
+        }
+        if (index + 1 < lines.length && line.includes('|') &&
+            markdownTableDelimiter(lines[index + 1])) {
+          const table = document.createElement('table');
+          const head = document.createElement('thead');
+          const headRow = document.createElement('tr');
+          const headers = markdownTableCells(line);
+          const delimiters = markdownTableCells(lines[index + 1]);
+          headers.forEach((header, cellIndex) => {
+            const cell = document.createElement('th');
+            const delimiter = delimiters[cellIndex] || '';
+            if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
+              cell.style.textAlign = 'center';
+            } else if (delimiter.endsWith(':')) {
+              cell.style.textAlign = 'right';
+            }
+            appendMarkdownInline(cell, header);
+            headRow.appendChild(cell);
+          });
+          head.appendChild(headRow);
+          table.appendChild(head);
+          const body = document.createElement('tbody');
+          index += 2;
+          while (index < lines.length && lines[index].trim() &&
+              lines[index].includes('|')) {
+            const row = document.createElement('tr');
+            markdownTableCells(lines[index]).forEach((value, cellIndex) => {
+              const cell = document.createElement('td');
+              const delimiter = delimiters[cellIndex] || '';
+              if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
+                cell.style.textAlign = 'center';
+              } else if (delimiter.endsWith(':')) {
+                cell.style.textAlign = 'right';
+              }
+              appendMarkdownInline(cell, value);
+              row.appendChild(cell);
+            });
+            body.appendChild(row);
+            index += 1;
+          }
+          table.appendChild(body);
+          fragment.appendChild(table);
+          continue;
+        }
+        const heading = /^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+        if (heading) {
+          const node = document.createElement(`h${heading[1].length}`);
+          appendMarkdownInline(node, heading[2]);
+          fragment.appendChild(node);
+          index += 1;
+          continue;
+        }
+        if (/^ {0,3}(?:[-*_]\s*){3,}$/.test(line)) {
+          fragment.appendChild(document.createElement('hr'));
+          index += 1;
+          continue;
+        }
+        if (/^\s*>\s?/.test(line)) {
+          const quote = document.createElement('blockquote');
+          const quoteLines = [];
+          while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+            quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+            index += 1;
+          }
+          appendMarkdownInline(quote, quoteLines.join(' '));
+          fragment.appendChild(quote);
+          continue;
+        }
+        const listItem = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(line);
+        if (listItem) {
+          const ordered = /\d+\./.test(listItem[1]);
+          const list = document.createElement(ordered ? 'ol' : 'ul');
+          while (index < lines.length) {
+            const item = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(lines[index]);
+            if (!item || /\d+\./.test(item[1]) !== ordered) break;
+            const node = document.createElement('li');
+            appendMarkdownInline(node, item[2]);
+            list.appendChild(node);
+            index += 1;
+          }
+          fragment.appendChild(list);
+          continue;
+        }
+        const paragraphLines = [line.trim()];
+        index += 1;
+        while (index < lines.length && lines[index].trim() &&
+            !markdownBlockStart(lines, index)) {
+          paragraphLines.push(lines[index].trim());
+          index += 1;
+        }
+        const paragraph = document.createElement('p');
+        appendMarkdownInline(paragraph, paragraphLines.join(' '));
+        fragment.appendChild(paragraph);
+      }
+      markdownPreview.replaceChildren(fragment);
+    }
+
+    function updateEditorView(focus = false) {
+      const tab = activeTab();
+      const mark = previewResultMark(tab);
+      const preview = Boolean(mark) && tab.resultView === 'preview';
+      editorLanguage.textContent = mark === 'md' ? 'Markdown' :
+        mark === 'html' ? 'HTML' : 'urQL';
+      markdownViewToggle.classList.toggle('hidden', !mark);
+      markdownViewToggle.setAttribute(
+        'aria-label', mark === 'html' ? 'HTML view' : 'Markdown view'
+      );
+      markdownSourceButton.classList.toggle('active', !preview);
+      markdownPreviewButton.classList.toggle('active', preview);
+      markdownSourceButton.setAttribute('aria-pressed', String(!preview));
+      markdownPreviewButton.setAttribute('aria-pressed', String(preview));
+      editor.classList.toggle('hidden', preview);
+      markdownPreview.classList.toggle(
+        'hidden', !(preview && mark === 'md')
+      );
+      htmlPreview.classList.toggle(
+        'hidden', !(preview && mark === 'html')
+      );
+      editor.setAttribute(
+        'aria-label', mark === 'md' ? 'Markdown source' :
+          mark === 'html' ? 'HTML source' : 'urQL query'
+      );
+      if (preview && mark === 'md') renderMarkdown(tab.text);
+      if (preview && mark === 'html' && htmlPreview.srcdoc !== tab.text) {
+        htmlPreview.srcdoc = tab.text;
+      }
+      if (focus) {
+        requestAnimationFrame(() => {
+          if (preview && mark === 'md') markdownPreview.focus();
+          else if (preview && mark === 'html') htmlPreview.focus();
+          else editor.focus();
+        });
+      }
+    }
+
+    function setResultView(view) {
+      const tab = activeTab();
+      if (!previewResultMark(tab)) return;
+      captureEditor();
+      tab.resultView = view;
+      updateEditorView(true);
+      persist();
+    }
+
     function captureEditor() {
       const tab = activeTab();
       tab.text = editor.value;
@@ -1799,24 +2306,32 @@
     function restoreEditor(focus) {
       const tab = activeTab();
       editor.value = tab.text;
+      updateEditorView(focus);
       const start = Math.min(tab.selectionStart, tab.text.length);
       const end = Math.min(tab.selectionEnd, tab.text.length);
       requestAnimationFrame(() => {
         editor.setSelectionRange(start, end);
-        if (focus) editor.focus();
+        if (focus && tab.resultView !== 'preview') editor.focus();
       });
     }
 
     function renderTabs() {
-      tabsElement.querySelectorAll('[role="tab"]').forEach((tab) => {
+      const controls = tabsElement.querySelectorAll(
+        '.editor-tab-control, .tab'
+      );
+      controls.forEach((tab) => {
         tab.remove();
       });
       state.tabs.forEach((tab) => {
+        const control = document.createElement('div');
         const button = document.createElement('button');
         const selected = tab.id === state.activeId;
+        control.className = selected ?
+          'editor-tab-control active' : 'editor-tab-control';
+        control.setAttribute('role', 'presentation');
         button.type = 'button';
         button.id = `tab-${tab.id}`;
-        button.className = selected ? 'tab active' : 'tab';
+        button.className = 'tab';
         button.setAttribute('role', 'tab');
         button.setAttribute('aria-selected', String(selected));
         button.setAttribute('aria-controls', 'query-editor');
@@ -1827,8 +2342,24 @@
         button.title = tab.path ? tab.path.join('/') : tab.name;
         button.addEventListener('click', () => activateTab(tab.id, true));
         button.addEventListener('keydown', tabKeydown);
-        tabsElement.insertBefore(button, newTabButton);
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'editor-tab-close';
+        close.title = 'Close';
+        close.setAttribute('aria-label', `Close ${tab.name} script tab`);
+        const closeIcon = document.createElement('span');
+        closeIcon.className = 'close-icon';
+        closeIcon.setAttribute('aria-hidden', 'true');
+        close.appendChild(closeIcon);
+        close.addEventListener('click', (event) => {
+          event.stopPropagation();
+          closeTab(tab.id);
+        });
+        control.append(button, close);
+        tabsElement.insertBefore(control, newTabButton);
       });
+      updateExecutionControls();
+      updateOutputControls();
     }
 
     function tabKeydown(event) {
@@ -1850,7 +2381,15 @@
 
     function activateTab(id, focusEditor) {
       if (id === state.activeId) {
-        if (focusEditor) editor.focus();
+        if (focusEditor) {
+          const mark = previewResultMark(activeTab());
+          if (mark && activeTab().resultView === 'preview') {
+            if (mark === 'md') markdownPreview.focus();
+            else htmlPreview.focus();
+          } else {
+            editor.focus();
+          }
+        }
         return;
       }
       captureEditor();
@@ -1889,7 +2428,8 @@
         text,
         savedText: null,
         selectionStart: 0,
-        selectionEnd: 0
+        selectionEnd: 0,
+        resultView: 'source'
       };
       state.tabs.push(tab);
       state.activeId = tab.id;
@@ -1904,25 +2444,42 @@
       return path.join('/');
     }
 
+    function savedFileTabName(path) {
+      if (path[0] === 'results' && path.length >= 3) {
+        return path.slice(-2).join('/');
+      }
+      return path[path.length - 1] || 'script';
+    }
+
     function addFileTab(path, text) {
       const key = pathKey(path);
       const existing = state.tabs.find((tab) => {
         return tab.path && pathKey(tab.path) === key;
       });
       if (existing) {
-        activateTab(existing.id, true);
+        captureEditor();
+        existing.path = path.slice();
+        existing.name = uniqueTabName(savedFileTabName(path), existing.id);
+        existing.text = text;
+        existing.savedText = text;
+        existing.selectionStart = 0;
+        existing.selectionEnd = 0;
+        state.activeId = existing.id;
+        renderTabs();
+        restoreEditor(true);
+        persist();
         return existing;
       }
       captureEditor();
-      const leaf = path[path.length - 1] || 'script';
       const tab = {
         id: `file-${state.nextFile++}`,
-        name: uniqueTabName(leaf),
+        name: uniqueTabName(savedFileTabName(path)),
         path: path.slice(),
         text,
         savedText: text,
         selectionStart: 0,
-        selectionEnd: 0
+        selectionEnd: 0,
+        resultView: 'source'
       };
       state.tabs.push(tab);
       state.activeId = tab.id;
@@ -1932,9 +2489,11 @@
       return tab;
     }
 
-    function closeActiveTab() {
-      captureEditor();
-      const index = state.tabs.findIndex((tab) => tab.id === state.activeId);
+    function closeTab(id) {
+      const active = id === state.activeId;
+      if (active) captureEditor();
+      const index = state.tabs.findIndex((tab) => tab.id === id);
+      if (index < 0) return;
       state.tabs.splice(index, 1);
       if (state.tabs.length === 0) {
         const name = nextDraftName();
@@ -1945,15 +2504,22 @@
           text: '',
           savedText: null,
           selectionStart: 0,
-          selectionEnd: 0
+          selectionEnd: 0,
+          resultView: 'source'
         });
       }
-      const next = Math.min(index, state.tabs.length - 1);
-      state.activeId = state.tabs[next].id;
+      if (active) {
+        const next = Math.min(index, state.tabs.length - 1);
+        state.activeId = state.tabs[next].id;
+      }
       renderTabs();
-      restoreEditor(true);
+      if (active) restoreEditor(true);
       persist();
       closeMenus();
+    }
+
+    function closeActiveTab() {
+      closeTab(state.activeId);
     }
 
     function setStatus(message, kind = 'info', sticky = false) {
@@ -1969,8 +2535,8 @@
     }
 
     function updateOutputControls() {
-      copyOutputButton.disabled = lastOutputText.length === 0;
-      saveQueryButton.disabled = busy;
+      copyOutputButton.disabled = !outputCopyAvailable();
+      saveQueryButton.disabled = busy || activeTabIsResult();
       saveOutputButton.disabled = busy || !outputState.exportable;
       saveQueryButton.setAttribute(
         'aria-disabled',
@@ -1982,17 +2548,24 @@
       );
     }
 
+    function activeTabIsResult() {
+      const tab = activeTab();
+      return Array.isArray(tab.path) && tab.path[0] === 'results';
+    }
+
+    function updateExecutionControls() {
+      const blocked = busy || activeTabIsResult();
+      runButton.disabled = blocked;
+      parseButton.disabled = blocked;
+    }
+
     function setBusy(value, label = '') {
       busy = value;
       app.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
-      runButton.disabled = value;
-      parseButton.disabled = value;
-      byId('open-menu-item').disabled = value;
-      byId('save-tab-menu-item').disabled = value;
-      byId('save-as-menu-item').disabled = value;
-      byId('new-tab-menu-item').disabled = value;
-      byId('close-tab-menu-item').disabled = value;
+      updateExecutionControls();
+      fileContextOpen.disabled = value;
+      fileContextDelete.disabled = value;
       runButton.firstElementChild.textContent = value && label === 'run' ?
         'Running…' : 'Run';
       parseButton.textContent = value && label === 'parse' ?
@@ -2014,9 +2587,11 @@
 
     async function api(operation, payload) {
       const route = {
+        'result-save': 'results/save',
         'file-browse': 'files/browse',
         'file-load': 'files/load',
-        'file-save': 'files/save'
+        'file-save': 'files/save',
+        'file-delete': 'files/delete'
       }[operation] || operation;
       const response = await fetch(`/apps/obelisk/api/${route}`, {
         method: 'POST',
@@ -2058,8 +2633,10 @@
       return relativePathFromInput(value, 'scripts');
     }
 
-    function resultPathFromInput(value) {
-      return relativePathFromInput(value, 'results');
+    function resultPathFromInput(value, mark = null) {
+      const path = relativePathFromInput(value, 'results');
+      if (!path || !mark || path[path.length - 1] === mark) return path;
+      return [...path, mark];
     }
 
     function displayScriptPath(path) {
@@ -2079,7 +2656,7 @@
     function closeFileDialog() {
       if (fileDialog.open) fileDialog.close();
       selectedFilePath = null;
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
     }
 
     function samePath(left, right) {
@@ -2088,14 +2665,105 @@
       });
     }
 
+    function explorerFileParent(entry) {
+      const result = entry.kind === 'file' && entry.path[0] === 'results';
+      return entry.path.slice(0, result ? -2 : -1);
+    }
+
     function childFileEntries(parent) {
       return explorerFileEntries.filter((entry) => {
-        if (!Array.isArray(entry.path) ||
-            entry.path.length !== parent.length + 1) {
-          return false;
-        }
-        return samePath(entry.path.slice(0, parent.length), parent);
+        return Array.isArray(entry.path) &&
+          samePath(explorerFileParent(entry), parent);
       });
+    }
+
+    function neededExplorerDirectory(directory, entries) {
+      return entries.some((entry) => {
+        if (entry.kind !== 'file') return false;
+        const parent = explorerFileParent(entry);
+        return directory.path.length <= parent.length &&
+          samePath(directory.path, parent.slice(0, directory.path.length));
+      });
+    }
+
+    function explorerFileLabel(entry) {
+      const result = entry.kind === 'file' && entry.path[0] === 'results';
+      return entry.path.slice(result ? -2 : -1).join('/');
+    }
+
+    function closeFileContext(restoreFocus = false) {
+      fileContextMenu.classList.add('hidden');
+      if (contextFileSource) {
+        contextFileSource.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) contextFileSource.focus();
+      }
+      contextFilePath = null;
+      contextFileSource = null;
+    }
+
+    function openFileContext(path, source, event = null) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      closeMenus();
+      closeRelationMenu();
+      closeSaveContext();
+      closeFileContext();
+      contextFilePath = path.slice();
+      contextFileSource = source;
+      source.setAttribute('aria-expanded', 'true');
+      fileContextMenu.style.left = '0px';
+      fileContextMenu.style.top = '0px';
+      fileContextMenu.classList.remove('hidden');
+      const menuRect = fileContextMenu.getBoundingClientRect();
+      const sourceRect = source.getBoundingClientRect();
+      const margin = 8;
+      const maximumLeft = window.innerWidth - menuRect.width - margin;
+      const maximumTop = window.innerHeight - menuRect.height - margin;
+      const pointer = event && event.type === 'contextmenu';
+      const left = clamp(
+        pointer ? event.clientX : sourceRect.right,
+        margin,
+        maximumLeft
+      );
+      const top = clamp(
+        pointer ? event.clientY : sourceRect.top,
+        margin,
+        maximumTop
+      );
+      fileContextMenu.style.left = `${left}px`;
+      fileContextMenu.style.top = `${top}px`;
+      fileContextOpen.focus();
+    }
+
+    async function openContextFile() {
+      const path = contextFilePath ? contextFilePath.slice() : null;
+      closeFileContext();
+      if (path) await loadFilePath(path);
+    }
+
+    async function deleteContextFile() {
+      const path = contextFilePath ? contextFilePath.slice() : null;
+      const source = contextFileSource;
+      if (!path) return;
+      const name = path.slice(1).join('/');
+      if (!window.confirm(`Delete ${name}? This cannot be undone.`)) {
+        closeFileContext();
+        if (source) source.focus();
+        return;
+      }
+      closeFileContext();
+      setBusy(true, 'delete');
+      try {
+        await api('file-delete', {path});
+        await refreshFiles();
+        setStatus(`${name} deleted.`);
+      } catch (error) {
+        setStatus(error.message, 'error', true);
+      } finally {
+        setBusy(false);
+      }
     }
 
     function fileExpansion(path, details) {
@@ -2127,22 +2795,46 @@
         details.append(summary, children);
         return details;
       }
+      const row = document.createElement('div');
+      row.className = 'explorer-file-row';
+      row.setAttribute('role', 'treeitem');
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'file-entry explorer-file';
-      button.setAttribute('role', 'treeitem');
-      button.textContent = entry.path[entry.path.length - 1];
+      button.textContent = explorerFileLabel(entry);
       button.title = entry.path.join('/');
       button.addEventListener('click', () => {
+        closeFileContext();
         loadFilePath(entry.path);
       });
-      return button;
+      row.addEventListener('contextmenu', (event) => {
+        openFileContext(entry.path, button, event);
+      });
+      const actions = document.createElement('button');
+      actions.type = 'button';
+      actions.className = 'file-actions';
+      actions.setAttribute(
+        'aria-label',
+        `Actions for ${explorerFileLabel(entry)}`
+      );
+      actions.setAttribute('aria-haspopup', 'menu');
+      actions.setAttribute('aria-expanded', 'false');
+      actions.textContent = '…';
+      actions.addEventListener('click', (event) => {
+        openFileContext(entry.path, actions, event);
+      });
+      row.append(button, actions);
+      return row;
     }
 
     function renderFiles(entries) {
-      explorerFileEntries = entries.filter((entry) => {
+      const candidates = entries.filter((entry) => {
         return Array.isArray(entry.path) &&
           ['scripts', 'results'].includes(entry.path[0]);
+      });
+      explorerFileEntries = candidates.filter((entry) => {
+        return entry.kind !== 'directory' ||
+          neededExplorerDirectory(entry, candidates);
       });
       filesTree.replaceChildren();
       const roots = childFileEntries([]);
@@ -2191,6 +2883,8 @@
       state.explorerView = selected;
       schemasTab.classList.toggle('active', schemas);
       filesTab.classList.toggle('active', files);
+      schemasTab.parentElement.classList.toggle('active', schemas);
+      filesTab.parentElement.classList.toggle('active', files);
       schemasTab.setAttribute('aria-selected', String(schemas));
       filesTab.setAttribute('aria-selected', String(files));
       schemasTab.tabIndex = schemas ? 0 : -1;
@@ -2207,6 +2901,16 @@
       schemaPane.querySelectorAll('.docs-panel').forEach((panel) => {
         panel.hidden = panel.id !== `docs-panel-${selected}`;
       });
+      const docsTab = docsTabById(selected);
+      if (docsTab) {
+        const frame = byId(`docs-panel-${selected}`).querySelector(
+          '.docs-frame'
+        );
+        if (frame.dataset.loaded !== 'true') {
+          frame.dataset.loaded = 'true';
+          frame.src = `/docs/d/obelisk/${docsTab.path}`;
+        }
+      }
       persist();
       if (focus) {
         const target = Array.from(
@@ -2288,7 +2992,7 @@
       fileDialogList.classList.remove('hidden');
       filePathLabel.classList.add('hidden');
       filePathInput.classList.add('hidden');
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
       fileDialogConfirm.textContent = 'Open';
       fileDialogConfirm.disabled = true;
       fileDialog.showModal();
@@ -2321,7 +3025,7 @@
       filePathLabel.textContent = root === 'results' ?
         'Result path' : 'Script path';
       filePathInput.classList.remove('hidden');
-      resultsDelimiterFields.classList.add('hidden');
+      resultsFormatField.classList.add('hidden');
       filePathInput.value = suggestScriptPath(activeTab());
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
@@ -2332,7 +3036,7 @@
 
     function nextResultName(entries) {
       const names = new Set(entries.filter((entry) => {
-        return Array.isArray(entry.path) && entry.path.length === 2 &&
+        return Array.isArray(entry.path) && entry.path.length >= 2 &&
           entry.path[0] === 'results';
       }).map((entry) => entry.path[1]));
       let number = 1;
@@ -2364,12 +3068,12 @@
       filePathLabel.classList.remove('hidden');
       filePathLabel.textContent = 'Result path';
       filePathInput.classList.remove('hidden');
+      const showFormat = outputState.kind === 'run';
+      resultsFormatField.classList.toggle('hidden', !showFormat);
+      resultsFormatSelect.value = showFormat ?
+        (outputState.format || '%csv') : '%tape';
       filePathInput.value = outputState.path ?
         outputState.path.slice(1).join('/') : nextResultName(entries);
-      const showDelimiter = outputState.kind === 'run';
-      resultsDelimiterFields.classList.toggle('hidden', !showDelimiter);
-      const comma = resultsDelimiterFields.querySelector('[value="comma"]');
-      comma.checked = true;
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
       fileDialog.showModal();
@@ -2383,18 +3087,13 @@
       const existing = state.tabs.find((tab) => {
         return tab.path && pathKey(tab.path) === pathKey(path);
       });
-      if (existing) {
-        if (closeDialog) closeFileDialog();
-        activateTab(existing.id, true);
-        setStatus(`${displayScriptPath(path)} is already open.`);
-        return;
-      }
       setBusy(true, 'open');
       try {
         const body = await api('file-load', {path});
         addFileTab(body.path, body.content);
         if (closeDialog) closeFileDialog();
-        setStatus(`${displayScriptPath(body.path)} opened.`);
+        const action = existing ? 'reloaded' : 'opened';
+        setStatus(`${displayScriptPath(body.path)} ${action}.`);
       } catch (error) {
         setStatus(error.message, 'error', true);
       } finally {
@@ -2415,10 +3114,7 @@
       try {
         const body = await api('file-save', {path, content, overwrite});
         tab.path = body.path.slice();
-        tab.name = uniqueTabName(
-          body.path[body.path.length - 1] || 'script',
-          tab.id
-        );
+        tab.name = uniqueTabName(savedFileTabName(body.path), tab.id);
         tab.savedText = content;
         renderTabs();
         persist();
@@ -2441,7 +3137,7 @@
     }
 
     async function saveActiveTab() {
-      if (busy) return;
+      if (busy || activeTabIsResult()) return;
       closeMenus();
       const tab = activeTab();
       if (!tab.path) {
@@ -2467,30 +3163,70 @@
       if (saved) closeFileDialog();
     }
 
-    function selectedResultsDelimiter() {
-      const selected = resultsDelimiterFields.querySelector(
-        'input[name="results-delimiter"]:checked'
-      );
-      return selected ? selected.value : 'comma';
+    const resultFormatMarks = {
+      '%csv': 'csv',
+      '%tab': 'tab',
+      '%spac': 'txt',
+      '%markdown': 'md',
+      '%html': 'html',
+      '%tape': 'txt',
+      '%json': 'json',
+      '%wain': 'noun',
+      '%manx': 'noun',
+      '%vector': 'noun',
+      '%raw': 'noun'
+    };
+    const resultStorageMarks = new Set(Object.values(resultFormatMarks));
+
+    function selectedResultsFormat() {
+      return resultsFormatSelect.value || '%csv';
+    }
+
+    function updateDisplayedResultMark() {
+      const nextMark = resultFormatMarks[selectedResultsFormat()];
+      const parts = filePathInput.value.split('/');
+      const shownMark = parts[parts.length - 1];
+      if (!nextMark || parts.length < 2 ||
+          !resultStorageMarks.has(shownMark)) return;
+      parts[parts.length - 1] = nextMark;
+      filePathInput.value = parts.join('/');
     }
 
     function resultSaveText() {
       if (outputState.kind === 'parse') {
         return ensureTrailingNewline(outputState.text);
       }
-      return runExportText(
-        outputState.commands,
-        selectedResultsDelimiter()
-      );
+      return null;
     }
 
-    async function saveResultsFile(path, overwrite) {
+    async function saveResultsFile(path, overwrite, format) {
       if (busy || !outputState.exportable) return false;
-      const content = resultSaveText();
       setBusy(true, 'save-results');
       try {
-        const body = await api('file-save', {path, content, overwrite});
+        let body;
+        if (outputState.kind === 'run') {
+          const command = Number.isInteger(outputState.activeCommand) ?
+            outputState.commands[outputState.activeCommand] : null;
+          if (!command || outputState.resultId === null) {
+            setStatus('Results are no longer available.', 'error', true);
+            return false;
+          }
+          const commandIndex = Number.isInteger(command.index) ?
+            command.index : outputState.activeCommand;
+          body = await api('result-save', {
+            resultId: String(outputState.resultId),
+            commandIndex: String(commandIndex),
+            format: String(format || '').replace(/^%/, ''),
+            path,
+            overwrite
+          });
+        } else {
+          const content = resultSaveText();
+          if (content === null) return false;
+          body = await api('file-save', {path, content, overwrite});
+        }
         outputState.path = body.path.slice();
+        outputState.format = format;
         await refreshFiles();
         setStatus(`${body.path.slice(1).join('/')} saved.`);
         return true;
@@ -2499,7 +3235,7 @@
         if (!overwrite && error.status === 409 &&
             window.confirm(`${name} exists. Overwrite it?`)) {
           setBusy(false);
-          return await saveResultsFile(path, true);
+          return await saveResultsFile(path, true, format);
         }
         setStatus(error.message, 'error', true);
         return false;
@@ -2509,14 +3245,17 @@
     }
 
     async function saveResultsFromDialog() {
-      const path = resultPathFromInput(filePathInput.value);
+      const format = outputState.kind === 'run' ?
+        selectedResultsFormat() : '%tape';
+      const mark = resultFormatMarks[format];
+      const path = resultPathFromInput(filePathInput.value, mark);
       if (!path) {
         fileDialogHelp.textContent =
           'Invalid path. Use names like folder/results-name.';
         filePathInput.focus();
         return;
       }
-      const saved = await saveResultsFile(path, false);
+      const saved = await saveResultsFile(path, false, format);
       if (saved) closeFileDialog();
     }
 
@@ -2561,15 +3300,59 @@
       return text.startsWith('@') ? text : `@${text}`;
     }
 
+    function foreignKeyGroups(relation) {
+      const groups = [];
+      const buckets = new Map();
+      (relation.foreignKeys || []).forEach((foreignKey) => {
+        const key = [
+          foreignKey.parentNamespace,
+          foreignKey.parentTable,
+          foreignKey.onDelete,
+          foreignKey.onUpdate
+        ].join('\u0000');
+        const bucket = buckets.get(key) || [];
+        let group = bucket.find((candidate) => {
+          return foreignKey.ordinal > 1 &&
+            candidate.rows.length === foreignKey.ordinal - 1;
+        });
+        if (!group) {
+          group = {
+            parentNamespace: foreignKey.parentNamespace,
+            parentTable: foreignKey.parentTable,
+            onDelete: foreignKey.onDelete,
+            onUpdate: foreignKey.onUpdate,
+            rows: [foreignKey]
+          };
+          bucket.push(group);
+          buckets.set(key, bucket);
+          groups.push(group);
+        } else {
+          group.rows.push(foreignKey);
+        }
+      });
+      return groups;
+    }
+
+    function foreignKeyAction(action) {
+      return String(action || 'restrict').replaceAll('-', ' ').toUpperCase();
+    }
+
     function relationTemplate(action, relation) {
       const qualified = `${relation.database}.${relation.namespace}.` +
         relation.name;
       const columns = relation.columns.map((column) => column.name);
       if (action === 'SELECT') {
-        return `FROM ${qualified}\nSELECT ${columns.join(', ') || '*'};`;
+        return `::WITH (FROM...\n` +
+          `::      SELECT...) AS ...\n` +
+          `FROM ${qualified}\n` +
+          `::JOIN\n` +
+          `::SCALARS\n` +
+          `::WHERE\n` +
+          `SELECT ${columns.join(', ') || '*'} ;`;
       }
       if (action === 'INSERT' && relation.kind === 'table') {
-        const values = columns.map(() => 'DEFAULT').join(', ');
+        const values = relation.columns.map((column) => column.bunt)
+          .join(', ');
         return `INSERT INTO ${qualified}\n` +
           `  (${columns.join(', ')})\nVALUES\n  (${values});`;
       }
@@ -2583,8 +3366,24 @@
             return `${column.name} ` +
               (column.key.ascending ? 'ASC' : 'DESC');
           });
+        const foreignKeys = foreignKeyGroups(relation).map((foreignKey) => {
+          const childColumns = foreignKey.rows.map((row) => row.childColumn);
+          const parentColumns = foreignKey.rows.map((row) => row.parentColumn);
+          let clause = `(${childColumns.join(', ')}) REFERENCES ` +
+            `${foreignKey.parentNamespace}.${foreignKey.parentTable} ` +
+            `(${parentColumns.join(', ')})`;
+          if (foreignKey.onDelete !== 'restrict') {
+            clause += ` ON DELETE ${foreignKeyAction(foreignKey.onDelete)}`;
+          }
+          if (foreignKey.onUpdate !== 'restrict') {
+            clause += ` ON UPDATE ${foreignKeyAction(foreignKey.onUpdate)}`;
+          }
+          return clause;
+        });
+        const foreignKeyClause = foreignKeys.length > 0 ?
+          `\n  FOREIGN KEY ${foreignKeys.join(',\n    ')}` : '';
         return `CREATE TABLE ${qualified}\n  (\n${definitions}\n  )\n` +
-          `  PRIMARY KEY (${keys.join(', ')});`;
+          `  PRIMARY KEY (${keys.join(', ')})${foreignKeyClause};`;
       }
       return '';
     }
@@ -2616,7 +3415,7 @@
       if (text) addDraft(text);
     }
 
-    function renderColumn(column) {
+    function renderColumn(column, relation) {
       const row = document.createElement('div');
       row.className = 'schema-column';
       row.setAttribute('role', 'treeitem');
@@ -2632,6 +3431,15 @@
       aura.textContent = auraText(column.aura);
       const name = document.createElement('span');
       name.textContent = column.name;
+      const foreignKey = (relation.foreignKeys || []).some((candidate) => {
+        return candidate.childColumn === column.name;
+      });
+      if (foreignKey) {
+        const marker = document.createElement('span');
+        marker.className = 'schema-column-aura';
+        marker.textContent = 'fk';
+        name.append(' ', marker);
+      }
       row.append(key, aura, name);
       return row;
     }
@@ -2662,7 +3470,7 @@
       summary.appendChild(actions);
       const children = schemaChildren();
       relation.columns.forEach((column) => {
-        children.appendChild(renderColumn(column));
+        children.appendChild(renderColumn(column, relation));
       });
       details.append(summary, children);
       return details;
@@ -2726,6 +3534,68 @@
       schemaTree.setAttribute('aria-busy', 'false');
     }
 
+    function schemaTerm(value) {
+      return String(value || '').replace(/^%/, '');
+    }
+
+    function foreignKeyRow(row) {
+      const values = {};
+      (Array.isArray(row) ? row : []).forEach((cell) => {
+        values[cell.name] = cell.value;
+      });
+      return {
+        parentNamespace: schemaTerm(values['parent-namespace']),
+        parentTable: schemaTerm(values['parent-table']),
+        childNamespace: schemaTerm(values['child-namespace']),
+        childTable: schemaTerm(values['child-table']),
+        ordinal: Number(String(values.ordinal || '0').replaceAll('.', '')),
+        parentColumn: schemaTerm(values['parent-column']),
+        childColumn: schemaTerm(values['child-column']),
+        onDelete: schemaTerm(values['on-delete']),
+        onUpdate: schemaTerm(values['on-update'])
+      };
+    }
+
+    function attachForeignKeys(database, commands) {
+      const resultSet = allResultSets(commands)[0];
+      if (!resultSet || !Array.isArray(resultSet.rows)) return;
+      resultSet.rows.map(foreignKeyRow).forEach((foreignKey) => {
+        const namespace = database.namespaces.find((candidate) => {
+          return candidate.name === foreignKey.childNamespace;
+        });
+        if (!namespace) return;
+        const relation = namespace.relations.find((candidate) => {
+          return candidate.kind === 'table' &&
+            candidate.name === foreignKey.childTable;
+        });
+        if (!relation) return;
+        if (!Array.isArray(relation.foreignKeys)) relation.foreignKeys = [];
+        relation.foreignKeys.push(foreignKey);
+      });
+    }
+
+    async function loadForeignKeys(schema) {
+      for (const database of schema.databases) {
+        if (database.name === 'sys' ||
+            foreignKeysUnavailable.has(database.name)) continue;
+        const script = `FROM ${database.name}.sys.foreign-keys\n` +
+          `SELECT parent-namespace, parent-table, child-namespace, ` +
+          `child-table, ordinal, parent-column, child-column, ` +
+          `on-delete, on-update;`;
+        try {
+          const body = await api('run', {
+            defaultDatabase: database.name,
+            script
+          });
+          attachForeignKeys(database, body.commands || []);
+        } catch (error) {
+          if (String(error.message).includes('foreign-keys does not exist')) {
+            foreignKeysUnavailable.add(database.name);
+          }
+        }
+      }
+    }
+
     async function refreshSchema(options = {}) {
       schemaTree.setAttribute('aria-busy', 'true');
       try {
@@ -2747,6 +3617,8 @@
         schemaValue = schema;
         renderSchema(schemaValue);
         persist();
+        await loadForeignKeys(schema);
+        if (schemaValue === schema) renderSchema(schemaValue);
       } catch (error) {
         schemaTree.replaceChildren();
         const failure = document.createElement('p');
@@ -2826,6 +3698,31 @@
 
     function allResultSets(commands) {
       return commands.flatMap(resultSetsForCommand);
+    }
+
+    function commandIsExportable(command) {
+      return resultSetsForCommand(command).some((resultSet) => {
+        return Array.isArray(resultSet.columns) &&
+          resultSet.columns.length > 0;
+      });
+    }
+
+    function outputCopyAvailable() {
+      if (outputState.kind !== 'run') return lastOutputText.length > 0;
+      const index = outputState.activeCommand;
+      const command = Number.isInteger(index) ?
+        outputState.commands[index] : null;
+      return Boolean(command) &&
+        (resultSetsForCommand(command).length > 0 ||
+          metadataForCommand(command).length > 0);
+    }
+
+    function outputCopyText() {
+      if (outputState.kind !== 'run') return lastOutputText;
+      const index = outputState.activeCommand;
+      const command = Number.isInteger(index) ?
+        outputState.commands[index] : null;
+      return command ? runCopyText([command]) : '';
     }
 
     function runExportText(commands, delimiter) {
@@ -2972,7 +3869,7 @@
           renderPage();
         });
         pagers.push({status, previous, next});
-        pager.append(status, previous, next);
+        pager.append(previous, next, status);
         return pager;
       }
       const topPager = makePager('top');
@@ -2997,15 +3894,17 @@
       return section;
     }
 
-    function renderCommand(command, position) {
+    function renderCommand(command, position, showHeading = true) {
       const group = document.createElement('article');
       group.className = 'command-group';
-      const heading = document.createElement('h3');
-      heading.className = 'command-heading';
       const commandIndex = Number.isInteger(command.index) ?
         command.index + 1 : position + 1;
-      heading.textContent = `Command ${commandIndex}`;
-      group.appendChild(heading);
+      if (showHeading) {
+        const heading = document.createElement('h3');
+        heading.className = 'command-heading';
+        heading.textContent = `Command ${commandIndex}`;
+        group.appendChild(heading);
+      }
       const resultSets = resultSetsForCommand(command);
       const metadata = metadataForCommand(command);
       if (resultSets.length === 0) {
@@ -3062,6 +3961,55 @@
       return group;
     }
 
+    function renderCommandTabs(commands) {
+      const container = document.createElement('div');
+      container.className = 'command-tab-set';
+      const tabList = document.createElement('div');
+      tabList.className = 'command-tabs';
+      tabList.setAttribute('role', 'tablist');
+      tabList.setAttribute('aria-label', 'Command results');
+      const tabs = [];
+      const panels = [];
+      function selectCommand(selected) {
+        tabs.forEach((tab, position) => {
+          const active = position === selected;
+          tab.setAttribute('aria-selected', String(active));
+          tab.tabIndex = active ? 0 : -1;
+          panels[position].hidden = !active;
+        });
+        outputState.activeCommand = selected;
+        outputState.exportable = commandIsExportable(commands[selected]);
+        updateOutputControls();
+      }
+      commands.forEach((command, position) => {
+        const commandIndex = Number.isInteger(command.index) ?
+          command.index + 1 : position + 1;
+        const tab = document.createElement('button');
+        const panel = document.createElement('div');
+        const tabId = `command-tab-${position}`;
+        const panelId = `command-tab-panel-${position}`;
+        tab.type = 'button';
+        tab.id = tabId;
+        tab.className = 'command-tab';
+        tab.textContent = `Command ${commandIndex}`;
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', panelId);
+        panel.id = panelId;
+        panel.className = 'command-tab-panel';
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', tabId);
+        panel.appendChild(renderCommand(command, position, false));
+        tab.addEventListener('click', () => selectCommand(position));
+        tabs.push(tab);
+        panels.push(panel);
+        tabList.appendChild(tab);
+        container.appendChild(panel);
+      });
+      container.prepend(tabList);
+      selectCommand(0);
+      return container;
+    }
+
     function revealOutput() {
       state.outputOpen = true;
       applyLayout();
@@ -3069,30 +4017,32 @@
       updateOutputControls();
     }
 
-    function showRunOutput(commands) {
+    function showRunOutput(commands, resultId = null) {
       const safeCommands = Array.isArray(commands) ? commands : [];
-      const exportable = allResultSets(safeCommands).some((resultSet) => {
-        return Array.isArray(resultSet.columns) &&
-          resultSet.columns.length > 0;
-      });
+      const activeCommand = safeCommands.length > 0 ? 0 : null;
+      const exportable = activeCommand === null ? false :
+        commandIsExportable(safeCommands[activeCommand]);
       outputState = {
         kind: 'run',
+        resultId,
         commands: safeCommands,
+        activeCommand,
         text: '',
         exportable,
-        path: null
+        path: null,
+        format: null
       };
-      lastOutputText = runCopyText(safeCommands);
+      lastOutputText = '';
       results.replaceChildren();
       if (safeCommands.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty-state';
         empty.textContent = 'No command results.';
         results.appendChild(empty);
+      } else if (safeCommands.length === 1) {
+        results.appendChild(renderCommand(safeCommands[0], 0));
       } else {
-        safeCommands.forEach((command, position) => {
-          results.appendChild(renderCommand(command, position));
-        });
+        results.appendChild(renderCommandTabs(safeCommands));
       }
       revealOutput();
     }
@@ -3101,10 +4051,13 @@
       const value = String(text || '');
       outputState = {
         kind: 'parse',
+        resultId: null,
         commands: [],
+        activeCommand: null,
         text: value,
         exportable: value.length > 0,
-        path: null
+        path: null,
+        format: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -3119,10 +4072,13 @@
       const value = String(text || 'Unknown error.');
       outputState = {
         kind: 'error',
+        resultId: null,
         commands: [],
+        activeCommand: null,
         text: value,
         exportable: false,
-        path: null
+        path: null,
+        format: null
       };
       lastOutputText = value;
       results.replaceChildren();
@@ -3142,9 +4098,26 @@
       else showParseOutput(text);
     }
 
+    function clearOutput() {
+      outputState = {
+        kind: 'empty',
+        resultId: null,
+        commands: [],
+        activeCommand: null,
+        text: '',
+        exportable: false,
+        path: null,
+        format: null
+      };
+      lastOutputText = '';
+      results.replaceChildren();
+      updateOutputControls();
+    }
+
     async function execute(operation) {
       if (busy) return;
       const script = selectedScript();
+      clearOutput();
       setBusy(true, operation);
       setStatus(operation === 'run' ? 'Running query…' : 'Parsing query…');
       try {
@@ -3156,7 +4129,7 @@
           showParseOutput(body.text || '');
           setStatus('Parse complete.');
         } else {
-          showRunOutput(body.commands || []);
+          showRunOutput(body.commands || [], body.resultId ?? null);
           if (body.schemaChanged) {
             await refreshSchema({preferNewDatabase: true});
           }
@@ -3240,7 +4213,8 @@
     }
 
     function openSaveContext(kind, event) {
-      if (busy || (kind === 'result' && !outputState.exportable)) return;
+      if (busy || (kind === 'script' && activeTabIsResult()) ||
+          (kind === 'result' && !outputState.exportable)) return;
       captureEditor();
       closeMenus();
       closeRelationMenu();
@@ -3285,7 +4259,9 @@
         outputState.path.slice() : null;
       closeSaveContext();
       if (kind === 'script') await saveActiveTab();
-      else if (path) await saveResultsFile(path, true);
+      else if (path) {
+        await saveResultsFile(path, true, outputState.format || '%csv');
+      }
     }
 
     function saveAsFromContext() {
@@ -3321,6 +4297,24 @@
       });
     }
 
+    function prefetchDocsPath(path) {
+      if (prefetchedDocs.has(path)) return;
+      prefetchedDocs.add(path);
+      const hint = document.createElement('link');
+      hint.rel = 'prefetch';
+      hint.href = `/docs/d/obelisk/${path}`;
+      document.head.appendChild(hint);
+    }
+
+    function prefetchHelpDocs(nodes = docsHelpSections) {
+      nodes.forEach((node) => {
+        if (node.path) prefetchDocsPath(node.path);
+        else if (Array.isArray(node.children)) {
+          prefetchHelpDocs(node.children);
+        }
+      });
+    }
+
     function renderDocsHelpNode(node) {
       if (node.path) {
         const link = document.createElement('a');
@@ -3328,6 +4322,9 @@
         link.href = `/docs/d/obelisk/${node.path}`;
         link.setAttribute('role', 'treeitem');
         link.textContent = node.title;
+        const prefetch = () => prefetchDocsPath(node.path);
+        link.addEventListener('pointerenter', prefetch, {once: true});
+        link.addEventListener('focus', prefetch, {once: true});
         link.addEventListener('click', (event) => {
           event.preventDefault();
           openDocsTab(node.title, node.path);
@@ -3425,6 +4422,7 @@
       const frame = document.createElement('iframe');
       frame.className = 'docs-frame';
       frame.title = tab.documentTitle;
+      frame.loading = 'lazy';
       let titleObserver = null;
       const syncFrameState = () => {
         try {
@@ -3472,7 +4470,6 @@
           titleObserver = null;
         }
       });
-      frame.src = `/docs/d/obelisk/${tab.path}`;
       panel.appendChild(frame);
       schemaPane.appendChild(panel);
     }
@@ -3488,6 +4485,12 @@
     }
 
     function openDocsTab(documentTitle, path) {
+      const existing = state.docsTabs.find((tab) => tab.path === path);
+      if (existing) {
+        setHelpOpen(false);
+        setExplorerView(existing.id, true);
+        return;
+      }
       const tab = {
         id: `docs-${state.nextDocs++}`,
         documentTitle,
@@ -3544,6 +4547,7 @@
         docsCheckPending = false;
       }
       setHelpVariant(docsAvailable);
+      if (docsAvailable) prefetchHelpDocs();
     }
 
     function setHelpOpen(open, restoreFocus = false) {
@@ -3629,36 +4633,56 @@
           `${size}px .35rem minmax(0, 1fr)` :
           '3rem 0 minmax(0, 1fr)';
       }
-      const outputSize = clamp(state.outputSize, 96,
-        Math.max(96, workspace.clientHeight - 180));
+      const outputRatio = clamp(state.outputRatio, 0.15, 0.7);
+      state.outputRatio = outputRatio;
+      const scriptRatio = 1 - outputRatio;
       workspace.style.gridTemplateRows = state.outputOpen ?
-        `minmax(12rem, 1fr) .35rem ${outputSize}px` :
-        'minmax(12rem, 1fr) 0 3rem';
+        `minmax(0, ${scriptRatio}fr) .35rem ` +
+          `minmax(0, ${outputRatio}fr)` :
+        'minmax(0, 1fr) 0 3rem';
       schemaResizer.setAttribute('aria-valuenow', String(state.schemaSize));
-      outputResizer.setAttribute('aria-valuenow', String(state.outputSize));
+      outputResizer.setAttribute(
+        'aria-valuenow',
+        String(Math.round(outputRatio * 100))
+      );
     }
 
     function beginResize(kind, event) {
       if (event.button !== 0) return;
       event.preventDefault();
+      const resizer = event.currentTarget;
+      const pointerId = event.pointerId;
+      let resizing = true;
       const move = (next) => {
+        if (next.pointerId !== pointerId) return;
         if (kind === 'schema') {
           const rect = workbench.getBoundingClientRect();
           state.schemaSize = narrowLayout() ?
             next.clientY - rect.top : next.clientX - rect.left;
         } else {
           const rect = workspace.getBoundingClientRect();
-          state.outputSize = rect.bottom - next.clientY;
+          state.outputRatio = (rect.bottom - next.clientY) / rect.height;
         }
         applyLayout();
       };
-      const finish = () => {
-        document.removeEventListener('pointermove', move);
-        document.removeEventListener('pointerup', finish);
+      const finish = (next) => {
+        if (!resizing || (next.pointerId !== undefined &&
+            next.pointerId !== pointerId)) return;
+        resizing = false;
+        resizer.removeEventListener('pointermove', move);
+        resizer.removeEventListener('pointerup', finish);
+        resizer.removeEventListener('pointercancel', finish);
+        resizer.removeEventListener('lostpointercapture', finish);
+        if (resizer.hasPointerCapture(pointerId)) {
+          resizer.releasePointerCapture(pointerId);
+        }
         persist();
       };
-      document.addEventListener('pointermove', move);
-      document.addEventListener('pointerup', finish);
+      resizer.setPointerCapture(pointerId);
+      resizer.addEventListener('pointermove', move);
+      resizer.addEventListener('pointerup', finish);
+      resizer.addEventListener('pointercancel', finish);
+      resizer.addEventListener('lostpointercapture', finish);
     }
 
     function resizeKeydown(kind, event) {
@@ -3668,7 +4692,7 @@
       if (delta === 0) return;
       event.preventDefault();
       if (kind === 'schema') state.schemaSize += delta;
-      if (kind === 'output') state.outputSize -= delta;
+      if (kind === 'output') state.outputRatio -= delta / 800;
       applyLayout();
       persist();
     }
@@ -3687,13 +4711,18 @@
         persist();
       });
     });
+    markdownSourceButton.addEventListener('click', () => {
+      setResultView('source');
+    });
+    markdownPreviewButton.addEventListener('click', () => {
+      setResultView('preview');
+    });
     newTabButton.addEventListener('click', () => addDraft());
-    byId('new-tab-menu-item').addEventListener('click', () => addDraft());
-    byId('open-menu-item').addEventListener('click', showOpenDialog);
-    byId('save-tab-menu-item').addEventListener('click', saveActiveTab);
-    byId('save-as-menu-item').addEventListener('click', showSaveAsDialog);
-    byId('close-tab-menu-item').addEventListener('click', closeActiveTab);
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
+    fileContextOpen.addEventListener('click', openContextFile);
+    fileContextDelete.addEventListener('click', deleteContextFile);
+    fileContextMenu.addEventListener('keydown', menuKeydown);
+    resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
     fileDialogForm.addEventListener('submit', (event) => {
       event.preventDefault();
       if (fileDialogMode === 'open') openSelectedFile();
@@ -3723,7 +4752,7 @@
       copyText(activeTab().text, 'Script');
     });
     copyOutputButton.addEventListener('click', () => {
-      copyText(lastOutputText, 'Results');
+      copyText(outputCopyText(), 'Results');
     });
     helpButton.addEventListener('click', () => setHelpOpen(true));
     closeHelpButton.addEventListener('click', () => {
@@ -3777,6 +4806,10 @@
           !event.target.closest('.relation-actions')) {
         closeRelationMenu();
       }
+      if (!event.target.closest('#file-context-menu') &&
+          !event.target.closest('.explorer-file-row')) {
+        closeFileContext();
+      }
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
@@ -3788,6 +4821,10 @@
           closeSaveContext(true);
           return;
         }
+        if (!fileContextMenu.classList.contains('hidden')) {
+          closeFileContext(true);
+          return;
+        }
         const open = menus.find((menu) => menu.dataset.open === 'true');
         closeMenus();
         closeRelationMenu();
@@ -3795,7 +4832,7 @@
       }
       if (event.key === 'F5') {
         event.preventDefault();
-        execute('run');
+        if (!runButton.disabled) execute('run');
       }
     });
     window.addEventListener('resize', applyLayout);
@@ -3805,11 +4842,7 @@
     });
 
     updateOutputControls();
-    defaultDatabase.value = state.defaultDatabase;
-    if (!defaultDatabase.value) {
-      state.defaultDatabase = 'sys';
-      defaultDatabase.value = 'sys';
-    }
+    defaultDatabase.value = state.defaultDatabase || 'sys';
     renderTabs();
     restoreEditor(false);
     renderDocsHelpTree();

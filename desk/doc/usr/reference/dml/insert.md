@@ -56,11 +56,12 @@ For existing tables, if not specified row values must be in the `<table>`'s cano
 For `FORCE` inserts, if specified the column list defines the new table's canonical column order. If not specified the new table's canonical columns are determined by the `<query>` output column order.
 
 **(`<scalar-node>` [ ,...n ] ) [ ,...n ]**
-*fully supported in urQL parser, only literals supported in Obelisk*
+*fully supported in urQL parser, only literals supported in Obelisk runtime*
 
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
 
 **`<query>`**
+*not implemented*
 
 `SELECT` query returning a `<relation>` to insert into target. Source auras must match target columnwise.
 
