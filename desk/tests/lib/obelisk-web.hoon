@@ -494,10 +494,25 @@
             ==
         ==
     ==
+  =/  foreign-keys=(list vector:ast)
+    :~  :*  %vector
+            :~  [%parent-namespace [%tas %public]]
+                [%parent-table [%tas %parents]]
+                [%child-namespace [%tas %public]]
+                [%child-table [%tas %widgets]]
+                [%ordinal [%ud 1]]
+                [%parent-column [%tas %id]]
+                [%child-column [%tas %id]]
+                [%on-delete [%tas %restrict]]
+                [%on-update [%tas %cascade]]
+            ==
+        ==
+    ==
   :~  (result-command namespaces)
       (result-command tables)
       (result-command keys)
       (result-command columns)
+      (result-command foreign-keys)
   ==
 ::
 ++  parse-fact
@@ -1397,6 +1412,7 @@
   =/  widgets=relation-dto:web  (snag 0 relations.public)
   =/  label=column-dto:web  (snag 0 columns.widgets)
   =/  id=column-dto:web  (snag 1 columns.widgets)
+  =/  foreign-key=foreign-key-dto:web  (snag 0 foreign-keys.widgets)
   =/  date=column-dto:web  (make-column:schema-lib 1 %date %da)
   =/  expected-key=(unit key-dto:web)  `[1 %.y]
   =/  expected-views=(list @tas)
@@ -1434,6 +1450,16 @@
     (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
     (expect-eq !>(~) !>(key.label))
     (expect-eq !>(expected-key) !>(key.id))
+    %+  expect-eq
+      !>  :*  parent-namespace=%public
+              parent-table=%parents
+              ordinal=1
+              parent-column=%id
+              child-column=%id
+              on-delete=%restrict
+              on-update=%cascade
+          ==
+    !>(foreign-key)
     (expect-eq !>(7) !>((lent relations.sys-namespace)))
     %+  expect-eq
       !>(expected-views)
@@ -1462,7 +1488,8 @@
     %+  weld  (namespaces-query:schema-lib %alpha)
     %+  weld  (tables-query:schema-lib %alpha)
     %+  weld  (keys-query:schema-lib %alpha)
-    (columns-query:schema-lib %alpha)
+    %+  weld  (columns-query:schema-lib %alpha)
+    (foreign-keys-query:schema-lib %alpha)
   ;:  weld
     %+  expect-eq
       !>("FROM sys.sys.databases SELECT database;")
@@ -1470,7 +1497,7 @@
     %+  expect-eq
       !>(expected)
     !>((detail-script:schema-lib ~[%sys %alpha]))
-    (expect !>(?=(~ (find "foreign-keys" expected))))
+    (expect !>(?=(^ (find "foreign-keys" expected))))
   ==
 ::
 ++  test-schema-refresh-decisions-52
@@ -1930,7 +1957,7 @@
   =/  ship=tape  (trip (scot %p our.local))
   ;:  weld
     (expect !>(?=(^ (find "app-header" html))))
-    (expect !>(?=(^ (find "/apps/obelisk/favicon.png" html))))
+    (expect !>(?=(^ (find "/apps/obelisk/favicon.ico" html))))
     (expect !>(?=(^ (find "schema-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
@@ -2163,9 +2190,9 @@
     (expect !>(?=(^ (find "FOREIGN KEY" script))))
     (expect !>(?=(^ (find "foreignKeys" script))))
     (expect !>(?=(^ (find "marker.textContent = 'fk'" script))))
-    (expect !>(?=(^ (find "loadForeignKeys" script))))
-    (expect !>(?=(^ (find "foreignKeysUnavailable" script))))
-    (expect !>(?=(^ (find "foreign-keys does not exist" script))))
+    (expect !>(?=(~ (find "loadForeignKeys" script))))
+    (expect !>(?=(^ (find "renderSchemaChildren" script))))
+    (expect !>(?=(^ (find "ensureSchemaLoaded" script))))
   ==
 ::
 ++  test-output-ui-contract-74

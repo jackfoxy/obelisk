@@ -1,5 +1,21 @@
 # Performance
 
+## Schema explorer scaling
+
+`desk/tests/lib/obelisk-web-schema.hoon` includes
+`test-schema-index-scale-00`, which assembles 256 tables and verifies their
+columns and primary keys through the same indexes used by the schema API.
+Run the focused schema suite with:
+
+```text
+-test /=obelisk=/tests/lib/obelisk-web-schema
+```
+
+Schema assembly groups tables by namespace, columns by relation, keys by
+column, and foreign keys by child relation before constructing DTOs. Lookup is
+therefore logarithmic instead of rescanning every schema row for every table or
+column.
+
 ## Parse, INSERT, and SELECT performance on sample database
 
 Unscientific performance measurements of parsing, inserting, and querying sample data using the `animal-shelter` sample database in v0.7-beta.

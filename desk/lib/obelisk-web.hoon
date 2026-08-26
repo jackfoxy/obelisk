@@ -1839,7 +1839,7 @@
     let fileEntries = [];
     let explorerFileEntries = [];
     let schemaValue = null;
-    const foreignKeysUnavailable = new Set();
+    let schemaPromise = null;
     let relationContext = null;
     let saveContextKind = null;
     let saveContextSource = null;
@@ -2912,6 +2912,7 @@
         }
       }
       persist();
+      if (schemas) ensureSchemaLoaded();
       if (focus) {
         const target = Array.from(
           explorerTabs.querySelectorAll('[role="tab"]')
@@ -3295,6 +3296,21 @@
       return children;
     }
 
+    function renderSchemaChildren(details, children, values, render) {
+      let rendered = false;
+      const populate = () => {
+        if (rendered) return;
+        rendered = true;
+        values.forEach((value) => {
+          children.appendChild(render(value));
+        });
+      };
+      if (details.open) populate();
+      details.addEventListener('toggle', () => {
+        if (details.open) populate();
+      });
+    }
+
     function auraText(aura) {
       const text = String(aura || '');
       return text.startsWith('@') ? text : `@${text}`;
@@ -3469,8 +3485,8 @@
       });
       summary.appendChild(actions);
       const children = schemaChildren();
-      relation.columns.forEach((column) => {
-        children.appendChild(renderColumn(column, relation));
+      renderSchemaChildren(details, children, relation.columns, (column) => {
+        return renderColumn(column, relation);
       });
       details.append(summary, children);
       return details;
@@ -3483,9 +3499,10 @@
       schemaExpansion(`ns:${database.name}.${namespace.name}`, details);
       const summary = schemaSummary('ns', namespace.name);
       const children = schemaChildren();
-      namespace.relations.forEach((relation) => {
-        children.appendChild(renderRelation(relation));
-      });
+      renderSchemaChildren(details, children, namespace.relations,
+        (relation) => {
+          return renderRelation(relation);
+        });
       details.append(summary, children);
       return details;
     }
@@ -3499,9 +3516,10 @@
         '(default)' : '';
       const summary = schemaSummary('db', database.name, marker);
       const children = schemaChildren();
-      database.namespaces.forEach((namespace) => {
-        children.appendChild(renderNamespace(database, namespace));
-      });
+      renderSchemaChildren(details, children, database.namespaces,
+        (namespace) => {
+          return renderNamespace(database, namespace);
+        });
       details.append(summary, children);
       return details;
     }
@@ -3534,68 +3552,6 @@
       schemaTree.setAttribute('aria-busy', 'false');
     }
 
-    function schemaTerm(value) {
-      return String(value || '').replace(/^%/, '');
-    }
-
-    function foreignKeyRow(row) {
-      const values = {};
-      (Array.isArray(row) ? row : []).forEach((cell) => {
-        values[cell.name] = cell.value;
-      });
-      return {
-        parentNamespace: schemaTerm(values['parent-namespace']),
-        parentTable: schemaTerm(values['parent-table']),
-        childNamespace: schemaTerm(values['child-namespace']),
-        childTable: schemaTerm(values['child-table']),
-        ordinal: Number(String(values.ordinal || '0').replaceAll('.', '')),
-        parentColumn: schemaTerm(values['parent-column']),
-        childColumn: schemaTerm(values['child-column']),
-        onDelete: schemaTerm(values['on-delete']),
-        onUpdate: schemaTerm(values['on-update'])
-      };
-    }
-
-    function attachForeignKeys(database, commands) {
-      const resultSet = allResultSets(commands)[0];
-      if (!resultSet || !Array.isArray(resultSet.rows)) return;
-      resultSet.rows.map(foreignKeyRow).forEach((foreignKey) => {
-        const namespace = database.namespaces.find((candidate) => {
-          return candidate.name === foreignKey.childNamespace;
-        });
-        if (!namespace) return;
-        const relation = namespace.relations.find((candidate) => {
-          return candidate.kind === 'table' &&
-            candidate.name === foreignKey.childTable;
-        });
-        if (!relation) return;
-        if (!Array.isArray(relation.foreignKeys)) relation.foreignKeys = [];
-        relation.foreignKeys.push(foreignKey);
-      });
-    }
-
-    async function loadForeignKeys(schema) {
-      for (const database of schema.databases) {
-        if (database.name === 'sys' ||
-            foreignKeysUnavailable.has(database.name)) continue;
-        const script = `FROM ${database.name}.sys.foreign-keys\n` +
-          `SELECT parent-namespace, parent-table, child-namespace, ` +
-          `child-table, ordinal, parent-column, child-column, ` +
-          `on-delete, on-update;`;
-        try {
-          const body = await api('run', {
-            defaultDatabase: database.name,
-            script
-          });
-          attachForeignKeys(database, body.commands || []);
-        } catch (error) {
-          if (String(error.message).includes('foreign-keys does not exist')) {
-            foreignKeysUnavailable.add(database.name);
-          }
-        }
-      }
-    }
-
     async function refreshSchema(options = {}) {
       schemaTree.setAttribute('aria-busy', 'true');
       try {
@@ -3617,8 +3573,6 @@
         schemaValue = schema;
         renderSchema(schemaValue);
         persist();
-        await loadForeignKeys(schema);
-        if (schemaValue === schema) renderSchema(schemaValue);
       } catch (error) {
         schemaTree.replaceChildren();
         const failure = document.createElement('p');
@@ -3627,6 +3581,18 @@
         schemaTree.appendChild(failure);
         schemaTree.setAttribute('aria-busy', 'false');
       }
+    }
+
+    function ensureSchemaLoaded(options = {}) {
+      if (!state.schemaOpen || state.explorerView !== 'schemas') {
+        return Promise.resolve();
+      }
+      if (schemaValue && !options.force) return Promise.resolve();
+      if (schemaPromise) return schemaPromise;
+      schemaPromise = refreshSchema(options).finally(() => {
+        schemaPromise = null;
+      });
+      return schemaPromise;
     }
 
     function selectedScript() {
@@ -4131,7 +4097,11 @@
         } else {
           showRunOutput(body.commands || [], body.resultId ?? null);
           if (body.schemaChanged) {
-            await refreshSchema({preferNewDatabase: true});
+            schemaValue = null;
+            await ensureSchemaLoaded({
+              force: true,
+              preferNewDatabase: true
+            });
           }
           setStatus('Run complete.');
         }
@@ -4764,7 +4734,7 @@
     defaultDatabase.addEventListener('change', () => {
       state.defaultDatabase = defaultDatabase.value;
       persist();
-      refreshSchema();
+      ensureSchemaLoaded({force: true});
     });
     schemasTab.addEventListener('click', () => {
       setExplorerView('schemas');
@@ -4778,6 +4748,7 @@
       state.schemaOpen = !state.schemaOpen;
       applyLayout();
       persist();
+      if (state.schemaOpen) ensureSchemaLoaded();
     });
     outputCollapse.addEventListener('click', () => {
       state.outputOpen = !state.outputOpen;
@@ -4851,7 +4822,6 @@
     setExplorerView(state.explorerView);
     applyLayout();
     setBusy(false);
-    refreshSchema();
     refreshFiles();
     document.documentElement.dataset.obelisk = 'ready';
 
