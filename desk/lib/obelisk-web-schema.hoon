@@ -2,7 +2,6 @@
 ::
 /-  ast=obelisk-ast, web=obelisk-web
 /+  format
-/+  format
 |%
 ::
 ::  +|  System View Rows
@@ -148,11 +147,7 @@
   ^-  (unit (list vector:ast))
   =/  sets=(list (list vector:ast))
     %+  murn  +.command
-    %+  murn  +.command
     |=  result=result:ast
-    ^-  (unit (list vector:ast))
-    ?.  ?=(%result-set -.result)  ~
-    `+.result
     ^-  (unit (list vector:ast))
     ?.  ?=(%result-set -.result)  ~
     `+.result
@@ -291,14 +286,8 @@
     (skim databases |=(database=@tas !=(%sys database)))
   =/  fallback=@tas
     ?^  user-databases  i.user-databases
-  =/  user-databases=(list @tas)
-    (skim databases |=(database=@tas !=(%sys database)))
-  =/  fallback=@tas
-    ?^  user-databases  i.user-databases
     ?:  (has-database %sys databases)  %sys
     ?~(databases %sys i.databases)
-  ?~  requested  fallback
-  ?:((has-database u.requested databases) u.requested fallback)
   ?~  requested  fallback
   ?:((has-database u.requested databases) u.requested fallback)
 ::
@@ -314,22 +303,56 @@
   ?:  =(name.a name.b)  (aor kind.a kind.b)
   (aor name.a name.b)
 ::
-++  key-for-column
-  |=  $:  namespace=@tas
-          table=@tas
-          column=@tas
-          keys=(list key-row)
-      ==
-  ^-  (unit key-dto:web)
-  =/  found=(list key-row)
-    %+  skim  keys
-    |=  row=key-row
-    ?&  =(namespace namespace.row)
-        =(table table.row)
-        =(column key.row)
+++  foreign-key-lte
+  |=  [a=foreign-key-dto:web b=foreign-key-dto:web]
+  ^-  ?
+  ?.  =(parent-namespace.a parent-namespace.b)
+    (aor parent-namespace.a parent-namespace.b)
+  ?.  =(parent-table.a parent-table.b)
+    (aor parent-table.a parent-table.b)
+  ?.  =(ordinal.a ordinal.b)  (lth ordinal.a ordinal.b)
+  ?.  =(parent-column.a parent-column.b)
+    (aor parent-column.a parent-column.b)
+  (aor child-column.a child-column.b)
+::
+++  index-tables
+  |=  rows=(list table-row)
+  ^-  table-index
+  %+  roll  rows
+  |=  [row=table-row index=table-index]
+  (~(add ja index) namespace.row row)
+::
+++  index-columns
+  |=  rows=(list column-row)
+  ^-  column-index
+  %+  roll  rows
+  |=  [row=column-row index=column-index]
+  (~(add ja index) [namespace.row table.row] row)
+::
+++  index-keys
+  |=  rows=(list key-row)
+  ^-  key-index
+  %+  roll  rows
+  |=  [row=key-row index=key-index]
+  %+  ~(put by index)
+    [namespace.row table.row key.row]
+  [ordinal.row ascending.row]
+::
+++  index-foreign-keys
+  |=  rows=(list foreign-key-row)
+  ^-  foreign-key-index
+  %+  roll  rows
+  |=  [row=foreign-key-row index=foreign-key-index]
+  =/  value=foreign-key-dto:web
+    :*  parent-namespace.row
+        parent-table.row
+        ordinal.row
+        parent-column.row
+        child-column.row
+        on-delete.row
+        on-update.row
     ==
-  ?~  found  ~
-  `[ordinal.i.found ascending.i.found]
+  (~(add ja index) [child-namespace.row child-table.row] value)
 ::
 ++  column-bunt
   |=  aura=@ta
@@ -350,7 +373,6 @@
     |=  row=column-row
     :*  column.row
         aura.row
-        (column-bunt aura.row)
         (column-bunt aura.row)
         ordinal.row
         (~(get by keys) [namespace table column.row])
@@ -374,13 +396,14 @@
       name.row
       %table
       (table-columns namespace name.row keys columns)
-      ~
+      %+  sort
+        (~(get ja foreign-keys) [namespace name.row])
+      foreign-key-lte
   ==
 ::
 ++  make-column
   |=  [ordinal=@ud name=@tas aura=@ta]
   ^-  column-dto:web
-  [name aura (column-bunt aura) ordinal ~]
   [name aura (column-bunt aura) ordinal ~]
 ::
 ++  make-view
@@ -389,7 +412,6 @@
           columns=(list column-dto:web)
       ==
   ^-  relation-dto:web
-  [database %sys name %view columns ~]
   [database %sys name %view columns ~]
 ::
 ++  databases-view
@@ -516,21 +538,30 @@
     =/  rest=(unit (list database-dto:web))
       $(databases t.databases)
     ?~  rest  ~
-    `[(database-dto %sys default-database ~ ~ ~ ~) u.rest]
-  ::  Each non-sys database contributes four result sets, in query order.
+    =/  system=database-dto:web
+      %:  database-dto
+        %sys
+        default-database
+        ~
+        *table-index
+        *key-index
+        *column-index
+        *foreign-key-index
+      ==
+    `[system u.rest]
+  ::  Each non-sys database contributes five result sets, in query order.
   ::
-  ?.  ?=([* * * * *] commands)  ~
+  ?.  ?=([* * * * * *] commands)  ~
   =/  namespaces-vectors=(unit (list vector:ast))
-    (command-vectors i.commands)
     (command-vectors i.commands)
   =/  tables-vectors=(unit (list vector:ast))
     (command-vectors i.t.commands)
-    (command-vectors i.t.commands)
   =/  keys-vectors=(unit (list vector:ast))
-    (command-vectors i.t.t.commands)
     (command-vectors i.t.t.commands)
   =/  columns-vectors=(unit (list vector:ast))
     (command-vectors i.t.t.t.commands)
+  =/  foreign-key-vectors=(unit (list vector:ast))
+    (command-vectors i.t.t.t.t.commands)
   ?~  namespaces-vectors  ~
   ?~  tables-vectors  ~
   ?~  keys-vectors  ~
@@ -550,7 +581,7 @@
   ?~  columns  ~
   ?~  foreign-keys  ~
   =/  rest=(unit (list database-dto:web))
-    $(databases t.databases, commands t.t.t.t.commands)
+    $(databases t.databases, commands t.t.t.t.t.commands)
   ?~  rest  ~
   =/  node=database-dto:web
     %:  database-dto
@@ -581,20 +612,8 @@
 ++  schema-changing
   ::  Only DDL invalidates the schema the browser has cached.
   ::
-  ::  Only DDL invalidates the schema the browser has cached.
-  ::
   |=  commands=(list command:ast)
   ^-  ?
-  %+  lien  commands
-  |=  command=command:ast
-  ?-  -.command
-    ?(%grant %revoke %crud-txn %truncate-table)  %.n
-    ?(%alter-database %alter-index %alter-namespace %alter-table)  %.y
-    ?(%create-database %create-index %create-namespace)  %.y
-    ?(%create-table %create-view)  %.y
-    ?(%drop-database %drop-index %drop-namespace)  %.y
-    ?(%drop-table %drop-view)  %.y
-  ==
   %+  lien  commands
   |=  command=command:ast
   ?-  -.command

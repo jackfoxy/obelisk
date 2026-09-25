@@ -17,8 +17,6 @@
       ~
       ~
       ~
-      ~
-      ~
   ==
 ::
 ++  binding-after-connect
@@ -105,7 +103,6 @@
       ;meta(name "viewport", content "width=device-width, initial-scale=1");
       ;title: Obelisk
       ;link#favicon(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
-      ;link#favicon(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
       ;link(rel "stylesheet", href "/apps/obelisk/app.css");
       ;script(src "/apps/obelisk/app.js", defer "");
     ==
@@ -138,26 +135,6 @@
                 ;div#explorer-tabs.explorer-tabs
                   =role  "tablist"
                   =aria-label  "Obelisk explorer"
-                  ;div.explorer-tab-control.active(role "presentation")
-                    ;button#schemas-tab.explorer-tab.active
-                      =type  "button"
-                      =role  "tab"
-                      =data-explorer-view  "schemas"
-                      =aria-selected  "true"
-                      =aria-controls  "schema-panel"
-                      Schemas
-                    ==
-                  ==
-                  ;div.explorer-tab-control(role "presentation")
-                    ;button#files-tab.explorer-tab
-                      =type  "button"
-                      =role  "tab"
-                      =data-explorer-view  "files"
-                      =aria-selected  "false"
-                      =aria-controls  "files-panel"
-                      =tabindex  "-1"
-                      Files
-                    ==
                   ;div.explorer-tab-control.active(role "presentation")
                     ;button#schemas-tab.explorer-tab.active
                       =type  "button"
@@ -253,23 +230,6 @@
                     ==
                   ==
                 ==
-                ;div.editor-mode
-                  ;span#editor-language: urQL
-                  ;div#markdown-view-toggle.markdown-view-toggle.hidden
-                    =role  "group"
-                    =aria-label  "Markdown view"
-                    ;button#markdown-source-btn.active
-                      =type  "button"
-                      =aria-pressed  "true"
-                      Source
-                    ==
-                    ;button#markdown-preview-btn
-                      =type  "button"
-                      =aria-pressed  "false"
-                      Preview
-                    ==
-                  ==
-                ==
                 ;div.editor-actions
                   ;button#save-query-btn.icon-button.save-action
                     =type  "button"
@@ -305,26 +265,12 @@
                 =referrerpolicy  "no-referrer"
                 ;*  ~[;/("")]
               ==
-              ;div#markdown-preview.markdown-preview.hidden
-                =role  "document"
-                =tabindex  "0"
-                =aria-label  "Rendered Markdown"
-                ;*  ~[;/("")]
-              ==
-              ;iframe#html-preview.html-preview.hidden
-                =title  "Rendered HTML"
-                =sandbox  ""
-                =referrerpolicy  "no-referrer"
-                ;*  ~[;/("")]
-              ==
             ==
             ;button#output-resizer.splitter.horizontal
               =type  "button"
               =role  "separator"
               =aria-orientation  "horizontal"
               =aria-label  "Resize output"
-              =aria-valuemin  "15"
-              =aria-valuemax  "70"
               =aria-valuemin  "15"
               =aria-valuemax  "70"
               ;span.visually-hidden: Resize output
@@ -494,20 +440,6 @@
                 ;option(value "%manx"): %manx
                 ;option(value "%vector"): %vector
                 ;option(value "%raw"): %raw
-            ;label#results-format-field.hidden(for "results-format-select")
-              Format
-              ;select#results-format-select(name "results-format")
-                ;option(value "%csv"): comma-separated
-                ;option(value "%tab"): tab-separated
-                ;option(value "%spac"): space-separated
-                ;option(value "%markdown"): markdown
-                ;option(value "%html"): html
-                ;option(value "%tape"): text
-                ;option(value "%json"): json
-                ;option(value "%wain"): %wain
-                ;option(value "%manx"): %manx
-                ;option(value "%vector"): %vector
-                ;option(value "%raw"): %raw
               ==
             ==
             ;div.dialog-actions
@@ -533,14 +465,6 @@
           ==
           ;button#save-context-save-as(type "button", role "menuitem")
             Save As...
-          ==
-        ==
-        ;div#file-context-menu.file-context-menu.hidden(role "menu")
-          ;button#file-context-open(type "button", role "menuitem")
-            Open
-          ==
-          ;button#file-context-delete(type "button", role "menuitem")
-            Delete
           ==
         ==
         ;div#file-context-menu.file-context-menu.hidden(role "menu")
@@ -819,23 +743,12 @@
   }
 
   #results-format-field {
-  #results-format-field {
     color: var(--muted);
-    display: grid;
     display: grid;
     font-size: 0.8rem;
     gap: 0.3rem;
-    gap: 0.3rem;
   }
 
-  #results-format-select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.3rem;
-    color: var(--text);
-    min-height: 2.25rem;
-    padding: 0.4rem 0.55rem;
-    width: 100%;
   #results-format-select {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -863,7 +776,6 @@
   }
 
   .relation-menu, .save-context-menu, .file-context-menu {
-  .relation-menu, .save-context-menu, .file-context-menu {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.4rem;
@@ -875,8 +787,6 @@
     z-index: 60;
   }
 
-  .relation-menu button, .save-context-menu button,
-  .file-context-menu button {
   .relation-menu button, .save-context-menu button,
   .file-context-menu button {
     background: transparent;
@@ -927,12 +837,10 @@
 
   .explorer-heading {
     flex: 1;
-    flex: 1;
     min-width: 0;
   }
 
   .explorer-tabs {
-    border-bottom: 1px solid var(--border);
     border-bottom: 1px solid var(--border);
     display: flex;
     gap: 0.2rem;
@@ -942,11 +850,9 @@
   .explorer-tab {
     background: transparent;
     border: 0;
-    border: 0;
     border-radius: 0;
     color: var(--muted);
     font-weight: 600;
-    height: 100%;
     height: 100%;
     padding: 0.2rem 0.35rem;
   }
@@ -961,10 +867,7 @@
   }
 
   .explorer-tab-control, .docs-tab-control {
-  .explorer-tab-control, .docs-tab-control {
     align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
     border: 1px solid var(--border);
     border-radius: 0.4rem;
     display: inline-flex;
@@ -981,23 +884,8 @@
     justify-content: center;
     line-height: 1;
     padding-block: 0;
-    overflow: hidden;
   }
 
-  .explorer-tab-control {
-    height: 2rem;
-  }
-
-  .explorer-tab-control .explorer-tab {
-    align-items: center;
-    display: inline-flex;
-    justify-content: center;
-    line-height: 1;
-    padding-block: 0;
-  }
-
-  .docs-tab-control {
-    height: 2.3rem;
   .docs-tab-control {
     height: 2.3rem;
   }
@@ -1013,14 +901,8 @@
   .docs-tab-close {
     align-items: center;
     align-self: stretch;
-    align-items: center;
-    align-self: stretch;
     background: transparent;
     border: 0;
-    border-left: 0;
-    border-radius: 0;
-    display: inline-flex;
-    justify-content: center;
     border-left: 0;
     border-radius: 0;
     display: inline-flex;
@@ -1086,7 +968,6 @@
   }
 
   .file-node > summary:hover, .explorer-file-row:hover {
-  .file-node > summary:hover, .explorer-file-row:hover {
     background: var(--surface-alt);
   }
 
@@ -1098,30 +979,13 @@
 
   .explorer-file-row {
     align-items: center;
-  .explorer-file-row {
-    align-items: center;
     border-radius: 0.25rem;
     display: flex;
   }
 
   .explorer-file {
     min-width: 0;
-    display: flex;
-  }
-
-  .explorer-file {
-    min-width: 0;
     padding: 0.15rem 0.25rem;
-  }
-
-  .relation-actions, .file-actions {
-    margin-left: auto;
-    min-height: 1.55rem;
-    padding: 0 0.45rem;
-  }
-
-  .file-actions {
-    flex: 0 0 auto;
   }
 
   .relation-actions, .file-actions {
@@ -1209,7 +1073,6 @@
   .workspace {
     display: grid;
     grid-template-rows: minmax(0, 2fr) 0.35rem minmax(0, 1fr);
-    grid-template-rows: minmax(0, 2fr) 0.35rem minmax(0, 1fr);
     min-height: 0;
     min-width: 0;
   }
@@ -1229,47 +1092,10 @@
   }
 
   .editor-tabs > button, .editor-tab-control {
-  .editor-tabs > button, .editor-tab-control {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     height: 2.3rem;
     margin-right: 0.25rem;
-  }
-
-  .editor-tab-control {
-    align-items: stretch;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    display: inline-flex;
-    overflow: hidden;
-  }
-
-  .editor-tab-control .tab, .editor-tab-close {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    height: 100%;
-    margin: 0;
-  }
-
-  .editor-tab-close {
-    align-items: center;
-    border-left: 0;
-    display: inline-flex;
-    justify-content: center;
-    padding: 0.2rem;
-    width: 1.75rem;
-  }
-
-  .editor-tab-close .close-icon {
-    height: 0.65rem;
-    width: 0.65rem;
-  }
-
-  .editor-tab-close .close-icon::before,
-  .editor-tab-close .close-icon::after {
-    top: 0.3rem;
-    width: 0.65rem;
   }
 
   .editor-tab-control {
@@ -1336,39 +1162,6 @@
   .editor-actions {
     display: flex;
     gap: 0.35rem;
-  }
-
-  .editor-mode, .markdown-view-toggle {
-    align-items: center;
-    display: flex;
-  }
-
-  .editor-mode {
-    gap: 0.65rem;
-  }
-
-  .markdown-view-toggle {
-    border: 1px solid var(--border);
-    border-radius: 0.35rem;
-    overflow: hidden;
-  }
-
-  .markdown-view-toggle button {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    min-height: 1.65rem;
-    padding: 0.15rem 0.5rem;
-  }
-
-  .markdown-view-toggle button + button {
-    border-left: 1px solid var(--border);
-  }
-
-  .markdown-view-toggle button.active {
-    background: var(--surface-alt);
-    color: var(--text);
-    font-weight: 600;
   }
 
   .editor-mode, .markdown-view-toggle {
@@ -1571,92 +1364,6 @@
     color: var(--accent);
   }
 
-  .query-editor, .markdown-preview, .html-preview {
-    grid-column: 1;
-    grid-row: 3;
-  }
-
-  .html-preview {
-    background: #fff;
-    border: 0;
-    height: 100%;
-    min-height: 0;
-    width: 100%;
-  }
-
-  .markdown-preview {
-    background: var(--surface);
-    color: var(--text);
-    min-height: 0;
-    overflow: auto;
-    padding: 1rem 1.25rem;
-  }
-
-  .markdown-preview > :first-child {
-    margin-top: 0;
-  }
-
-  .markdown-preview > :last-child {
-    margin-bottom: 0;
-  }
-
-  .markdown-preview h1, .markdown-preview h2,
-  .markdown-preview h3, .markdown-preview h4,
-  .markdown-preview h5, .markdown-preview h6 {
-    line-height: 1.25;
-    margin: 1.2em 0 0.55em;
-  }
-
-  .markdown-preview p, .markdown-preview ul,
-  .markdown-preview ol, .markdown-preview blockquote {
-    line-height: 1.6;
-    margin: 0.7em 0;
-  }
-
-  .markdown-preview blockquote {
-    border-left: 0.25rem solid var(--border);
-    color: var(--muted);
-    padding-left: 0.85rem;
-  }
-
-  .markdown-preview code {
-    background: var(--surface-alt);
-    border-radius: 0.25rem;
-    font-family: ui-monospace, monospace;
-    padding: 0.1rem 0.25rem;
-  }
-
-  .markdown-preview pre {
-    background: var(--surface-alt);
-    border-radius: 0.35rem;
-    overflow: auto;
-    padding: 0.75rem;
-  }
-
-  .markdown-preview pre code {
-    background: transparent;
-    padding: 0;
-  }
-
-  .markdown-preview table {
-    border-collapse: collapse;
-    margin: 0.8rem 0;
-  }
-
-  .markdown-preview th, .markdown-preview td {
-    border: 1px solid var(--border);
-    padding: 0.35rem 0.55rem;
-    text-align: left;
-  }
-
-  .markdown-preview th {
-    background: var(--surface-alt);
-  }
-
-  .markdown-preview a {
-    color: var(--accent);
-  }
-
   .output-pane {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
@@ -1706,32 +1413,6 @@
     font-size: 0.88rem;
     margin: 0;
     padding: 0.5rem 0.65rem;
-  }
-
-  .command-tabs {
-    align-items: end;
-    background: var(--surface-alt);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    min-height: 2.65rem;
-    padding: 0.35rem 0.5rem 0;
-  }
-
-  .command-tab {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    height: 2.3rem;
-    margin-right: 0.25rem;
-  }
-
-  .command-tab[aria-selected="true"] {
-    background: var(--surface);
-    border-bottom-color: var(--surface);
-    font-weight: 600;
-  }
-
-  .command-tab-panel .command-group {
-    margin-bottom: 0;
   }
 
   .command-tabs {
@@ -1837,7 +1518,6 @@
 
   .result-pager-status {
     color: var(--muted);
-    margin-left: 3.25rem;
     margin-left: 3.25rem;
   }
 
@@ -2098,12 +1778,6 @@
     const markdownPreviewButton = byId('markdown-preview-btn');
     const markdownPreview = byId('markdown-preview');
     const htmlPreview = byId('html-preview');
-    const editorLanguage = byId('editor-language');
-    const markdownViewToggle = byId('markdown-view-toggle');
-    const markdownSourceButton = byId('markdown-source-btn');
-    const markdownPreviewButton = byId('markdown-preview-btn');
-    const markdownPreview = byId('markdown-preview');
-    const htmlPreview = byId('html-preview');
     const tabsElement = document.querySelector('.editor-tabs');
     const newTabButton = byId('new-tab-btn');
     const runButton = byId('run-btn');
@@ -2137,8 +1811,6 @@
     const filePathInput = byId('file-path-input');
     const resultsFormatField = byId('results-format-field');
     const resultsFormatSelect = byId('results-format-select');
-    const resultsFormatField = byId('results-format-field');
-    const resultsFormatSelect = byId('results-format-select');
     const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
     const saveContextMenu = byId('save-context-menu');
@@ -2147,22 +1819,15 @@
     const fileContextMenu = byId('file-context-menu');
     const fileContextOpen = byId('file-context-open');
     const fileContextDelete = byId('file-context-delete');
-    const fileContextMenu = byId('file-context-menu');
-    const fileContextOpen = byId('file-context-open');
-    const fileContextDelete = byId('file-context-delete');
     let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',
       resultId: null,
-      resultId: null,
       commands: [],
-      activeCommand: null,
       activeCommand: null,
       text: '',
       exportable: false,
-      path: null,
-      format: null
       path: null,
       format: null
     };
@@ -2171,18 +1836,15 @@
     let selectedFilePath = null;
     let contextFilePath = null;
     let contextFileSource = null;
-    let contextFilePath = null;
-    let contextFileSource = null;
     let fileEntries = [];
     let explorerFileEntries = [];
     let schemaValue = null;
-    const foreignKeysUnavailable = new Set();
+    let schemaPromise = null;
     let relationContext = null;
     let saveContextKind = null;
     let saveContextSource = null;
     let docsAvailable = null;
     let docsCheckPending = false;
-    const prefetchedDocs = new Set();
     const prefetchedDocs = new Set();
     const docsHelpSections = [
       {
@@ -2261,18 +1923,14 @@
           selectionStart: 0,
           selectionEnd: 0,
           resultView: 'source'
-          selectionEnd: 0,
-          resultView: 'source'
         }],
         activeId: 'draft-1',
         nextDraft: 2,
         nextFile: 1,
         schemaSize: 320,
         outputRatio: 1 / 3,
-        outputRatio: 1 / 3,
         schemaOpen: true,
         outputOpen: true,
-        defaultDatabase: null,
         defaultDatabase: null,
         explorerView: 'schemas',
         docsTabs: [],
@@ -2290,8 +1948,6 @@
         Number.isInteger(tab.selectionEnd) &&
         (tab.savedText === null || typeof tab.savedText === 'string' ||
           typeof tab.savedText === 'undefined') &&
-        (typeof tab.resultView === 'undefined' ||
-          ['source', 'preview'].includes(tab.resultView)) &&
         (typeof tab.resultView === 'undefined' ||
           ['source', 'preview'].includes(tab.resultView)) &&
         (tab.path === null || Array.isArray(tab.path));
@@ -2323,10 +1979,6 @@
             tab.resultView = tab.markdownView || 'source';
           }
           delete tab.markdownView;
-          if (typeof tab.resultView === 'undefined') {
-            tab.resultView = tab.markdownView || 'source';
-          }
-          delete tab.markdownView;
         });
         if (!Array.isArray(restored.schemaExpanded)) {
           restored.schemaExpanded = [];
@@ -2348,7 +2000,6 @@
         if (!Array.isArray(restored.filesCollapsed)) {
           restored.filesCollapsed = [];
         }
-        delete restored.outputSize;
         delete restored.outputSize;
         return restored;
       } catch (_) {
@@ -2645,280 +2296,6 @@
       persist();
     }
 
-    function previewResultMark(tab) {
-      if (!Array.isArray(tab.path) || tab.path[0] !== 'results') return null;
-      const mark = tab.path[tab.path.length - 1];
-      return ['md', 'html'].includes(mark) ? mark : null;
-    }
-
-    function safeMarkdownHref(value) {
-      if (value.startsWith('#')) return value;
-      try {
-        const url = new URL(value, window.location.href);
-        if (['http:', 'https:', 'mailto:'].includes(url.protocol)) {
-          return url.href;
-        }
-      } catch (_) {
-        return null;
-      }
-      return null;
-    }
-
-    function appendMarkdownInline(parent, value) {
-      const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|\[[^\]\n]+\]\([^) \n]+\))/g;
-      let offset = 0;
-      for (const match of value.matchAll(pattern)) {
-        parent.appendChild(document.createTextNode(
-          value.slice(offset, match.index)
-        ));
-        const token = match[0];
-        let node;
-        if (token.startsWith('`')) {
-          node = document.createElement('code');
-          node.textContent = token.slice(1, -1);
-        } else if (token.startsWith('**') || token.startsWith('__')) {
-          node = document.createElement('strong');
-          node.textContent = token.slice(2, -2);
-        } else if (token.startsWith('*') || token.startsWith('_')) {
-          node = document.createElement('em');
-          node.textContent = token.slice(1, -1);
-        } else {
-          const parts = /^\[([^\]]+)\]\(([^) ]+)\)$/.exec(token);
-          const href = parts ? safeMarkdownHref(parts[2]) : null;
-          if (parts && href) {
-            node = document.createElement('a');
-            node.textContent = parts[1];
-            node.href = href;
-            node.rel = 'noreferrer';
-            if (!href.startsWith(window.location.origin)) {
-              node.target = '_blank';
-            }
-          } else {
-            node = document.createTextNode(token);
-          }
-        }
-        parent.appendChild(node);
-        offset = match.index + token.length;
-      }
-      parent.appendChild(document.createTextNode(value.slice(offset)));
-    }
-
-    function markdownTableCells(line) {
-      let value = line.trim();
-      if (value.startsWith('|')) value = value.slice(1);
-      if (value.endsWith('|') && !value.endsWith('\\|')) {
-        value = value.slice(0, -1);
-      }
-      const cells = [];
-      let cell = '';
-      let escaped = false;
-      for (const character of value) {
-        if (escaped) {
-          cell += character;
-          escaped = false;
-        } else if (character === '\\') {
-          escaped = true;
-        } else if (character === '|') {
-          cells.push(cell.trim());
-          cell = '';
-        } else {
-          cell += character;
-        }
-      }
-      if (escaped) cell += '\\';
-      cells.push(cell.trim());
-      return cells;
-    }
-
-    function markdownTableDelimiter(line) {
-      const cells = markdownTableCells(line);
-      return cells.length > 0 && cells.every((cell) => {
-        return /^:?-{3,}:?$/.test(cell);
-      });
-    }
-
-    function markdownBlockStart(lines, index) {
-      const line = lines[index] || '';
-      const next = lines[index + 1] || '';
-      return /^ {0,3}```/.test(line) || /^ {0,3}#{1,6}\s+/.test(line) ||
-        /^ {0,3}(?:[-*_]\s*){3,}$/.test(line) ||
-        /^\s*>\s?/.test(line) ||
-        /^\s*(?:[-+*]|\d+\.)\s+/.test(line) ||
-        (line.includes('|') && markdownTableDelimiter(next));
-    }
-
-    function renderMarkdown(text) {
-      const fragment = document.createDocumentFragment();
-      const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
-      let index = 0;
-      while (index < lines.length) {
-        const line = lines[index];
-        if (!line.trim()) {
-          index += 1;
-          continue;
-        }
-        const fence = /^ {0,3}```\s*([^ ]*)\s*$/.exec(line);
-        if (fence) {
-          const codeLines = [];
-          index += 1;
-          while (index < lines.length && !/^ {0,3}```\s*$/.test(
-            lines[index]
-          )) {
-            codeLines.push(lines[index]);
-            index += 1;
-          }
-          if (index < lines.length) index += 1;
-          const pre = document.createElement('pre');
-          const code = document.createElement('code');
-          if (fence[1]) code.dataset.language = fence[1];
-          code.textContent = codeLines.join('\n');
-          pre.appendChild(code);
-          fragment.appendChild(pre);
-          continue;
-        }
-        if (index + 1 < lines.length && line.includes('|') &&
-            markdownTableDelimiter(lines[index + 1])) {
-          const table = document.createElement('table');
-          const head = document.createElement('thead');
-          const headRow = document.createElement('tr');
-          const headers = markdownTableCells(line);
-          const delimiters = markdownTableCells(lines[index + 1]);
-          headers.forEach((header, cellIndex) => {
-            const cell = document.createElement('th');
-            const delimiter = delimiters[cellIndex] || '';
-            if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
-              cell.style.textAlign = 'center';
-            } else if (delimiter.endsWith(':')) {
-              cell.style.textAlign = 'right';
-            }
-            appendMarkdownInline(cell, header);
-            headRow.appendChild(cell);
-          });
-          head.appendChild(headRow);
-          table.appendChild(head);
-          const body = document.createElement('tbody');
-          index += 2;
-          while (index < lines.length && lines[index].trim() &&
-              lines[index].includes('|')) {
-            const row = document.createElement('tr');
-            markdownTableCells(lines[index]).forEach((value, cellIndex) => {
-              const cell = document.createElement('td');
-              const delimiter = delimiters[cellIndex] || '';
-              if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
-                cell.style.textAlign = 'center';
-              } else if (delimiter.endsWith(':')) {
-                cell.style.textAlign = 'right';
-              }
-              appendMarkdownInline(cell, value);
-              row.appendChild(cell);
-            });
-            body.appendChild(row);
-            index += 1;
-          }
-          table.appendChild(body);
-          fragment.appendChild(table);
-          continue;
-        }
-        const heading = /^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
-        if (heading) {
-          const node = document.createElement(`h${heading[1].length}`);
-          appendMarkdownInline(node, heading[2]);
-          fragment.appendChild(node);
-          index += 1;
-          continue;
-        }
-        if (/^ {0,3}(?:[-*_]\s*){3,}$/.test(line)) {
-          fragment.appendChild(document.createElement('hr'));
-          index += 1;
-          continue;
-        }
-        if (/^\s*>\s?/.test(line)) {
-          const quote = document.createElement('blockquote');
-          const quoteLines = [];
-          while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
-            quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
-            index += 1;
-          }
-          appendMarkdownInline(quote, quoteLines.join(' '));
-          fragment.appendChild(quote);
-          continue;
-        }
-        const listItem = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(line);
-        if (listItem) {
-          const ordered = /\d+\./.test(listItem[1]);
-          const list = document.createElement(ordered ? 'ol' : 'ul');
-          while (index < lines.length) {
-            const item = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(lines[index]);
-            if (!item || /\d+\./.test(item[1]) !== ordered) break;
-            const node = document.createElement('li');
-            appendMarkdownInline(node, item[2]);
-            list.appendChild(node);
-            index += 1;
-          }
-          fragment.appendChild(list);
-          continue;
-        }
-        const paragraphLines = [line.trim()];
-        index += 1;
-        while (index < lines.length && lines[index].trim() &&
-            !markdownBlockStart(lines, index)) {
-          paragraphLines.push(lines[index].trim());
-          index += 1;
-        }
-        const paragraph = document.createElement('p');
-        appendMarkdownInline(paragraph, paragraphLines.join(' '));
-        fragment.appendChild(paragraph);
-      }
-      markdownPreview.replaceChildren(fragment);
-    }
-
-    function updateEditorView(focus = false) {
-      const tab = activeTab();
-      const mark = previewResultMark(tab);
-      const preview = Boolean(mark) && tab.resultView === 'preview';
-      editorLanguage.textContent = mark === 'md' ? 'Markdown' :
-        mark === 'html' ? 'HTML' : 'urQL';
-      markdownViewToggle.classList.toggle('hidden', !mark);
-      markdownViewToggle.setAttribute(
-        'aria-label', mark === 'html' ? 'HTML view' : 'Markdown view'
-      );
-      markdownSourceButton.classList.toggle('active', !preview);
-      markdownPreviewButton.classList.toggle('active', preview);
-      markdownSourceButton.setAttribute('aria-pressed', String(!preview));
-      markdownPreviewButton.setAttribute('aria-pressed', String(preview));
-      editor.classList.toggle('hidden', preview);
-      markdownPreview.classList.toggle(
-        'hidden', !(preview && mark === 'md')
-      );
-      htmlPreview.classList.toggle(
-        'hidden', !(preview && mark === 'html')
-      );
-      editor.setAttribute(
-        'aria-label', mark === 'md' ? 'Markdown source' :
-          mark === 'html' ? 'HTML source' : 'urQL query'
-      );
-      if (preview && mark === 'md') renderMarkdown(tab.text);
-      if (preview && mark === 'html' && htmlPreview.srcdoc !== tab.text) {
-        htmlPreview.srcdoc = tab.text;
-      }
-      if (focus) {
-        requestAnimationFrame(() => {
-          if (preview && mark === 'md') markdownPreview.focus();
-          else if (preview && mark === 'html') htmlPreview.focus();
-          else editor.focus();
-        });
-      }
-    }
-
-    function setResultView(view) {
-      const tab = activeTab();
-      if (!previewResultMark(tab)) return;
-      captureEditor();
-      tab.resultView = view;
-      updateEditorView(true);
-      persist();
-    }
-
     function captureEditor() {
       const tab = activeTab();
       tab.text = editor.value;
@@ -2930,12 +2307,10 @@
       const tab = activeTab();
       editor.value = tab.text;
       updateEditorView(focus);
-      updateEditorView(focus);
       const start = Math.min(tab.selectionStart, tab.text.length);
       const end = Math.min(tab.selectionEnd, tab.text.length);
       requestAnimationFrame(() => {
         editor.setSelectionRange(start, end);
-        if (focus && tab.resultView !== 'preview') editor.focus();
         if (focus && tab.resultView !== 'preview') editor.focus();
       });
     }
@@ -2945,26 +2320,17 @@
         '.editor-tab-control, .tab'
       );
       controls.forEach((tab) => {
-      const controls = tabsElement.querySelectorAll(
-        '.editor-tab-control, .tab'
-      );
-      controls.forEach((tab) => {
         tab.remove();
       });
       state.tabs.forEach((tab) => {
-        const control = document.createElement('div');
         const control = document.createElement('div');
         const button = document.createElement('button');
         const selected = tab.id === state.activeId;
         control.className = selected ?
           'editor-tab-control active' : 'editor-tab-control';
         control.setAttribute('role', 'presentation');
-        control.className = selected ?
-          'editor-tab-control active' : 'editor-tab-control';
-        control.setAttribute('role', 'presentation');
         button.type = 'button';
         button.id = `tab-${tab.id}`;
-        button.className = 'tab';
         button.className = 'tab';
         button.setAttribute('role', 'tab');
         button.setAttribute('aria-selected', String(selected));
@@ -2991,24 +2357,7 @@
         });
         control.append(button, close);
         tabsElement.insertBefore(control, newTabButton);
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'editor-tab-close';
-        close.title = 'Close';
-        close.setAttribute('aria-label', `Close ${tab.name} script tab`);
-        const closeIcon = document.createElement('span');
-        closeIcon.className = 'close-icon';
-        closeIcon.setAttribute('aria-hidden', 'true');
-        close.appendChild(closeIcon);
-        close.addEventListener('click', (event) => {
-          event.stopPropagation();
-          closeTab(tab.id);
-        });
-        control.append(button, close);
-        tabsElement.insertBefore(control, newTabButton);
       });
-      updateExecutionControls();
-      updateOutputControls();
       updateExecutionControls();
       updateOutputControls();
     }
@@ -3032,15 +2381,6 @@
 
     function activateTab(id, focusEditor) {
       if (id === state.activeId) {
-        if (focusEditor) {
-          const mark = previewResultMark(activeTab());
-          if (mark && activeTab().resultView === 'preview') {
-            if (mark === 'md') markdownPreview.focus();
-            else htmlPreview.focus();
-          } else {
-            editor.focus();
-          }
-        }
         if (focusEditor) {
           const mark = previewResultMark(activeTab());
           if (mark && activeTab().resultView === 'preview') {
@@ -3090,8 +2430,6 @@
         selectionStart: 0,
         selectionEnd: 0,
         resultView: 'source'
-        selectionEnd: 0,
-        resultView: 'source'
       };
       state.tabs.push(tab);
       state.activeId = tab.id;
@@ -3104,13 +2442,6 @@
 
     function pathKey(path) {
       return path.join('/');
-    }
-
-    function savedFileTabName(path) {
-      if (path[0] === 'results' && path.length >= 3) {
-        return path.slice(-2).join('/');
-      }
-      return path[path.length - 1] || 'script';
     }
 
     function savedFileTabName(path) {
@@ -3137,30 +2468,16 @@
         renderTabs();
         restoreEditor(true);
         persist();
-        captureEditor();
-        existing.path = path.slice();
-        existing.name = uniqueTabName(savedFileTabName(path), existing.id);
-        existing.text = text;
-        existing.savedText = text;
-        existing.selectionStart = 0;
-        existing.selectionEnd = 0;
-        state.activeId = existing.id;
-        renderTabs();
-        restoreEditor(true);
-        persist();
         return existing;
       }
       captureEditor();
       const tab = {
         id: `file-${state.nextFile++}`,
         name: uniqueTabName(savedFileTabName(path)),
-        name: uniqueTabName(savedFileTabName(path)),
         path: path.slice(),
         text,
         savedText: text,
         selectionStart: 0,
-        selectionEnd: 0,
-        resultView: 'source'
         selectionEnd: 0,
         resultView: 'source'
       };
@@ -3172,11 +2489,6 @@
       return tab;
     }
 
-    function closeTab(id) {
-      const active = id === state.activeId;
-      if (active) captureEditor();
-      const index = state.tabs.findIndex((tab) => tab.id === id);
-      if (index < 0) return;
     function closeTab(id) {
       const active = id === state.activeId;
       if (active) captureEditor();
@@ -3194,13 +2506,7 @@
           selectionStart: 0,
           selectionEnd: 0,
           resultView: 'source'
-          selectionEnd: 0,
-          resultView: 'source'
         });
-      }
-      if (active) {
-        const next = Math.min(index, state.tabs.length - 1);
-        state.activeId = state.tabs[next].id;
       }
       if (active) {
         const next = Math.min(index, state.tabs.length - 1);
@@ -3208,13 +2514,8 @@
       }
       renderTabs();
       if (active) restoreEditor(true);
-      if (active) restoreEditor(true);
       persist();
       closeMenus();
-    }
-
-    function closeActiveTab() {
-      closeTab(state.activeId);
     }
 
     function closeActiveTab() {
@@ -3234,8 +2535,6 @@
     }
 
     function updateOutputControls() {
-      copyOutputButton.disabled = !outputCopyAvailable();
-      saveQueryButton.disabled = busy || activeTabIsResult();
       copyOutputButton.disabled = !outputCopyAvailable();
       saveQueryButton.disabled = busy || activeTabIsResult();
       saveOutputButton.disabled = busy || !outputState.exportable;
@@ -3260,24 +2559,10 @@
       parseButton.disabled = blocked;
     }
 
-    function activeTabIsResult() {
-      const tab = activeTab();
-      return Array.isArray(tab.path) && tab.path[0] === 'results';
-    }
-
-    function updateExecutionControls() {
-      const blocked = busy || activeTabIsResult();
-      runButton.disabled = blocked;
-      parseButton.disabled = blocked;
-    }
-
     function setBusy(value, label = '') {
       busy = value;
       app.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
-      updateExecutionControls();
-      fileContextOpen.disabled = value;
-      fileContextDelete.disabled = value;
       updateExecutionControls();
       fileContextOpen.disabled = value;
       fileContextDelete.disabled = value;
@@ -3303,11 +2588,8 @@
     async function api(operation, payload) {
       const route = {
         'result-save': 'results/save',
-        'result-save': 'results/save',
         'file-browse': 'files/browse',
         'file-load': 'files/load',
-        'file-save': 'files/save',
-        'file-delete': 'files/delete'
         'file-save': 'files/save',
         'file-delete': 'files/delete'
       }[operation] || operation;
@@ -3355,10 +2637,6 @@
       const path = relativePathFromInput(value, 'results');
       if (!path || !mark || path[path.length - 1] === mark) return path;
       return [...path, mark];
-    function resultPathFromInput(value, mark = null) {
-      const path = relativePathFromInput(value, 'results');
-      if (!path || !mark || path[path.length - 1] === mark) return path;
-      return [...path, mark];
     }
 
     function displayScriptPath(path) {
@@ -3379,7 +2657,6 @@
       if (fileDialog.open) fileDialog.close();
       selectedFilePath = null;
       resultsFormatField.classList.add('hidden');
-      resultsFormatField.classList.add('hidden');
     }
 
     function samePath(left, right) {
@@ -3393,105 +2670,8 @@
       return entry.path.slice(0, result ? -2 : -1);
     }
 
-    function explorerFileParent(entry) {
-      const result = entry.kind === 'file' && entry.path[0] === 'results';
-      return entry.path.slice(0, result ? -2 : -1);
-    }
-
     function childFileEntries(parent) {
       return explorerFileEntries.filter((entry) => {
-        return Array.isArray(entry.path) &&
-          samePath(explorerFileParent(entry), parent);
-      });
-    }
-
-    function neededExplorerDirectory(directory, entries) {
-      return entries.some((entry) => {
-        if (entry.kind !== 'file') return false;
-        const parent = explorerFileParent(entry);
-        return directory.path.length <= parent.length &&
-          samePath(directory.path, parent.slice(0, directory.path.length));
-      });
-    }
-
-    function explorerFileLabel(entry) {
-      const result = entry.kind === 'file' && entry.path[0] === 'results';
-      return entry.path.slice(result ? -2 : -1).join('/');
-    }
-
-    function closeFileContext(restoreFocus = false) {
-      fileContextMenu.classList.add('hidden');
-      if (contextFileSource) {
-        contextFileSource.setAttribute('aria-expanded', 'false');
-        if (restoreFocus) contextFileSource.focus();
-      }
-      contextFilePath = null;
-      contextFileSource = null;
-    }
-
-    function openFileContext(path, source, event = null) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      closeMenus();
-      closeRelationMenu();
-      closeSaveContext();
-      closeFileContext();
-      contextFilePath = path.slice();
-      contextFileSource = source;
-      source.setAttribute('aria-expanded', 'true');
-      fileContextMenu.style.left = '0px';
-      fileContextMenu.style.top = '0px';
-      fileContextMenu.classList.remove('hidden');
-      const menuRect = fileContextMenu.getBoundingClientRect();
-      const sourceRect = source.getBoundingClientRect();
-      const margin = 8;
-      const maximumLeft = window.innerWidth - menuRect.width - margin;
-      const maximumTop = window.innerHeight - menuRect.height - margin;
-      const pointer = event && event.type === 'contextmenu';
-      const left = clamp(
-        pointer ? event.clientX : sourceRect.right,
-        margin,
-        maximumLeft
-      );
-      const top = clamp(
-        pointer ? event.clientY : sourceRect.top,
-        margin,
-        maximumTop
-      );
-      fileContextMenu.style.left = `${left}px`;
-      fileContextMenu.style.top = `${top}px`;
-      fileContextOpen.focus();
-    }
-
-    async function openContextFile() {
-      const path = contextFilePath ? contextFilePath.slice() : null;
-      closeFileContext();
-      if (path) await loadFilePath(path);
-    }
-
-    async function deleteContextFile() {
-      const path = contextFilePath ? contextFilePath.slice() : null;
-      const source = contextFileSource;
-      if (!path) return;
-      const name = path.slice(1).join('/');
-      if (!window.confirm(`Delete ${name}? This cannot be undone.`)) {
-        closeFileContext();
-        if (source) source.focus();
-        return;
-      }
-      closeFileContext();
-      setBusy(true, 'delete');
-      try {
-        await api('file-delete', {path});
-        await refreshFiles();
-        setStatus(`${name} deleted.`);
-      } catch (error) {
-        setStatus(error.message, 'error', true);
-      } finally {
-        setBusy(false);
-      }
         return Array.isArray(entry.path) &&
           samePath(explorerFileParent(entry), parent);
       });
@@ -3618,38 +2798,15 @@
       const row = document.createElement('div');
       row.className = 'explorer-file-row';
       row.setAttribute('role', 'treeitem');
-      const row = document.createElement('div');
-      row.className = 'explorer-file-row';
-      row.setAttribute('role', 'treeitem');
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'file-entry explorer-file';
       button.textContent = explorerFileLabel(entry);
-      button.textContent = explorerFileLabel(entry);
       button.title = entry.path.join('/');
       button.addEventListener('click', () => {
         closeFileContext();
-        closeFileContext();
         loadFilePath(entry.path);
       });
-      row.addEventListener('contextmenu', (event) => {
-        openFileContext(entry.path, button, event);
-      });
-      const actions = document.createElement('button');
-      actions.type = 'button';
-      actions.className = 'file-actions';
-      actions.setAttribute(
-        'aria-label',
-        `Actions for ${explorerFileLabel(entry)}`
-      );
-      actions.setAttribute('aria-haspopup', 'menu');
-      actions.setAttribute('aria-expanded', 'false');
-      actions.textContent = '…';
-      actions.addEventListener('click', (event) => {
-        openFileContext(entry.path, actions, event);
-      });
-      row.append(button, actions);
-      return row;
       row.addEventListener('contextmenu', (event) => {
         openFileContext(entry.path, button, event);
       });
@@ -3672,13 +2829,8 @@
 
     function renderFiles(entries) {
       const candidates = entries.filter((entry) => {
-      const candidates = entries.filter((entry) => {
         return Array.isArray(entry.path) &&
           ['scripts', 'results'].includes(entry.path[0]);
-      });
-      explorerFileEntries = candidates.filter((entry) => {
-        return entry.kind !== 'directory' ||
-          neededExplorerDirectory(entry, candidates);
       });
       explorerFileEntries = candidates.filter((entry) => {
         return entry.kind !== 'directory' ||
@@ -3733,8 +2885,6 @@
       filesTab.classList.toggle('active', files);
       schemasTab.parentElement.classList.toggle('active', schemas);
       filesTab.parentElement.classList.toggle('active', files);
-      schemasTab.parentElement.classList.toggle('active', schemas);
-      filesTab.parentElement.classList.toggle('active', files);
       schemasTab.setAttribute('aria-selected', String(schemas));
       filesTab.setAttribute('aria-selected', String(files));
       schemasTab.tabIndex = schemas ? 0 : -1;
@@ -3751,16 +2901,6 @@
       schemaPane.querySelectorAll('.docs-panel').forEach((panel) => {
         panel.hidden = panel.id !== `docs-panel-${selected}`;
       });
-      const docsTab = docsTabById(selected);
-      if (docsTab) {
-        const frame = byId(`docs-panel-${selected}`).querySelector(
-          '.docs-frame'
-        );
-        if (frame.dataset.loaded !== 'true') {
-          frame.dataset.loaded = 'true';
-          frame.src = `/docs/d/obelisk/${docsTab.path}`;
-        }
-      }
       const docsTab = docsTabById(selected);
       if (docsTab) {
         const frame = byId(`docs-panel-${selected}`).querySelector(
@@ -3854,7 +2994,6 @@
       filePathLabel.classList.add('hidden');
       filePathInput.classList.add('hidden');
       resultsFormatField.classList.add('hidden');
-      resultsFormatField.classList.add('hidden');
       fileDialogConfirm.textContent = 'Open';
       fileDialogConfirm.disabled = true;
       fileDialog.showModal();
@@ -3888,7 +3027,6 @@
         'Result path' : 'Script path';
       filePathInput.classList.remove('hidden');
       resultsFormatField.classList.add('hidden');
-      resultsFormatField.classList.add('hidden');
       filePathInput.value = suggestScriptPath(activeTab());
       fileDialogConfirm.textContent = 'Save';
       fileDialogConfirm.disabled = false;
@@ -3899,7 +3037,6 @@
 
     function nextResultName(entries) {
       const names = new Set(entries.filter((entry) => {
-        return Array.isArray(entry.path) && entry.path.length >= 2 &&
         return Array.isArray(entry.path) && entry.path.length >= 2 &&
           entry.path[0] === 'results';
       }).map((entry) => entry.path[1]));
@@ -3936,10 +3073,6 @@
       resultsFormatField.classList.toggle('hidden', !showFormat);
       resultsFormatSelect.value = showFormat ?
         (outputState.format || '%csv') : '%tape';
-      const showFormat = outputState.kind === 'run';
-      resultsFormatField.classList.toggle('hidden', !showFormat);
-      resultsFormatSelect.value = showFormat ?
-        (outputState.format || '%csv') : '%tape';
       filePathInput.value = outputState.path ?
         outputState.path.slice(1).join('/') : nextResultName(entries);
       fileDialogConfirm.textContent = 'Save';
@@ -3960,8 +3093,6 @@
         const body = await api('file-load', {path});
         addFileTab(body.path, body.content);
         if (closeDialog) closeFileDialog();
-        const action = existing ? 'reloaded' : 'opened';
-        setStatus(`${displayScriptPath(body.path)} ${action}.`);
         const action = existing ? 'reloaded' : 'opened';
         setStatus(`${displayScriptPath(body.path)} ${action}.`);
       } catch (error) {
@@ -3985,7 +3116,6 @@
         const body = await api('file-save', {path, content, overwrite});
         tab.path = body.path.slice();
         tab.name = uniqueTabName(savedFileTabName(body.path), tab.id);
-        tab.name = uniqueTabName(savedFileTabName(body.path), tab.id);
         tab.savedText = content;
         renderTabs();
         persist();
@@ -4008,7 +3138,6 @@
     }
 
     async function saveActiveTab() {
-      if (busy || activeTabIsResult()) return;
       if (busy || activeTabIsResult()) return;
       closeMenus();
       const tab = activeTab();
@@ -4062,33 +3191,6 @@
           !resultStorageMarks.has(shownMark)) return;
       parts[parts.length - 1] = nextMark;
       filePathInput.value = parts.join('/');
-    const resultFormatMarks = {
-      '%csv': 'csv',
-      '%tab': 'tab',
-      '%spac': 'txt',
-      '%markdown': 'md',
-      '%html': 'html',
-      '%tape': 'txt',
-      '%json': 'json',
-      '%wain': 'noun',
-      '%manx': 'noun',
-      '%vector': 'noun',
-      '%raw': 'noun'
-    };
-    const resultStorageMarks = new Set(Object.values(resultFormatMarks));
-
-    function selectedResultsFormat() {
-      return resultsFormatSelect.value || '%csv';
-    }
-
-    function updateDisplayedResultMark() {
-      const nextMark = resultFormatMarks[selectedResultsFormat()];
-      const parts = filePathInput.value.split('/');
-      const shownMark = parts[parts.length - 1];
-      if (!nextMark || parts.length < 2 ||
-          !resultStorageMarks.has(shownMark)) return;
-      parts[parts.length - 1] = nextMark;
-      filePathInput.value = parts.join('/');
     }
 
     function resultSaveText() {
@@ -4096,10 +3198,8 @@
         return ensureTrailingNewline(outputState.text);
       }
       return null;
-      return null;
     }
 
-    async function saveResultsFile(path, overwrite, format) {
     async function saveResultsFile(path, overwrite, format) {
       if (busy || !outputState.exportable) return false;
       setBusy(true, 'save-results');
@@ -4126,30 +3226,7 @@
           if (content === null) return false;
           body = await api('file-save', {path, content, overwrite});
         }
-        let body;
-        if (outputState.kind === 'run') {
-          const command = Number.isInteger(outputState.activeCommand) ?
-            outputState.commands[outputState.activeCommand] : null;
-          if (!command || outputState.resultId === null) {
-            setStatus('Results are no longer available.', 'error', true);
-            return false;
-          }
-          const commandIndex = Number.isInteger(command.index) ?
-            command.index : outputState.activeCommand;
-          body = await api('result-save', {
-            resultId: String(outputState.resultId),
-            commandIndex: String(commandIndex),
-            format: String(format || '').replace(/^%/, ''),
-            path,
-            overwrite
-          });
-        } else {
-          const content = resultSaveText();
-          if (content === null) return false;
-          body = await api('file-save', {path, content, overwrite});
-        }
         outputState.path = body.path.slice();
-        outputState.format = format;
         outputState.format = format;
         await refreshFiles();
         setStatus(`${body.path.slice(1).join('/')} saved.`);
@@ -4159,7 +3236,6 @@
         if (!overwrite && error.status === 409 &&
             window.confirm(`${name} exists. Overwrite it?`)) {
           setBusy(false);
-          return await saveResultsFile(path, true, format);
           return await saveResultsFile(path, true, format);
         }
         setStatus(error.message, 'error', true);
@@ -4174,17 +3250,12 @@
         selectedResultsFormat() : '%tape';
       const mark = resultFormatMarks[format];
       const path = resultPathFromInput(filePathInput.value, mark);
-      const format = outputState.kind === 'run' ?
-        selectedResultsFormat() : '%tape';
-      const mark = resultFormatMarks[format];
-      const path = resultPathFromInput(filePathInput.value, mark);
       if (!path) {
         fileDialogHelp.textContent =
           'Invalid path. Use names like folder/results-name.';
         filePathInput.focus();
         return;
       }
-      const saved = await saveResultsFile(path, false, format);
       const saved = await saveResultsFile(path, false, format);
       if (saved) closeFileDialog();
     }
@@ -4282,43 +3353,6 @@
       return String(action || 'restrict').replaceAll('-', ' ').toUpperCase();
     }
 
-    function foreignKeyGroups(relation) {
-      const groups = [];
-      const buckets = new Map();
-      (relation.foreignKeys || []).forEach((foreignKey) => {
-        const key = [
-          foreignKey.parentNamespace,
-          foreignKey.parentTable,
-          foreignKey.onDelete,
-          foreignKey.onUpdate
-        ].join('\u0000');
-        const bucket = buckets.get(key) || [];
-        let group = bucket.find((candidate) => {
-          return foreignKey.ordinal > 1 &&
-            candidate.rows.length === foreignKey.ordinal - 1;
-        });
-        if (!group) {
-          group = {
-            parentNamespace: foreignKey.parentNamespace,
-            parentTable: foreignKey.parentTable,
-            onDelete: foreignKey.onDelete,
-            onUpdate: foreignKey.onUpdate,
-            rows: [foreignKey]
-          };
-          bucket.push(group);
-          buckets.set(key, bucket);
-          groups.push(group);
-        } else {
-          group.rows.push(foreignKey);
-        }
-      });
-      return groups;
-    }
-
-    function foreignKeyAction(action) {
-      return String(action || 'restrict').replaceAll('-', ' ').toUpperCase();
-    }
-
     function relationTemplate(action, relation) {
       const qualified = `${relation.database}.${relation.namespace}.` +
         relation.name;
@@ -4331,17 +3365,8 @@
           `::SCALARS\n` +
           `::WHERE\n` +
           `SELECT ${columns.join(', ') || '*'} ;`;
-        return `::WITH (FROM...\n` +
-          `::      SELECT...) AS ...\n` +
-          `FROM ${qualified}\n` +
-          `::JOIN\n` +
-          `::SCALARS\n` +
-          `::WHERE\n` +
-          `SELECT ${columns.join(', ') || '*'} ;`;
       }
       if (action === 'INSERT' && relation.kind === 'table') {
-        const values = relation.columns.map((column) => column.bunt)
-          .join(', ');
         const values = relation.columns.map((column) => column.bunt)
           .join(', ');
         return `INSERT INTO ${qualified}\n` +
@@ -4373,24 +3398,7 @@
         });
         const foreignKeyClause = foreignKeys.length > 0 ?
           `\n  FOREIGN KEY ${foreignKeys.join(',\n    ')}` : '';
-        const foreignKeys = foreignKeyGroups(relation).map((foreignKey) => {
-          const childColumns = foreignKey.rows.map((row) => row.childColumn);
-          const parentColumns = foreignKey.rows.map((row) => row.parentColumn);
-          let clause = `(${childColumns.join(', ')}) REFERENCES ` +
-            `${foreignKey.parentNamespace}.${foreignKey.parentTable} ` +
-            `(${parentColumns.join(', ')})`;
-          if (foreignKey.onDelete !== 'restrict') {
-            clause += ` ON DELETE ${foreignKeyAction(foreignKey.onDelete)}`;
-          }
-          if (foreignKey.onUpdate !== 'restrict') {
-            clause += ` ON UPDATE ${foreignKeyAction(foreignKey.onUpdate)}`;
-          }
-          return clause;
-        });
-        const foreignKeyClause = foreignKeys.length > 0 ?
-          `\n  FOREIGN KEY ${foreignKeys.join(',\n    ')}` : '';
         return `CREATE TABLE ${qualified}\n  (\n${definitions}\n  )\n` +
-          `  PRIMARY KEY (${keys.join(', ')})${foreignKeyClause};`;
           `  PRIMARY KEY (${keys.join(', ')})${foreignKeyClause};`;
       }
       return '';
@@ -4424,7 +3432,6 @@
     }
 
     function renderColumn(column, relation) {
-    function renderColumn(column, relation) {
       const row = document.createElement('div');
       row.className = 'schema-column';
       row.setAttribute('role', 'treeitem');
@@ -4440,15 +3447,6 @@
       aura.textContent = auraText(column.aura);
       const name = document.createElement('span');
       name.textContent = column.name;
-      const foreignKey = (relation.foreignKeys || []).some((candidate) => {
-        return candidate.childColumn === column.name;
-      });
-      if (foreignKey) {
-        const marker = document.createElement('span');
-        marker.className = 'schema-column-aura';
-        marker.textContent = 'fk';
-        name.append(' ', marker);
-      }
       const foreignKey = (relation.foreignKeys || []).some((candidate) => {
         return candidate.childColumn === column.name;
       });
@@ -4487,8 +3485,8 @@
       });
       summary.appendChild(actions);
       const children = schemaChildren();
-      relation.columns.forEach((column) => {
-        children.appendChild(renderColumn(column, relation));
+      renderSchemaChildren(details, children, relation.columns, (column) => {
+        return renderColumn(column, relation);
       });
       details.append(summary, children);
       return details;
@@ -4554,68 +3552,6 @@
       schemaTree.setAttribute('aria-busy', 'false');
     }
 
-    function schemaTerm(value) {
-      return String(value || '').replace(/^%/, '');
-    }
-
-    function foreignKeyRow(row) {
-      const values = {};
-      (Array.isArray(row) ? row : []).forEach((cell) => {
-        values[cell.name] = cell.value;
-      });
-      return {
-        parentNamespace: schemaTerm(values['parent-namespace']),
-        parentTable: schemaTerm(values['parent-table']),
-        childNamespace: schemaTerm(values['child-namespace']),
-        childTable: schemaTerm(values['child-table']),
-        ordinal: Number(String(values.ordinal || '0').replaceAll('.', '')),
-        parentColumn: schemaTerm(values['parent-column']),
-        childColumn: schemaTerm(values['child-column']),
-        onDelete: schemaTerm(values['on-delete']),
-        onUpdate: schemaTerm(values['on-update'])
-      };
-    }
-
-    function attachForeignKeys(database, commands) {
-      const resultSet = allResultSets(commands)[0];
-      if (!resultSet || !Array.isArray(resultSet.rows)) return;
-      resultSet.rows.map(foreignKeyRow).forEach((foreignKey) => {
-        const namespace = database.namespaces.find((candidate) => {
-          return candidate.name === foreignKey.childNamespace;
-        });
-        if (!namespace) return;
-        const relation = namespace.relations.find((candidate) => {
-          return candidate.kind === 'table' &&
-            candidate.name === foreignKey.childTable;
-        });
-        if (!relation) return;
-        if (!Array.isArray(relation.foreignKeys)) relation.foreignKeys = [];
-        relation.foreignKeys.push(foreignKey);
-      });
-    }
-
-    async function loadForeignKeys(schema) {
-      for (const database of schema.databases) {
-        if (database.name === 'sys' ||
-            foreignKeysUnavailable.has(database.name)) continue;
-        const script = `FROM ${database.name}.sys.foreign-keys\n` +
-          `SELECT parent-namespace, parent-table, child-namespace, ` +
-          `child-table, ordinal, parent-column, child-column, ` +
-          `on-delete, on-update;`;
-        try {
-          const body = await api('run', {
-            defaultDatabase: database.name,
-            script
-          });
-          attachForeignKeys(database, body.commands || []);
-        } catch (error) {
-          if (String(error.message).includes('foreign-keys does not exist')) {
-            foreignKeysUnavailable.add(database.name);
-          }
-        }
-      }
-    }
-
     async function refreshSchema(options = {}) {
       schemaTree.setAttribute('aria-busy', 'true');
       try {
@@ -4637,8 +3573,6 @@
         schemaValue = schema;
         renderSchema(schemaValue);
         persist();
-        await loadForeignKeys(schema);
-        if (schemaValue === schema) renderSchema(schemaValue);
       } catch (error) {
         schemaTree.replaceChildren();
         const failure = document.createElement('p');
@@ -4730,31 +3664,6 @@
 
     function allResultSets(commands) {
       return commands.flatMap(resultSetsForCommand);
-    }
-
-    function commandIsExportable(command) {
-      return resultSetsForCommand(command).some((resultSet) => {
-        return Array.isArray(resultSet.columns) &&
-          resultSet.columns.length > 0;
-      });
-    }
-
-    function outputCopyAvailable() {
-      if (outputState.kind !== 'run') return lastOutputText.length > 0;
-      const index = outputState.activeCommand;
-      const command = Number.isInteger(index) ?
-        outputState.commands[index] : null;
-      return Boolean(command) &&
-        (resultSetsForCommand(command).length > 0 ||
-          metadataForCommand(command).length > 0);
-    }
-
-    function outputCopyText() {
-      if (outputState.kind !== 'run') return lastOutputText;
-      const index = outputState.activeCommand;
-      const command = Number.isInteger(index) ?
-        outputState.commands[index] : null;
-      return command ? runCopyText([command]) : '';
     }
 
     function commandIsExportable(command) {
@@ -4927,7 +3836,6 @@
         });
         pagers.push({status, previous, next});
         pager.append(previous, next, status);
-        pager.append(previous, next, status);
         return pager;
       }
       const topPager = makePager('top');
@@ -4953,17 +3861,10 @@
     }
 
     function renderCommand(command, position, showHeading = true) {
-    function renderCommand(command, position, showHeading = true) {
       const group = document.createElement('article');
       group.className = 'command-group';
       const commandIndex = Number.isInteger(command.index) ?
         command.index + 1 : position + 1;
-      if (showHeading) {
-        const heading = document.createElement('h3');
-        heading.className = 'command-heading';
-        heading.textContent = `Command ${commandIndex}`;
-        group.appendChild(heading);
-      }
       if (showHeading) {
         const heading = document.createElement('h3');
         heading.className = 'command-heading';
@@ -5075,55 +3976,6 @@
       return container;
     }
 
-    function renderCommandTabs(commands) {
-      const container = document.createElement('div');
-      container.className = 'command-tab-set';
-      const tabList = document.createElement('div');
-      tabList.className = 'command-tabs';
-      tabList.setAttribute('role', 'tablist');
-      tabList.setAttribute('aria-label', 'Command results');
-      const tabs = [];
-      const panels = [];
-      function selectCommand(selected) {
-        tabs.forEach((tab, position) => {
-          const active = position === selected;
-          tab.setAttribute('aria-selected', String(active));
-          tab.tabIndex = active ? 0 : -1;
-          panels[position].hidden = !active;
-        });
-        outputState.activeCommand = selected;
-        outputState.exportable = commandIsExportable(commands[selected]);
-        updateOutputControls();
-      }
-      commands.forEach((command, position) => {
-        const commandIndex = Number.isInteger(command.index) ?
-          command.index + 1 : position + 1;
-        const tab = document.createElement('button');
-        const panel = document.createElement('div');
-        const tabId = `command-tab-${position}`;
-        const panelId = `command-tab-panel-${position}`;
-        tab.type = 'button';
-        tab.id = tabId;
-        tab.className = 'command-tab';
-        tab.textContent = `Command ${commandIndex}`;
-        tab.setAttribute('role', 'tab');
-        tab.setAttribute('aria-controls', panelId);
-        panel.id = panelId;
-        panel.className = 'command-tab-panel';
-        panel.setAttribute('role', 'tabpanel');
-        panel.setAttribute('aria-labelledby', tabId);
-        panel.appendChild(renderCommand(command, position, false));
-        tab.addEventListener('click', () => selectCommand(position));
-        tabs.push(tab);
-        panels.push(panel);
-        tabList.appendChild(tab);
-        container.appendChild(panel);
-      });
-      container.prepend(tabList);
-      selectCommand(0);
-      return container;
-    }
-
     function revealOutput() {
       state.outputOpen = true;
       applyLayout();
@@ -5132,29 +3984,20 @@
     }
 
     function showRunOutput(commands, resultId = null) {
-    function showRunOutput(commands, resultId = null) {
       const safeCommands = Array.isArray(commands) ? commands : [];
-      const activeCommand = safeCommands.length > 0 ? 0 : null;
-      const exportable = activeCommand === null ? false :
-        commandIsExportable(safeCommands[activeCommand]);
       const activeCommand = safeCommands.length > 0 ? 0 : null;
       const exportable = activeCommand === null ? false :
         commandIsExportable(safeCommands[activeCommand]);
       outputState = {
         kind: 'run',
         resultId,
-        resultId,
         commands: safeCommands,
-        activeCommand,
         activeCommand,
         text: '',
         exportable,
         path: null,
         format: null
-        path: null,
-        format: null
       };
-      lastOutputText = '';
       lastOutputText = '';
       results.replaceChildren();
       if (safeCommands.length === 0) {
@@ -5164,10 +4007,7 @@
         results.appendChild(empty);
       } else if (safeCommands.length === 1) {
         results.appendChild(renderCommand(safeCommands[0], 0));
-      } else if (safeCommands.length === 1) {
-        results.appendChild(renderCommand(safeCommands[0], 0));
       } else {
-        results.appendChild(renderCommandTabs(safeCommands));
         results.appendChild(renderCommandTabs(safeCommands));
       }
       revealOutput();
@@ -5178,14 +4018,10 @@
       outputState = {
         kind: 'parse',
         resultId: null,
-        resultId: null,
         commands: [],
-        activeCommand: null,
         activeCommand: null,
         text: value,
         exportable: value.length > 0,
-        path: null,
-        format: null
         path: null,
         format: null
       };
@@ -5203,14 +4039,10 @@
       outputState = {
         kind: 'error',
         resultId: null,
-        resultId: null,
         commands: [],
-        activeCommand: null,
         activeCommand: null,
         text: value,
         exportable: false,
-        path: null,
-        format: null
         path: null,
         format: null
       };
@@ -5248,26 +4080,9 @@
       updateOutputControls();
     }
 
-    function clearOutput() {
-      outputState = {
-        kind: 'empty',
-        resultId: null,
-        commands: [],
-        activeCommand: null,
-        text: '',
-        exportable: false,
-        path: null,
-        format: null
-      };
-      lastOutputText = '';
-      results.replaceChildren();
-      updateOutputControls();
-    }
-
     async function execute(operation) {
       if (busy) return;
       const script = selectedScript();
-      clearOutput();
       clearOutput();
       setBusy(true, operation);
       setStatus(operation === 'run' ? 'Running query…' : 'Parsing query…');
@@ -5280,7 +4095,6 @@
           showParseOutput(body.text || '');
           setStatus('Parse complete.');
         } else {
-          showRunOutput(body.commands || [], body.resultId ?? null);
           showRunOutput(body.commands || [], body.resultId ?? null);
           if (body.schemaChanged) {
             schemaValue = null;
@@ -5371,8 +4185,6 @@
     function openSaveContext(kind, event) {
       if (busy || (kind === 'script' && activeTabIsResult()) ||
           (kind === 'result' && !outputState.exportable)) return;
-      if (busy || (kind === 'script' && activeTabIsResult()) ||
-          (kind === 'result' && !outputState.exportable)) return;
       captureEditor();
       closeMenus();
       closeRelationMenu();
@@ -5417,9 +4229,6 @@
         outputState.path.slice() : null;
       closeSaveContext();
       if (kind === 'script') await saveActiveTab();
-      else if (path) {
-        await saveResultsFile(path, true, outputState.format || '%csv');
-      }
       else if (path) {
         await saveResultsFile(path, true, outputState.format || '%csv');
       }
@@ -5476,24 +4285,6 @@
       });
     }
 
-    function prefetchDocsPath(path) {
-      if (prefetchedDocs.has(path)) return;
-      prefetchedDocs.add(path);
-      const hint = document.createElement('link');
-      hint.rel = 'prefetch';
-      hint.href = `/docs/d/obelisk/${path}`;
-      document.head.appendChild(hint);
-    }
-
-    function prefetchHelpDocs(nodes = docsHelpSections) {
-      nodes.forEach((node) => {
-        if (node.path) prefetchDocsPath(node.path);
-        else if (Array.isArray(node.children)) {
-          prefetchHelpDocs(node.children);
-        }
-      });
-    }
-
     function renderDocsHelpNode(node) {
       if (node.path) {
         const link = document.createElement('a');
@@ -5501,9 +4292,6 @@
         link.href = `/docs/d/obelisk/${node.path}`;
         link.setAttribute('role', 'treeitem');
         link.textContent = node.title;
-        const prefetch = () => prefetchDocsPath(node.path);
-        link.addEventListener('pointerenter', prefetch, {once: true});
-        link.addEventListener('focus', prefetch, {once: true});
         const prefetch = () => prefetchDocsPath(node.path);
         link.addEventListener('pointerenter', prefetch, {once: true});
         link.addEventListener('focus', prefetch, {once: true});
@@ -5605,7 +4393,6 @@
       frame.className = 'docs-frame';
       frame.title = tab.documentTitle;
       frame.loading = 'lazy';
-      frame.loading = 'lazy';
       let titleObserver = null;
       const syncFrameState = () => {
         try {
@@ -5674,12 +4461,6 @@
         setExplorerView(existing.id, true);
         return;
       }
-      const existing = state.docsTabs.find((tab) => tab.path === path);
-      if (existing) {
-        setHelpOpen(false);
-        setExplorerView(existing.id, true);
-        return;
-      }
       const tab = {
         id: `docs-${state.nextDocs++}`,
         documentTitle,
@@ -5736,7 +4517,6 @@
         docsCheckPending = false;
       }
       setHelpVariant(docsAvailable);
-      if (docsAvailable) prefetchHelpDocs();
       if (docsAvailable) prefetchHelpDocs();
     }
 
@@ -5826,21 +4606,11 @@
       const outputRatio = clamp(state.outputRatio, 0.15, 0.7);
       state.outputRatio = outputRatio;
       const scriptRatio = 1 - outputRatio;
-      const outputRatio = clamp(state.outputRatio, 0.15, 0.7);
-      state.outputRatio = outputRatio;
-      const scriptRatio = 1 - outputRatio;
       workspace.style.gridTemplateRows = state.outputOpen ?
         `minmax(0, ${scriptRatio}fr) .35rem ` +
           `minmax(0, ${outputRatio}fr)` :
         'minmax(0, 1fr) 0 3rem';
-        `minmax(0, ${scriptRatio}fr) .35rem ` +
-          `minmax(0, ${outputRatio}fr)` :
-        'minmax(0, 1fr) 0 3rem';
       schemaResizer.setAttribute('aria-valuenow', String(state.schemaSize));
-      outputResizer.setAttribute(
-        'aria-valuenow',
-        String(Math.round(outputRatio * 100))
-      );
       outputResizer.setAttribute(
         'aria-valuenow',
         String(Math.round(outputRatio * 100))
@@ -5853,11 +4623,7 @@
       const resizer = event.currentTarget;
       const pointerId = event.pointerId;
       let resizing = true;
-      const resizer = event.currentTarget;
-      const pointerId = event.pointerId;
-      let resizing = true;
       const move = (next) => {
-        if (next.pointerId !== pointerId) return;
         if (next.pointerId !== pointerId) return;
         if (kind === 'schema') {
           const rect = workbench.getBoundingClientRect();
@@ -5866,21 +4632,9 @@
         } else {
           const rect = workspace.getBoundingClientRect();
           state.outputRatio = (rect.bottom - next.clientY) / rect.height;
-          state.outputRatio = (rect.bottom - next.clientY) / rect.height;
         }
         applyLayout();
       };
-      const finish = (next) => {
-        if (!resizing || (next.pointerId !== undefined &&
-            next.pointerId !== pointerId)) return;
-        resizing = false;
-        resizer.removeEventListener('pointermove', move);
-        resizer.removeEventListener('pointerup', finish);
-        resizer.removeEventListener('pointercancel', finish);
-        resizer.removeEventListener('lostpointercapture', finish);
-        if (resizer.hasPointerCapture(pointerId)) {
-          resizer.releasePointerCapture(pointerId);
-        }
       const finish = (next) => {
         if (!resizing || (next.pointerId !== undefined &&
             next.pointerId !== pointerId)) return;
@@ -5899,11 +4653,6 @@
       resizer.addEventListener('pointerup', finish);
       resizer.addEventListener('pointercancel', finish);
       resizer.addEventListener('lostpointercapture', finish);
-      resizer.setPointerCapture(pointerId);
-      resizer.addEventListener('pointermove', move);
-      resizer.addEventListener('pointerup', finish);
-      resizer.addEventListener('pointercancel', finish);
-      resizer.addEventListener('lostpointercapture', finish);
     }
 
     function resizeKeydown(kind, event) {
@@ -5913,7 +4662,6 @@
       if (delta === 0) return;
       event.preventDefault();
       if (kind === 'schema') state.schemaSize += delta;
-      if (kind === 'output') state.outputRatio -= delta / 800;
       if (kind === 'output') state.outputRatio -= delta / 800;
       applyLayout();
       persist();
@@ -5939,18 +4687,8 @@
     markdownPreviewButton.addEventListener('click', () => {
       setResultView('preview');
     });
-    markdownSourceButton.addEventListener('click', () => {
-      setResultView('source');
-    });
-    markdownPreviewButton.addEventListener('click', () => {
-      setResultView('preview');
-    });
     newTabButton.addEventListener('click', () => addDraft());
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
-    fileContextOpen.addEventListener('click', openContextFile);
-    fileContextDelete.addEventListener('click', deleteContextFile);
-    fileContextMenu.addEventListener('keydown', menuKeydown);
-    resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
     fileContextOpen.addEventListener('click', openContextFile);
     fileContextDelete.addEventListener('click', deleteContextFile);
     fileContextMenu.addEventListener('keydown', menuKeydown);
@@ -5984,7 +4722,6 @@
       copyText(activeTab().text, 'Script');
     });
     copyOutputButton.addEventListener('click', () => {
-      copyText(outputCopyText(), 'Results');
       copyText(outputCopyText(), 'Results');
     });
     helpButton.addEventListener('click', () => setHelpOpen(true));
@@ -6044,10 +4781,6 @@
           !event.target.closest('.explorer-file-row')) {
         closeFileContext();
       }
-      if (!event.target.closest('#file-context-menu') &&
-          !event.target.closest('.explorer-file-row')) {
-        closeFileContext();
-      }
     });
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
@@ -6063,10 +4796,6 @@
           closeFileContext(true);
           return;
         }
-        if (!fileContextMenu.classList.contains('hidden')) {
-          closeFileContext(true);
-          return;
-        }
         const open = menus.find((menu) => menu.dataset.open === 'true');
         closeMenus();
         closeRelationMenu();
@@ -6074,7 +4803,6 @@
       }
       if (event.key === 'F5') {
         event.preventDefault();
-        if (!runButton.disabled) execute('run');
         if (!runButton.disabled) execute('run');
       }
     });
@@ -6085,7 +4813,6 @@
     });
 
     updateOutputControls();
-    defaultDatabase.value = state.defaultDatabase || 'sys';
     defaultDatabase.value = state.defaultDatabase || 'sys';
     renderTabs();
     restoreEditor(false);

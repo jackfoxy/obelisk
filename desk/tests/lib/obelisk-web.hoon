@@ -42,8 +42,6 @@
       file-save=~
       file-delete=~
       result-cache=~
-      file-delete=~
-      result-cache=~
   ==
 ::
 ++  test-state-bunts-00
@@ -67,7 +65,6 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~ ~]])
     !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
@@ -783,17 +780,9 @@
             ~[%results %result-1 %md]
             %.n
         ==
-        :*  %result-save
-            7
-            2
-            %markdown
-            ~[%results %result-1 %md]
-            %.n
-        ==
         [%file-browse ~]
         [%file-browse ~[%scripts %nested]]
         [%file-load ~[%scripts %query-1]]
-        [%file-delete ~[%scripts %query-1]]
         [%file-delete ~[%scripts %query-1]]
         [%file-save ~[%results %result-1] hostile-text %.y]
     ==
@@ -841,11 +830,7 @@
   =/  column=column-dto:web  [%id '@ud' '0' 0 `key]
   =/  foreign-key=foreign-key-dto:web
     [%public %parent 1 %id %parent-id %restrict %cascade]
-  =/  column=column-dto:web  [%id '@ud' '0' 0 `key]
-  =/  foreign-key=foreign-key-dto:web
-    [%public %parent 1 %id %parent-id %restrict %cascade]
   =/  relation=relation-dto:web
-    [%example %public %items %table ~[column] ~[foreign-key]]
     [%example %public %items %table ~[column] ~[foreign-key]]
   =/  namespace=namespace-dto:web  [%public ~[relation]]
   =/  database=database-dto:web  [%example %.y ~[namespace]]
@@ -854,13 +839,11 @@
     [%unprocessable 422 hostile-text %.n ~[hostile-text]]
   =/  responses=(list web-response:web)
     :~  [%run 7 ~[[0 results]] %.y]
-    :~  [%run 7 ~[[0 results]] %.y]
         [%parse ~[hostile-text ''] hostile-text]
         [%schema schema]
         [%file-list ~[[~[%scripts %query-1] %file]]]
         [%file ~[%scripts %query-1] hostile-text]
         [%saved ~[%scripts %query-1]]
-        [%deleted ~[%scripts %query-1]]
         [%deleted ~[%scripts %query-1]]
         [%error error]
     ==
@@ -1045,7 +1028,6 @@
           ==
     !>(-.fact)
     %+  expect-eq
-      !>  ~[(work-poke-card-at 0 0 1 [%script %sys %raw "SELECT 1;"])]
       !>  ~[(work-poke-card-at 0 0 1 [%script %sys %raw "SELECT 1;"])]
     !>(-.script-watched)
     (expect-eq !>((work-leave-card-at 0 0 1)) !>((first-card -.finished)))
@@ -1270,15 +1252,6 @@
                     ==
                     [%vector-count 1]
                 ==
-        0
-        :~  :*  0
-                :~  [%action 'SELECT']
-                    :*  %result-set
-                        ~[[%answer %ud]]
-                        ~[~[[%answer %ud '42']]]
-                    ==
-                    [%vector-count 1]
-                ==
             ==
         ==
         %.n
@@ -1288,23 +1261,6 @@
     %+  expect-eq
       !>((response-json:json-lib expected))
     !>((response-json response-cards))
-  ==
-::
-++  test-result-save-rejects-missing-cache-42-a
-  =/  save-body
-    %-  request-text
-    [%result-save 0 0 %csv ~[%results %result-1 %csv] %.n]
-  =/  save-request
-    %:  api-request
-      '/apps/obelisk/api/results/save'
-      %.y
-      `save-body
-      `'application/json'
-    ==
-  =/  saved  (poke-http save-request)
-  ;:  weld
-    (expect-eq !>(404) !>((response-status -.saved)))
-    (expect-eq !>('not-found') !>((response-error-code -.saved)))
   ==
 ::
 ++  test-result-save-rejects-missing-cache-42-a
@@ -1404,7 +1360,6 @@
   ;:  weld
     %+  expect-eq
       !>((response-json:json-lib [%run 0 ~ %.n]))
-      !>((response-json:json-lib [%run 0 ~ %.n]))
     !>((response-json (tail-cards -.run-out)))
     %+  expect-eq
       !>(expected-parse)
@@ -1457,6 +1412,7 @@
   =/  widgets=relation-dto:web  (snag 0 relations.public)
   =/  label=column-dto:web  (snag 0 columns.widgets)
   =/  id=column-dto:web  (snag 1 columns.widgets)
+  =/  foreign-key=foreign-key-dto:web  (snag 0 foreign-keys.widgets)
   =/  date=column-dto:web  (make-column:schema-lib 1 %date %da)
   =/  expected-key=(unit key-dto:web)  `[1 %.y]
   =/  expected-views=(list @tas)
@@ -1480,13 +1436,6 @@
     %+  expect-eq
       !>(%sys)
     !>((default-database:schema-lib ~ ~[%sys]))
-    (expect-eq !>(%alpha) !>(default-database.schema))
-    %+  expect-eq
-      !>(%sys)
-    !>((default-database:schema-lib `%sys ~[%alpha %sys]))
-    %+  expect-eq
-      !>(%sys)
-    !>((default-database:schema-lib ~ ~[%sys]))
     %+  expect-eq
       !>(~[%alpha %sys])
     !>((turn databases.schema |=(database=database-dto:web name.database)))
@@ -1496,9 +1445,6 @@
     %+  expect-eq
       !>(~[%label %id])
     !>((turn columns.widgets |=(column=column-dto:web name.column)))
-    (expect-eq !>("''") !>((trip bunt.label)))
-    (expect-eq !>("0") !>((trip bunt.id)))
-    (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
     (expect-eq !>("''") !>((trip bunt.label)))
     (expect-eq !>("0") !>((trip bunt.id)))
     (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
@@ -1518,8 +1464,6 @@
     %+  expect-eq
       !>(expected-views)
     !>((turn relations.sys-namespace |=(r=relation-dto:web name.r)))
-    (expect-eq !>(%.y) !>(default.alpha))
-    (expect-eq !>(%.n) !>(default.system))
     (expect-eq !>(%.y) !>(default.alpha))
     (expect-eq !>(%.n) !>(default.system))
     (expect-eq !>(~[%databases]) !>(system-relations))
@@ -1553,7 +1497,7 @@
     %+  expect-eq
       !>(expected)
     !>((detail-script:schema-lib ~[%sys %alpha]))
-    (expect !>(?=(~ (find "foreign-keys" expected))))
+    (expect !>(?=(^ (find "foreign-keys" expected))))
   ==
 ::
 ++  test-schema-refresh-decisions-52
@@ -1567,7 +1511,6 @@
   ;:  weld
     (expect !>((schema-changing:schema-lib ddl)))
     %+  expect-eq
-      !>((response-json:json-lib [%run 0 ~ %.y]))
       !>((response-json:json-lib [%run 0 ~ %.y]))
     !>((response-json response-cards))
   ==
@@ -1620,7 +1563,6 @@
     (expect-eq !>(200) !>((response-status response-cards)))
     %+  expect-eq
       !>(`'alpha')
-      !>(`'alpha')
     !>((text-field:json-lib 'defaultDatabase' response-value))
   ==
 ::
@@ -1653,9 +1595,7 @@
   ?>  ?=(%result-set -.result-set)
   =/  table=result-set-dto:web  value.result-set
   =/  expected-text=@t  (crip ~(rt at hostile-text))
-  =/  expected-text=@t  (crip ~(rt at hostile-text))
   =/  expected-row=(list result-cell-dto:web)
-    :~  [%text 't' expected-text]
     :~  [%text 't' expected-text]
         [%name 'tas' 'alpha']
         [%count 'ud' '42']
@@ -1751,33 +1691,6 @@
     (expect-eq !>('value\0a\'safe\'') !>(wain))
   ==
 ::
-++  test-result-format-on-demand-55-a
-  =/  columns
-    ^-  (lest $%(column:ast qualified-column:ast))
-    ~[[%column %value ~.t 0]]
-  =/  data=(map @tas @)
-    (~(gas by *(map @tas @)) ~[[%value 'safe']])
-  =/  row=data-row:ast  [%indexed-row ~ data]
-  =/  relation=relation:ast
-    :*  %relation
-        ~
-        ~[columns]
-        ~
-        %.n
-        *(tree [(list @) (map @tas @)])
-        ~[[0 row]]
-    ==
-  =/  command=cmd-result:ast
-    [%results ~[[%relations ~[relation]]]]
-  =/  csv=@t  (result-export:result-lib %csv command)
-  =/  markdown=@t  (result-export:result-lib %markdown command)
-  =/  wain=@t  (result-export:result-lib %wain command)
-  ;:  weld
-    (expect-eq !>('value\0a\'safe\'') !>(csv))
-    (expect !>(?=(^ (find "| 'safe' |" (trip markdown)))))
-    (expect-eq !>('value\0a\'safe\'') !>(wain))
-  ==
-::
 ++  test-result-export-empty-and-metadata-56
   =/  empty-set=result-set-dto:web  [~ ~]
   =/  header-only=result-set-dto:web  [~[[%value 't']] ~]
@@ -1794,8 +1707,6 @@
     !>((result-export-text:result-lib empty-command %comma))
     %+  expect-eq
       !>('value\0a')
-    !>  %-  result-export-text:result-lib
-        [~[[0 ~[[%result-set header-only]]]] %tab]
     !>  %-  result-export-text:result-lib
         [~[[0 ~[[%result-set header-only]]]] %tab]
     (expect-eq !>(expected) !>((metadata-text:result-lib metadata)))
@@ -1859,18 +1770,6 @@
   =/  table=result-set-dto:web  value.result
   (expect-eq !>(800) !>((lent rows.table)))
 ::
-++  test-large-result-response-paging-59-a
-  =/  vectors=(list vector:ast)  (numbered-vectors 800)
-  =/  source=(list cmd-result:ast)
-    ~[[%results ~[[%result-set vectors]]]]
-  =/  commands=(list command-dto:web)
-    (command-dtos:result-lib source 0)
-  =/  command=command-dto:web  (snag 0 commands)
-  =/  result=result-dto:web  (snag 0 results.command)
-  ?>  ?=(%result-set -.result)
-  =/  table=result-set-dto:web  value.result
-  (expect-eq !>(800) !>((lent rows.table)))
-::
 ++  test-file-path-validation-60
   ;:  weld
     (expect !>((valid-browse-path:file-lib ~)))
@@ -1890,30 +1789,10 @@
     (expect !>((valid-storage-mark:file-lib %html)))
     (expect !>((valid-storage-mark:file-lib %json)))
     (expect !>((valid-storage-mark:file-lib %noun)))
-    (expect !>((valid-storage-mark:file-lib %csv)))
-    (expect !>((valid-storage-mark:file-lib %tab)))
-    (expect !>((valid-storage-mark:file-lib %md)))
-    (expect !>((valid-storage-mark:file-lib %html)))
-    (expect !>((valid-storage-mark:file-lib %json)))
-    (expect !>((valid-storage-mark:file-lib %noun)))
     (expect !>(!(valid-storage-mark:file-lib %hoon)))
     %+  expect-eq
       !>(/data/obelisk/scripts/nested/query-1/txt)
     !>((storage-path:file-lib ~[%scripts %nested %query-1]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-1/csv)
-    !>((storage-path:file-lib ~[%results %results-1 %csv]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-2/txt)
-    !>((storage-path:file-lib ~[%results %results-2 %txt]))
-    %+  expect-eq
-      !>(`~[%results %results-1 %csv])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/results/results-1/csv
-    %+  expect-eq
-      !>(`~[%scripts %nested %query-1])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/scripts/nested/query-1/txt
     %+  expect-eq
       !>(/data/obelisk/results/results-1/csv)
     !>((storage-path:file-lib ~[%results %results-1 %csv]))
@@ -1970,33 +1849,11 @@
     (cage-from-text:file-lib %json '{]')
   ?>  ?=(%.y -.encoded-md)
   ?>  ?=(%.y -.encoded-noun)
-  =/  md-cage=cage  [%md !>(hostile-text)]
-  =/  noun-cage=cage
-    [%noun !>((storage-wain:file-lib hostile-text))]
-  =/  encoded-md=(each cage tang)
-    (cage-from-text:file-lib %md hostile-text)
-  =/  encoded-noun=(each cage tang)
-    (cage-from-text:file-lib %noun hostile-text)
-  =/  invalid-json=(each cage tang)
-    (cage-from-text:file-lib %json '{]')
-  ?>  ?=(%.y -.encoded-md)
-  ?>  ?=(%.y -.encoded-noun)
   ;:  weld
     %+  expect-eq
       !>(`hostile-text)
     !>((text-from-cage:file-lib text-cage-value))
     (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
-    (expect !>(=(%md p.p.encoded-md)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-md))
-    (expect !>(=(%noun p.p.encoded-noun)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-noun))
-    (expect !>(?=(%.n -.invalid-json)))
     (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
     (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
     (expect !>(=(%md p.p.encoded-md)))
@@ -2039,17 +1896,8 @@
       `delete-body
       `'application/json'
     ==
-  =/  delete-body  (request-text [%file-delete ~[%outside %query]])
-  =/  delete-req
-    %:  api-request
-      '/apps/obelisk/api/files/delete'
-      %.y
-      `delete-body
-      `'application/json'
-    ==
   =/  save-out  (poke-http save-req)
   =/  load-out  (poke-http load-req)
-  =/  delete-out  (poke-http delete-req)
   =/  delete-out  (poke-http delete-req)
   ;:  weld
     (expect-eq !>(400) !>((response-status -.save-out)))
@@ -2058,33 +1906,15 @@
     (expect-eq !>('bad-request') !>((response-error-code -.load-out)))
     (expect-eq !>(400) !>((response-status -.delete-out)))
     (expect-eq !>('bad-request') !>((response-error-code -.delete-out)))
-    (expect-eq !>(400) !>((response-status -.delete-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.delete-out)))
   ==
 ::
 ++  test-file-save-persistence-64
   =/  relative=relative-path:web  ~[%scripts %step-10-persist]
   =/  content=@t  hostile-text
   =/  json-content=@t  '{"value":"safe"}\0a'
-  =/  json-content=@t  '{"value":"safe"}\0a'
   =/  clay-path=path  (storage-path:file-lib relative)
   =/  riot=riot:clay
     `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
-  =/  csv-path=path  /data/obelisk/results/results-1/csv
-  =/  csv-cage=cage  [%csv !>((storage-wain:file-lib content))]
-  =/  csv-riot=riot:clay  `[[%x ud+1 %obelisk] csv-path csv-cage]
-  =/  html-path=path  /data/obelisk/results/results-1/html
-  =/  html-cage=cage  [%html !>(content)]
-  =/  html-riot=riot:clay  `[[%x ud+1 %obelisk] html-path html-cage]
-  =/  md-path=path  /data/obelisk/results/results-1/md
-  =/  md-cage=cage  [%md !>(content)]
-  =/  md-riot=riot:clay  `[[%x ud+1 %obelisk] md-path md-cage]
-  =/  json-path=path  /data/obelisk/results/results-1/json
-  =/  json-cage=cage  [%json !>((need (de:json:html json-content)))]
-  =/  json-riot=riot:clay  `[[%x ud+1 %obelisk] json-path json-cage]
-  =/  tab-path=path  /data/obelisk/results/results-1/tab
-  =/  tab-cage=cage  [%tab !>((storage-wain:file-lib content))]
-  =/  tab-riot=riot:clay  `[[%x ud+1 %obelisk] tab-path tab-cage]
   =/  csv-path=path  /data/obelisk/results/results-1/csv
   =/  csv-cage=cage  [%csv !>((storage-wain:file-lib content))]
   =/  csv-riot=riot:clay  `[[%x ud+1 %obelisk] csv-path csv-cage]
@@ -2105,11 +1935,6 @@
       !>(/data/obelisk/scripts/step-10-persist/txt)
     !>(clay-path)
     (expect !>((save-verifies:file-lib content riot)))
-    (expect !>((save-verifies:file-lib content csv-riot)))
-    (expect !>((save-verifies:file-lib content html-riot)))
-    (expect !>((save-verifies:file-lib content md-riot)))
-    (expect !>((save-verifies:file-lib json-content json-riot)))
-    (expect !>((save-verifies:file-lib content tab-riot)))
     (expect !>((save-verifies:file-lib content csv-riot)))
     (expect !>((save-verifies:file-lib content html-riot)))
     (expect !>((save-verifies:file-lib content md-riot)))
@@ -2150,7 +1975,6 @@
     (expect !>(?=(^ (find "docs-help-tree" html))))
     (expect !>(?=(^ (find "explorer-tabs" html))))
     (expect !>(?=(^ (find "explorer-tab-control" html))))
-    (expect !>(?=(^ (find "explorer-tab-control" html))))
     (expect !>(?=(^ (find "docs-llm-button" html))))
     (expect !>(?=(^ (find "Reference" html))))
     (expect !>(?=(^ (find "Users Guide" html))))
@@ -2159,7 +1983,6 @@
     (expect !>(?=(^ (find "Copy results" html))))
     (expect !>(?=(^ (find "Default DB" html))))
     (expect !>(?=(^ (find "For Developers" html))))
-    (expect !>(?=(~ (find "header-file-menu" html))))
     (expect !>(?=(~ (find "header-file-menu" html))))
     (expect !>(?=(^ (find "developer-help-links" html))))
     (expect !>(?=(~ (find "dev-menu-toggle" html))))
@@ -2199,16 +2022,6 @@
     (expect !>(?=(^ (find "border-left: 0;" style))))
     (expect !>(?=(^ (find ".editor-tab-control" style))))
     (expect !>(?=(^ (find ".editor-tab-close" style))))
-    (expect !>(?=(^ (find ".explorer-tab" style))))
-    (expect !>(?=(^ (find "height: 2rem;" style))))
-    (expect !>(?=(^ (find ".explorer-tab-control .explorer-tab" style))))
-    (expect !>(?=(^ (find "padding-block: 0;" style))))
-    (expect !>(?=(~ (find ".explorer-tab-control.active" style))))
-    (expect !>(?=(^ (find ".docs-tab-control .explorer-tab" style))))
-    (expect !>(?=(~ (find ".docs-tab-control.active .explorer-tab" style))))
-    (expect !>(?=(^ (find "border-left: 0;" style))))
-    (expect !>(?=(^ (find ".editor-tab-control" style))))
-    (expect !>(?=(^ (find ".editor-tab-close" style))))
     (expect !>(?=(^ (find ".docs-frame" style))))
     (expect !>(?=(~ (find "hawk" lower))))
     (expect !>(?=(~ (find "htmx" lower))))
@@ -2225,8 +2038,6 @@
     (expect !>(?=(^ (find "classList.toggle('inactive'" script))))
     (expect !>(?=(^ (find "schemaOpen" script))))
     (expect !>(?=(^ (find "outputOpen" script))))
-    (expect !>(?=(^ (find "outputRatio: 1 / 3" script))))
-    (expect !>(?=(^ (find "scriptRatio = 1 - outputRatio" script))))
     (expect !>(?=(^ (find "outputRatio: 1 / 3" script))))
     (expect !>(?=(^ (find "scriptRatio = 1 - outputRatio" script))))
     (expect !>(?=(^ (find "event.key === 'Escape'" script))))
@@ -2271,9 +2082,6 @@
     (expect !>(?=(^ (find "event.key === 'F5'" script))))
     (expect !>(?=(^ (find "navigator.clipboard" script))))
     (expect !>(?=(^ (find "document.execCommand('copy')" script))))
-    (expect !>(?=(^ (find "function closeTab(id)" script))))
-    (expect !>(?=(^ (find "editor-tab-close" script))))
-    (expect !>(?=(^ (find "closeTab(tab.id)" script))))
     (expect !>(?=(^ (find "function closeTab(id)" script))))
     (expect !>(?=(^ (find "editor-tab-close" script))))
     (expect !>(?=(^ (find "closeTab(tab.id)" script))))
@@ -2326,31 +2134,10 @@
     (expect !>(?=(^ (find "contextmenu" script))))
     (expect !>(?=(^ (find "file-actions" script))))
     (expect !>(?=(^ (find "This cannot be undone" script))))
-    (expect !>(?=(^ (find "files/delete" script))))
-    (expect !>(?=(^ (find "file-context-menu" html))))
-    (expect !>(?=(^ (find "file-context-open" html))))
-    (expect !>(?=(^ (find "file-context-delete" html))))
-    (expect !>(?=(^ (find "openFileContext" script))))
-    (expect !>(?=(^ (find "deleteContextFile" script))))
-    (expect !>(?=(^ (find "explorer-file-row" script))))
-    (expect !>(?=(^ (find "contextmenu" script))))
-    (expect !>(?=(^ (find "file-actions" script))))
-    (expect !>(?=(^ (find "This cannot be undone" script))))
     (expect !>(?=(^ (find "scriptPathFromInput" script))))
     (expect !>(?=(^ (find "openSelectedFile" script))))
     (expect !>(?=(^ (find "loadFilePath" script))))
     (expect !>(?=(^ (find "refreshFiles" script))))
-    (expect !>(?=(^ (find "explorerFileParent" script))))
-    (expect !>(?=(^ (find "explorerFileLabel" script))))
-    (expect !>(?=(^ (find "savedFileTabName" script))))
-    (expect !>(?=(^ (find "uniqueTabName(savedFileTabName(path))" script))))
-    (expect !>(?=(^ (find "savedFileTabName(body.path)" script))))
-    (expect !>(?=(^ (find "resultStorageMarks" script))))
-    (expect !>(?=(^ (find "updateDisplayedResultMark" script))))
-    (expect !>(?=(^ (find "activeTabIsResult" script))))
-    (expect !>(?=(^ (find "updateExecutionControls" script))))
-    (expect !>(?=(^ (find "saveQueryButton.disabled = busy ||" script))))
-    (expect !>(?=(^ (find "if (!runButton.disabled) execute('run')" script))))
     (expect !>(?=(^ (find "explorerFileParent" script))))
     (expect !>(?=(^ (find "explorerFileLabel" script))))
     (expect !>(?=(^ (find "savedFileTabName" script))))
@@ -2368,9 +2155,6 @@
     (expect !>(?=(^ (find "setExplorerView" script))))
     (expect !>(?=(^ (find "error.status === 409" script))))
     (expect !>(?=(^ (find "savedText" script))))
-    (expect !>(?=(^ (find "existing.text = text" script))))
-    (expect !>(?=(^ (find "existing.savedText = text" script))))
-    (expect !>(?=(^ (find "existing ? 'reloaded' : 'opened'" script))))
     (expect !>(?=(^ (find "existing.text = text" script))))
     (expect !>(?=(^ (find "existing.savedText = text" script))))
     (expect !>(?=(^ (find "existing ? 'reloaded' : 'opened'" script))))
@@ -2399,23 +2183,16 @@
     (expect !>(?=(^ (find "::JOIN" script))))
     (expect !>(?=(^ (find "::SCALARS" script))))
     (expect !>(?=(^ (find "::WHERE" script))))
-    (expect !>(?=(^ (find "defaultDatabase: null" script))))
-    (expect !>(?=(^ (find "::WITH (FROM..." script))))
-    (expect !>(?=(^ (find "::      SELECT...) AS ..." script))))
-    (expect !>(?=(^ (find "::JOIN" script))))
-    (expect !>(?=(^ (find "::SCALARS" script))))
-    (expect !>(?=(^ (find "::WHERE" script))))
     (expect !>(?=(^ (find "'tbl'" script))))
     (expect !>(?=(^ (find "'vw'" script))))
-    (expect !>(?=(^ (find "column.bunt" script))))
     (expect !>(?=(^ (find "column.bunt" script))))
     (expect !>(?=(^ (find "PRIMARY KEY" script))))
     (expect !>(?=(^ (find "FOREIGN KEY" script))))
     (expect !>(?=(^ (find "foreignKeys" script))))
     (expect !>(?=(^ (find "marker.textContent = 'fk'" script))))
-    (expect !>(?=(^ (find "loadForeignKeys" script))))
-    (expect !>(?=(^ (find "foreignKeysUnavailable" script))))
-    (expect !>(?=(^ (find "foreign-keys does not exist" script))))
+    (expect !>(?=(~ (find "loadForeignKeys" script))))
+    (expect !>(?=(^ (find "renderSchemaChildren" script))))
+    (expect !>(?=(^ (find "ensureSchemaLoaded" script))))
   ==
 ::
 ++  test-output-ui-contract-74
@@ -2435,24 +2212,7 @@
     (expect !>(?=(^ (find "markdown-preview-btn" html))))
     (expect !>(?=(^ (find "html-preview" html))))
     (expect !>(?=(^ (find "sandbox" html))))
-    (expect !>(?=(^ (find "markdown-view-toggle" html))))
-    (expect !>(?=(^ (find "markdown-source-btn" html))))
-    (expect !>(?=(^ (find "markdown-preview-btn" html))))
-    (expect !>(?=(^ (find "html-preview" html))))
-    (expect !>(?=(^ (find "sandbox" html))))
     (expect !>(?=(~ (find "save-results-btn" html))))
-    (expect !>(?=(^ (find "results-format-select" html))))
-    (expect !>(?=(^ (find "value=\"%csv\"" html))))
-    (expect !>(?=(^ (find "value=\"%tab\"" html))))
-    (expect !>(?=(^ (find "value=\"%spac\"" html))))
-    (expect !>(?=(^ (find "value=\"%markdown\"" html))))
-    (expect !>(?=(^ (find "value=\"%html\"" html))))
-    (expect !>(?=(^ (find "value=\"%tape\"" html))))
-    (expect !>(?=(^ (find "value=\"%json\"" html))))
-    (expect !>(?=(^ (find "value=\"%wain\"" html))))
-    (expect !>(?=(^ (find "value=\"%manx\"" html))))
-    (expect !>(?=(^ (find "value=\"%vector\"" html))))
-    (expect !>(?=(^ (find "value=\"%raw\"" html))))
     (expect !>(?=(^ (find "results-format-select" html))))
     (expect !>(?=(^ (find "value=\"%csv\"" html))))
     (expect !>(?=(^ (find "value=\"%tab\"" html))))
@@ -2474,8 +2234,6 @@
     (expect !>(?=(^ (find ".help-panel" style))))
     (expect !>(?=(^ (find ".markdown-preview" style))))
     (expect !>(?=(^ (find ".html-preview" style))))
-    (expect !>(?=(^ (find ".markdown-preview" style))))
-    (expect !>(?=(^ (find ".html-preview" style))))
     (expect !>(?=(^ (find "showRunOutput" script))))
     (expect !>(?=(^ (find "showParseOutput" script))))
     (expect !>(?=(^ (find "showErrorOutput" script))))
@@ -2489,20 +2247,7 @@
     (expect !>(?=(^ (find "outputState.resultId" script))))
     (expect !>(?=(^ (find "setPointerCapture" script))))
     (expect !>(?=(^ (find "lostpointercapture" script))))
-    (expect !>(?=(^ (find "renderCommandTabs" script))))
-    (expect !>(?=(^ (find "safeCommands.length === 1" script))))
-    (expect !>(?=(^ (find "command-tab-panel" script))))
-    (expect !>(?=(^ (find "outputState.activeCommand = selected" script))))
-    (expect !>(?=(~ (find "command.exports" script))))
-    (expect !>(?=(^ (find "results/save" script))))
-    (expect !>(?=(^ (find "outputState.resultId" script))))
-    (expect !>(?=(^ (find "setPointerCapture" script))))
-    (expect !>(?=(^ (find "lostpointercapture" script))))
     (expect !>(?=(^ (find "renderResultSet" script))))
-    (expect !>(?=(^ (find "outputCopyAvailable" script))))
-    (expect !>(?=(^ (find "outputCopyText" script))))
-    (expect !>(?=(^ (find ".command-tabs" style))))
-    (expect !>(?=(^ (find ".command-tab" style))))
     (expect !>(?=(^ (find "outputCopyAvailable" script))))
     (expect !>(?=(^ (find "outputCopyText" script))))
     (expect !>(?=(^ (find ".command-tabs" style))))
@@ -2522,13 +2267,6 @@
     (expect !>(?=(^ (find "event.clientX" script))))
     (expect !>(?=(^ (find "window.innerWidth" script))))
     (expect !>(?=(^ (find "outputState.path" script))))
-    (expect !>(?=(^ (find "previewResultMark" script))))
-    (expect !>(?=(^ (find "setResultView" script))))
-    (expect !>(?=(^ (find "renderMarkdown" script))))
-    (expect !>(?=(^ (find "safeMarkdownHref" script))))
-    (expect !>(?=(^ (find "htmlPreview.srcdoc" script))))
-    (expect !>(?=(^ (find "resultFormatMarks" script))))
-    (expect !>(?=(^ (find "path[path.length - 1] === mark" script))))
     (expect !>(?=(^ (find "previewResultMark" script))))
     (expect !>(?=(^ (find "setResultView" script))))
     (expect !>(?=(^ (find "renderMarkdown" script))))
