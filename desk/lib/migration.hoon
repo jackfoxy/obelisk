@@ -1,5 +1,5 @@
 /-  *server-state-1, *obelisk-ast
-/+  *utils
+/+  *sys-views, *utils
 /=  oldstate  /sur/server-state-0
 |%
 ++  old-schema-key  ((on @da schema:oldstate) gth)
@@ -25,6 +25,59 @@
         (weld (database-create-events old-server) event-log.sys-db)
   ~&  "migration complete"
   (~(put by new-server) %sys sys-db)
+::
+++  migrate-server-1-to-2
+  ::  Add sys.foreign-keys to schema histories that predate the view.
+  ::
+  |=  old-server=server
+  ^-  server
+  ~&  "migrating 0.9.1 to 0.9.2"
+  =/  new-server=server
+    %-  malt
+    %+  turn  ~(tap by old-server)
+    |=  [name=@tas db=database]
+    :-  name
+    ?:(=(%sys name) db (migrate-database-1-to-2 db))
+  ~&  "0.9.2 migration complete"
+  new-server
+::
+++  migrate-database-1-to-2
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da schema])  (tap:schema-key sys.db)
+  =/  missing=(list @da)
+    %+  murn  snapshots
+    |=  snapshot=[@da schema]
+    ?:  (has-foreign-keys-view +.snapshot)  ~
+    `-.snapshot
+  =/  migrated-sys=((mop @da schema) gth)
+    %+  gas:schema-key  *((mop @da schema) gth)
+    %+  turn  snapshots
+    |=  snapshot=[@da schema]
+    [-.snapshot (add-foreign-keys-view name.db +.snapshot)]
+  =/  migrated-cache=view-cache
+    %+  gas:view-cache-key  view-cache.db
+    %+  turn  missing
+    |=  time=@da
+    [[%sys %foreign-keys time] [%cache time ~]]
+  db(sys migrated-sys, view-cache migrated-cache)
+::
+++  has-foreign-keys-view
+  |=  input=schema
+  ^-  ?
+  ?=(^ (get-view [%sys %foreign-keys tmsp.input] views.input))
+::
+++  add-foreign-keys-view
+  |=  [database=@tas input=schema]
+  ^-  schema
+  ?:  (has-foreign-keys-view input)
+    input
+  =/  view=view
+    %-  apply-ordering
+    (sys-foreign-keys-view database provenance.input tmsp.input)
+  =/  next-views=views
+    (gas:view-key views.input ~[[[%sys %foreign-keys tmsp.input] view]])
+  input(views next-views)
 ::
 ++  migrate-database-0-to-1
   |=  old-db=database:oldstate

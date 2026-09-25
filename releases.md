@@ -1,6 +1,10 @@
 # Releases
 
 ## v0.9.1-beta
+* fix slowness on UI startup
+* make sure DB has foreign keys view in migration
+
+## v0.9.1-beta
 * updates to UI
 
 ## v0.9.0-beta

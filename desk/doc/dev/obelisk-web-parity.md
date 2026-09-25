@@ -228,6 +228,9 @@ FROM <db>.sys.table-keys
   SELECT namespace, name, key-ordinal, key, key-ascending;
 FROM <db>.sys.columns
   SELECT namespace, name, col-ordinal, col-name, col-type;
+FROM <db>.sys.foreign-keys
+  SELECT parent-namespace, parent-table, child-namespace, child-table,
+  ordinal, parent-column, child-column, on-delete, on-update;
 ```
 
 The native implementation must use the same views and qualify dynamic
@@ -244,9 +247,10 @@ The `sys` database contains these known system views:
 - `sys-log`
 - `data-log`
 
-Database, namespace, relation, key, and column nodes are collapsible. Relation
-nodes show key order and direction plus column auras. The current default
-database is visibly marked.
+Database, namespace, relation, key, and column nodes are collapsible. Collapsed
+branches create their descendants only when opened. Relation nodes show key
+order and direction plus column auras. The current default database is visibly
+marked. A closed schema pane does not request schema data at startup.
 
 Relation context actions insert templates for SELECT, INSERT, and CREATE.
 Known read-only system views offer SELECT only. Inserted identifiers must be
@@ -300,7 +304,7 @@ Every row identifies the later work-plan unit and its acceptance evidence.
 | A11 | `%obelisk` availability and retryable unavailable response | 6 | Missing-agent fixture returns `503` without wedging |
 | A12 | `%obelisk` remains sole database authority | 7 | Run path uses only typed `%obelisk-action` effects |
 | A13 | Hawk-independent native operation | 7 | Run/parse integration works without Hawk watch or file APIs |
-| S1 | Schema uses the required system-view queries | 8 | Query-generation fixtures match all five query shapes |
+| S1 | Schema uses the required system-view queries | 8 | Query-generation fixtures match all six query shapes |
 | S2 | Complete deterministic database tree | 8 | Shuffled fixtures yield stable database/namespace/relation ordering |
 | S3 | Keys, direction, columns, and auras | 8 | Schema DTO fixture retains ordinal and direction metadata |
 | S4 | Known `sys` system views | 8 | All seven views appear with correct read-only classification |
