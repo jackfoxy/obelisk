@@ -1217,7 +1217,6 @@
   (() => {
     'use strict';
 
-    const storageKey = 'obelisk.workbench.v1';
     const byId = (id) => document.getElementById(id);
     const workbench = byId('workbench');
     const explorerPane = byId('explorer-pane');
@@ -1265,6 +1264,16 @@
     let editor;
     const runtime = window.urui.runtime({
       editors: () => [editor],
+      session: {
+        read: (key) => {
+          if (key !== 'workbench') return undefined;
+          if (editor) captureEditor();
+          return state;
+        },
+        validate: (key, raw) => {
+          return key === 'workbench' ? validWorkbench(raw) : undefined;
+        }
+      },
       panes: {
         onSelect: (paneId, _level, id) => {
           if (paneId === 'editor-pane') activateTab(id, pointerSelect);
@@ -1383,9 +1392,10 @@
         (tab.path === null || Array.isArray(tab.path));
     }
 
-    function loadState() {
+    //  The `workbench` slot of urui's session record, repaired on load:
+    //  anything unreadable starts a fresh workbench rather than failing.
+    function validWorkbench(saved) {
       try {
-        const saved = JSON.parse(sessionStorage.getItem(storageKey));
         if (!saved || saved.version !== 1 || !Array.isArray(saved.tabs) ||
             saved.tabs.length === 0 || !saved.tabs.every(validTab)) {
           return initialState();
@@ -1423,14 +1433,13 @@
       }
     }
 
-    let state = loadState();
+    //  replaced by the saved workbench once urui's session loads
+    let state = initialState();
 
+    //  urui writes the whole record, `workbench` included, on a short
+    //  debounce and again on unload; `session.read` captures the editor
     function persist() {
-      try {
-        sessionStorage.setItem(storageKey, JSON.stringify(state));
-      } catch (_) {
-        setStatus('Session state could not be saved.', 'error', true);
-      }
+      runtime.session.queue();
     }
 
     function activeTab() {
@@ -3701,13 +3710,11 @@
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
     });
-    window.addEventListener('beforeunload', () => {
-      captureEditor();
-      persist();
-    });
 
     runtime.wire();
-    runtime.session.load();
+    const saved = runtime.session.load();
+    if (saved?.workbench) state = saved.workbench;
+    wasDirty = tabIsDirty(activeTab());
     runtime.layout.apply();
     runtime.explorer.docs.render();
     runtime.explorer.setView(runtime.explorer.view());
