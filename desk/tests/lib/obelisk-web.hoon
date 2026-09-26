@@ -614,6 +614,35 @@
     !>(?=(^ (find "Obelisk" (trip (response-body -.out)))))
   ==
 ::
+++  test-web-page-shell-09-a
+  ::  The page is urui's frame around obelisk's panes, starting in rows.
+  =/  out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  body  (trip (response-body -.out))
+  =/  needles=(list tape)
+    :~  "class=\"workspace\" data-layout=\"rows\""
+        "id=\"settings\""
+        "id=\"schemas-tree\""
+        "id=\"files-tree\""
+        "id=\"explorer-pane-ship\""
+        "~zod"
+        "id=\"editor-pane-script-tabs\""
+        "id=\"query-editor\""
+        "id=\"markdown-preview\""
+        "id=\"output-pane-command-tabs\""
+        "id=\"result-collapse\""
+        "id=\"results\""
+        "id=\"run-btn\""
+        "id=\"help\""
+        "id=\"file-dialog\""
+        "id=\"file-context-menu\""
+        "href=\"/apps/obelisk/app.css\""
+        "src=\"/apps/obelisk/ace/obelisk-config.js\""
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect-eq !>([needle &]) !>([needle ?=(^ (find needle body))]))
+::
 ++  test-web-page-trailing-slash-10
   =/  out  (poke-http (request %'GET' '/apps/obelisk/'))
   (expect-eq !>(200) !>((response-status -.out)))
@@ -2001,8 +2030,7 @@
   =/  ship=tape  (trip (scot %p our.local))
   ;:  weld
     (expect !>(?=(^ (find "app-header" html))))
-    (expect !>(?=(^ (find "/apps/obelisk/favicon.ico" html))))
-    (expect !>(?=(^ (find "schema-pane" html))))
+    (expect !>(?=(^ (find "explorer-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
     (expect !>(?=(^ (find "Run" html))))
@@ -2010,13 +2038,13 @@
     (expect !>(?=(^ (find "Parse" html))))
     (expect !>(?=(^ (find "Save script" html))))
     (expect !>(?=(^ (find "Save result" html))))
-    (expect !>(?=(^ (find "help-btn" html))))
+    (expect !>(?=(^ (find "id=\"help\"" html))))
     (expect !>(?=(^ (find "help-panel" html))))
     (expect !>(?=(^ (find "close-help" html))))
     (expect !>(?=(^ (find "close-icon" html))))
     (expect !>(?=(^ (find "fallback-help-content" html))))
     (expect !>(?=(^ (find "docs-help-content" html))))
-    (expect !>(?=(^ (find "docs-help-tree" html))))
+    (expect !>(?=(^ (find "docs-help-nav" html))))
     (expect !>(?=(^ (find "explorer-tabs" html))))
     (expect !>(?=(^ (find "explorer-tab-control" html))))
     (expect !>(?=(^ (find "docs-llm-button" html))))
@@ -2046,27 +2074,26 @@
   ;:  weld
     (expect !>(?=(^ (find "/apps/obelisk/app.css" html))))
     (expect !>(?=(^ (find "/apps/obelisk/app.js" html))))
-    (expect !>(?=(^ (find "prefers-color-scheme: dark" style))))
+    (expect !>(?=(^ (find "data-effective-theme='dark'" style))))
     (expect !>(?=(^ (find "max-width: 760px" style))))
     (expect !>(?=(^ (find ".workbench" style))))
-    (expect !>(?=(^ (find ".schema-pane" style))))
-    (expect !>(?=(^ (find ".output-pane" style))))
+    (expect !>(?=(^ (find ".explorer-pane" style))))
+    (expect !>(?=(^ (find "#output-pane" style))))
     (expect !>(?=(^ (find ".splitter.inactive" style))))
-    (expect !>(?=(^ (find ".docs-help-tree" style))))
+    (expect !>(?=(^ (find ".docs-help-nav" style))))
     (expect !>(?=(^ (find ".close-icon::before" style))))
-    (expect !>(?=(^ (find ".docs-help-static" style))))
+    (expect !>(?=(^ (find ".docs-help-link" style))))
     (expect !>(?=(^ (find ".docs-tab-close" style))))
     (expect !>(?=(^ (find ".explorer-tab" style))))
     (expect !>(?=(^ (find "height: 2rem;" style))))
-    (expect !>(?=(^ (find ".explorer-tab-control .explorer-tab" style))))
-    (expect !>(?=(^ (find "padding-block: 0;" style))))
-    (expect !>(?=(~ (find ".explorer-tab-control.active" style))))
-    (expect !>(?=(^ (find ".docs-tab-control .explorer-tab" style))))
+    (expect !>(?=(^ (find ".explorer-tab-control" style))))
+    (expect !>(?=(^ (find ".docs-tab-control" style))))
     (expect !>(?=(~ (find ".docs-tab-control.active .explorer-tab" style))))
     (expect !>(?=(^ (find "border-left: 0;" style))))
-    (expect !>(?=(^ (find ".editor-tab-control" style))))
-    (expect !>(?=(^ (find ".editor-tab-close" style))))
-    (expect !>(?=(^ (find ".docs-frame" style))))
+    (expect !>(?=(^ (find ".document-tab-control" style))))
+    (expect !>(?=(^ (find ".document-tab-close" style))))
+    (expect !>(?=(^ (find ".docs-explorer-frame" style))))
+    (expect !>(?=(^ (find ".result-collapsed" style))))
     (expect !>(?=(~ (find "hawk" lower))))
     (expect !>(?=(~ (find "htmx" lower))))
     (expect !>(?=(~ (find "jquery" lower))))
@@ -2212,7 +2239,7 @@
   ;:  weld
     (expect !>(?=(^ (find "relation-menu" html))))
     (expect !>(?=(^ (find "schemas-tab" html))))
-    (expect !>(?=(^ (find "schema-panel" html))))
+    (expect !>(?=(^ (find "schemas-panel" html))))
     (expect !>(?=(^ (find "relation-select" html))))
     (expect !>(?=(^ (find "relation-insert" html))))
     (expect !>(?=(^ (find "relation-create" html))))
@@ -2272,7 +2299,7 @@
     (expect !>(?=(^ (find "result-table-wrap" style))))
     (expect !>(?=(^ (find "white-space: nowrap" style))))
     (expect !>(?=(^ (find "height: 2.3rem" style))))
-    (expect !>(?=(^ (find ".editor-tabs .new-tab" style))))
+    (expect !>(?=(^ (find ".document-tab-add" style))))
     (expect !>(?=(^ (find ".copy-icon" style))))
     (expect !>(?=(^ (find ".save-icon" style))))
     (expect !>(?=(^ (find ".help-panel" style))))

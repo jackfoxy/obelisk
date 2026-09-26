@@ -1,7 +1,7 @@
 ::  Pure state lifecycle helpers for %obelisk-web.
 ::
 /-  urui, web=obelisk-web
-/+  uace=urui-ace
+/+  shell=urui-shell, ucss=urui-css, uace=urui-ace
 |%
 ::
 ++  empty-durable-state
@@ -114,488 +114,492 @@
   ^-  @t
   (config-js:uace ace-spec)
 ::
+++  config
+  ^-  app-config:urui
+  :*  :*  name=%obelisk
+          title='Obelisk'
+          base='/apps/obelisk'
+          storage-key='obelisk.session.v1'
+          storage-version=1
+      ==
+      ::  no urui-managed $doc-kind: query and result tabs are obelisk's
+      ::  own %dynamic levels, and its trees are filled by its own code
+      kinds=~
+      ::  inert while `kinds` is empty; they name obelisk's real file
+      ::  routes, whose json wire urui's runtime does not speak
+      :*  transport=%body
+          path-header=~
+          flag-header=~
+          browse='/apps/obelisk/api/files/browse'
+          load='/apps/obelisk/api/files/load'
+          save='/apps/obelisk/api/files/save'
+          delete='/apps/obelisk/api/files/delete'
+      ==
+      :*  render-debounce=0
+          save-debounce=150
+          min-explorer=180
+          divider=10
+          pane-min=30
+          pane-max=85
+          narrow=760
+          max-source=262.144
+      ==
+      slots
+      ~[['F5' 'run' %always]]
+      ~[[%ready 'Ready']]
+      docs-root=`'/docs/d/obelisk/'
+      share-param=~
+      ace-spec
+      layout=%rows
+      collapse=&
+  ==
+::
+++  slots
+  ^-  (list slot:urui)
+  :~  ['workbench' %app %record ~]
+      ['paneBands' %urui %record ~]
+      ['panePaths' %urui %record ~]
+      ['paneWidth' %urui %scalar ~]
+      ['paneHeight' %urui %scalar ~]
+      ['resultOpen' %urui %scalar ~]
+      ['explorerWidth' %urui %scalar ~]
+      ['explorerOpen' %urui %scalar ~]
+      ['explorerView' %urui %scalar ~]
+      ['explorerOrder' %urui %scalar ~]
+      ['docsTabs' %urui %tabs ~]
+      ['nextDocs' %urui %next ~]
+      ['preferences.theme' %urui %scalar ~]
+      ['preferences.layout' %urui %scalar ~]
+      ['preferences.keybindings' %urui %scalar ~]
+  ==
+::
 ++  page
   |=  our=@p
   ^-  @t
-  %-  crip
-  %-  en-xml:html
-  ;html(lang "en")
-    ;head
-      ;meta(charset "utf-8");
-      ;meta(name "viewport", content "width=device-width, initial-scale=1");
-      ;title: Obelisk
-      ;link#favicon(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
-      ;link(rel "stylesheet", href "/apps/obelisk/app.css");
-      ;script(src "/apps/obelisk/app.js", defer "");
-    ==
-    ;body
-      ;div#obelisk-app.app-shell
-        ;header#app-header.app-header
-          ;a.brand(href "/apps/obelisk", aria-label "Obelisk home")
-            Obelisk
+  (crip (en-xml:html (build:shell (spec our))))
+::
+++  spec
+  |=  our=@p
+  ^-  shell-spec:urui
+  :*  config
+      brand
+      toolbar
+      [(reference-pane our) editor-pane result-pane]
+      help
+      dialogs
+      styles=~['/apps/obelisk/app.css']
+      :~  '/apps/obelisk/ace/ace.js'
+          '/apps/obelisk/ace/obelisk-config.js'
+          '/apps/obelisk/ace/theme-github.js'
+          '/apps/obelisk/ace/ext-beautify.js'
+          '/apps/obelisk/app.js'
+      ==
+  ==
+::
+++  pinned
+  ::  A band the user cannot hide: no reveal key, so no toggle.
+  |=  [name=@tas item=band-item:urui]
+  ^-  band:urui
+  [name [key=~ open=& label=''] item]
+::
+++  reference-pane
+  ::  The explorer.  Neither view is named `{kind}-files`, so urui fills
+  ::  neither tree: obelisk renders `#schemas-tree` and `#files-tree`.
+  |=  our=@p
+  ^-  pane:urui
+  :*  role=%reference
+      id='explorer-pane'
+      label='Obelisk explorer'
+      mode=%read-only
+      kind=~
+      ::  the label leads: the %tabs band carries the panels and grows,
+      ::  so anything after it lands at the bottom of the pane
+      :~  (pinned %ship [%label (scot %p our)])
+          %+  pinned  %tabs
+          :-  %tabs
+          :~  :*  name=%view
+                  label='Obelisk explorer'
+                  source=%views
+                  kind=~
+                  fixed=~[[%schemas 'Schemas'] [%files 'Files']]
+                  add=~
+                  close=|
+                  reorder=|
+              ==
           ==
-          ;nav.toolbar(aria-label "Obelisk workbench controls")
-            ;div.default-database
-              ;label(for "default-db"): Default DB
-              ;select#default-db(name "default-db")
-                ;option(value "sys"): sys
+          (pinned %body [%panel 'explorer-body' ~ ~])
+      ==
+  ==
+::
+++  editor-pane
+  ::  Tabs first, then the heading: the urQL label and markdown toggle
+  ::  on the left, save and copy on the right.
+  ^-  pane:urui
+  :*  role=%editor
+      id='editor-pane'
+      label='Query editor'
+      mode=%read-write
+      kind=~
+      :~  %+  pinned  %tabs
+          :-  %tabs
+          :~  :*  name=%script
+                  label='Query tabs'
+                  source=%dynamic
+                  kind=~
+                  fixed=~
+                  add=`'New query tab'
+                  close=&
+                  reorder=|
               ==
-            ==
-            ;button#run-btn.primary(type "button", title "Run (F5)")
-              ;span: Run
-              ;kbd: F5
-            ==
-            ;button#parse-btn(type "button"): Parse
-            ;button#help-btn(type "button", aria-expanded "false"): Help
           ==
-        ==
-        ;main#workbench.workbench
-          ;aside#schema-pane.schema-pane
-            =aria-label  "Obelisk explorer"
-            ;div.pane-header
-              ;div.explorer-heading
-                ;div#explorer-tabs.explorer-tabs
-                  =role  "tablist"
-                  =aria-label  "Obelisk explorer"
-                  ;div.explorer-tab-control.active(role "presentation")
-                    ;button#schemas-tab.explorer-tab.active
-                      =type  "button"
-                      =role  "tab"
-                      =data-explorer-view  "schemas"
-                      =aria-selected  "true"
-                      =aria-controls  "schema-panel"
-                      Schemas
-                    ==
-                  ==
-                  ;div.explorer-tab-control(role "presentation")
-                    ;button#files-tab.explorer-tab
-                      =type  "button"
-                      =role  "tab"
-                      =data-explorer-view  "files"
-                      =aria-selected  "false"
-                      =aria-controls  "files-panel"
-                      =tabindex  "-1"
-                      Files
-                    ==
-                  ==
-                ==
-                ;span#local-ship.ship: {(trip (scot %p our))}
-              ==
-              ;button#schema-collapse.icon-button
-                =type  "button"
-                =aria-label  "Collapse explorer"
-                =aria-expanded  "true"
-                ‹
-              ==
-            ==
-            ;div#schema-panel.explorer-panel
-              =role  "tabpanel"
-              =aria-labelledby  "schemas-tab"
-              ;div#schema-tree.schema-tree
-                =role  "tree"
-                =aria-label  "Database schemas"
-                =aria-busy  "true"
-                ;p.empty-state: Loading schemas…
-              ==
-            ==
-            ;div#files-panel.explorer-panel(hidden "")
-              =role  "tabpanel"
-              =aria-labelledby  "files-tab"
-              ;div#files-tree.file-tree
-                =role  "tree"
-                =aria-label  "Saved scripts and results"
-                =aria-busy  "true"
-                ;p.empty-state: Loading files…
-              ==
-            ==
+          (pinned %head [%heading ~ ~ editor-actions])
+          (pinned %body [%panel 'editor-body' ~ editor-body])
+      ==
+  ==
+::
+++  editor-actions
+  ^-  marl
+  :~  ;div.editor-mode
+        ;span#editor-language: urQL
+        ;div#markdown-view-toggle.markdown-view-toggle.hidden
+          =role        "group"
+          =aria-label  "Markdown view"
+          ;button#markdown-source-btn.active
+            =type          "button"
+            =aria-pressed  "true"
+            Source
           ==
-          ;button#schema-resizer.splitter
-            =type  "button"
-            =role  "separator"
-            =aria-orientation  "vertical"
-            =aria-label  "Resize explorer"
-            ;span.visually-hidden: Resize explorer
-          ==
-          ;section#workspace.workspace(aria-label "Query workspace")
-            ;section#editor-pane.editor-pane
-              =aria-labelledby  "editor-heading"
-              ;h2#editor-heading.visually-hidden: Query editor
-              ;div.editor-tabs(role "tablist", aria-label "Query tabs")
-                ;button#tab-script-1.tab.active
-                  =type  "button"
-                  =role  "tab"
-                  =aria-selected  "true"
-                  =aria-controls  "query-editor"
-                  script-1
-                ==
-                ;button#new-tab-btn.new-tab
-                  =type  "button"
-                  =aria-label  "New query tab"
-                  +
-                ==
-              ==
-              ;div.editor-toolbar
-                ;div.editor-mode
-                  ;span#editor-language: urQL
-                  ;div#markdown-view-toggle.markdown-view-toggle.hidden
-                    =role  "group"
-                    =aria-label  "Markdown view"
-                    ;button#markdown-source-btn.active
-                      =type  "button"
-                      =aria-pressed  "true"
-                      Source
-                    ==
-                    ;button#markdown-preview-btn
-                      =type  "button"
-                      =aria-pressed  "false"
-                      Preview
-                    ==
-                  ==
-                ==
-                ;div.editor-actions
-                  ;button#save-query-btn.icon-button.save-action
-                    =type  "button"
-                    =title  "Save script"
-                    =aria-label  "Save script"
-                    =aria-haspopup  "menu"
-                    =aria-expanded  "false"
-                    ;span.save-icon(aria-hidden "true");
-                  ==
-                  ;button#copy-query-btn.icon-button
-                    =type  "button"
-                    =title  "Copy script"
-                    =aria-label  "Copy script"
-                    ;span.copy-icon(aria-hidden "true");
-                  ==
-                ==
-              ==
-              ;textarea#query-editor.query-editor
-                =aria-label  "urQL query"
-                =spellcheck  "false"
-                =placeholder  "Enter urQL here…"
-                ;*  ~[;/("")]
-              ==
-              ;div#markdown-preview.markdown-preview.hidden
-                =role  "document"
-                =tabindex  "0"
-                =aria-label  "Rendered Markdown"
-                ;*  ~[;/("")]
-              ==
-              ;iframe#html-preview.html-preview.hidden
-                =title  "Rendered HTML"
-                =sandbox  ""
-                =referrerpolicy  "no-referrer"
-                ;*  ~[;/("")]
-              ==
-            ==
-            ;button#output-resizer.splitter.horizontal
-              =type  "button"
-              =role  "separator"
-              =aria-orientation  "horizontal"
-              =aria-label  "Resize output"
-              =aria-valuemin  "15"
-              =aria-valuemax  "70"
-              ;span.visually-hidden: Resize output
-            ==
-            ;section#output-pane.output-pane
-              =aria-labelledby  "output-heading"
-              ;div.pane-header
-                ;h2#output-heading: Output
-                ;div.pane-actions
-                  ;button#save-output-btn.icon-button.save-action
-                    =type  "button"
-                    =title  "Save results"
-                    =aria-label  "Save results"
-                    =disabled  ""
-                    ;span.save-icon(aria-hidden "true");
-                  ==
-                  ;button#copy-output-btn.icon-button
-                    =type  "button"
-                    =title  "Copy results"
-                    =aria-label  "Copy results"
-                    ;span.copy-icon(aria-hidden "true");
-                  ==
-                  ;button#output-collapse.icon-button
-                    =type  "button"
-                    =aria-label  "Collapse output"
-                    =aria-expanded  "true"
-                    ⌄
-                  ==
-                ==
-              ==
-              ;div#results.results
-                =role  "region"
-                =aria-live  "polite"
-                =aria-label  "Query results"
-                ;p.empty-state: No results yet
-              ==
-            ==
-          ==
-        ==
-        ;aside#help-panel.help-panel(hidden "", aria-label "Help")
-          ;div.help-card
-            ;div.pane-header
-              ;h2: Help
-              ;button#close-help.icon-button.help-close
-                =type  "button"
-                =title  "Close"
-                =aria-label  "Close help"
-                ;span.close-icon(aria-hidden "true");
-              ==
-            ==
-            ;div#fallback-help-content
-              ;nav.help-links(aria-label "Obelisk documentation")
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/tree/master/".
-                    "desk/doc/usr/reference/"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  Reference
-                ==
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "desk/doc/usr/users-guide.md"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  Users Guide
-                ==
-                ;a
-                  =href
-                    "https://github.com/jackfoxy/obelisk/blob/master/".
-                    "roadmap.md"
-                  =target  "_blank"
-                  =rel  "noopener noreferrer"
-                  Roadmap
-                ==
-              ==
-              ;section.help-section
-                ;h3: For Developers
-                ;nav#developer-help-links.help-links
-                  =aria-label  "Obelisk developer documentation"
-                  ;a
-                    =href
-                      "https://github.com/jackfoxy/obelisk/blob/master/".
-                      "desk/sur/obelisk-ast.hoon"
-                    =target  "_blank"
-                    =rel  "noopener noreferrer"
-                    API/AST
-                  ==
-                  ;a
-                    =href
-                      "https://github.com/jackfoxy/obelisk/tree/master/".
-                      ".claude/skills/obelisk-urql"
-                    =target  "_blank"
-                    =rel  "noopener noreferrer"
-                    urQL LLM
-                  ==
-                  ;a
-                    =href
-                      "https://github.com/jackfoxy/obelisk/blob/master/".
-                      "desk/doc/dev/users-guide-script.txt"
-                    =target  "_blank"
-                    =rel  "noopener noreferrer"
-                    Sample urQL
-                  ==
-                  ;a
-                    =href
-                      "https://github.com/jackfoxy/obelisk/blob/master/".
-                      "desk/doc/dev/performance.md"
-                    =target  "_blank"
-                    =rel  "noopener noreferrer"
-                    Benchmarks
-                  ==
-                ==
-              ==
-            ==
-            ;div#docs-help-content.docs-help-content.hidden
-              ;nav#docs-help-tree.docs-help-tree
-                =role  "tree"
-                =aria-label  "Obelisk documentation in Docs"
-                ;*  ~[;/("")]
-              ==
-              ;a.docs-llm-button
-                =href
-                  "https://github.com/jackfoxy/obelisk/tree/master/".
-                  ".claude/skills/obelisk-urql"
-                =target  "_blank"
-                =rel  "noopener noreferrer"
-                =role  "button"
-                urQL LLM
-              ==
-            ==
-          ==
-        ==
-        ;div#app-status.status.hidden
-          =role  "status"
-          =aria-live  "polite"
-          ;*  ~[;/("")]
-        ==
-        ;dialog#file-dialog.file-dialog
-          =aria-labelledby  "file-dialog-title"
-          ;form#file-dialog-form(method "dialog")
-            ;h2#file-dialog-title: Open script
-            ;p#file-dialog-help.dialog-help
-              Choose a saved script.
-            ==
-            ;div#file-dialog-list.file-dialog-list
-              =role  "tree"
-              =aria-label  "Saved scripts"
-              ;*  ~[;/("")]
-            ==
-            ;label#file-path-label.hidden(for "file-path-input")
-              Script path
-            ==
-            ;input#file-path-input.hidden(placeholder "folder/script-name");
-            ;label#results-format-field.hidden(for "results-format-select")
-              Format
-              ;select#results-format-select(name "results-format")
-                ;option(value "%csv"): comma-separated
-                ;option(value "%tab"): tab-separated
-                ;option(value "%spac"): space-separated
-                ;option(value "%markdown"): markdown
-                ;option(value "%html"): html
-                ;option(value "%tape"): text
-                ;option(value "%json"): json
-                ;option(value "%wain"): %wain
-                ;option(value "%manx"): %manx
-                ;option(value "%vector"): %vector
-                ;option(value "%raw"): %raw
-              ==
-            ==
-            ;div.dialog-actions
-              ;button#file-dialog-cancel(type "button"): Cancel
-              ;button#file-dialog-confirm.primary(type "submit"): Open
-            ==
-          ==
-        ==
-        ;div#relation-menu.relation-menu.hidden(role "menu")
-          ;button#relation-select(type "button", role "menuitem")
-            SELECT
-          ==
-          ;button#relation-insert(type "button", role "menuitem")
-            INSERT
-          ==
-          ;button#relation-create(type "button", role "menuitem")
-            CREATE
-          ==
-        ==
-        ;div#save-context-menu.save-context-menu.hidden(role "menu")
-          ;button#save-context-save(type "button", role "menuitem")
-            Save
-          ==
-          ;button#save-context-save-as(type "button", role "menuitem")
-            Save As...
-          ==
-        ==
-        ;div#file-context-menu.file-context-menu.hidden(role "menu")
-          ;button#file-context-open(type "button", role "menuitem")
-            Open
-          ==
-          ;button#file-context-delete(type "button", role "menuitem")
-            Delete
+          ;button#markdown-preview-btn
+            =type          "button"
+            =aria-pressed  "false"
+            Preview
           ==
         ==
       ==
-    ==
+      ;div.editor-actions
+        ;button#save-query-btn.icon-button.save-action
+          =type           "button"
+          =title          "Save script"
+          =aria-label     "Save script"
+          =aria-haspopup  "menu"
+          =aria-expanded  "false"
+          ;span.save-icon(aria-hidden "true");
+        ==
+        ;button#copy-query-btn.icon-button
+          =type        "button"
+          =title       "Copy script"
+          =aria-label  "Copy script"
+          ;span.copy-icon(aria-hidden "true");
+        ==
+      ==
+  ==
+::
+++  editor-body
+  ^-  marl
+  :~  ;div.editor-body
+        ;div#editor-load-error.editor-load-error
+          =hidden  ""
+          =role    "alert"
+          ;strong: Query editor unavailable
+          ;span: Reload the page.
+          ;span: If the problem continues, verify the Ace assets are installed.
+        ==
+        ;div#query-editor.ace-editor-host
+          =role        "region"
+          =aria-label  "urQL query"
+          ;span(hidden "");
+        ==
+        ;div#markdown-preview.markdown-preview.hidden
+          =role        "document"
+          =tabindex    "0"
+          =aria-label  "Rendered Markdown"
+          ;*  ~[;/("")]
+        ==
+        ;iframe#html-preview.html-preview.hidden
+          =title           "Rendered HTML"
+          =sandbox         ""
+          =referrerpolicy  "no-referrer"
+          ;*  ~[;/("")]
+        ==
+      ==
+  ==
+::
+++  result-pane
+  ::  Heading first, then one command level.  A command's Results and
+  ::  Messages views and its stacked result sets stay obelisk's markup
+  ::  inside `#results`.  urui appends the collapse control.
+  ^-  pane:urui
+  :*  role=%result
+      id='output-pane'
+      label='Output'
+      mode=%read-write
+      kind=~
+      :~  (pinned %head [%heading `'Output' ~ result-actions])
+          %+  pinned  %tabs
+          :-  %tabs
+          :~  :*  name=%command
+                  label='Command results'
+                  source=%dynamic
+                  kind=~
+                  fixed=~
+                  add=~
+                  close=|
+                  reorder=|
+              ==
+          ==
+          %+  pinned  %body
+          :*  %panel  'output-body'  ~
+              :~  ;div#results.results
+                    =role        "region"
+                    =aria-live   "polite"
+                    =aria-label  "Query results"
+                    ;p.empty-state: No results yet
+                  ==
+              ==
+          ==
+      ==
+  ==
+::
+++  result-actions
+  ^-  marl
+  :~  ;button#save-output-btn.icon-button.save-action
+        =type        "button"
+        =title       "Save results"
+        =aria-label  "Save results"
+        =disabled    ""
+        ;span.save-icon(aria-hidden "true");
+      ==
+      ;button#copy-output-btn.icon-button
+        =type        "button"
+        =title       "Copy results"
+        =aria-label  "Copy results"
+        ;span.copy-icon(aria-hidden "true");
+      ==
+  ==
+::
+++  brand
+  ^-  marl
+  :~  ;a.brand(href "/apps/obelisk", aria-label "Obelisk home"): Obelisk
+  ==
+::
+++  toolbar
+  ::  No theme control: urui's settings modal owns it, and emits the
+  ::  Settings button immediately left of this marl.
+  ^-  marl
+  :~  ;nav.toolbar(aria-label "Obelisk workbench controls")
+        ;div.default-database
+          ;label(for "default-db"): Default DB
+          ;select#default-db(name "default-db")
+            ;option(value "sys"): sys
+          ==
+        ==
+        ;button#run-btn.primary(type "button", title "Run (F5)")
+          ;span: Run
+          ;kbd: F5
+        ==
+        ;button#parse-btn(type "button"): Parse
+        ;button#help(type "button", aria-expanded "false"): Help
+      ==
+  ==
+::
+++  help
+  ^-  marl
+  :~  ;div#fallback-help-content
+        ;nav.help-links(aria-label "Obelisk documentation")
+          ;a
+            =href
+              "https://github.com/jackfoxy/obelisk/tree/master/".
+              "desk/doc/usr/reference/"
+            =target  "_blank"
+            =rel     "noopener noreferrer"
+            Reference
+          ==
+          ;a
+            =href
+              "https://github.com/jackfoxy/obelisk/blob/master/".
+              "desk/doc/usr/users-guide.md"
+            =target  "_blank"
+            =rel     "noopener noreferrer"
+            Users Guide
+          ==
+          ;a
+            =href
+              "https://github.com/jackfoxy/obelisk/blob/master/".
+              "roadmap.md"
+            =target  "_blank"
+            =rel     "noopener noreferrer"
+            Roadmap
+          ==
+        ==
+        ;section.help-section
+          ;h3: For Developers
+          ;nav#developer-help-links.help-links
+            =aria-label  "Obelisk developer documentation"
+            ;a
+              =href
+                "https://github.com/jackfoxy/obelisk/blob/master/".
+                "desk/sur/obelisk-ast.hoon"
+              =target  "_blank"
+              =rel     "noopener noreferrer"
+              API/AST
+            ==
+            ;a
+              =href
+                "https://github.com/jackfoxy/obelisk/tree/master/".
+                ".claude/skills/obelisk-urql"
+              =target  "_blank"
+              =rel     "noopener noreferrer"
+              urQL LLM
+            ==
+            ;a
+              =href
+                "https://github.com/jackfoxy/obelisk/blob/master/".
+                "desk/doc/dev/users-guide-script.txt"
+              =target  "_blank"
+              =rel     "noopener noreferrer"
+              Sample urQL
+            ==
+            ;a
+              =href
+                "https://github.com/jackfoxy/obelisk/blob/master/".
+                "desk/doc/dev/performance.md"
+              =target  "_blank"
+              =rel     "noopener noreferrer"
+              Benchmarks
+            ==
+          ==
+        ==
+      ==
+      ;div#docs-help-content.docs-help-content(hidden "")
+        ;nav#docs-help-nav.docs-help-nav
+          =aria-label  "Obelisk documentation in Docs"
+          =aria-busy   "true"
+          ;p.docs-help-loading: Loading documentation…
+        ==
+        ;a.docs-llm-button
+          =href
+            "https://github.com/jackfoxy/obelisk/tree/master/".
+            ".claude/skills/obelisk-urql"
+          =target  "_blank"
+          =rel     "noopener noreferrer"
+          =role    "button"
+          urQL LLM
+        ==
+      ==
+  ==
+::
+++  dialogs
+  ::  The file context menu is urui's; these are obelisk's own.
+  ^-  marl
+  :~  ;div#app-status.app-status.hidden
+        =role       "status"
+        =aria-live  "polite"
+        ;*  ~[;/("")]
+      ==
+      ;dialog#file-dialog.file-dialog
+        =aria-labelledby  "file-dialog-title"
+        ;form#file-dialog-form(method "dialog")
+          ;h2#file-dialog-title: Open script
+          ;p#file-dialog-help.dialog-help
+            Choose a saved script.
+          ==
+          ;div#file-dialog-list.file-dialog-list
+            =role        "tree"
+            =aria-label  "Saved scripts"
+            ;*  ~[;/("")]
+          ==
+          ;label#file-path-label.hidden(for "file-path-input")
+            Script path
+          ==
+          ;input#file-path-input.hidden(placeholder "folder/script-name");
+          ;label#results-format-field.hidden(for "results-format-select")
+            Format
+            ;select#results-format-select(name "results-format")
+              ;option(value "%csv"): comma-separated
+              ;option(value "%tab"): tab-separated
+              ;option(value "%spac"): space-separated
+              ;option(value "%markdown"): markdown
+              ;option(value "%html"): html
+              ;option(value "%tape"): text
+              ;option(value "%json"): json
+              ;option(value "%wain"): %wain
+              ;option(value "%manx"): %manx
+              ;option(value "%vector"): %vector
+              ;option(value "%raw"): %raw
+            ==
+          ==
+          ;div.dialog-actions
+            ;button#file-dialog-cancel(type "button"): Cancel
+            ;button#file-dialog-confirm.primary(type "submit"): Open
+          ==
+        ==
+      ==
+      ;div#relation-menu.relation-menu.hidden(role "menu")
+        ;button#relation-select(type "button", role "menuitem")
+          SELECT
+        ==
+        ;button#relation-insert(type "button", role "menuitem")
+          INSERT
+        ==
+        ;button#relation-create(type "button", role "menuitem")
+          CREATE
+        ==
+      ==
+      ;div#save-context-menu.save-context-menu.hidden(role "menu")
+        ;button#save-context-save(type "button", role "menuitem")
+          Save
+        ==
+        ;button#save-context-save-as(type "button", role "menuitem")
+          Save As...
+        ==
+      ==
   ==
 ::
 ++  css
   ^-  @t
+  %+  rap  3
+  :~  %-  compose:ucss
+      :~  %tokens  %controls  %shell  %explorer
+          %tabs  %dialogs  %responsive
+      ==
+      app-css
+  ==
+::
+++  app-css
+  ::  Obelisk's palette and its own surfaces: menus, dialogs, the status
+  ::  toast, the schema and file trees, the editor heading and previews,
+  ::  and command output.  The frame, panes, tabs, explorer, help, and
+  ::  dark theme are urui's.
+  ::
+  ::  The light palette overrides urui's tokens on `:root`; urui's dark
+  ::  palette is already obelisk's, and its `data-effective-theme`
+  ::  selector outranks this one.
+  ^-  @t
   '''
   :root {
-    color-scheme: light;
-    --bg: #f7f7f4;
-    --surface: #ffffff;
+    --background: #f7f7f4;
     --surface-alt: #f0f0eb;
-    --text: #181817;
+    --ink: #181817;
     --muted: #66665f;
     --border: #d4d4cc;
     --accent: #6d28d9;
-    --accent-text: #ffffff;
     --focus: #2563eb;
-    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-    font-size: 15px;
-  }
-
-  html, body {
-    height: 100%;
-    margin: 0;
-  }
-
-  * {
-    box-sizing: border-box;
+    --explorer-width: 320px;
+    --editor-height: 66.67%;
   }
 
   body {
-    background: var(--bg);
-    color: var(--text);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: normal;
     overflow: hidden;
   }
 
-  button, select, textarea {
-    color: inherit;
-    font: inherit;
-  }
+  button, select { min-height: 2rem; }
 
-  button, select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    min-height: 2rem;
-    padding: 0.5rem 0.75rem;
-  }
+  a { border-radius: 0.2rem; color: inherit; }
 
-  button, select, a {
-    touch-action: manipulation;
-  }
-
-  button:not(:disabled), select, a {
-    cursor: pointer;
-  }
-
-  button:hover:not(:disabled) {
-    border-color: var(--accent);
-  }
-
-  a:hover {
-    background: var(--surface-alt);
-  }
-
-  button:focus-visible, select:focus-visible, textarea:focus-visible,
-  a:focus-visible, [role="separator"]:focus-visible {
-    outline: 2px solid var(--focus);
-    outline-offset: 2px;
-  }
-
-  button:disabled {
-    cursor: not-allowed;
-    opacity: 0.45;
-  }
-
-  a {
-    border-radius: 0.2rem;
-    color: inherit;
-  }
-
-  #obelisk-app {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-    height: 100%;
-  }
-
-  .app-header {
-    align-items: center;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 1rem;
-    min-height: 3.25rem;
-    padding: 0.75rem 1rem;
-    position: relative;
-    z-index: 20;
-  }
+  a:hover { background: var(--surface-alt); }
 
   .brand {
     font-size: 1.05rem;
@@ -603,25 +607,7 @@
     text-decoration: none;
   }
 
-  .toolbar {
-    align-items: center;
-    display: flex;
-    flex: 1;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    margin-left: auto;
-  }
-
-  .toolbar button, .toolbar select {
-    padding: 0.5rem 0.75rem;
-  }
-
-  .toolbar .primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-text);
-  }
+  .toolbar { align-items: center; }
 
   .toolbar kbd {
     font-family: ui-monospace, monospace;
@@ -642,44 +628,9 @@
     white-space: nowrap;
   }
 
-  .menu {
-    position: relative;
-  }
+  .hidden { display: none !important; }
 
-  .menu-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    box-shadow: 0 0.7rem 2rem rgb(0 0 0 / 0.16);
-    display: grid;
-    left: 0;
-    min-width: 12rem;
-    padding: 0.3rem;
-    position: absolute;
-    top: calc(100% + 0.35rem);
-    z-index: 30;
-  }
-
-  .menu-panel-right {
-    left: auto;
-    right: 0;
-  }
-
-  .menu-panel button, .menu-panel a {
-    background: transparent;
-    border: 0;
-    display: block;
-    min-height: 2rem;
-    padding: 0.45rem 0.55rem;
-    text-align: left;
-    text-decoration: none;
-  }
-
-  .hidden {
-    display: none !important;
-  }
-
-  .status {
+  .app-status {
     background: var(--surface);
     border: 1px solid var(--border);
     border-left: 0.3rem solid var(--accent);
@@ -694,23 +645,21 @@
     z-index: 50;
   }
 
-  .status[data-kind="error"] {
-    border-left-color: #dc2626;
-  }
+  .app-status[data-kind="error"] { border-left-color: #dc2626; }
+
+  /* ---- dialogs and menus ------------------------------------------- */
 
   .file-dialog {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.55rem;
-    color: var(--text);
+    color: var(--ink);
     max-width: min(34rem, calc(100vw - 2rem));
     padding: 0;
     width: 30rem;
   }
 
-  .file-dialog::backdrop {
-    background: rgb(0 0 0 / 0.38);
-  }
+  .file-dialog::backdrop { background: rgb(0 0 0 / 0.38); }
 
   .file-dialog form {
     display: grid;
@@ -718,9 +667,7 @@
     padding: 1rem;
   }
 
-  .file-dialog h2, .dialog-help {
-    margin: 0;
-  }
+  .file-dialog h2, .dialog-help { margin: 0; }
 
   .dialog-help {
     color: var(--muted);
@@ -754,11 +701,11 @@
     cursor: default;
   }
 
-  #file-path-input {
+  #file-path-input, #results-format-select {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
-    color: var(--text);
+    color: var(--ink);
     min-height: 2.25rem;
     padding: 0.4rem 0.55rem;
     width: 100%;
@@ -771,31 +718,13 @@
     gap: 0.3rem;
   }
 
-  #results-format-select {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.3rem;
-    color: var(--text);
-    min-height: 2.25rem;
-    padding: 0.4rem 0.55rem;
-    width: 100%;
-  }
-
   .dialog-actions {
     display: flex;
     gap: 0.45rem;
     justify-content: flex-end;
   }
 
-  .dialog-actions button {
-    padding: 0.35rem 0.75rem;
-  }
-
-  .dialog-actions .primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--accent-text);
-  }
+  .dialog-actions button { padding: 0.35rem 0.75rem; }
 
   .relation-menu, .save-context-menu, .file-context-menu {
     background: var(--surface);
@@ -816,169 +745,21 @@
     text-align: left;
   }
 
-  .workbench {
-    display: grid;
-    grid-template-columns: minmax(14rem, 22rem) 0.35rem minmax(0, 1fr);
-    min-height: 0;
-  }
+  /* ---- explorer trees ---------------------------------------------- */
 
-  .schema-pane, .editor-pane, .output-pane {
-    background: var(--surface);
-    min-height: 0;
-    min-width: 0;
-  }
-
-  .schema-pane {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .schema-pane.collapsed .pane-header > div,
-  .schema-pane.collapsed .explorer-panel {
-    display: none;
-  }
-
-  .schema-pane.collapsed .pane-header {
-    justify-content: center;
-    padding: 0.4rem;
-  }
-
-  .pane-header {
-    align-items: center;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    min-height: 3rem;
-    padding: 0.55rem 0.75rem;
-  }
-
-  .pane-header h1, .pane-header h2 {
-    font-size: 0.95rem;
-    margin: 0;
-  }
-
-  .explorer-heading {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .explorer-tabs {
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 0.2rem;
-    overflow-x: auto;
-  }
-
-  .explorer-tab {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    color: var(--muted);
-    font-weight: 600;
-    height: 100%;
-    padding: 0.2rem 0.35rem;
-  }
-
-  .explorer-tab:hover, .explorer-tab:focus-visible {
-    background: var(--surface-alt);
-    color: var(--text);
-  }
-
-  .explorer-tab.active {
-    color: var(--text);
-  }
-
-  .explorer-tab-control, .docs-tab-control {
-    align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    display: inline-flex;
-    overflow: hidden;
-  }
-
-  .explorer-tab-control {
-    height: 2rem;
-  }
-
-  .explorer-tab-control .explorer-tab {
-    align-items: center;
-    display: inline-flex;
-    justify-content: center;
-    line-height: 1;
-    padding-block: 0;
-  }
-
-  .docs-tab-control {
-    height: 2.3rem;
-  }
-
-  .docs-tab-control .explorer-tab {
-    max-width: 12rem;
-    overflow: hidden;
-    padding-right: 0.2rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .docs-tab-close {
-    align-items: center;
-    align-self: stretch;
-    background: transparent;
-    border: 0;
-    border-left: 0;
-    border-radius: 0;
-    display: inline-flex;
-    justify-content: center;
-    min-height: 1.5rem;
-    padding: 0.2rem;
-    width: 1.5rem;
-  }
-
-  .docs-tab-close .close-icon {
-    height: 0.65rem;
-    width: 0.65rem;
-  }
-
-  .docs-tab-close .close-icon::before,
-  .docs-tab-close .close-icon::after {
-    top: 0.3rem;
-    width: 0.65rem;
-  }
-
-  .ship {
-    color: var(--muted);
-    display: block;
+  #explorer-pane-ship {
     font-family: ui-monospace, monospace;
     font-size: 0.78rem;
-    margin-top: 0.15rem;
   }
 
-  .explorer-panel {
+  .results {
+    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
-  }
-
-  .docs-panel {
-    padding: 0;
-  }
-
-  .docs-frame {
-    background: var(--surface);
-    border: 0;
-    display: block;
-    height: 100%;
-    width: 100%;
-  }
-
-  .schema-tree, .file-tree, .results {
-    height: 100%;
     overflow: auto;
     padding: 0.75rem;
   }
 
-  .file-node {
-    margin: 0.1rem 0;
-  }
+  .file-node { margin: 0.1rem 0; }
 
   .file-node > summary {
     border-radius: 0.25rem;
@@ -993,7 +774,7 @@
     background: var(--surface-alt);
   }
 
-  .file-children {
+  .file-children, .schema-children {
     border-left: 1px solid var(--border);
     margin-left: 0.7rem;
     padding-left: 0.65rem;
@@ -1010,19 +791,17 @@
     padding: 0.15rem 0.25rem;
   }
 
-  .relation-actions, .file-actions {
+  /* urui's %shell gives `.file-actions` a flex row; here it is one
+     button at the end of a tree row */
+  .relation-actions, #files-tree .file-actions {
+    display: inline-block;
+    flex: 0 0 auto;
     margin-left: auto;
     min-height: 1.55rem;
     padding: 0 0.45rem;
   }
 
-  .file-actions {
-    flex: 0 0 auto;
-  }
-
-  .schema-node {
-    margin: 0.1rem 0;
-  }
+  .schema-node { margin: 0.1rem 0; }
 
   .schema-node > summary {
     align-items: center;
@@ -1034,15 +813,7 @@
     padding: 0.15rem 0.25rem;
   }
 
-  .schema-node > summary:hover {
-    background: var(--surface-alt);
-  }
-
-  .schema-children {
-    border-left: 1px solid var(--border);
-    margin-left: 0.7rem;
-    padding-left: 0.65rem;
-  }
+  .schema-node > summary:hover { background: var(--surface-alt); }
 
   .schema-tag, .schema-column-aura, .schema-key {
     color: var(--muted);
@@ -1069,119 +840,24 @@
     padding: 0.1rem 0.25rem;
   }
 
-  .splitter {
-    background: var(--border);
-    border: 0;
-    border-radius: 0;
-    cursor: col-resize;
-    min-height: 0.35rem;
-    min-width: 0.35rem;
-    padding: 0;
-  }
+  /* ---- editor ------------------------------------------------------ */
 
-  .splitter:hover, .splitter:focus {
-    background: var(--accent);
-  }
-
-  .splitter.inactive {
-    pointer-events: none;
-    visibility: hidden;
-  }
-
-  .splitter.horizontal {
-    cursor: row-resize;
-  }
-
-  .workspace {
-    display: grid;
-    grid-template-rows: minmax(0, 2fr) 0.35rem minmax(0, 1fr);
-    min-height: 0;
-    min-width: 0;
-  }
-
-  .editor-pane {
-    display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr);
-  }
-
-  .editor-tabs {
-    align-items: end;
-    background: var(--surface-alt);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    min-height: 2.65rem;
-    padding: 0.35rem 0.5rem 0;
-  }
-
-  .editor-tabs > button, .editor-tab-control {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    height: 2.3rem;
-    margin-right: 0.25rem;
-  }
-
-  .editor-tab-control {
-    align-items: stretch;
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    display: inline-flex;
-    overflow: hidden;
-  }
-
-  .editor-tab-control .tab, .editor-tab-close {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    height: 100%;
-    margin: 0;
-  }
-
-  .editor-tab-close {
-    align-items: center;
-    border-left: 0;
-    display: inline-flex;
-    justify-content: center;
-    padding: 0.2rem;
-    width: 1.75rem;
-  }
-
-  .editor-tab-close .close-icon {
-    height: 0.65rem;
-    width: 0.65rem;
-  }
-
-  .editor-tab-close .close-icon::before,
-  .editor-tab-close .close-icon::after {
-    top: 0.3rem;
-    width: 0.65rem;
-  }
-
-  .editor-tabs .active {
-    background: var(--surface);
-    border-bottom-color: var(--surface);
-    font-weight: 600;
-  }
-
-  .editor-tabs .new-tab {
-    align-items: center;
-    display: inline-flex;
-    justify-content: center;
-    line-height: 1;
-    padding-block: 0;
-  }
-
-  .editor-toolbar {
-    align-items: center;
-    border-bottom: 1px solid var(--border);
+  .editor-pane > .pane-header {
     color: var(--muted);
-    display: flex;
     font-size: 0.8rem;
-    justify-content: space-between;
     min-height: 2.4rem;
     padding: 0.35rem 0.65rem;
   }
 
-  .editor-actions {
+  /* the heading has no title, so its one action row spans it: the
+     language and markdown toggle left, save and copy right */
+  .editor-pane > .pane-header .pane-actions {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .pane-actions, .editor-actions {
+    align-items: center;
     display: flex;
     gap: 0.35rem;
   }
@@ -1191,9 +867,7 @@
     display: flex;
   }
 
-  .editor-mode {
-    gap: 0.65rem;
-  }
+  .editor-mode { gap: 0.65rem; }
 
   .markdown-view-toggle {
     border: 1px solid var(--border);
@@ -1215,20 +889,12 @@
 
   .markdown-view-toggle button.active {
     background: var(--surface-alt);
-    color: var(--text);
+    color: var(--ink);
     font-weight: 600;
   }
 
-  .icon-button {
-    align-items: center;
-    display: inline-flex;
-    justify-content: center;
-    min-height: 1.8rem;
-    padding: 0.2rem 0.5rem;
-  }
-
   #copy-query-btn, #copy-output-btn,
-  #save-query-btn, #save-output-btn {
+  #save-query-btn, #save-output-btn, #result-collapse {
     height: 2rem;
     padding: 0;
     width: 2rem;
@@ -1261,73 +927,47 @@
     height: 0.24rem;
   }
 
-  .copy-icon {
-    height: 0.9rem;
-    position: relative;
-    width: 0.9rem;
+  .copy-icon::after { background: var(--surface); }
+
+  .editor-body { display: flex; flex-direction: column; }
+
+  #query-editor, .markdown-preview, .html-preview {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
-  .copy-icon::before, .copy-icon::after {
-    border: 1.5px solid currentcolor;
-    border-radius: 2px;
-    content: '';
-    height: 0.58rem;
-    position: absolute;
-    width: 0.5rem;
-  }
-
-  .copy-icon::before {
-    left: 0;
-    top: 0;
-  }
-
-  .copy-icon::after {
-    background: var(--surface);
-    bottom: 0;
-    right: 0;
-  }
-
-  .query-editor {
+  #query-editor {
     background: var(--surface);
     border: 0;
-    color: var(--text);
     font: 0.95rem/1.55 ui-monospace, monospace;
-    min-height: 0;
-    outline-offset: -2px;
-    padding: 1rem;
-    resize: none;
-    tab-size: 2;
+    outline: none;
     width: 100%;
   }
 
-  .query-editor, .markdown-preview, .html-preview {
-    grid-column: 1;
-    grid-row: 3;
+  #query-editor.ace_focus, #query-editor:focus-within {
+    box-shadow: inset 0 0 0 2px var(--accent);
+    outline: 3px solid var(--focus);
+    outline-offset: -3px;
   }
+
+  #query-editor[hidden] { display: none; }
 
   .html-preview {
     background: #fff;
     border: 0;
-    height: 100%;
-    min-height: 0;
     width: 100%;
   }
 
   .markdown-preview {
     background: var(--surface);
-    color: var(--text);
-    min-height: 0;
+    color: var(--ink);
     overflow: auto;
     padding: 1rem 1.25rem;
   }
 
-  .markdown-preview > :first-child {
-    margin-top: 0;
-  }
+  .markdown-preview > :first-child { margin-top: 0; }
 
-  .markdown-preview > :last-child {
-    margin-bottom: 0;
-  }
+  .markdown-preview > :last-child { margin-bottom: 0; }
 
   .markdown-preview h1, .markdown-preview h2,
   .markdown-preview h3, .markdown-preview h4,
@@ -1378,27 +1018,19 @@
     text-align: left;
   }
 
-  .markdown-preview th {
-    background: var(--surface-alt);
+  .markdown-preview th { background: var(--surface-alt); }
+
+  .markdown-preview a { color: var(--accent); }
+
+  /* ---- output ------------------------------------------------------ */
+
+  #output-pane { flex-direction: column; }
+
+  .workspace[data-layout='rows'] #output-pane {
+    border-top: 1px solid var(--border);
   }
 
-  .markdown-preview a {
-    color: var(--accent);
-  }
-
-  .output-pane {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  .output-pane.collapsed .results {
-    display: none;
-  }
-
-  .pane-actions {
-    display: flex;
-    gap: 0.35rem;
-  }
+  .pane-header h2 { font-size: 0.95rem; }
 
   .empty-state {
     color: var(--muted);
@@ -1412,9 +1044,7 @@
     white-space: pre-wrap;
   }
 
-  .error-pane {
-    color: #b91c1c;
-  }
+  .error-pane { color: #b91c1c; }
 
   .error-summary {
     color: #b91c1c;
@@ -1459,9 +1089,7 @@
     font-weight: 600;
   }
 
-  .command-tab-panel .command-group {
-    margin-bottom: 0;
-  }
+  .command-tab-panel .command-group { margin-bottom: 0; }
 
   .result-tabs {
     border-bottom: 1px solid var(--border);
@@ -1481,13 +1109,9 @@
     font-weight: 600;
   }
 
-  .command-panel, .command-metadata {
-    padding: 0.65rem;
-  }
+  .command-panel, .command-metadata { padding: 0.65rem; }
 
-  .result-set + .result-set {
-    margin-top: 1rem;
-  }
+  .result-set + .result-set { margin-top: 1rem; }
 
   .result-set-heading {
     font-size: 0.84rem;
@@ -1530,13 +1154,9 @@
     gap: 0.45rem;
   }
 
-  .result-pager-top {
-    margin-bottom: 0.45rem;
-  }
+  .result-pager-top { margin-bottom: 0.45rem; }
 
-  .result-pager-bottom {
-    margin-top: 0.45rem;
-  }
+  .result-pager-bottom { margin-top: 0.45rem; }
 
   .result-pager-status {
     color: var(--muted);
@@ -1555,9 +1175,7 @@
     grid-template-columns: max-content minmax(0, 1fr);
   }
 
-  .metadata-row dt {
-    color: var(--muted);
-  }
+  .metadata-row dt { color: var(--muted); }
 
   .metadata-row dd {
     font-family: ui-monospace, monospace;
@@ -1566,137 +1184,13 @@
     white-space: pre-wrap;
   }
 
-  .help-panel {
-    background: rgb(0 0 0 / 0.4);
-    display: grid;
-    inset: 0;
-    padding: 1rem;
-    place-items: center;
-    position: fixed;
-    z-index: 70;
-  }
+  /* ---- help -------------------------------------------------------- */
 
-  .help-panel[hidden] {
-    display: none;
-  }
-
-  .help-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.2);
-    max-width: 32rem;
-    padding: 0 1rem 1rem;
-    width: 100%;
-  }
-
-  .help-close {
-    height: 2rem;
-    padding: 0;
-    width: 2rem;
-  }
-
-  .close-icon {
-    height: 0.9rem;
-    position: relative;
-    width: 0.9rem;
-  }
-
-  .close-icon::before, .close-icon::after {
-    background: currentcolor;
-    content: '';
-    height: 1px;
-    left: 0;
-    position: absolute;
-    top: 0.42rem;
-    width: 0.9rem;
-  }
-
-  .close-icon::before {
-    transform: rotate(45deg);
-  }
-
-  .close-icon::after {
-    transform: rotate(-45deg);
-  }
-
-  .help-links {
-    display: grid;
-    gap: 0.5rem;
-  }
-
-  .help-links a {
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-    padding: 0.65rem 0.75rem;
-    text-decoration: none;
-  }
-
-  .help-section {
-    margin-top: 1rem;
-  }
+  .help-section { margin-top: 1rem; }
 
   .help-section h3 {
     font-size: 0.9rem;
     margin: 0 0 0.5rem;
-  }
-
-  .docs-help-content {
-    display: grid;
-    gap: 0.8rem;
-  }
-
-  .docs-help-tree {
-    display: grid;
-    gap: 0.4rem;
-    max-height: min(32rem, calc(100vh - 11rem));
-    overflow: auto;
-  }
-
-  .docs-help-branch {
-    border: 1px solid var(--border);
-    border-radius: 0.4rem;
-  }
-
-  .docs-help-branch > summary {
-    cursor: pointer;
-    font-weight: 600;
-    padding: 0.6rem 0.7rem;
-  }
-
-  .docs-help-branch > summary:hover,
-  .docs-help-link:hover {
-    background: var(--surface-alt);
-  }
-
-  .docs-help-group {
-    border-top: 1px solid var(--border);
-    display: grid;
-    padding: 0.3rem;
-  }
-
-  .docs-help-static {
-    display: grid;
-  }
-
-  .docs-help-label {
-    color: var(--muted);
-    font-size: 0.84rem;
-    font-weight: 600;
-    padding: 0.45rem 0.65rem 0.25rem;
-  }
-
-  .docs-help-static-children {
-    border-left: 1px solid var(--border);
-    display: grid;
-    margin-left: 0.75rem;
-    padding-left: 0.3rem;
-  }
-
-  .docs-help-link {
-    border-radius: 0.3rem;
-    padding: 0.45rem 0.65rem;
-    text-decoration: none;
   }
 
   .docs-llm-button {
@@ -1707,65 +1201,12 @@
     text-decoration: none;
   }
 
-  .visually-hidden {
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root {
-      color-scheme: dark;
-      --bg: #11110f;
-      --surface: #191917;
-      --surface-alt: #22221f;
-      --text: #f2f2ec;
-      --muted: #a7a79e;
-      --border: #3b3b35;
-      --accent: #8b5cf6;
-      --accent-text: #ffffff;
-      --focus: #60a5fa;
-    }
-  }
-
   @media (max-width: 760px) {
-    body {
-      overflow: auto;
-    }
+    body { overflow: auto; }
 
-    #obelisk-app {
-      height: auto;
-      min-height: 100%;
-    }
+    .app-header { align-items: flex-start; }
 
-    .app-header {
-      align-items: flex-start;
-    }
-
-    .toolbar {
-      align-items: stretch;
-    }
-
-    .default-database {
-      margin-left: 0;
-    }
-
-    .workbench {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: minmax(10rem, 28vh) 0.35rem minmax(32rem, 1fr);
-    }
-
-    .splitter {
-      cursor: row-resize;
-    }
-
-    .workspace {
-      min-height: 32rem;
-    }
+    .toolbar { align-items: stretch; }
   }
 
   @media (prefers-reduced-motion: reduce) {
