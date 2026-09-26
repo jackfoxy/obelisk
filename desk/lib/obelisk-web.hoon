@@ -1,6 +1,7 @@
 ::  Pure state lifecycle helpers for %obelisk-web.
 ::
-/-  web=obelisk-web
+/-  urui, web=obelisk-web
+/+  uace=urui-ace
 |%
 ::
 ++  empty-durable-state
@@ -91,6 +92,27 @@
   %-  mule  |.
   =/  old  !<(versioned-saved-state:web old-vase)
   (load-state old)
+::
+++  ace-spec
+  ::  Text mode for scripts and result files alike; the vim keymap is
+  ::  not in `exts`, which load by plain module name, because Ace
+  ::  fetches a keyboard handler through its own ["keybinding", id] form.
+  ^-  ace-spec:urui
+  :*  base='/apps/obelisk/ace'
+      global='obeliskAceAssets'
+      version='1.44.0'
+      mode='ace/mode/text'
+      light='ace/theme/github'
+      dark='ace/theme/monokai'
+      :~  'ace/ext/beautify'  'ace/ext/prompt'
+          'ace/ext/searchbox'  'ace/ext/settings_menu'
+      ==
+      use-worker=|
+  ==
+::
+++  ace-config-js
+  ^-  @t
+  (config-js:uace ace-spec)
 ::
 ++  page
   |=  our=@p

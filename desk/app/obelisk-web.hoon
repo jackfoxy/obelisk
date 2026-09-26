@@ -9,7 +9,18 @@
 /+  readiness-lib=readiness-state
 /+  schema-lib=obelisk-web-schema
 /+  web-lib=obelisk-web
-/*  favicon  %ico  /favicon/ico
+/+  uhttp=urui-http
+/*  favicon      %ico  /favicon/ico
+/*  docs-toc     %toc  /doc/toc
+/*  ace-core     %js   /web/ace/ace/js
+/*  ace-light    %js   /web/ace/theme-github/js
+/*  ace-dark     %js   /web/ace/theme-monokai/js
+/*  ace-beaut    %js   /web/ace/ext-beautify/js
+/*  ace-prompt   %js   /web/ace/ext-prompt/js
+/*  ace-search   %js   /web/ace/ext-searchbox/js
+/*  ace-sets     %js   /web/ace/ext-settings-menu/js
+/*  ace-vim      %js   /web/ace/keybinding-vim/js
+/*  ace-lic      %txt  /web/ace/license/txt
 |%
 +$  card  card:agent:gall
 +$  route-result
@@ -60,6 +71,30 @@
   %+  give-simple-payload:app:server  eyre-id
   ^-  simple-payload:http
   [[status headers] `body]
+::
+++  assets
+  ::  Static GET routes under /apps/obelisk.  The page is not here: it
+  ::  is built per request from the ship's @p.
+  ^-  (list [suffix=@t asset=asset:uhttp])
+  =/  js=@t  'text/javascript; charset=utf-8'
+  =/  text=@t  'text/plain; charset=utf-8'
+  %+  turn
+    :~  ['/app.js' js javascript:web-lib]
+        ['/app.css' 'text/css; charset=utf-8' css:web-lib]
+        ['/doc.toc' text docs-toc]
+        ['/ace/ace.js' js ace-core]
+        ['/ace/obelisk-config.js' js ace-config-js:web-lib]
+        ['/ace/theme-github.js' js ace-light]
+        ['/ace/theme-monokai.js' js ace-dark]
+        ['/ace/ext-beautify.js' js ace-beaut]
+        ['/ace/ext-prompt.js' js ace-prompt]
+        ['/ace/ext-searchbox.js' js ace-search]
+        ['/ace/ext-settings_menu.js' js ace-sets]
+        ['/ace/keybinding-vim.js' js ace-vim]
+        ['/ace/license.txt' text (of-wain:format ace-lic)]
+    ==
+  |=  [suffix=@t content-type=@t body=@t]
+  [suffix content-type (as-octs:mimes:html body)]
 ::
 ++  api-operation-for
   |=  url=tape
@@ -906,16 +941,14 @@
       ==
     :-  %cards
     (respond-octs eyre-id 200 ~[['content-type' 'image/x-icon']] favicon)
-  =/  route=(unit [content-type=@t body=@t])
+  =/  route=(unit asset:uhttp)
     ?:  ?|  =("/apps/obelisk" url)
             =("/apps/obelisk/" url)
         ==
-      `['text/html; charset=utf-8' (page:web-lib our)]
-    ?:  =("/apps/obelisk/app.js" url)
-      `['text/javascript; charset=utf-8' javascript:web-lib]
-    ?:  =("/apps/obelisk/app.css" url)
-      `['text/css; charset=utf-8' css:web-lib]
-    ~
+      :-  ~
+      :-  'text/html; charset=utf-8'
+      (as-octs:mimes:html (page:web-lib our))
+    (asset-route:uhttp '/apps/obelisk' url.request.req assets)
   ?~  route
     :-  %cards
     (respond eyre-id 404 ~[['content-type' 'text/plain']] 'not found')
@@ -928,7 +961,8 @@
       'method not allowed'
     ==
   :-  %cards
-  (respond eyre-id 200 ~[['content-type' content-type.u.route]] body.u.route)
+  %+  give-simple-payload:app:server  eyre-id
+  (respond:uhttp 200 u.route)
 --
 %-  agent:dbug
 =|  live-state:web

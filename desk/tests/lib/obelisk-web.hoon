@@ -636,6 +636,50 @@
     !>((response-headers -.out))
   ==
 ::
+++  test-web-ace-assets-12-a
+  ::  Every vendored Ace file, the emitted Ace config, and the license.
+  =/  js  'text/javascript; charset=utf-8'
+  =/  routes=(list [url=@t type=@t])
+    :~  ['/apps/obelisk/ace/ace.js' js]
+        ['/apps/obelisk/ace/obelisk-config.js' js]
+        ['/apps/obelisk/ace/theme-github.js' js]
+        ['/apps/obelisk/ace/theme-monokai.js' js]
+        ['/apps/obelisk/ace/ext-beautify.js' js]
+        ['/apps/obelisk/ace/ext-prompt.js' js]
+        ['/apps/obelisk/ace/ext-searchbox.js' js]
+        ['/apps/obelisk/ace/ext-settings_menu.js' js]
+        ['/apps/obelisk/ace/keybinding-vim.js' js]
+        ['/apps/obelisk/ace/license.txt' 'text/plain; charset=utf-8']
+    ==
+  %-  zing
+  %+  turn  routes
+  |=  [url=@t type=@t]
+  =/  out  (poke-http (request %'GET' url))
+  %+  weld
+    (expect-eq !>([url 200]) !>([url (response-status -.out)]))
+  %+  expect-eq
+    !>(~[['content-type' type]])
+  !>((response-headers -.out))
+::
+++  test-web-ace-config-names-text-mode-12-b
+  =/  out
+    (poke-http (request %'GET' '/apps/obelisk/ace/obelisk-config.js'))
+  =/  body  (trip (response-body -.out))
+  ;:  weld
+    (expect !>(?=(^ (find "obeliskAceAssets" body))))
+    (expect !>(?=(^ (find "ace/mode/text" body))))
+  ==
+::
+++  test-web-doc-toc-12-c
+  =/  out  (poke-http (request %'GET' '/apps/obelisk/doc.toc'))
+  ;:  weld
+    (expect-eq !>(200) !>((response-status -.out)))
+    %+  expect-eq
+      !>(~[['content-type' 'text/plain; charset=utf-8']])
+    !>((response-headers -.out))
+    (expect !>(?=(^ (find "/users-guide/md" (trip (response-body -.out))))))
+  ==
+::
 ++  test-web-method-not-allowed-13
   =/  out  (poke-http (request %'POST' '/apps/obelisk'))
   ;:  weld
