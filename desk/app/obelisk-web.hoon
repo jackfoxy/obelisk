@@ -74,12 +74,14 @@
 ::
 ++  assets
   ::  Static GET routes under /apps/obelisk.  The page is not here: it
-  ::  is built per request from the ship's @p.
+  ::  is built per request from the ship's @p, and so is `app.js`,
+  ::  whose emitted config carries the same pane spec.
+  |=  our=@p
   ^-  (list [suffix=@t asset=asset:uhttp])
   =/  js=@t  'text/javascript; charset=utf-8'
   =/  text=@t  'text/plain; charset=utf-8'
   %+  turn
-    :~  ['/app.js' js javascript:web-lib]
+    :~  ['/app.js' js (javascript:web-lib our)]
         ['/app.css' 'text/css; charset=utf-8' css:web-lib]
         ['/doc.toc' text docs-toc]
         ['/ace/ace.js' js ace-core]
@@ -948,7 +950,7 @@
       :-  ~
       :-  'text/html; charset=utf-8'
       (as-octs:mimes:html (page:web-lib our))
-    (asset-route:uhttp '/apps/obelisk' url.request.req assets)
+    (asset-route:uhttp '/apps/obelisk' url.request.req (assets our))
   ?~  route
     :-  %cards
     (respond eyre-id 404 ~[['content-type' 'text/plain']] 'not found')

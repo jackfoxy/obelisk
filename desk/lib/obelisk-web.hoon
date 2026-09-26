@@ -2,6 +2,7 @@
 ::
 /-  urui, web=obelisk-web
 /+  shell=urui-shell, ucss=urui-css, uace=urui-ace
+/+  ucfg=urui-config, ujs=urui-js
 |%
 ::
 ++  empty-durable-state
@@ -1067,28 +1068,6 @@
     padding: 0.5rem 0.65rem;
   }
 
-  .command-tabs {
-    align-items: end;
-    background: var(--surface-alt);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    min-height: 2.65rem;
-    padding: 0.35rem 0.5rem 0;
-  }
-
-  .command-tab {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    height: 2.3rem;
-    margin-right: 0.25rem;
-  }
-
-  .command-tab[aria-selected="true"] {
-    background: var(--surface);
-    border-bottom-color: var(--surface);
-    font-weight: 600;
-  }
-
   .command-tab-panel .command-group { margin-bottom: 0; }
 
   .result-tabs {
@@ -1218,6 +1197,21 @@
   '''
 ::
 ++  javascript
+  ::  urui's config and runtime, then obelisk's tail.  A gate because the
+  ::  config carries the pane spec, and the spec carries the ship.
+  |=  our=@p
+  ^-  @t
+  %+  rap  3
+  :~  (emit:ucfg (spec our))
+      core:ujs
+      app-js
+  ==
+::
+++  app-js
+  ::  Obelisk's behaviour on urui's frame.  urui owns layout, the
+  ::  explorer strip, docs tabs, help, settings, theme, and the tab
+  ::  strips; this owns the query and command tabs' contents, the
+  ::  schema and file trees, files, dialogs, menus, and output.
   ^-  @t
   '''
   (() => {
@@ -1225,43 +1219,26 @@
 
     const storageKey = 'obelisk.workbench.v1';
     const byId = (id) => document.getElementById(id);
-    const app = byId('obelisk-app');
     const workbench = byId('workbench');
-    const workspace = byId('workspace');
-    const schemaPane = byId('schema-pane');
-    const schemaResizer = byId('schema-resizer');
-    const schemaCollapse = byId('schema-collapse');
-    const outputPane = byId('output-pane');
-    const outputResizer = byId('output-resizer');
-    const outputCollapse = byId('output-collapse');
-    const editor = byId('query-editor');
+    const explorerPane = byId('explorer-pane');
+    const outputTabsBand = byId('output-pane-tabs');
+    const editorHost = byId('query-editor');
+    const editorLoadError = byId('editor-load-error');
     const editorLanguage = byId('editor-language');
     const markdownViewToggle = byId('markdown-view-toggle');
     const markdownSourceButton = byId('markdown-source-btn');
     const markdownPreviewButton = byId('markdown-preview-btn');
     const markdownPreview = byId('markdown-preview');
     const htmlPreview = byId('html-preview');
-    const tabsElement = document.querySelector('.editor-tabs');
-    const newTabButton = byId('new-tab-btn');
     const runButton = byId('run-btn');
     const parseButton = byId('parse-btn');
     const saveQueryButton = byId('save-query-btn');
     const saveOutputButton = byId('save-output-btn');
     const copyQueryButton = byId('copy-query-btn');
     const copyOutputButton = byId('copy-output-btn');
-    const helpButton = byId('help-btn');
-    const helpPanel = byId('help-panel');
-    const closeHelpButton = byId('close-help');
-    const fallbackHelpContent = byId('fallback-help-content');
-    const docsHelpContent = byId('docs-help-content');
-    const docsHelpTree = byId('docs-help-tree');
     const defaultDatabase = byId('default-db');
-    const explorerTabs = byId('explorer-tabs');
-    const schemasTab = byId('schemas-tab');
-    const filesTab = byId('files-tab');
-    const schemaPanel = byId('schema-panel');
-    const filesPanel = byId('files-panel');
-    const schemaTree = byId('schema-tree');
+    const schemasPanel = byId('schemas-panel');
+    const schemaTree = byId('schemas-tree');
     const filesTree = byId('files-tree');
     const results = byId('results');
     const status = byId('app-status');
@@ -1282,6 +1259,70 @@
     const fileContextMenu = byId('file-context-menu');
     const fileContextOpen = byId('file-context-open');
     const fileContextDelete = byId('file-context-delete');
+    //  a click on a query tab focuses the editor; arrow keys keep focus
+    //  on the strip, as they did before the strip was urui's
+    let pointerSelect = false;
+    let editor;
+    const runtime = window.urui.runtime({
+      editors: () => [editor],
+      panes: {
+        onSelect: (paneId, _level, id) => {
+          if (paneId === 'editor-pane') activateTab(id, pointerSelect);
+          if (paneId === 'output-pane') {
+            const position = Number(String(id).replace('command-', ''));
+            if (Number.isInteger(position)) selectCommand(position);
+          }
+          pointerSelect = false;
+        },
+        onAdd: (paneId) => {
+          if (paneId === 'editor-pane') addDraft();
+        },
+        onClose: (paneId, _level, id) => {
+          if (paneId === 'editor-pane') closeTab(id);
+        }
+      }
+    });
+    byId('editor-pane-script-tabs')?.addEventListener('pointerdown', () => {
+      pointerSelect = true;
+    });
+    editor = mountEditor();
+
+    //  The Ace adapter throws when its assets did not load; the page
+    //  then shows `#editor-load-error`, and a stand-in keeps every
+    //  caller working from the saved tab text.
+    function mountEditor() {
+      try {
+        return window.urui.editor.adapter(editorHost, {
+          assets: window.obeliskAceAssets,
+          label: 'urQL query'
+        });
+      } catch (_) {
+        editorLoadError.hidden = false;
+        editorHost.hidden = true;
+        return {
+          getSource: () => activeTab().text,
+          setSource: () => {},
+          getSelection: () => ({start: 0, end: 0}),
+          setSelection: () => {},
+          focus: () => {},
+          onChange: () => () => {},
+          isFocused: () => false,
+          setTheme: () => {},
+          setKeybindings: () => {},
+          refresh: () => {}
+        };
+      }
+    }
+
+    //  urui's <head> has no consumer slot, so the icon arrives here
+    if (!document.querySelector('link[rel="icon"]')) {
+      const icon = document.createElement('link');
+      icon.id = 'favicon';
+      icon.rel = 'icon';
+      icon.type = 'image/x-icon';
+      icon.href = '/apps/obelisk/favicon.ico';
+      document.head.appendChild(icon);
+    }
     let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
@@ -1306,73 +1347,6 @@
     let relationContext = null;
     let saveContextKind = null;
     let saveContextSource = null;
-    let docsAvailable = null;
-    let docsCheckPending = false;
-    const prefetchedDocs = new Set();
-    const docsHelpSections = [
-      {
-        children: [
-          {title: 'Users Guide', path: 'usr/users-guide'},
-          {
-            title: 'Reference',
-            children: [
-              {
-                title: 'Preliminaries',
-                path: 'usr/reference/preliminaries'
-              },
-              {
-                title: 'Data Definition Language',
-                children: [
-                  {
-                    title: 'Database',
-                    path: 'usr/reference/ddl/database'
-                  },
-                  {
-                    title: 'Namespace',
-                    path: 'usr/reference/ddl/namespace'
-                  },
-                  {title: 'Table', path: 'usr/reference/ddl/table'},
-                  {title: 'Index', path: 'usr/reference/ddl/index'}
-                ]
-              },
-              {
-                title: 'Data Manipulation Language',
-                children: [
-                  {title: 'Insert', path: 'usr/reference/dml/insert'},
-                  {title: 'Update', path: 'usr/reference/dml/update'},
-                  {title: 'Upsert', path: 'usr/reference/dml/upsert'},
-                  {title: 'Delete', path: 'usr/reference/dml/delete'},
-                  {
-                    title: 'Truncate Table DML',
-                    path: 'usr/reference/dml/truncate-table'
-                  }
-                ]
-              },
-              {title: 'Select', path: 'usr/reference/select'},
-              {
-                title: 'Scries and Subscriptions',
-                path: 'usr/reference/scry'
-              },
-              {title: 'Scalars', path: 'usr/reference/scalars'},
-              {
-                title: 'Security Permissions',
-                path: 'usr/reference/security-permissions'
-              }
-            ]
-          }
-        ]
-      },
-      {
-        title: 'Developer Docs',
-        children: [
-          {title: 'Performance', path: 'dev/performance'},
-          {
-            title: 'Users Guide Scripts',
-            path: 'dev/users-guide-script'
-          }
-        ]
-      }
-    ];
 
     function initialState() {
       return {
@@ -1390,14 +1364,7 @@
         activeId: 'draft-1',
         nextDraft: 2,
         nextFile: 1,
-        schemaSize: 320,
-        outputRatio: 1 / 3,
-        schemaOpen: true,
-        outputOpen: true,
         defaultDatabase: null,
-        explorerView: 'schemas',
-        docsTabs: [],
-        nextDocs: 1,
         schemaExpanded: [],
         schemaDatabaseNames: [],
         filesCollapsed: []
@@ -1414,12 +1381,6 @@
         (typeof tab.resultView === 'undefined' ||
           ['source', 'preview'].includes(tab.resultView)) &&
         (tab.path === null || Array.isArray(tab.path));
-    }
-
-    function validDocsTab(tab) {
-      return tab && typeof tab.id === 'string' &&
-        typeof tab.documentTitle === 'string' &&
-        typeof tab.path === 'string';
     }
 
     function loadState() {
@@ -1449,21 +1410,13 @@
         if (!Array.isArray(restored.schemaDatabaseNames)) {
           restored.schemaDatabaseNames = [];
         }
-        if (!Array.isArray(restored.docsTabs)) restored.docsTabs = [];
-        restored.docsTabs = restored.docsTabs.filter(validDocsTab);
-        if (!Number.isInteger(restored.nextDocs)) restored.nextDocs = 1;
-        const explorerViewExists = ['schemas', 'files'].includes(
-          restored.explorerView
-        ) || restored.docsTabs.some((tab) => {
-          return tab.id === restored.explorerView;
-        });
-        if (!explorerViewExists) {
-          restored.explorerView = 'schemas';
-        }
         if (!Array.isArray(restored.filesCollapsed)) {
           restored.filesCollapsed = [];
         }
-        delete restored.outputSize;
+        //  layout, explorer view, and docs tabs are urui's now
+        ['outputSize', 'schemaSize', 'outputRatio', 'schemaOpen',
+          'outputOpen', 'explorerView', 'docsTabs', 'nextDocs']
+          .forEach((key) => delete restored[key]);
         return restored;
       } catch (_) {
         return initialState();
@@ -1726,17 +1679,19 @@
       markdownPreviewButton.classList.toggle('active', preview);
       markdownSourceButton.setAttribute('aria-pressed', String(!preview));
       markdownPreviewButton.setAttribute('aria-pressed', String(preview));
-      editor.classList.toggle('hidden', preview);
+      editorHost.hidden = preview;
       markdownPreview.classList.toggle(
         'hidden', !(preview && mark === 'md')
       );
       htmlPreview.classList.toggle(
         'hidden', !(preview && mark === 'html')
       );
-      editor.setAttribute(
-        'aria-label', mark === 'md' ? 'Markdown source' :
-          mark === 'html' ? 'HTML source' : 'urQL query'
-      );
+      const sourceLabel = mark === 'md' ? 'Markdown source' :
+        mark === 'html' ? 'HTML source' : 'urQL query';
+      editorHost.setAttribute('aria-label', sourceLabel);
+      editorHost.querySelector('textarea')
+        ?.setAttribute('aria-label', sourceLabel);
+      if (!preview) editor.refresh();
       if (preview && mark === 'md') renderMarkdown(tab.text);
       if (preview && mark === 'html' && htmlPreview.srcdoc !== tab.text) {
         htmlPreview.srcdoc = tab.text;
@@ -1761,85 +1716,44 @@
 
     function captureEditor() {
       const tab = activeTab();
-      tab.text = editor.value;
-      tab.selectionStart = editor.selectionStart;
-      tab.selectionEnd = editor.selectionEnd;
+      const selection = editor.getSelection();
+      tab.text = editor.getSource();
+      tab.selectionStart = selection.start;
+      tab.selectionEnd = selection.end;
     }
 
     function restoreEditor(focus) {
       const tab = activeTab();
-      editor.value = tab.text;
-      updateEditorView(focus);
       const start = Math.min(tab.selectionStart, tab.text.length);
       const end = Math.min(tab.selectionEnd, tab.text.length);
+      editor.setSource(tab.text, {
+        history: 'reset',
+        notify: false,
+        selection: {start, end}
+      });
+      updateEditorView(focus);
       requestAnimationFrame(() => {
-        editor.setSelectionRange(start, end);
         if (focus && tab.resultView !== 'preview') editor.focus();
       });
     }
 
-    function renderTabs() {
-      const controls = tabsElement.querySelectorAll(
-        '.editor-tab-control, .tab'
-      );
-      controls.forEach((tab) => {
-        tab.remove();
-      });
-      state.tabs.forEach((tab) => {
-        const control = document.createElement('div');
-        const button = document.createElement('button');
-        const selected = tab.id === state.activeId;
-        control.className = selected ?
-          'editor-tab-control active' : 'editor-tab-control';
-        control.setAttribute('role', 'presentation');
-        button.type = 'button';
-        button.id = `tab-${tab.id}`;
-        button.className = 'tab';
-        button.setAttribute('role', 'tab');
-        button.setAttribute('aria-selected', String(selected));
-        button.setAttribute('aria-controls', 'query-editor');
-        button.tabIndex = selected ? 0 : -1;
-        button.dataset.tabId = tab.id;
-        const dirty = tab.savedText !== null && tab.text !== tab.savedText;
-        button.textContent = `${tab.name}${dirty ? ' •' : ''}`;
-        button.title = tab.path ? tab.path.join('/') : tab.name;
-        button.addEventListener('click', () => activateTab(tab.id, true));
-        button.addEventListener('keydown', tabKeydown);
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'editor-tab-close';
-        close.title = 'Close';
-        close.setAttribute('aria-label', `Close ${tab.name} script tab`);
-        const closeIcon = document.createElement('span');
-        closeIcon.className = 'close-icon';
-        closeIcon.setAttribute('aria-hidden', 'true');
-        close.appendChild(closeIcon);
-        close.addEventListener('click', (event) => {
-          event.stopPropagation();
-          closeTab(tab.id);
-        });
-        control.append(button, close);
-        tabsElement.insertBefore(control, newTabButton);
-      });
-      updateExecutionControls();
-      updateOutputControls();
+    function tabIsDirty(tab) {
+      return tab.savedText !== null && tab.text !== tab.savedText;
     }
 
-    function tabKeydown(event) {
-      const current = state.tabs.findIndex((tab) => {
-        return tab.id === event.currentTarget.dataset.tabId;
-      });
-      let next = current;
-      if (event.key === 'ArrowRight') next = (current + 1) % state.tabs.length;
-      if (event.key === 'ArrowLeft') {
-        next = (current + state.tabs.length - 1) % state.tabs.length;
-      }
-      if (event.key === 'Home') next = 0;
-      if (event.key === 'End') next = state.tabs.length - 1;
-      if (next === current) return;
-      event.preventDefault();
-      activateTab(state.tabs[next].id, false);
-      byId(`tab-${state.tabs[next].id}`).focus();
+    //  The strip is urui's %dynamic level; `state.tabs` stays the
+    //  source of truth and is handed over whole on every change.
+    function renderTabs() {
+      runtime.panes.set('editor-pane', 'script', state.tabs.map((tab) => {
+        return {
+          id: tab.id,
+          label: `${tab.name}${tabIsDirty(tab) ? ' •' : ''}`,
+          title: tab.path ? tab.path.join('/') : tab.name
+        };
+      }));
+      runtime.panes.select('editor-pane', [state.activeId]);
+      updateExecutionControls();
+      updateOutputControls();
     }
 
     function activateTab(id, focusEditor) {
@@ -1855,6 +1769,7 @@
         }
         return;
       }
+      if (!state.tabs.some((tab) => tab.id === id)) return;
       captureEditor();
       state.activeId = id;
       renderTabs();
@@ -2024,7 +1939,7 @@
 
     function setBusy(value, label = '') {
       busy = value;
-      app.setAttribute('aria-busy', String(value));
+      workbench.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
       updateExecutionControls();
       fileContextOpen.disabled = value;
@@ -2155,7 +2070,7 @@
     }
 
     function closeFileContext(restoreFocus = false) {
-      fileContextMenu.classList.add('hidden');
+      fileContextMenu.hidden = true;
       if (contextFileSource) {
         contextFileSource.setAttribute('aria-expanded', 'false');
         if (restoreFocus) contextFileSource.focus();
@@ -2178,7 +2093,7 @@
       source.setAttribute('aria-expanded', 'true');
       fileContextMenu.style.left = '0px';
       fileContextMenu.style.top = '0px';
-      fileContextMenu.classList.remove('hidden');
+      fileContextMenu.hidden = false;
       const menuRect = fileContextMenu.getBoundingClientRect();
       const sourceRect = source.getBoundingClientRect();
       const margin = 8;
@@ -2330,77 +2245,9 @@
       }
     }
 
-    function docsTabById(id) {
-      return state.docsTabs.find((tab) => tab.id === id) || null;
-    }
-
-    function validExplorerView(view) {
-      return ['schemas', 'files'].includes(view) ||
-        Boolean(docsTabById(view));
-    }
-
-    function setExplorerView(view, focus = false) {
-      const selected = validExplorerView(view) ? view : 'schemas';
-      const schemas = selected === 'schemas';
-      const files = selected === 'files';
-      state.explorerView = selected;
-      schemasTab.classList.toggle('active', schemas);
-      filesTab.classList.toggle('active', files);
-      schemasTab.parentElement.classList.toggle('active', schemas);
-      filesTab.parentElement.classList.toggle('active', files);
-      schemasTab.setAttribute('aria-selected', String(schemas));
-      filesTab.setAttribute('aria-selected', String(files));
-      schemasTab.tabIndex = schemas ? 0 : -1;
-      filesTab.tabIndex = files ? 0 : -1;
-      schemaPanel.hidden = !schemas;
-      filesPanel.hidden = !files;
-      explorerTabs.querySelectorAll('.docs-tab').forEach((button) => {
-        const active = button.dataset.explorerView === selected;
-        button.classList.toggle('active', active);
-        button.setAttribute('aria-selected', String(active));
-        button.tabIndex = active ? 0 : -1;
-        button.parentElement.classList.toggle('active', active);
-      });
-      schemaPane.querySelectorAll('.docs-panel').forEach((panel) => {
-        panel.hidden = panel.id !== `docs-panel-${selected}`;
-      });
-      const docsTab = docsTabById(selected);
-      if (docsTab) {
-        const frame = byId(`docs-panel-${selected}`).querySelector(
-          '.docs-frame'
-        );
-        if (frame.dataset.loaded !== 'true') {
-          frame.dataset.loaded = 'true';
-          frame.src = `/docs/d/obelisk/${docsTab.path}`;
-        }
-      }
-      persist();
-      if (schemas) ensureSchemaLoaded();
-      if (focus) {
-        const target = Array.from(
-          explorerTabs.querySelectorAll('[role="tab"]')
-        ).find((tab) => tab.dataset.explorerView === selected);
-        if (target) target.focus();
-      }
-    }
-
-    function explorerTabKeydown(event) {
-      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
-        return;
-      }
-      event.preventDefault();
-      const tabs = Array.from(
-        explorerTabs.querySelectorAll('[role="tab"]')
-      );
-      const current = Math.max(0, tabs.indexOf(event.currentTarget));
-      let next = current;
-      if (event.key === 'ArrowLeft') next = Math.max(0, current - 1);
-      if (event.key === 'ArrowRight') {
-        next = Math.min(tabs.length - 1, current + 1);
-      }
-      if (event.key === 'Home') next = 0;
-      if (event.key === 'End') next = tabs.length - 1;
-      setExplorerView(tabs[next].dataset.explorerView, true);
+    function schemasShowing() {
+      return runtime.layout.explorerOpen() &&
+        runtime.explorer.view() === 'schemas';
     }
 
     function renderFileEntries() {
@@ -3047,9 +2894,7 @@
     }
 
     function ensureSchemaLoaded(options = {}) {
-      if (!state.schemaOpen || state.explorerView !== 'schemas') {
-        return Promise.resolve();
-      }
+      if (!schemasShowing()) return Promise.resolve();
       if (schemaValue && !options.force) return Promise.resolve();
       if (schemaPromise) return schemaPromise;
       schemaPromise = refreshSchema(options).finally(() => {
@@ -3390,59 +3235,59 @@
       return group;
     }
 
+    function commandTabId(position) {
+      return `command-${position}`;
+    }
+
+    //  One panel per command, all kept, so a command's Results/Messages
+    //  choice and result page survive switching to another and back.
+    //  The strip above them is urui's %dynamic level.
+    let commandPanels = [];
+
+    function selectCommand(selected) {
+      const commands = outputState.commands;
+      if (!commands[selected]) return;
+      commandPanels.forEach((panel, position) => {
+        panel.hidden = position !== selected;
+      });
+      runtime.panes.select('output-pane', [commandTabId(selected)]);
+      outputState.activeCommand = selected;
+      outputState.exportable = commandIsExportable(commands[selected]);
+      updateOutputControls();
+    }
+
     function renderCommandTabs(commands) {
       const container = document.createElement('div');
       container.className = 'command-tab-set';
-      const tabList = document.createElement('div');
-      tabList.className = 'command-tabs';
-      tabList.setAttribute('role', 'tablist');
-      tabList.setAttribute('aria-label', 'Command results');
-      const tabs = [];
-      const panels = [];
-      function selectCommand(selected) {
-        tabs.forEach((tab, position) => {
-          const active = position === selected;
-          tab.setAttribute('aria-selected', String(active));
-          tab.tabIndex = active ? 0 : -1;
-          panels[position].hidden = !active;
-        });
-        outputState.activeCommand = selected;
-        outputState.exportable = commandIsExportable(commands[selected]);
-        updateOutputControls();
-      }
-      commands.forEach((command, position) => {
-        const commandIndex = Number.isInteger(command.index) ?
-          command.index + 1 : position + 1;
-        const tab = document.createElement('button');
+      commandPanels = commands.map((command, position) => {
         const panel = document.createElement('div');
-        const tabId = `command-tab-${position}`;
-        const panelId = `command-tab-panel-${position}`;
-        tab.type = 'button';
-        tab.id = tabId;
-        tab.className = 'command-tab';
-        tab.textContent = `Command ${commandIndex}`;
-        tab.setAttribute('role', 'tab');
-        tab.setAttribute('aria-controls', panelId);
-        panel.id = panelId;
+        panel.id = `command-tab-panel-${position}`;
         panel.className = 'command-tab-panel';
         panel.setAttribute('role', 'tabpanel');
-        panel.setAttribute('aria-labelledby', tabId);
         panel.appendChild(renderCommand(command, position, false));
-        tab.addEventListener('click', () => selectCommand(position));
-        tabs.push(tab);
-        panels.push(panel);
-        tabList.appendChild(tab);
         container.appendChild(panel);
+        return panel;
       });
-      container.prepend(tabList);
+      runtime.panes.set('output-pane', 'command',
+        commands.map((command, position) => {
+          const commandIndex = Number.isInteger(command.index) ?
+            command.index + 1 : position + 1;
+          return {id: commandTabId(position), label: `Command ${commandIndex}`};
+        }));
+      outputTabsBand.hidden = false;
       selectCommand(0);
       return container;
     }
 
+    //  A single command, a parse, or an error shows no command strip.
+    function clearCommandTabs() {
+      commandPanels = [];
+      runtime.panes.set('output-pane', 'command', []);
+      outputTabsBand.hidden = true;
+    }
+
     function revealOutput() {
-      state.outputOpen = true;
-      applyLayout();
-      persist();
+      runtime.layout.setResultOpen(true);
       updateOutputControls();
     }
 
@@ -3463,6 +3308,7 @@
       };
       lastOutputText = '';
       results.replaceChildren();
+      clearCommandTabs();
       if (safeCommands.length === 0) {
         const empty = document.createElement('p');
         empty.className = 'empty-state';
@@ -3490,6 +3336,7 @@
       };
       lastOutputText = value;
       results.replaceChildren();
+      clearCommandTabs();
       const pre = document.createElement('pre');
       pre.className = 'parse-output';
       pre.textContent = value;
@@ -3511,6 +3358,7 @@
       };
       lastOutputText = value;
       results.replaceChildren();
+      clearCommandTabs();
       const summary = document.createElement('p');
       summary.className = 'error-summary';
       summary.textContent = value.split('\n').find((line) => line.trim()) ||
@@ -3540,6 +3388,7 @@
       };
       lastOutputText = '';
       results.replaceChildren();
+      clearCommandTabs();
       updateOutputControls();
     }
 
@@ -3704,296 +3553,6 @@
       else if (kind === 'result') showSaveResultsDialog();
     }
 
-    function renderDocsHelpTree() {
-      docsHelpTree.replaceChildren();
-      docsHelpSections.forEach((section, index) => {
-        if (!section.title) {
-          section.children.forEach((child) => {
-            docsHelpTree.appendChild(renderDocsHelpNode(child));
-          });
-          return;
-        }
-        const branch = document.createElement('details');
-        branch.className = 'docs-help-branch';
-        branch.setAttribute('role', 'treeitem');
-        branch.open = index === 0;
-        const summary = document.createElement('summary');
-        summary.textContent = section.title;
-        const group = document.createElement('div');
-        group.className = 'docs-help-group';
-        group.setAttribute('role', 'group');
-        section.children.forEach((child) => {
-          group.appendChild(renderDocsHelpNode(child));
-        });
-        branch.append(summary, group);
-        docsHelpTree.appendChild(branch);
-      });
-    }
-
-    function prefetchDocsPath(path) {
-      if (prefetchedDocs.has(path)) return;
-      prefetchedDocs.add(path);
-      const hint = document.createElement('link');
-      hint.rel = 'prefetch';
-      hint.href = `/docs/d/obelisk/${path}`;
-      document.head.appendChild(hint);
-    }
-
-    function prefetchHelpDocs(nodes = docsHelpSections) {
-      nodes.forEach((node) => {
-        if (node.path) prefetchDocsPath(node.path);
-        else if (Array.isArray(node.children)) {
-          prefetchHelpDocs(node.children);
-        }
-      });
-    }
-
-    function renderDocsHelpNode(node) {
-      if (node.path) {
-        const link = document.createElement('a');
-        link.className = 'docs-help-link';
-        link.href = `/docs/d/obelisk/${node.path}`;
-        link.setAttribute('role', 'treeitem');
-        link.textContent = node.title;
-        const prefetch = () => prefetchDocsPath(node.path);
-        link.addEventListener('pointerenter', prefetch, {once: true});
-        link.addEventListener('focus', prefetch, {once: true});
-        link.addEventListener('click', (event) => {
-          event.preventDefault();
-          openDocsTab(node.title, node.path);
-        });
-        return link;
-      }
-      const directory = document.createElement('div');
-      directory.className = 'docs-help-static';
-      directory.setAttribute('role', 'treeitem');
-      const label = document.createElement('div');
-      label.className = 'docs-help-label';
-      label.textContent = node.title;
-      const children = document.createElement('div');
-      children.className = 'docs-help-static-children';
-      children.setAttribute('role', 'group');
-      node.children.forEach((child) => {
-        children.appendChild(renderDocsHelpNode(child));
-      });
-      directory.append(label, children);
-      return directory;
-    }
-
-    function docsTitleNodes(documentTitle) {
-      const ignored = new Set(['Docs', 'Obelisk', 'User Docs']);
-      return String(documentTitle || '').split(/\s*(?:>|\/)\s*/)
-        .map((node) => {
-          return node.trim();
-        }).filter((node) => node && !ignored.has(node));
-    }
-
-    function docsTabLabel(documentTitle) {
-      const nodes = docsTitleNodes(documentTitle);
-      return nodes.length > 0 ? nodes[nodes.length - 1] : 'Docs';
-    }
-
-    function docsTabTrail(documentTitle) {
-      const aliases = new Map([
-        ['Data Definition Language', 'DDL'],
-        ['Data Manipulation Language', 'DML']
-      ]);
-      const nodes = docsTitleNodes(documentTitle).map((node) => {
-        return aliases.get(node) || node;
-      });
-      const languageIndex = nodes.findIndex((node) => {
-        return node === 'DDL' || node === 'DML';
-      });
-      if (languageIndex > 0) {
-        return nodes.slice(languageIndex - 1).join(' > ');
-      }
-      return nodes.length > 0 ? nodes.slice(-2).join(' > ') : 'Docs';
-    }
-
-    function createDocsTab(tab) {
-      const control = document.createElement('div');
-      control.id = `docs-control-${tab.id}`;
-      control.className = 'docs-tab-control';
-      control.setAttribute('role', 'presentation');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.id = `explorer-${tab.id}`;
-      button.className = 'explorer-tab docs-tab';
-      button.dataset.explorerView = tab.id;
-      button.setAttribute('role', 'tab');
-      button.setAttribute('aria-controls', `docs-panel-${tab.id}`);
-      button.setAttribute('aria-selected', 'false');
-      button.tabIndex = -1;
-      button.textContent = docsTabLabel(tab.documentTitle);
-      button.title = docsTabTrail(tab.documentTitle);
-      button.addEventListener('click', () => setExplorerView(tab.id));
-      button.addEventListener('keydown', explorerTabKeydown);
-      const close = document.createElement('button');
-      close.type = 'button';
-      close.className = 'docs-tab-close';
-      close.title = 'Close';
-      close.setAttribute(
-        'aria-label', `Close ${docsTabLabel(tab.documentTitle)} document tab`
-      );
-      const closeIcon = document.createElement('span');
-      closeIcon.className = 'close-icon';
-      closeIcon.setAttribute('aria-hidden', 'true');
-      close.appendChild(closeIcon);
-      close.addEventListener('click', (event) => {
-        event.stopPropagation();
-        closeDocsTab(tab.id);
-      });
-      control.append(button, close);
-      explorerTabs.appendChild(control);
-
-      const panel = document.createElement('div');
-      panel.id = `docs-panel-${tab.id}`;
-      panel.className = 'explorer-panel docs-panel';
-      panel.setAttribute('role', 'tabpanel');
-      panel.setAttribute('aria-labelledby', button.id);
-      panel.hidden = true;
-      const frame = document.createElement('iframe');
-      frame.className = 'docs-frame';
-      frame.title = tab.documentTitle;
-      frame.loading = 'lazy';
-      let titleObserver = null;
-      const syncFrameState = () => {
-        try {
-          const documentTitle = frame.contentDocument.title.trim();
-          let changed = false;
-          if (documentTitle && documentTitle !== tab.documentTitle) {
-            tab.documentTitle = documentTitle;
-            button.textContent = docsTabLabel(documentTitle);
-            button.title = docsTabTrail(documentTitle);
-            frame.title = documentTitle;
-            close.setAttribute(
-              'aria-label',
-              `Close ${docsTabLabel(documentTitle)} document tab`
-            );
-            changed = true;
-          }
-          const prefix = '/docs/d/obelisk/';
-          const pathname = frame.contentWindow.location.pathname;
-          if (pathname.startsWith(prefix)) {
-            const path = pathname.slice(prefix.length);
-            if (path && path !== tab.path) {
-              tab.path = path;
-              changed = true;
-            }
-          }
-          if (changed) persist();
-        } catch (_) {
-          //  Keep the selected Help title if the frame is not same-origin.
-        }
-      };
-      frame.addEventListener('load', () => {
-        if (titleObserver) titleObserver.disconnect();
-        syncFrameState();
-        try {
-          const titleRoot = frame.contentDocument.head ||
-            frame.contentDocument.documentElement;
-          if (!titleRoot) return;
-          titleObserver = new MutationObserver(syncFrameState);
-          titleObserver.observe(titleRoot, {
-            childList: true,
-            characterData: true,
-            subtree: true
-          });
-        } catch (_) {
-          titleObserver = null;
-        }
-      });
-      panel.appendChild(frame);
-      schemaPane.appendChild(panel);
-    }
-
-    function renderDocsTabs() {
-      explorerTabs.querySelectorAll('.docs-tab-control').forEach((node) => {
-        node.remove();
-      });
-      schemaPane.querySelectorAll('.docs-panel').forEach((node) => {
-        node.remove();
-      });
-      state.docsTabs.forEach(createDocsTab);
-    }
-
-    function openDocsTab(documentTitle, path) {
-      const existing = state.docsTabs.find((tab) => tab.path === path);
-      if (existing) {
-        setHelpOpen(false);
-        setExplorerView(existing.id, true);
-        return;
-      }
-      const tab = {
-        id: `docs-${state.nextDocs++}`,
-        documentTitle,
-        path
-      };
-      state.docsTabs.push(tab);
-      createDocsTab(tab);
-      if (!state.schemaOpen) {
-        state.schemaOpen = true;
-        applyLayout();
-      }
-      setHelpOpen(false);
-      setExplorerView(tab.id, true);
-    }
-
-    function closeDocsTab(id) {
-      const index = state.docsTabs.findIndex((tab) => tab.id === id);
-      if (index < 0) return;
-      const wasActive = state.explorerView === id;
-      state.docsTabs.splice(index, 1);
-      byId(`docs-control-${id}`).remove();
-      byId(`docs-panel-${id}`).remove();
-      if (wasActive) {
-        const view = index > 0 ? state.docsTabs[index - 1].id : 'files';
-        setExplorerView(view, true);
-      } else {
-        persist();
-      }
-    }
-
-    function setHelpVariant(useDocs) {
-      fallbackHelpContent.classList.toggle('hidden', useDocs);
-      docsHelpContent.classList.toggle('hidden', !useDocs);
-    }
-
-    async function refreshHelpVariant() {
-      if (docsCheckPending || docsAvailable === true) return;
-      docsCheckPending = true;
-      try {
-        const response = await fetch('/docs', {
-          method: 'GET',
-          credentials: 'same-origin',
-          cache: 'no-store'
-        });
-        const responseUrl = new URL(response.url, window.location.origin);
-        const contentType = response.headers.get('content-type') || '';
-        docsAvailable = response.ok &&
-          responseUrl.origin === window.location.origin &&
-          responseUrl.pathname.startsWith('/docs') &&
-          contentType.includes('text/html');
-      } catch (_) {
-        docsAvailable = false;
-      } finally {
-        docsCheckPending = false;
-      }
-      setHelpVariant(docsAvailable);
-      if (docsAvailable) prefetchHelpDocs();
-    }
-
-    function setHelpOpen(open, restoreFocus = false) {
-      helpPanel.hidden = !open;
-      helpButton.setAttribute('aria-expanded', String(open));
-      if (open) {
-        setHelpVariant(docsAvailable === true);
-        refreshHelpVariant();
-        closeHelpButton.focus();
-      }
-      if (!open && restoreFocus) helpButton.focus();
-    }
-
     function menuKeydown(event) {
       const panel = event.currentTarget;
       const items = Array.from(
@@ -4032,117 +3591,13 @@
       return Math.min(maximum, Math.max(minimum, value));
     }
 
-    function narrowLayout() {
-      return window.matchMedia('(max-width: 760px)').matches;
-    }
-
-    function applyLayout() {
-      schemaPane.classList.toggle('collapsed', !state.schemaOpen);
-      outputPane.classList.toggle('collapsed', !state.outputOpen);
-      schemaResizer.classList.toggle('inactive', !state.schemaOpen);
-      outputResizer.classList.toggle('inactive', !state.outputOpen);
-      schemaResizer.disabled = !state.schemaOpen;
-      outputResizer.disabled = !state.outputOpen;
-      schemaCollapse.setAttribute('aria-expanded', String(state.schemaOpen));
-      outputCollapse.setAttribute('aria-expanded', String(state.outputOpen));
-      schemaCollapse.setAttribute('aria-label', state.schemaOpen ?
-        'Collapse explorer' : 'Expand explorer');
-      outputCollapse.setAttribute('aria-label', state.outputOpen ?
-        'Collapse output' : 'Expand output');
-      schemaCollapse.textContent = state.schemaOpen ? '‹' : '›';
-      outputCollapse.textContent = state.outputOpen ? '⌄' : '⌃';
-      if (narrowLayout()) {
-        const size = clamp(state.schemaSize, 160,
-          Math.max(160, window.innerHeight * 0.45));
-        workbench.style.gridTemplateColumns = 'minmax(0, 1fr)';
-        workbench.style.gridTemplateRows = state.schemaOpen ?
-          `${size}px .35rem minmax(32rem, 1fr)` :
-          '3rem 0 minmax(32rem, 1fr)';
-      } else {
-        const size = clamp(state.schemaSize, 180,
-          Math.max(180, window.innerWidth * 0.55));
-        workbench.style.gridTemplateRows = '';
-        workbench.style.gridTemplateColumns = state.schemaOpen ?
-          `${size}px .35rem minmax(0, 1fr)` :
-          '3rem 0 minmax(0, 1fr)';
-      }
-      const outputRatio = clamp(state.outputRatio, 0.15, 0.7);
-      state.outputRatio = outputRatio;
-      const scriptRatio = 1 - outputRatio;
-      workspace.style.gridTemplateRows = state.outputOpen ?
-        `minmax(0, ${scriptRatio}fr) .35rem ` +
-          `minmax(0, ${outputRatio}fr)` :
-        'minmax(0, 1fr) 0 3rem';
-      schemaResizer.setAttribute('aria-valuenow', String(state.schemaSize));
-      outputResizer.setAttribute(
-        'aria-valuenow',
-        String(Math.round(outputRatio * 100))
-      );
-    }
-
-    function beginResize(kind, event) {
-      if (event.button !== 0) return;
-      event.preventDefault();
-      const resizer = event.currentTarget;
-      const pointerId = event.pointerId;
-      let resizing = true;
-      const move = (next) => {
-        if (next.pointerId !== pointerId) return;
-        if (kind === 'schema') {
-          const rect = workbench.getBoundingClientRect();
-          state.schemaSize = narrowLayout() ?
-            next.clientY - rect.top : next.clientX - rect.left;
-        } else {
-          const rect = workspace.getBoundingClientRect();
-          state.outputRatio = (rect.bottom - next.clientY) / rect.height;
-        }
-        applyLayout();
-      };
-      const finish = (next) => {
-        if (!resizing || (next.pointerId !== undefined &&
-            next.pointerId !== pointerId)) return;
-        resizing = false;
-        resizer.removeEventListener('pointermove', move);
-        resizer.removeEventListener('pointerup', finish);
-        resizer.removeEventListener('pointercancel', finish);
-        resizer.removeEventListener('lostpointercapture', finish);
-        if (resizer.hasPointerCapture(pointerId)) {
-          resizer.releasePointerCapture(pointerId);
-        }
-        persist();
-      };
-      resizer.setPointerCapture(pointerId);
-      resizer.addEventListener('pointermove', move);
-      resizer.addEventListener('pointerup', finish);
-      resizer.addEventListener('pointercancel', finish);
-      resizer.addEventListener('lostpointercapture', finish);
-    }
-
-    function resizeKeydown(kind, event) {
-      let delta = 0;
-      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') delta = -16;
-      if (event.key === 'ArrowRight' || event.key === 'ArrowDown') delta = 16;
-      if (delta === 0) return;
-      event.preventDefault();
-      if (kind === 'schema') state.schemaSize += delta;
-      if (kind === 'output') state.outputRatio -= delta / 800;
-      applyLayout();
-      persist();
-    }
-
-    editor.addEventListener('input', () => {
+    let wasDirty = tabIsDirty(activeTab());
+    editor.onChange(() => {
       captureEditor();
-      const tab = activeTab();
-      const button = byId(`tab-${tab.id}`);
-      const dirty = tab.savedText !== null && tab.text !== tab.savedText;
-      if (button) button.textContent = `${tab.name}${dirty ? ' •' : ''}`;
+      const dirty = tabIsDirty(activeTab());
+      if (dirty !== wasDirty) renderTabs();
+      wasDirty = dirty;
       persist();
-    });
-    ['select', 'keyup', 'pointerup'].forEach((eventName) => {
-      editor.addEventListener(eventName, () => {
-        captureEditor();
-        persist();
-      });
     });
     markdownSourceButton.addEventListener('click', () => {
       setResultView('source');
@@ -4150,11 +3605,11 @@
     markdownPreviewButton.addEventListener('click', () => {
       setResultView('preview');
     });
-    newTabButton.addEventListener('click', () => addDraft());
     byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
+    //  urui's own tree binds these too; with no urui tree open, its
+    //  handlers only hide the menu, and arrow keys are its keydown's
     fileContextOpen.addEventListener('click', openContextFile);
     fileContextDelete.addEventListener('click', deleteContextFile);
-    fileContextMenu.addEventListener('keydown', menuKeydown);
     resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
     fileDialogForm.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -4187,48 +3642,20 @@
     copyOutputButton.addEventListener('click', () => {
       copyText(outputCopyText(), 'Results');
     });
-    helpButton.addEventListener('click', () => setHelpOpen(true));
-    closeHelpButton.addEventListener('click', () => {
-      setHelpOpen(false, true);
-    });
-    helpPanel.addEventListener('click', (event) => {
-      if (event.target === helpPanel) setHelpOpen(false, true);
-    });
     defaultDatabase.addEventListener('change', () => {
       state.defaultDatabase = defaultDatabase.value;
       persist();
       ensureSchemaLoaded({force: true});
     });
-    schemasTab.addEventListener('click', () => {
-      setExplorerView('schemas');
+    //  urui switches views and collapses the explorer; the schema loads
+    //  the first time its panel is actually on screen
+    new MutationObserver(() => ensureSchemaLoaded()).observe(schemasPanel, {
+      attributes: true,
+      attributeFilter: ['hidden']
     });
-    filesTab.addEventListener('click', () => {
-      setExplorerView('files');
-    });
-    schemasTab.addEventListener('keydown', explorerTabKeydown);
-    filesTab.addEventListener('keydown', explorerTabKeydown);
-    schemaCollapse.addEventListener('click', () => {
-      state.schemaOpen = !state.schemaOpen;
-      applyLayout();
-      persist();
-      if (state.schemaOpen) ensureSchemaLoaded();
-    });
-    outputCollapse.addEventListener('click', () => {
-      state.outputOpen = !state.outputOpen;
-      applyLayout();
-      persist();
-    });
-    schemaResizer.addEventListener('pointerdown', (event) => {
-      beginResize('schema', event);
-    });
-    outputResizer.addEventListener('pointerdown', (event) => {
-      beginResize('output', event);
-    });
-    schemaResizer.addEventListener('keydown', (event) => {
-      resizeKeydown('schema', event);
-    });
-    outputResizer.addEventListener('keydown', (event) => {
-      resizeKeydown('output', event);
+    new MutationObserver(() => ensureSchemaLoaded()).observe(explorerPane, {
+      attributes: true,
+      attributeFilter: ['class']
     });
     document.addEventListener('click', (event) => {
       if (!event.target.closest('.menu')) closeMenus();
@@ -4245,46 +3672,53 @@
         closeFileContext();
       }
     });
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        if (!helpPanel.hidden) {
-          setHelpOpen(false, true);
-          return;
-        }
-        if (!saveContextMenu.classList.contains('hidden')) {
-          closeSaveContext(true);
-          return;
-        }
-        if (!fileContextMenu.classList.contains('hidden')) {
-          closeFileContext(true);
-          return;
-        }
-        const open = menus.find((menu) => menu.dataset.open === 'true');
-        closeMenus();
-        closeRelationMenu();
-        if (open) menuParts(open).toggle.focus();
-      }
-      if (event.key === 'F5') {
+    //  Window capture runs before urui's document-capture dispatcher, so
+    //  obelisk's menus close, and give focus back, before urui would
+    //  close the shared context menu without knowing its source.
+    window.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      if (runtime.dialogs.helpIsOpen() ||
+          byId('settings-modal')?.hidden === false) return;
+      const consume = () => {
         event.preventDefault();
-        if (!runButton.disabled) execute('run');
+        event.stopPropagation();
+      };
+      if (!saveContextMenu.classList.contains('hidden')) {
+        consume();
+        closeSaveContext(true);
+        return;
       }
+      if (!fileContextMenu.hidden) {
+        consume();
+        closeFileContext(true);
+        return;
+      }
+      const open = menus.find((menu) => menu.dataset.open === 'true');
+      closeMenus();
+      closeRelationMenu();
+      if (open) menuParts(open).toggle.focus();
+    }, true);
+    runtime.shortcuts.register('run', () => {
+      if (!runButton.disabled) execute('run');
     });
-    window.addEventListener('resize', applyLayout);
     window.addEventListener('beforeunload', () => {
       captureEditor();
       persist();
     });
 
+    runtime.wire();
+    runtime.session.load();
+    runtime.layout.apply();
+    runtime.explorer.docs.render();
+    runtime.explorer.setView(runtime.explorer.view());
+    runtime.explorer.docs.refreshVariant();
     updateOutputControls();
     defaultDatabase.value = state.defaultDatabase || 'sys';
+    clearCommandTabs();
     renderTabs();
     restoreEditor(false);
-    renderDocsHelpTree();
-    renderDocsTabs();
-    refreshHelpVariant();
-    setExplorerView(state.explorerView);
-    applyLayout();
     setBusy(false);
+    ensureSchemaLoaded();
     refreshFiles();
     document.documentElement.dataset.obelisk = 'ready';
 
@@ -4294,14 +3728,14 @@
       addFileTab,
       activateTab,
       closeActiveTab,
-      closeDocsTab,
+      closeDocsTab: runtime.explorer.docs.close,
       execute,
       getState: () => state,
       openRelationAction,
-      openDocsTab,
+      openDocsTab: runtime.explorer.docs.open,
       persist,
       refreshFiles,
-      refreshHelpVariant,
+      refreshHelpVariant: runtime.explorer.docs.refreshVariant,
       refreshSchema,
       relationTemplate,
       renderCommand,
@@ -4316,6 +3750,36 @@
       showOutput,
       showRunOutput
     };
+
+    window.urui.boot({
+      onReady: () => {},
+      editor: {primary: () => editor},
+      panes: {
+        get: runtime.panes.get,
+        set: runtime.panes.set,
+        select: runtime.panes.select,
+        panel: runtime.panes.panel,
+        reveal: runtime.panes.reveal
+      },
+      explorer: {
+        show: runtime.explorer.setView,
+        openDocs: runtime.explorer.docs.open
+      },
+      dialog: {
+        help: runtime.dialogs.setHelpOpen,
+        error: runtime.dialogs.showError
+      },
+      session: {
+        save: runtime.session.save,
+        queue: runtime.session.queue,
+        get: runtime.session.load
+      },
+      shortcuts: runtime.shortcuts,
+      layout: {
+        paneWidth: runtime.layout.paneWidth,
+        explorerWidth: runtime.layout.explorerWidth
+      }
+    });
   })();
   '''
 --
