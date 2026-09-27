@@ -210,6 +210,55 @@
   ::  reference beside editor stacked over result.
   $~(%columns ?(%columns %rows))
 ::
++$  root
+  ::  One place a store's files live, under the app's file root.
+  ::
+  ::  `scope` is ~ for the file root itself.  A save path without an
+  ::  allowed mark as its last segment gets the first mark appended.
+  ::  `ext` is the extension labels show; ~ shows the mark.  `save`
+  ::  is | for a root only the app writes, through +write:urui-files.
+  $:  scope=path
+      marks=(list @tas)
+      ext=(unit @tas)
+      save=?
+  ==
+::
++$  action  ?(%open %save %save-as %copy %ref %browse)
+::
++$  store
+  ::  One document tab store, rendered by one %documents tab level.
+  ::
+  ::  Its editor is the Ace host of the %panel band in the same pane.
+  ::  `preview` asks for a preview host beside it, and is the display
+  ::  a new tab starts in.
+  $:  name=@tas
+      noun=@t
+      untitled=@t
+      starter=@t
+      roots=(list root)
+      preview=(unit ?(%source %preview))
+      actions=(list action)
+      refs=?
+      share=(unit [param=@t max=@ud param-max=@ud])
+  ==
+::
++$  tree
+  ::  One explorer file tree, the panel of one %views tab.
+  ::
+  ::  `scopes` selects the store roots shown; ~ shows them all.
+  $:  view=@tas
+      store=@tas
+      scopes=(list path)
+  ==
+::
++$  files
+  ::  The document and file module.  `url` is the one POST route of the
+  ::  json file wire, which the app's agent serves with urui-files.
+  $:  url=@t
+      stores=(list store)
+      trees=(list tree)
+  ==
+::
 +$  app-config
   ::  Everything the browser runtime needs, as data.
   ::

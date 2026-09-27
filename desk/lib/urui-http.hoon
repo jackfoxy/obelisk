@@ -34,4 +34,20 @@
   ^-  simple-payload:http
   ?:  authenticated  payload
   refused
+::
+++  give
+  ::  The three cards that answer one eyre request: header, data, kick.
+  ::
+  ::  Example:
+  ::    (give eyre-id (respond 200 asset))
+  |=  [eyre-id=@ta =simple-payload:http]
+  ^-  (list card:agent:gall)
+  =/  =path  /http-response/[eyre-id]
+  =/  header=cage
+    [%http-response-header !>(response-header.simple-payload)]
+  =/  data=cage  [%http-response-data !>(data.simple-payload)]
+  :~  [%give %fact ~[path] header]
+      [%give %fact ~[path] data]
+      [%give %kick ~[path] ~]
+  ==
 --

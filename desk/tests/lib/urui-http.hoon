@@ -109,4 +109,21 @@
   %+  expect-eq
     !>(`['text/plain' [1 'a']])
   !>((asset-route:uhttp '/other' '/other/x' duplicate))
+::
+++  test-give-sends-header-data-and-kick
+  =/  sent=simple-payload:http  payload
+  =/  cards=(list card:agent:gall)  (give:uhttp ~.req sent)
+  =/  where=(list path)  ~[/http-response/req]
+  ?>  ?=([[%give %fact * *] [%give %fact * *] [%give %kick * ~] ~] cards)
+  ;:  weld
+    (expect-eq !>(where) !>(paths.p.i.cards))
+    (expect !>(=(%http-response-header p.cage.p.i.cards)))
+    %+  expect-eq
+      !>(response-header.sent)
+    !>(!<(response-header:http q.cage.p.i.cards))
+    (expect-eq !>(where) !>(paths.p.i.t.cards))
+    (expect !>(=(%http-response-data p.cage.p.i.t.cards)))
+    (expect-eq !>(data.sent) !>(!<((unit octs) q.cage.p.i.t.cards)))
+    (expect-eq !>(where) !>(paths.p.i.t.t.cards))
+  ==
 --
