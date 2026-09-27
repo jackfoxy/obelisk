@@ -137,6 +137,9 @@
      convention -- so the two read as one group. */
   .settings-button { margin-left: auto; }
 
+  /* Placed by the consumer inside its toolbar, it is one more button. */
+  .toolbar .settings-button:not(:first-child) { margin-left: 0; }
+
   .workbench {
     display: grid;
     grid-template-columns: var(--explorer-width, 18rem) 0.6rem
@@ -203,6 +206,10 @@
   }
 
   .pane-band { min-height: 0; min-width: 0; }
+
+  /* A pane's tabs band is strip-only: it keeps the strip's height
+     however short the pane.  The explorer's grows instead (below). */
+  .pane > .pane-band-tabs { flex: 0 0 auto; }
 
   .pane-band-label {
     color: var(--muted);

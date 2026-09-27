@@ -1100,6 +1100,21 @@
   const tabHooks = (name) => (options.tabs || {})[name] || {};
   let draggedTab;
 
+  //  A consumer's own reference kinds, `options.refs[kind]`, for tabs
+  //  no document store holds.  A drag carries a payload
+  //  `{kind, parentId, ...}`; one reference per kind and parentId.
+  //
+  //   create(payload)     `{label, data}` for a new reference, or nothing
+  //   render(panel, ref)  fill the reference panel from `ref.data`
+  //   validate(data)      repaired data from a saved record, or undefined
+  //   persist             false keeps the kind out of the session record
+  function refHooks(kind) {
+    const hooks = options.refs || {};
+    return Object.prototype.hasOwnProperty.call(hooks, kind)
+      ? hooks[kind]
+      : undefined;
+  }
+
   function store(name) {
     const found = stores.get(name);
     if (!found) throw new Error(`unknown document kind: ${name}`);
@@ -1673,6 +1688,12 @@
   function updateRefContent(tab) {
     const panel = document.getElementById(`${tab.id}-panel`);
     if (!panel) return;
+    const render = refHooks(tab.kind)?.render;
+    if (render) {
+      panel.replaceChildren();
+      render(panel, tab);
+      return;
+    }
     const source = document.createElement('pre');
     source.className = 'ref-source';
     source.textContent = tab.source;
@@ -1698,21 +1719,25 @@
     }
   }
 
+  function relabelRef(ref) {
+    const control = elements.explorerTabs?.querySelector(
+      `[data-explorer-view="${ref.id}"]`
+    );
+    if (!control) return;
+    control.textContent = ref.label;
+    control.title = ref.label;
+    control.parentElement?.querySelector('.ref-tab-close')
+      ?.setAttribute('aria-label', `Close ${ref.label} reference`);
+  }
+
   function syncRefFromParent(name, parentId) {
+    if (!stores.has(name)) return;
     const ref = refForParent(name, parentId);
     const parent = getTab(name, parentId);
     if (!ref || !parent) return;
     ref.label = parent.label;
     ref.source = parent.source;
-    const control = elements.explorerTabs.querySelector(
-      `[data-explorer-view="${ref.id}"]`
-    );
-    if (control) {
-      control.textContent = ref.label;
-      control.title = ref.label;
-      control.parentElement?.querySelector('.ref-tab-close')
-        ?.setAttribute('aria-label', `Close ${ref.label} reference`);
-    }
+    relabelRef(ref);
     updateRefContent(ref);
     updateRefActions();
   }
@@ -1740,6 +1765,69 @@
     setExplorerView(tab.id, true);
     renderTabs(name);
     changed();
+  }
+
+  function showRef(ref) {
+    if (!explorerOpen) setExplorerOpen(true, false);
+    setExplorerView(ref.id, true);
+  }
+
+  //  A consumer reference: an existing one for the same parent is
+  //  shown rather than duplicated.
+  function openAppRef(payload) {
+    const hooks = refHooks(payload?.kind);
+    const parentId = String(payload?.parentId ?? '');
+    if (!hooks || !parentId) return undefined;
+    const existing = refForParent(payload.kind, parentId);
+    if (existing) {
+      showRef(existing);
+      return existing;
+    }
+    const made = hooks.create ? hooks.create(payload) : payload;
+    if (!made) return undefined;
+    const tab = {
+      id: `ref-${nextRef++}`,
+      kind: payload.kind,
+      parentId,
+      label: String(made.label || 'Reference'),
+      data: made.data
+    };
+    refTabs.push(tab);
+    explorerOrder.push(tab.id);
+    createExplorerTab(tab, 'ref');
+    syncExplorerTabOrder();
+    showRef(tab);
+    changed();
+    return tab;
+  }
+
+  function updateAppRef(kind, parentId, change = {}) {
+    const ref = refForParent(kind, String(parentId));
+    if (!ref) return undefined;
+    if (change.label !== undefined) ref.label = String(change.label);
+    if ('data' in change) ref.data = change.data;
+    relabelRef(ref);
+    updateRefContent(ref);
+    changed();
+    return ref;
+  }
+
+  //  `payload()` runs at dragstart, so the reference snapshots the
+  //  source as it is when the drag begins.
+  function enableRefDrag(element, payload) {
+    element.draggable = true;
+    element.addEventListener('dragstart', (event) => {
+      const ref = payload();
+      if (!ref || !refHooks(ref.kind)) return;
+      draggedTab = {kind: ref.kind, id: String(ref.parentId), ref};
+      element.classList.add('is-dragging');
+      event.dataTransfer?.setData('text/plain', String(ref.parentId));
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy';
+    });
+    element.addEventListener('dragend', () => {
+      element.classList.remove('is-dragging');
+      if (draggedTab?.ref) draggedTab = undefined;
+    });
   }
 
   function closeRefTab(id) {
@@ -2177,7 +2265,7 @@
   function validRefTab(candidate) {
     if (!candidate || typeof candidate !== 'object') return undefined;
     if (!idPattern('ref').test(candidate.id)) return undefined;
-    if (!stores.has(candidate.kind)) return undefined;
+    if (!stores.has(candidate.kind)) return validAppRef(candidate);
     if (!idPattern(candidate.kind).test(candidate.parentId)) return undefined;
     const source = validSavedSource(candidate.source);
     if (source === undefined) return undefined;
@@ -2187,6 +2275,22 @@
       parentId: candidate.parentId,
       label: validTabLabel(candidate.label, 'Reference'),
       source
+    };
+  }
+
+  function validAppRef(candidate) {
+    const hooks = refHooks(candidate.kind);
+    if (!hooks?.validate || hooks.persist === false) return undefined;
+    const parentId = String(candidate.parentId ?? '');
+    if (!parentId || parentId.length > 200) return undefined;
+    const data = hooks.validate(candidate.data);
+    if (data === undefined) return undefined;
+    return {
+      id: candidate.id,
+      kind: candidate.kind,
+      parentId,
+      label: validTabLabel(candidate.label, 'Reference'),
+      data
     };
   }
 
@@ -2225,7 +2329,8 @@
       case 'explorerOrder': return explorerOrder;
       case 'docsTabs': return docsTabs;
       case 'nextDocs': return nextDocs;
-      case 'refTabs': return refTabs;
+      case 'refTabs':
+        return refTabs.filter((tab) => refHooks(tab.kind)?.persist !== false);
       case 'nextRef': return nextRef;
       case 'paneBands': return paneBands;
       case 'panePaths': return panePaths;
@@ -2663,18 +2768,27 @@
     }
     elements.contextMenu?.addEventListener('keydown', fileContextKeydown);
     //  a reference is created by dropping a document tab on the aside
+    const droppableRef = () => {
+      if (draggedTab?.ref) return Boolean(refHooks(draggedTab.ref.kind));
+      return Boolean(draggedTab) && stores.has(draggedTab.kind)
+        && canAddRef(draggedTab.kind, draggedTab.id);
+    };
     elements.explorerPane?.addEventListener('dragover', (event) => {
-      if (!draggedTab || !stores.has(draggedTab.kind)
-        || !canAddRef(draggedTab.kind, draggedTab.id)) return;
+      if (!droppableRef()) return;
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
     });
     elements.explorerPane?.addEventListener('drop', (event) => {
-      if (!draggedTab || !stores.has(draggedTab.kind)
-        || !canAddRef(draggedTab.kind, draggedTab.id)) return;
+      if (!droppableRef()) return;
       event.preventDefault();
       event.stopPropagation?.();
-      addRef(draggedTab.kind, draggedTab.id);
+      if (draggedTab.ref) {
+        const payload = draggedTab.ref;
+        draggedTab = undefined;
+        openAppRef(payload);
+      } else {
+        addRef(draggedTab.kind, draggedTab.id);
+      }
     });
     document.addEventListener('click', (event) => {
       const menu = elements.contextMenu;
@@ -2812,6 +2926,9 @@
         byId: refTabById,
         render: () => renderExplorerTabs('ref'),
         add: addRef,
+        open: openAppRef,
+        update: updateAppRef,
+        draggable: enableRefDrag,
         close: closeRefTab,
         can: canAddRef,
         forParent: refForParent,

@@ -75,7 +75,7 @@
     ;body
       ;header.app-header
         ;*  brand.spec
-        ;+  settings-button
+        ;*  (frame-settings toolbar.spec)
         ;*  toolbar.spec
       ==
       ;main#workbench.workbench
@@ -133,7 +133,7 @@
       ;header.app-header
         ;*  brand.spec
         ;div.toolbar
-          ;+  settings-button
+          ;*  (frame-settings toolbar.spec)
           ;*  toolbar.spec
         ==
       ==
@@ -542,9 +542,29 @@
   :-  panel
   $(views t.views, kinds ?~(kinds ~ t.kinds), first |)
 ::
+++  frame-settings
+  ::  The frame's Settings button, unless the consumer's toolbar places
+  ::  its own: the runtime binds the first `#settings` only.
+  |=  toolbar=marl
+  ^-  marl
+  ?:  (has-id toolbar "settings")  ~
+  ~[settings-button]
+::
+++  has-id
+  ::  Does any element in this marl, at any depth, carry id `id`?
+  |=  [=marl id=tape]
+  ^-  ?
+  %+  lien  marl
+  |=  =manx
+  ^-  ?
+  ?|  (lien a.g.manx |=([n=mane v=tape] &(=(%id n) =(id v))))
+      ^$(marl c.manx)
+  ==
+::
 ++  settings-button
   ::  Frame furniture, emitted before the consumer's toolbar marl so it
-  ::  sits left of whatever the consumer puts there.
+  ::  sits left of whatever the consumer puts there.  A consumer may
+  ::  instead splice `settings-button` into its own toolbar.
   ^-  manx
   ;button#settings.settings-button
     =type           "button"

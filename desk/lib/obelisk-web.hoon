@@ -169,6 +169,8 @@
       ['explorerOrder' %urui %scalar ~]
       ['docsTabs' %urui %tabs ~]
       ['nextDocs' %urui %next ~]
+      ['refTabs' %urui %tabs ~]
+      ['nextRef' %urui %next ~]
       ['preferences.theme' %urui %scalar ~]
       ['preferences.layout' %urui %scalar ~]
       ['preferences.keybindings' %urui %scalar ~]
@@ -384,8 +386,8 @@
   ==
 ::
 ++  toolbar
-  ::  No theme control: urui's settings modal owns it, and emits the
-  ::  Settings button immediately left of this marl.
+  ::  No theme control: urui's settings modal owns it; the Settings
+  ::  button itself is placed here, between Parse and Help.
   ^-  marl
   :~  ;nav.toolbar(aria-label "Obelisk workbench controls")
         ;div.default-database
@@ -399,6 +401,7 @@
           ;kbd: F5
         ==
         ;button#parse-btn(type "button"): Parse
+        ;+  settings-button:shell
         ;button#help(type "button", aria-expanded "false"): Help
       ==
   ==
@@ -1082,6 +1085,18 @@
     border-bottom-right-radius: 0;
   }
 
+  .result-tab[draggable='true'] { cursor: grab; }
+
+  .result-tab.is-dragging { opacity: 0.45; }
+
+  .ref-explorer-panel .ref-markdown { overflow: visible; padding: 0; }
+
+  .ref-explorer-panel .ref-html {
+    display: block;
+    height: 100%;
+    min-height: 20rem;
+  }
+
   .result-tab[aria-selected="true"] {
     background: var(--surface);
     border-bottom-color: var(--surface);
@@ -1288,6 +1303,30 @@
         },
         onClose: (paneId, _level, id) => {
           if (paneId === 'editor-pane') closeTab(id);
+        },
+        onRendered: (paneId, level) => {
+          if (paneId === 'editor-pane' && level === 'script') {
+            enableScriptRefDrag();
+          }
+        }
+      },
+      //  a script reference follows its editor tab and outlives it; a
+      //  result reference is a snapshot and is not saved
+      refs: {
+        script: {
+          create: ({parentId}) => {
+            const tab = state.tabs.find((each) => each.id === parentId);
+            return tab ? scriptRefContent(tab) : undefined;
+          },
+          render: renderScriptRef,
+          validate: validScriptRef
+        },
+        result: {
+          persist: false,
+          create: ({data}) => {
+            return {label: `Results ${nextResultRef++}`, data};
+          },
+          render: renderResultRef
         }
       }
     });
@@ -1345,6 +1384,8 @@
       format: null
     };
     let busy = false;
+    let outputRun = 0;
+    let nextResultRef = 1;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
     let contextFilePath = null;
@@ -1550,6 +1591,10 @@
     }
 
     function renderMarkdown(text) {
+      markdownPreview.replaceChildren(markdownFragment(text));
+    }
+
+    function markdownFragment(text) {
       const fragment = document.createDocumentFragment();
       const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
       let index = 0;
@@ -1671,7 +1716,7 @@
         appendMarkdownInline(paragraph, paragraphLines.join(' '));
         fragment.appendChild(paragraph);
       }
-      markdownPreview.replaceChildren(fragment);
+      return fragment;
     }
 
     function updateEditorView(focus = false) {
@@ -1746,6 +1791,64 @@
       });
     }
 
+    function scriptRefContent(tab) {
+      return {
+        label: tab.name,
+        data: {text: tab.text, mark: previewResultMark(tab)}
+      };
+    }
+
+    function validScriptRef(data) {
+      if (!data || typeof data.text !== 'string') return undefined;
+      const mark = ['md', 'html'].includes(data.mark) ? data.mark : null;
+      return {text: data.text, mark};
+    }
+
+    function renderScriptRef(panel, ref) {
+      const {text, mark} = ref.data;
+      if (mark === 'md') {
+        const view = document.createElement('div');
+        view.className = 'markdown-preview ref-markdown';
+        view.appendChild(markdownFragment(text));
+        panel.appendChild(view);
+      } else if (mark === 'html') {
+        const frame = document.createElement('iframe');
+        frame.className = 'html-preview ref-html';
+        frame.title = `${ref.label} rendered HTML`;
+        frame.setAttribute('sandbox', '');
+        frame.referrerPolicy = 'no-referrer';
+        frame.srcdoc = text;
+        panel.appendChild(frame);
+      } else {
+        const source = document.createElement('pre');
+        source.className = 'ref-source';
+        source.textContent = text;
+        panel.appendChild(source);
+      }
+    }
+
+    function syncScriptRefs(tabs = state.tabs) {
+      tabs.forEach((tab) => {
+        const ref = runtime.explorer.refs.forParent('script', tab.id);
+        if (!ref) return;
+        const next = scriptRefContent(tab);
+        if (ref.label === next.label && ref.data.text === next.data.text &&
+            ref.data.mark === next.data.mark) return;
+        runtime.explorer.refs.update('script', tab.id, next);
+      });
+    }
+
+    function enableScriptRefDrag() {
+      const strip = byId('editor-pane-script-tabs');
+      strip?.querySelectorAll('[data-pane-tab]').forEach((control) => {
+        const id = control.dataset.paneTab;
+        runtime.explorer.refs.draggable(control.parentElement, () => {
+          if (id === state.activeId) captureEditor();
+          return {kind: 'script', parentId: id};
+        });
+      });
+    }
+
     function tabIsDirty(tab) {
       return tab.savedText !== null && tab.text !== tab.savedText;
     }
@@ -1761,6 +1864,7 @@
         };
       }));
       runtime.panes.select('editor-pane', [state.activeId]);
+      syncScriptRefs();
       updateExecutionControls();
       updateOutputControls();
     }
@@ -2852,7 +2956,11 @@
         option.textContent = name;
         defaultDatabase.appendChild(option);
       });
-      defaultDatabase.value = state.defaultDatabase;
+      //  an unset or vanished choice would leave the select empty, and
+      //  the server refuses an empty database name
+      const wanted = [state.defaultDatabase, 'sys', names[0]]
+        .find((name) => names.includes(name));
+      if (wanted) defaultDatabase.value = wanted;
     }
 
     function renderSchema(schema) {
@@ -2902,8 +3010,10 @@
       }
     }
 
+    //  `always` loads even while the tree is off screen: the Default DB
+    //  dropdown is filled from the same schema, and needs it at boot
     function ensureSchemaLoaded(options = {}) {
-      if (!schemasShowing()) return Promise.resolve();
+      if (!options.always && !schemasShowing()) return Promise.resolve();
       if (schemaValue && !options.force) return Promise.resolve();
       if (schemaPromise) return schemaPromise;
       schemaPromise = refreshSchema(options).finally(() => {
@@ -3100,7 +3210,8 @@
       return wrapper;
     }
 
-    function renderResultSet(resultSet, resultNumber, resultCount) {
+    function renderResultSet(resultSet, resultNumber, resultCount,
+        startPage = 0) {
       const section = document.createElement('section');
       section.className = 'result-set';
       if (resultCount > 1) {
@@ -3125,8 +3236,8 @@
         tableHolder.appendChild(renderResultTable(resultSet, rows, 0));
         return section;
       }
-      let page = 0;
       const pageCount = Math.ceil(rows.length / resultPageSize);
+      let page = clamp(startPage, 0, pageCount - 1);
       const pagers = [];
       function makePager(position) {
         const pager = document.createElement('nav');
@@ -3160,6 +3271,7 @@
       function renderPage() {
         const first = page * resultPageSize;
         const last = Math.min(first + resultPageSize, rows.length);
+        section.dataset.page = String(page);
         tableHolder.replaceChildren(
           renderResultTable(resultSet, rows.slice(first, last), first)
         );
@@ -3175,6 +3287,16 @@
       section.appendChild(bottomPager);
       renderPage();
       return section;
+    }
+
+    function renderResultRef(panel, ref) {
+      const {command, pages} = ref.data;
+      const resultSets = resultSetsForCommand(command);
+      resultSets.forEach((resultSet, resultNumber) => {
+        panel.appendChild(renderResultSet(
+          resultSet, resultNumber, resultSets.length, pages[resultNumber] || 0
+        ));
+      });
     }
 
     function renderCommand(command, position, showHeading = true) {
@@ -3238,6 +3360,17 @@
         messagePanel.classList.toggle('hidden', showResults);
       }
       resultsTab.addEventListener('click', () => selectTab(true));
+      const run = outputRun;
+      runtime.explorer.refs.draggable(resultsTab, () => {
+        const pages = Array.from(
+          resultPanel.querySelectorAll(':scope > .result-set')
+        ).map((section) => Number(section.dataset.page) || 0);
+        return {
+          kind: 'result',
+          parentId: `run-${run}-${position}`,
+          data: {command, pages}
+        };
+      });
       messagesTab.addEventListener('click', () => selectTab(false));
       tabList.append(resultsTab, messagesTab);
       group.append(tabList, resultPanel, messagePanel);
@@ -3316,6 +3449,7 @@
         format: null
       };
       lastOutputText = '';
+      outputRun += 1;
       results.replaceChildren();
       clearCommandTabs();
       if (safeCommands.length === 0) {
@@ -3605,6 +3739,7 @@
       captureEditor();
       const dirty = tabIsDirty(activeTab());
       if (dirty !== wasDirty) renderTabs();
+      else syncScriptRefs([activeTab()]);
       wasDirty = dirty;
       persist();
     });
@@ -3717,15 +3852,23 @@
     wasDirty = tabIsDirty(activeTab());
     runtime.layout.apply();
     runtime.explorer.docs.render();
+    runtime.explorer.refs.render();
     runtime.explorer.setView(runtime.explorer.view());
     runtime.explorer.docs.refreshVariant();
     updateOutputControls();
-    defaultDatabase.value = state.defaultDatabase || 'sys';
+    //  show the saved default before the schema arrives with the rest
+    const savedDefault = state.defaultDatabase || 'sys';
+    if (!Array.from(defaultDatabase.options).some((option) => {
+      return option.value === savedDefault;
+    })) {
+      defaultDatabase.appendChild(new Option(savedDefault, savedDefault));
+    }
+    defaultDatabase.value = savedDefault;
     clearCommandTabs();
     renderTabs();
     restoreEditor(false);
     setBusy(false);
-    ensureSchemaLoaded();
+    ensureSchemaLoaded({always: true});
     refreshFiles();
     document.documentElement.dataset.obelisk = 'ready';
 

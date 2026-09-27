@@ -1,0 +1,172 @@
+{
+  "source": {
+    "url": "https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts",
+    "revision": "da98d501d58bab6c51eeceafe813706b8f734057",
+    "retrieved": "2026-08-21"
+  },
+  "scope": {
+    "acePlatform": "win",
+    "hostPlatform": "linux",
+    "keyboardLayout": "en-US",
+    "keymap": "ace-default",
+    "status": "default-shortcuts-complete"
+  },
+  "coverage": {
+    "workUnit9": {
+      "status": "real-browser",
+      "groups": ["Line Operations", "Selection", "Go to"],
+      "sourceRows": 51,
+      "bindingExecutions": 52,
+      "exclusions": ["Line Operations: Split line", "Go to: Scroll page down", "Go to: Scroll page up"],
+      "duplicates": [
+        {"binding":"Ctrl-Shift-P","rows":["Selection: Select to matching bracket","Selection: Select to matching"]},
+        {"binding":"Ctrl-P","rows":["Selection: Jump to matching","Go to: Go to matching bracket"]}
+      ]
+    },
+    "workUnit10": {
+      "status": "real-browser",
+      "groups": ["Multicursor", "Find/Replace", "Folding", "Other"],
+      "sourceRows": 49,
+      "bindingExecutions": 50,
+      "exclusions": ["Folding: Fold all comments", "Other: Center selection"],
+      "basicSmoke": ["Other: Undo", "Other: Redo", "Other: Macros replay", "Other: Macros recording"]
+    },
+    "global": {
+      "status": "complete",
+      "sourceRows": 100,
+      "bindingExecutions": 102,
+      "uniqueBindings": 97,
+      "exclusions": [
+        "Line Operations: Split line",
+        "Go to: Scroll page down",
+        "Go to: Scroll page up",
+        "Folding: Fold all comments",
+        "Other: Center selection"
+      ],
+      "duplicates": [
+        {"binding":"Ctrl-Shift-P","rows":["Selection: Select to matching bracket","Selection: Select to matching"]},
+        {"binding":"Ctrl-P","rows":["Selection: Jump to matching","Go to: Go to matching bracket"]},
+        {"binding":"Ctrl-Shift-L","rows":["Selection: Expand to line","Multicursor: Select all from multi-selection"]},
+        {"binding":"Ctrl-Shift-U","rows":["Other: Change to lower case","Other: To lowercase"]},
+        {"binding":"Ctrl-U","rows":["Other: Change to upper case","Other: To uppercase"]}
+      ],
+      "overrides": [
+        {"binding":"Ctrl-Enter","owner":"urui fixture","action":"Echo","aceAction":"Enter full screen"}
+      ],
+      "compatibilityAliases": [
+        {"binding":"Ctrl-T","command":"transposeletters","pinnedAceBinding":"Alt-Shift-X"}
+      ],
+      "pinnedMappings": [
+        {"binding":"Alt-0","command":"foldOther","wikiAction":"Fold all"}
+      ]
+    }
+  },
+  "rows": [
+    {"group":"Line Operations","windowsLinux":"Ctrl-D","bindings":["Ctrl-D"],"action":"Remove line"},
+    {"group":"Line Operations","windowsLinux":"Alt-Shift-Down","bindings":["Alt-Shift-Down"],"action":"Copy lines down"},
+    {"group":"Line Operations","windowsLinux":"Alt-Shift-Up","bindings":["Alt-Shift-Up"],"action":"Copy lines up"},
+    {"group":"Line Operations","windowsLinux":"Alt-Down","bindings":["Alt-Down"],"action":"Move lines down"},
+    {"group":"Line Operations","windowsLinux":"Alt-Up","bindings":["Alt-Up"],"action":"Move lines up"},
+    {"group":"Line Operations","windowsLinux":"Alt-Delete","bindings":["Alt-Delete"],"action":"Remove to line end"},
+    {"group":"Line Operations","windowsLinux":"Alt-Backspace","bindings":["Alt-Backspace"],"action":"Remove to linestart"},
+    {"group":"Line Operations","windowsLinux":"Ctrl-Backspace","bindings":["Ctrl-Backspace"],"action":"Remove word left"},
+    {"group":"Line Operations","windowsLinux":"Ctrl-Delete","bindings":["Ctrl-Delete"],"action":"Remove word right"},
+    {"group":"Line Operations","windowsLinux":"---","bindings":[],"action":"Split line"},
+
+    {"group":"Selection","windowsLinux":"Ctrl-A","bindings":["Ctrl-A"],"action":"Select all"},
+    {"group":"Selection","windowsLinux":"Shift-Left","bindings":["Shift-Left"],"action":"Select left"},
+    {"group":"Selection","windowsLinux":"Shift-Right","bindings":["Shift-Right"],"action":"Select right"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-Left","bindings":["Ctrl-Shift-Left"],"action":"Select word left"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-Right","bindings":["Ctrl-Shift-Right"],"action":"Select word right"},
+    {"group":"Selection","windowsLinux":"Shift-Home","bindings":["Shift-Home"],"action":"Select line start"},
+    {"group":"Selection","windowsLinux":"Shift-End","bindings":["Shift-End"],"action":"Select line end"},
+    {"group":"Selection","windowsLinux":"Alt-Shift-Right","bindings":["Alt-Shift-Right"],"action":"Select to line end"},
+    {"group":"Selection","windowsLinux":"Alt-Shift-Left","bindings":["Alt-Shift-Left"],"action":"Select to line start"},
+    {"group":"Selection","windowsLinux":"Shift-Up","bindings":["Shift-Up"],"action":"Select up"},
+    {"group":"Selection","windowsLinux":"Shift-Down","bindings":["Shift-Down"],"action":"Select down"},
+    {"group":"Selection","windowsLinux":"Shift-PageUp","bindings":["Shift-PageUp"],"action":"Select page up"},
+    {"group":"Selection","windowsLinux":"Shift-PageDown","bindings":["Shift-PageDown"],"action":"Select page down"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-Home","bindings":["Ctrl-Shift-Home"],"action":"Select to start"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-End","bindings":["Ctrl-Shift-End"],"action":"Select to end"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-D","bindings":["Ctrl-Shift-D"],"action":"Duplicate selection"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-P","bindings":["Ctrl-Shift-P"],"action":"Select to matching bracket"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-M","bindings":["Ctrl-Shift-M"],"action":"Expand to matching"},
+    {"group":"Selection","windowsLinux":"Ctrl-\\, Ctrl-P","bindings":["Ctrl-\\","Ctrl-P"],"action":"Jump to matching"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-\\, Ctrl-Shift-P","bindings":["Ctrl-Shift-\\","Ctrl-Shift-P"],"action":"Select to matching"},
+    {"group":"Selection","windowsLinux":"Ctrl-Shift-L","bindings":["Ctrl-Shift-L"],"action":"Expand to line"},
+
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Up","bindings":["Ctrl-Alt-Up"],"action":"Add cursor above"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Down","bindings":["Ctrl-Alt-Down"],"action":"Add cursor below"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Right","bindings":["Ctrl-Alt-Right"],"action":"Add next occurrence to multi-selection"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Left","bindings":["Ctrl-Alt-Left"],"action":"Add previous occurrence to multi-selection"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Shift-Up","bindings":["Ctrl-Alt-Shift-Up"],"action":"Move multicursor from current line to the line above"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Shift-Down","bindings":["Ctrl-Alt-Shift-Down"],"action":"Move multicursor from current line to the line below"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Shift-Right","bindings":["Ctrl-Alt-Shift-Right"],"action":"Remove current occurrence from multi-selection and move to next"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-Shift-Left","bindings":["Ctrl-Alt-Shift-Left"],"action":"Remove current occurrence from multi-selection and move to previous"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Shift-L","bindings":["Ctrl-Shift-L"],"action":"Select all from multi-selection"},
+    {"group":"Multicursor","windowsLinux":"Ctrl-Alt-A","bindings":["Ctrl-Alt-A"],"action":"Align cursors"},
+
+    {"group":"Go to","windowsLinux":"Left","bindings":["Left"],"action":"Go to left"},
+    {"group":"Go to","windowsLinux":"Right","bindings":["Right"],"action":"Go to right"},
+    {"group":"Go to","windowsLinux":"Ctrl-Left","bindings":["Ctrl-Left"],"action":"Go to word left"},
+    {"group":"Go to","windowsLinux":"Ctrl-Right","bindings":["Ctrl-Right"],"action":"Go to word right"},
+    {"group":"Go to","windowsLinux":"Up","bindings":["Up"],"action":"Go line up"},
+    {"group":"Go to","windowsLinux":"Down","bindings":["Down"],"action":"Go line down"},
+    {"group":"Go to","windowsLinux":"Alt-Left, Home","bindings":["Alt-Left","Home"],"action":"Go to line start"},
+    {"group":"Go to","windowsLinux":"Alt-Right, End","bindings":["Alt-Right","End"],"action":"Go to line end"},
+    {"group":"Go to","windowsLinux":"PageUp","bindings":["PageUp"],"action":"Go to page up"},
+    {"group":"Go to","windowsLinux":"PageDown","bindings":["PageDown"],"action":"Go to page down"},
+    {"group":"Go to","windowsLinux":"Ctrl-Home","bindings":["Ctrl-Home"],"action":"Go to start"},
+    {"group":"Go to","windowsLinux":"Ctrl-End","bindings":["Ctrl-End"],"action":"Go to end"},
+    {"group":"Go to","windowsLinux":"Ctrl-L","bindings":["Ctrl-L"],"action":"Go to line..."},
+    {"group":"Go to","windowsLinux":"Ctrl-Down","bindings":["Ctrl-Down"],"action":"Scroll line down"},
+    {"group":"Go to","windowsLinux":"Ctrl-Up","bindings":["Ctrl-Up"],"action":"Scroll line up"},
+    {"group":"Go to","windowsLinux":"Ctrl-P","bindings":["Ctrl-P"],"action":"Go to matching bracket"},
+    {"group":"Go to","windowsLinux":"---","bindings":[],"action":"Scroll page down"},
+    {"group":"Go to","windowsLinux":"---","bindings":[],"action":"Scroll page up"},
+    {"group":"Go to","windowsLinux":"Alt-E","bindings":["Alt-E"],"action":"Go to next error"},
+    {"group":"Go to","windowsLinux":"Alt-Shift-E","bindings":["Alt-Shift-E"],"action":"Go to previous error"},
+
+    {"group":"Find/Replace","windowsLinux":"Ctrl-F","bindings":["Ctrl-F"],"action":"Find"},
+    {"group":"Find/Replace","windowsLinux":"Ctrl-H","bindings":["Ctrl-H"],"action":"Replace"},
+    {"group":"Find/Replace","windowsLinux":"Ctrl-K","bindings":["Ctrl-K"],"action":"Find next"},
+    {"group":"Find/Replace","windowsLinux":"Ctrl-Shift-K","bindings":["Ctrl-Shift-K"],"action":"Find previous"},
+    {"group":"Find/Replace","windowsLinux":"Ctrl-Alt-K","bindings":["Ctrl-Alt-K"],"action":"Find all"},
+    {"group":"Find/Replace","windowsLinux":"Alt-K","bindings":["Alt-K"],"action":"Select or find next"},
+    {"group":"Find/Replace","windowsLinux":"Alt-Shift-K","bindings":["Alt-Shift-K"],"action":"Select or find previous"},
+
+    {"group":"Folding","windowsLinux":"F2","bindings":["F2"],"action":"Toggle fold widget"},
+    {"group":"Folding","windowsLinux":"Alt-F2","bindings":["Alt-F2"],"action":"Toggle parent fold widget"},
+    {"group":"Folding","windowsLinux":"Alt-L, Ctrl-F1","bindings":["Alt-L","Ctrl-F1"],"action":"Fold selection"},
+    {"group":"Folding","windowsLinux":"Alt-Shift-L, Ctrl-Shift-F1","bindings":["Alt-Shift-L","Ctrl-Shift-F1"],"action":"Unfold"},
+    {"group":"Folding","windowsLinux":"Alt-0","bindings":["Alt-0"],"action":"Fold all"},
+    {"group":"Folding","windowsLinux":"Alt-Shift-0","bindings":["Alt-Shift-0"],"action":"Unfold all"},
+    {"group":"Folding","windowsLinux":"---","bindings":[],"action":"Fold all comments"},
+
+    {"group":"Other","windowsLinux":"F1","bindings":["F1"],"action":"Open command palette"},
+    {"group":"Other","windowsLinux":"Tab","bindings":["Tab"],"action":"Indent"},
+    {"group":"Other","windowsLinux":"Ctrl-]","bindings":["Ctrl-]"],"action":"Block indent"},
+    {"group":"Other","windowsLinux":"Shift-Tab","bindings":["Shift-Tab"],"action":"Outdent"},
+    {"group":"Other","windowsLinux":"Ctrl-[","bindings":["Ctrl-["],"action":"Block outdent"},
+    {"group":"Other","windowsLinux":"Ctrl-Z","bindings":["Ctrl-Z"],"action":"Undo"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-Z, Ctrl-Y","bindings":["Ctrl-Shift-Z","Ctrl-Y"],"action":"Redo"},
+    {"group":"Other","windowsLinux":"Ctrl-,","bindings":["Ctrl-,"],"action":"Show the settings menu"},
+    {"group":"Other","windowsLinux":"Ctrl-/","bindings":["Ctrl-/"],"action":"Toggle comment"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-/","bindings":["Ctrl-Shift-/"],"action":"Toggle block comment"},
+    {"group":"Other","windowsLinux":"Ctrl-T","bindings":["Ctrl-T"],"action":"Transpose letters"},
+    {"group":"Other","windowsLinux":"Ctrl-Enter","bindings":["Ctrl-Enter"],"action":"Enter full screen"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-U","bindings":["Ctrl-Shift-U"],"action":"Change to lower case"},
+    {"group":"Other","windowsLinux":"Ctrl-U","bindings":["Ctrl-U"],"action":"Change to upper case"},
+    {"group":"Other","windowsLinux":"Insert","bindings":["Insert"],"action":"Overwrite"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-E","bindings":["Ctrl-Shift-E"],"action":"Macros replay"},
+    {"group":"Other","windowsLinux":"Ctrl-Alt-E","bindings":["Ctrl-Alt-E"],"action":"Macros recording"},
+    {"group":"Other","windowsLinux":"Delete","bindings":["Delete"],"action":"Delete"},
+    {"group":"Other","windowsLinux":"---","bindings":[],"action":"Center selection"},
+    {"group":"Other","windowsLinux":"Ctrl-U","bindings":["Ctrl-U"],"action":"To uppercase"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-U","bindings":["Ctrl-Shift-U"],"action":"To lowercase"},
+    {"group":"Other","windowsLinux":"Ctrl-Alt-S","bindings":["Ctrl-Alt-S"],"action":"Sort lines"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-Up","bindings":["Ctrl-Shift-Up"],"action":"Modify number up"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-Down","bindings":["Ctrl-Shift-Down"],"action":"Modify number down"},
+    {"group":"Other","windowsLinux":"Ctrl-Shift-B","bindings":["Ctrl-Shift-B"],"action":"Format selection (Beautify)"}
+  ]
+}
