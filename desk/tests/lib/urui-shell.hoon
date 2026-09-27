@@ -778,4 +778,83 @@
     (expect-eq !>("true") !>((attribute control %aria-expanded)))
     (expect-eq !>("⌄") !>((text-of control)))
   ==
+::
+++  store-files
+  ::  A `note` store: the result pane's %documents level, whose kind the
+  ::  $doc-kind above also names, becomes the store's strip.
+  ^-  files:urui
+  :*  url='/probe/files'
+      :~  :*  name=%note
+              noun='Note'
+              untitled='note'
+              starter=''
+              ~[[/notes ~[%md] ~ &]]
+              preview=`%preview
+              actions=~[%open %save %copy]
+              refs=|
+              share=~
+      ==  ==
+      ~
+  ==
+::
+++  store-doc
+  ::  `full-spec` is an arm: bound before %= reaches into it.
+  ^-  manx
+  =/  base=shell-spec:urui  full-spec
+  (build:shell base(files.app-config `store-files))
+::
+++  test-store-actions-follow-the-heading-actions
+  =/  result  (need (node-by-id store-doc "probe-result"))
+  =/  head-band
+    %-  head
+    %+  skim  (bands-of result)
+    |=(kid=manx =("head" (attribute kid %data-band)))
+  =/  actions
+    %+  skim  (elements head-band %div)
+    |=(kid=manx =("pane-actions" (attribute kid %class)))
+  =/  buttons=(list manx)
+    %+  skim  c:(head actions)
+    |=(kid=manx =(%button n.g.kid))
+  =/  toggle  (need (node-by-id store-doc "note-display"))
+  ;:  weld
+    %+  expect-eq
+      !>(~["note-open" "note-save" "note-copy"])
+    !>((turn buttons |=(kid=manx (attribute kid %id))))
+    (expect-eq !>("open") !>((attribute (head buttons) %data-action)))
+    (expect-eq !>("Open…") !>((text-of (head buttons))))
+    (expect !>((has-attribute toggle %hidden)))
+    (expect-eq !>("group") !>((attribute toggle %role)))
+    %+  expect-eq
+      !>(~["source" "preview"])
+    !>  %+  turn  (elements toggle %button)
+        |=(kid=manx (attribute kid %data-display))
+  ==
+::
+++  test-store-panel-carries-notice-and-preview
+  =/  notice  (need (node-by-id store-doc "probe-secondary-load-error"))
+  =/  preview  (need (node-by-id store-doc "note-preview"))
+  ;:  weld
+    (expect-eq !>("editor-load-error") !>((attribute notice %class)))
+    (expect-eq !>("alert") !>((attribute notice %role)))
+    (expect !>((has-attribute notice %hidden)))
+    (expect-eq !>("store-preview") !>((attribute preview %class)))
+    (expect !>((has-attribute preview %hidden)))
+  ==
+::
+++  test-document-dialogs-come-once-and-only-with-files
+  =/  count
+    |=  [top=manx id=tape]
+    ^-  @ud
+    %-  lent
+    %+  skim  (weld (elements top %aside) (elements top %div))
+    |=(kid=manx =(id (attribute kid %id)))
+  ;:  weld
+    (expect-eq !>(1) !>((count store-doc "urui-file-dialog")))
+    (expect-eq !>(1) !>((count store-doc "urui-confirm")))
+    (expect-eq !>(1) !>((count store-doc "urui-toast")))
+    (expect-eq !>(0) !>((count full-doc "urui-file-dialog")))
+    (expect-eq !>(0) !>((count full-doc "urui-toast")))
+    (expect !>(!(has-node-id full-doc "note-open")))
+    (expect !>(!(has-node-id full-doc "note-preview")))
+  ==
 --

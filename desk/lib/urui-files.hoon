@@ -96,7 +96,7 @@
   ::
   ::  `strict` limits segments to @tas.  Adjust the product for the
   ::  rest, e.g. an extra codec:
-  ::    =/  base  (make-policy files /data/obelisk &)
+  ::    =/  base  (make-policy files /data/probe &)
   ::    base(codecs (snoc codecs.base [%noun %wain]))
   |=  [=files:urui root=path strict=?]
   ^-  policy

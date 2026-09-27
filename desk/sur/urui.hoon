@@ -270,6 +270,10 @@
   ::  collapse control in its %heading band; it bunts to off, so a
   ::  config built by `%*` over a bunt does not opt in by accident.
   ::
+  ::  `files` turns on urui's document and file module; ~ leaves it off.
+  ::  A %documents tab level whose `kind` names one of its stores is
+  ::  that store's strip; any other `kind` names a $doc-kind.
+  ::
   $:  =app-id
       kinds=(list doc-kind)
       =endpoints
@@ -282,6 +286,7 @@
       =ace-spec
       layout=screen-format
       collapse=$~(| ?)
+      files=(unit files)
   ==
 ::
 +$  shell-spec

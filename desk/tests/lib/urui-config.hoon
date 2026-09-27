@@ -55,6 +55,7 @@
       ==
       layout=%rows
       collapse=&
+      files=~
   ==
 ::
 ++  pinned
@@ -283,6 +284,52 @@
     (expect !>((has "\"global\":\"probeAce\"")))
     (expect !>((has "\"extensions\":[\"ace/ext/searchbox\"]")))
     (expect !>((has "\"useWorker\":false")))
+  ==
+::
+++  probe-files
+  ^-  files:urui
+  :*  url='/apps/probe/files'
+      :~  :*  name=%page
+              noun='Page'
+              untitled='page'
+              starter='# New'
+              :~  [/pages ~[%md %txt] `%page &]
+                  [/exports ~[%txt] ~ |]
+              ==
+              preview=`%source
+              actions=~[%open %save]
+              refs=&
+              share=~
+      ==  ==
+      ~[[view=%page-files store=%page scopes=~]]
+  ==
+::
+++  test-config-emits-files
+  ::  Off, the key is null; on, every store and tree field is there.
+  ::  `spec` is an arm, so it is bound before %= reaches into it.
+  =/  base=shell-spec:urui  spec
+  =/  with=shell-spec:urui  base(files.app-config `probe-files)
+  =/  text=tape  (trip (emit:config with))
+  =/  holds  |=(value=tape ^-(? ?=(^ (find value text))))
+  ;:  weld
+    (expect !>((has "\"files\":null")))
+    (expect !>((holds "\"url\":\"/apps/probe/files\"")))
+    (expect !>((holds "\"name\":\"page\"")))
+    (expect !>((holds "\"noun\":\"Page\"")))
+    (expect !>((holds "\"untitled\":\"page\"")))
+    (expect !>((holds "\"starter\":\"# New\"")))
+    (expect !>((holds "\"scope\":[\"pages\"]")))
+    (expect !>((holds "\"marks\":[\"md\",\"txt\"]")))
+    (expect !>((holds "\"ext\":\"page\"")))
+    (expect !>((holds "\"ext\":null")))
+    (expect !>((holds "\"save\":false")))
+    (expect !>((holds "\"preview\":\"source\"")))
+    (expect !>((holds "\"actions\":[\"open\",\"save\"]")))
+    (expect !>((holds "\"refs\":true")))
+    (expect !>((holds "\"share\":null")))
+    (expect !>((holds "\"view\":\"page-files\"")))
+    (expect !>((holds "\"store\":\"page\"")))
+    (expect !>((holds "\"scopes\":[]")))
   ==
 ::
 ++  test-config-emits-screen-format-and-collapse

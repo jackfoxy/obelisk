@@ -234,7 +234,7 @@
   function editors() {
     const source = options.editors;
     const list = typeof source === 'function' ? source() : source;
-    return (list || []).filter(Boolean);
+    return [...(list || []), ...documentEditors()].filter(Boolean);
   }
 
   // One resize per frame: a drag emits pointermove far faster than Ace
@@ -461,6 +461,7 @@
         || [];
     }
     if (level.source === 'documents') {
+      if (documentStore(level.kind)) return documentLevelTabs(level.kind);
       return tabList(level.kind).map((tab) => {
         return {id: tab.id, label: tab.label, title: tab.path || tab.label};
       });
@@ -662,7 +663,8 @@
     const first = levels[0];
     //  ++renderTabs ends in ++syncLevelsBelow, which renders the rest
     if (first.source === 'documents') {
-      renderTabs(first.kind);
+      if (documentStore(first.kind)) docRender(first.kind);
+      else renderTabs(first.kind);
       return;
     }
     if (first.source !== 'views') renderLevelStrip(paneId, 0);
@@ -695,7 +697,9 @@
   //  that hook files its tabs under the parent path they belong to.
   function syncStorePath(name) {
     const found = levelForKind(name);
-    if (found) writePathSegment(found.paneId, found.depth, activeTabId(name));
+    const id = documentStore(name)
+      ? documentActiveId(name) : activeTabId(name);
+    if (found) writePathSegment(found.paneId, found.depth, id);
   }
 
   function syncLevelsBelow(name) {
@@ -717,6 +721,9 @@
     const level = paneLevel(paneId, depth);
     if (!level) return undefined;
     if (level.source === 'documents') {
+      if (documentStore(level.kind)) {
+        return docSelect(level.kind, id, choices);
+      }
       return selectTab(level.kind, id, choices);
     }
     if (level.source === 'views') return setExplorerView(id, choices.focus);
@@ -1109,6 +1116,7 @@
   //   validate(data)      repaired data from a saved record, or undefined
   //   persist             false keeps the kind out of the session record
   function refHooks(kind) {
+    if (documentStore(kind)) return documentRefHooks(kind);
     const hooks = options.refs || {};
     return Object.prototype.hasOwnProperty.call(hooks, kind)
       ? hooks[kind]
@@ -2316,6 +2324,7 @@
   function readSlot(slot) {
     if (slot.owner === 'app') return options.session?.read?.(slot.key);
     if (slot.kind) {
+      if (documentStore(slot.kind)) return documentReadSlot(slot);
       if (slot.shape === 'tabs') return tabList(slot.kind);
       if (slot.shape === 'active') return activeTabId(slot.kind);
       if (slot.shape === 'next') return store(slot.kind).next;
@@ -2339,6 +2348,7 @@
       case 'preferences.keybindings': return keybindings;
       case 'paneHeight': return paneHeight();
       case 'resultOpen': return resultOpen;
+      case 'fileTrees': return documentTreeState();
       default: return undefined;
     }
   }
@@ -2347,6 +2357,7 @@
     clearTimeout(saveTimer);
     try {
       for (const kind of kinds) captureTab(kind.name);
+      documentCaptureAll();
       const record = {version: storageVersion};
       for (const slot of slots) {
         writeEnvelope(record, slot.key, readSlot(slot));
@@ -2385,12 +2396,16 @@
       const raw = readEnvelope(saved, slot.key);
       const tabs = Array.isArray(raw)
         ? raw.map((candidate) => {
-          return validDocumentTab(candidate, slot.kind, acceptedIds);
+          return documentStore(slot.kind)
+            ? documentValidTab(candidate, slot.kind, acceptedIds)
+            : validDocumentTab(candidate, slot.kind, acceptedIds);
         }).filter((tab) => {
           if (!tab || seenIds.has(tab.id)) return false;
-          if (tab.path && seenPaths.has(tab.path)) return false;
+          //  a store's path is its segments; a kind's is one string
+          const where = Array.isArray(tab.path) ? tab.path.join('/') : tab.path;
+          if (where && seenPaths.has(where)) return false;
           seenIds.add(tab.id);
-          if (tab.path) seenPaths.add(tab.path);
+          if (where) seenPaths.add(where);
           return true;
         })
         : [];
@@ -2524,6 +2539,9 @@
         case 'preferences.keybindings':
           record[slot.key] = validKeybindings(raw);
           break;
+        case 'fileTrees':
+          record[slot.key] = documentValidTreeState(raw);
+          break;
         default:
           record[slot.key] = raw;
       }
@@ -2547,7 +2565,9 @@
       const value = record[slot.key];
       if (value === undefined) continue;
       if (slot.kind) {
-        if (slot.shape === 'tabs') {
+        if (documentStore(slot.kind)) {
+          documentApplySlot(slot, value);
+        } else if (slot.shape === 'tabs') {
           const tabs = tabList(slot.kind);
           tabs.splice(0, tabs.length, ...value);
         } else if (slot.shape === 'active') {
@@ -2577,6 +2597,7 @@
         case 'preferences.keybindings': setKeybindings(value, false); break;
         case 'paneHeight': setPaneHeight(value, false); break;
         case 'resultOpen': setResultOpen(value, false); break;
+        case 'fileTrees': documentSetTreeState(value); break;
         default: break;
       }
     }
@@ -2601,22 +2622,22 @@
 
   //  A shared link must round-trip exactly: anything that re-encodes
   //  differently is a mangled or hand-edited parameter, not a source.
-  function decodeSource(encoded) {
-    if (!share) throw new Error('This application does not share sources');
-    if (!encoded || encoded.length > share.paramMax) {
-      throw new Error(`Shared ${share.name} parameter is missing or too large`);
+  function decodeSource(encoded, spec = share) {
+    if (!spec) throw new Error('This application does not share sources');
+    if (!encoded || encoded.length > spec.paramMax) {
+      throw new Error(`Shared ${spec.name} parameter is missing or too large`);
     }
     if (!/^[A-Za-z0-9_-]+$/.test(encoded)) {
-      throw new Error(`Shared ${share.name} parameter is invalid`);
+      throw new Error(`Shared ${spec.name} parameter is invalid`);
     }
     const base64 = encoded.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
     const binary = atob(padded);
     const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
     const source = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
-    validateSource(source, share.max);
+    validateSource(source, spec.max);
     if (encodeSource(source) !== encoded) {
-      throw new Error(`Shared ${share.name} parameter is not canonical`);
+      throw new Error(`Shared ${spec.name} parameter is not canonical`);
     }
     return source;
   }
@@ -2631,6 +2652,7 @@
   '''
   files
   shortcuts
+  documents
   '''
   // ---- wiring -------------------------------------------------------
   //
@@ -2650,16 +2672,20 @@
           ?.addEventListener('click', () => handler(name));
       }
     }
+    //  a store's tree marks its menu `doc`; a kind's tree does not
     elements.contextOpen?.addEventListener('click', () => {
-      const {kind, path} = contextTarget;
+      const {kind, path, doc} = contextTarget;
       closeFileContext();
-      if (kind && path) loadFile(kind, path);
+      if (kind && path && doc) documentOpenContext(kind, path);
+      else if (kind && path) loadFile(kind, path);
     });
     elements.contextDelete?.addEventListener('click', () => {
-      const {kind, path, source} = contextTarget;
+      const {kind, path, source, doc} = contextTarget;
       closeFileContext();
-      if (kind && path) deleteFile(kind, path, source);
+      if (kind && path && doc) documentRemoveContext(kind, path, source);
+      else if (kind && path) deleteFile(kind, path, source);
     });
+    documentsWire();
     elements.themeControl?.addEventListener('change', () => {
       applyTheme(elements.themeControl.value);
     });
@@ -2971,6 +2997,10 @@
       hideError,
       errorIsOpen
     },
+    documents: documentApi,
+    notify,
+    confirm: confirmDialog,
+    copy: copyText,
     wire
   };
   '''
@@ -3171,6 +3201,12 @@
       event.preventDefault();
       event.stopPropagation?.();
     };
+    //  a document dialog sits above everything else: it takes Escape,
+    //  and holds Tab inside itself
+    if (documentKeydown(event)) {
+      consume();
+      return;
+    }
     if (event.key === 'Escape') {
       if (settingsIsOpen()) {
         consume();
@@ -3219,6 +3255,1767 @@
     if (inEditor) return;
     if (options.shortcuts?.onKeydown?.(event) === true) consume();
   }
+  '''
+::
+++  documents
+  ::  The document and file module in the runtime scope: stores, the
+  ::  editor, previews, the tree, the file dialog, and feedback.  Live
+  ::  only with `config.files`; see the section banner for the hooks.
+  ^-  @t
+  '''
+  // ---- documents ----------------------------------------------------
+  //
+  // The document and file module, live only when `config.files` is set.
+  // One store per `config.files.stores` entry, each rendered by the
+  // %documents tab level whose `kind` names it; a level naming a
+  // $doc-kind still belongs to the document tabs above.
+  //
+  // Behaviour is urui's and the same for every application: labels,
+  // draft names, dirtiness, reopening, the file dialog, conflicts,
+  // deletes, the editor and its load failure, source and preview, the
+  // tree, references, and feedback.  An application supplies data in
+  // `config.files` and domain logic through `options.documents[store]`:
+  //
+  //   fields.defaults(init)             app fields on a new tab
+  //   fields.validate(saved, tab, ids)  app fields restored from a record
+  //   activate(tab, choices)            domain reaction to a switch
+  //   afterActivate(tab, choices)       the same, after render and save
+  //   loaded(tab), saved(tab)           keep app data in step
+  //
+  // `options.onFile({store, op, phase, path, error})` reports each file
+  // operation; `options.transport` replaces the json wire, for tests.
+  // `runtime.documents.previews.register(mark, previewer)` adds a
+  // preview, `{mount(host), show(tab), hide(), render(panel, text)}`.
+  const filesConfig = config.files || null;
+  const docStores = new Map((filesConfig?.stores || []).map((item) => {
+    return [item.name, item];
+  }));
+  const docState = new Map([...docStores.keys()].map((name) => {
+    return [name, {tabs: [], activeId: undefined, next: 1}];
+  }));
+  const docTrees = filesConfig?.trees || [];
+  const docEditorsByStore = new Map();
+  const docEditorFailed = new Set();
+  const docMounted = new Set();
+  const docPreviewers = new Map();
+  const docTransport = options.transport
+    || (filesConfig ? docJsonTransport(filesConfig.url) : null);
+  let docTreeState = {};
+  let docStarted = false;
+  let docToastTimer;
+  let docDialog;
+  let docConfirm;
+
+  function documentStore(name) {
+    return docStores.has(name);
+  }
+
+  function docHooks(name) {
+    return (options.documents || {})[name] || {};
+  }
+
+  function docEvent(name, op, phase, path, error) {
+    options.onFile?.({store: name, op, phase, path, error});
+  }
+
+  //  ---- paths and labels
+  //
+  //  A path is its segments, relative to the app's file root, ending in
+  //  the stored mark; the segment before the mark is the file's name.
+  function samePath(left, right) {
+    return Array.isArray(left) && Array.isArray(right)
+      && left.length === right.length
+      && left.every((part, index) => part === right[index]);
+  }
+
+  function pathText(path) {
+    return Array.isArray(path) ? path.join('/') : '';
+  }
+
+  function docRootOf(name, path) {
+    if (!Array.isArray(path)) return undefined;
+    return (docStores.get(name)?.roots || []).find((root) => {
+      return path.length > root.scope.length + 1
+        && samePath(root.scope, path.slice(0, root.scope.length))
+        && root.marks.includes(path[path.length - 1]);
+    });
+  }
+
+  function docMarkOf(path) {
+    return Array.isArray(path) ? path[path.length - 1] : undefined;
+  }
+
+  function docBaseLabel(name, path) {
+    const root = docRootOf(name, path);
+    const mark = docMarkOf(path);
+    return `${path[path.length - 2]}.${root?.ext || mark}`;
+  }
+
+  //  Clashing labels gain parent directories, one at a time, until
+  //  each is unique or runs out of directories.
+  function docLabels(name) {
+    const tabs = docState.get(name).tabs;
+    const labels = new Map();
+    const depth = new Map(tabs.map((tab) => [tab.id, 0]));
+    const labelOf = (tab) => {
+      if (!tab.path) return tab.draft;
+      const base = docBaseLabel(name, tab.path);
+      const dirs = tab.path.slice(0, -2);
+      const shown = dirs.slice(dirs.length - depth.get(tab.id));
+      return [...shown, base].join('/');
+    };
+    for (let round = 0; round < 32; round += 1) {
+      const counts = new Map();
+      for (const tab of tabs) {
+        const label = labelOf(tab);
+        labels.set(tab.id, label);
+        counts.set(label, (counts.get(label) || 0) + 1);
+      }
+      let grew = false;
+      for (const tab of tabs) {
+        if (!tab.path || counts.get(labels.get(tab.id)) < 2) continue;
+        if (depth.get(tab.id) < tab.path.length - 2) {
+          depth.set(tab.id, depth.get(tab.id) + 1);
+          grew = true;
+        }
+      }
+      if (!grew) break;
+    }
+    return labels;
+  }
+
+  function docRelabel(name) {
+    const labels = docLabels(name);
+    for (const tab of docState.get(name).tabs) tab.label = labels.get(tab.id);
+  }
+
+  //  `untitled`, then `untitled 2`, `untitled 3`, reusing the lowest.
+  function docDraftLabel(name) {
+    const base = docStores.get(name).untitled || 'Untitled';
+    const used = new Set(docState.get(name).tabs.map((tab) => tab.draft));
+    if (!used.has(base)) return base;
+    let number = 2;
+    while (used.has(`${base} ${number}`)) number += 1;
+    return `${base} ${number}`;
+  }
+
+  function docCanSave(name, path) {
+    return !path || Boolean(docRootOf(name, path)?.save);
+  }
+
+  function docDirty(name, id) {
+    const tab = docGet(name, id);
+    return Boolean(tab) && tab.text !== tab.clean;
+  }
+
+  //  ---- tabs
+  function docTabs(name) {
+    const state = docState.get(name);
+    if (!state) throw new Error(`unknown document store: ${name}`);
+    return state.tabs;
+  }
+
+  function docGet(name, id) {
+    return docTabs(name).find((tab) => tab.id === id);
+  }
+
+  function docActive(name) {
+    return docGet(name, docState.get(name)?.activeId);
+  }
+
+  function documentActiveId(name) {
+    return docState.get(name)?.activeId;
+  }
+
+  function docDefaultDisplay(name) {
+    return docStores.get(name)?.preview || 'source';
+  }
+
+  function docCreate(name, init = {}) {
+    const state = docState.get(name);
+    const storeConfig = docStores.get(name);
+    const path = Array.isArray(init.path) ? init.path.slice() : null;
+    const text = String(init.text ?? storeConfig.starter ?? '');
+    const tab = {
+      id: `${name}-${state.next++}`,
+      path,
+      draft: path ? undefined : (init.label || docDraftLabel(name)),
+      text,
+      clean: init.clean ?? text,
+      hash: init.hash ?? null,
+      selection: init.selection || {start: 0, end: 0},
+      display: init.display || docDefaultDisplay(name),
+      ...(docHooks(name).fields?.defaults?.(init) || {}),
+      ...(init.fields || {})
+    };
+    state.tabs.push(tab);
+    docRelabel(name);
+    if (init.activate === false) {
+      docRender(name);
+      changed();
+    } else {
+      docSelect(name, tab.id, {focus: init.focus});
+    }
+    return tab;
+  }
+
+  function docUpdate(name, id, change = {}) {
+    const tab = docGet(name, id);
+    if (!tab) return undefined;
+    const active = tab.id === documentActiveId(name);
+    if (active) docCapture(name);
+    if (change.text !== undefined) tab.text = String(change.text);
+    if (change.label !== undefined && !tab.path) tab.draft = change.label;
+    if (change.fields) Object.assign(tab, change.fields);
+    docRelabel(name);
+    if (active && change.text !== undefined) docShow(name);
+    docSyncRef(name, tab);
+    docRender(name);
+    changed();
+    return tab;
+  }
+
+  function docCapture(name) {
+    const tab = docActive(name);
+    if (!tab) return undefined;
+    const editor = docEditorsByStore.get(name);
+    if (editor && tab.display !== 'preview') {
+      tab.text = editor.getSource();
+      tab.selection = editor.getSelection();
+    }
+    return tab;
+  }
+
+  function documentCaptureAll() {
+    for (const name of docStores.keys()) docCapture(name);
+  }
+
+  function docSelect(name, id, choices = {}) {
+    const state = docState.get(name);
+    const tab = docGet(name, id);
+    if (!tab) return undefined;
+    if (id === state.activeId && !choices.reactivate) {
+      if (choices.focus) docFocus(name);
+      return tab;
+    }
+    if (id !== state.activeId) docCapture(name);
+    const previousId = state.activeId;
+    state.activeId = id;
+    //  the pane path moves first, so a level filled from `activate`
+    //  files its tabs under the tab they belong to
+    syncStorePath(name);
+    docShow(name);
+    docHooks(name).activate?.(tab, {...choices, previousId});
+    docRender(name);
+    changed();
+    docHooks(name).afterActivate?.(tab, {...choices, previousId});
+    if (choices.focus) docFocus(name);
+    return tab;
+  }
+
+  function docFocus(name) {
+    const tab = docActive(name);
+    if (!tab) return;
+    if (tab.display === 'preview' && docPreviewerFor(tab)) {
+      docPreviewHost(name)?.focus?.();
+    } else {
+      docEditorsByStore.get(name)?.focus();
+    }
+  }
+
+  async function docClose(name, id) {
+    const tabs = docTabs(name);
+    const index = tabs.findIndex((tab) => tab.id === id);
+    if (index < 0) return false;
+    if (id === documentActiveId(name)) docCapture(name);
+    const tab = tabs[index];
+    if (tab.text !== tab.clean
+      && !await confirmDialog('discard', {label: tab.label})) return false;
+    const wasActive = id === documentActiveId(name);
+    tabs.splice(index, 1);
+    if (!tabs.length) {
+      docState.get(name).activeId = undefined;
+      docCreate(name, {focus: true});
+      return true;
+    }
+    docRelabel(name);
+    if (wasActive) {
+      docState.get(name).activeId = undefined;
+      docSelect(name, tabs[Math.min(index, tabs.length - 1)].id, {focus: true});
+    } else {
+      docRender(name);
+      changed();
+    }
+    return true;
+  }
+
+  function docMove(name, sourceId, targetId, after) {
+    const tabs = docTabs(name);
+    const source = tabs.findIndex((tab) => tab.id === sourceId);
+    if (source < 0 || sourceId === targetId) return;
+    const [moved] = tabs.splice(source, 1);
+    const target = tabs.findIndex((tab) => tab.id === targetId);
+    tabs.splice(target < 0 ? tabs.length : target + (after ? 1 : 0), 0, moved);
+    docRender(name);
+    changed();
+  }
+
+  //  ---- the strip
+  function documentLevelTabs(name) {
+    return docTabs(name).map((tab) => {
+      return {
+        id: tab.id, label: tab.label, title: pathText(tab.path) || tab.label
+      };
+    });
+  }
+
+  function docTabKeydown(event, name) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+      return;
+    }
+    event.preventDefault();
+    const tabs = docTabs(name);
+    const current = tabs.findIndex((tab) => {
+      return tab.id === event.currentTarget.dataset.documentTab;
+    });
+    let next = current;
+    if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    else if (event.key === 'ArrowLeft') {
+      next = (current - 1 + tabs.length) % tabs.length;
+    } else {
+      next = (current + 1) % tabs.length;
+    }
+    docSelect(name, tabs[next].id);
+    tabContainer(name)?.querySelector?.(
+      `[data-document-tab="${tabs[next].id}"]`
+    )?.focus();
+  }
+
+  function docDragWrapper(wrapper, name, tab) {
+    const refs = docStores.get(name).refs;
+    wrapper.draggable = true;
+    wrapper.addEventListener('dragstart', (event) => {
+      if (tab.id === documentActiveId(name)) docCapture(name);
+      draggedTab = refs
+        ? {kind: name, id: tab.id, ref: {kind: name, parentId: tab.id}}
+        : {kind: name, id: tab.id};
+      wrapper.classList.add('is-dragging');
+      event.dataTransfer?.setData('text/plain', tab.id);
+      if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copyMove';
+    });
+    wrapper.addEventListener('dragover', (event) => {
+      if (draggedTab?.kind !== name) return;
+      event.preventDefault();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    });
+    wrapper.addEventListener('drop', (event) => {
+      if (draggedTab?.kind !== name) return;
+      event.preventDefault();
+      event.stopPropagation?.();
+      const bounds = wrapper.getBoundingClientRect();
+      const after = event.clientX > bounds.left + bounds.width / 2;
+      const moved = draggedTab.id;
+      draggedTab = undefined;
+      docMove(name, moved, tab.id, after);
+    });
+    wrapper.addEventListener('dragend', () => {
+      wrapper.classList.remove('is-dragging');
+      draggedTab = undefined;
+    });
+  }
+
+  function docRender(name) {
+    docApplyActions(name);
+    const container = tabContainer(name);
+    if (!container) return;
+    const bound = levelForKind(name);
+    const closes = levelCloses(bound?.paneId, bound?.level);
+    const activeId = documentActiveId(name);
+    container.replaceChildren();
+    for (const tab of docTabs(name)) {
+      const dirty = tab.text !== tab.clean;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'document-tab-control';
+      wrapper.classList.toggle('active', tab.id === activeId);
+      wrapper.setAttribute('role', 'presentation');
+      const control = document.createElement('button');
+      control.type = 'button';
+      control.className = 'document-tab';
+      control.dataset.documentTab = tab.id;
+      control.setAttribute('role', 'tab');
+      control.setAttribute('aria-selected', String(tab.id === activeId));
+      control.tabIndex = tab.id === activeId ? 0 : -1;
+      control.textContent = tab.label;
+      control.title = pathText(tab.path) || tab.label;
+      control.addEventListener('click', () => {
+        docSelect(name, tab.id, {focus: true});
+      });
+      control.addEventListener('keydown', (event) => {
+        docTabKeydown(event, name);
+      });
+      wrapper.append(control);
+      if (closes) {
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.className = 'document-tab-close';
+        close.dataset.dirty = String(dirty);
+        close.textContent = dirty ? '●' : '×';
+        close.title = dirty ? 'Unsaved changes; close tab' : 'Close tab';
+        close.setAttribute(
+          'aria-label',
+          dirty ? `Close ${tab.label}, unsaved changes` : `Close ${tab.label}`
+        );
+        close.addEventListener('click', (event) => {
+          event.stopPropagation?.();
+          docClose(name, tab.id);
+        });
+        wrapper.append(close);
+      }
+      docDragWrapper(wrapper, name, tab);
+      container.append(wrapper);
+    }
+    const addLabel = bound && levelAddLabel(bound.paneId, bound.level);
+    if (addLabel) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'document-tab-control document-tab-add-control';
+      wrapper.setAttribute('role', 'presentation');
+      const add = document.createElement('button');
+      add.type = 'button';
+      add.className = 'document-tab-add';
+      add.setAttribute('aria-label', addLabel);
+      add.title = addLabel;
+      add.textContent = '+';
+      add.addEventListener('click', () => docCreate(name, {focus: true}));
+      wrapper.append(add);
+      container.append(wrapper);
+    }
+    syncLevelsBelow(name);
+  }
+
+  //  The store's heading actions: Save disappears for a tab it could
+  //  not write, and Copy and Add Ref need text.
+  function docApplyActions(name) {
+    const tab = docActive(name);
+    const save = document.querySelector(`#${name}-save`);
+    if (save) save.hidden = Boolean(tab?.path) && !docCanSave(name, tab.path);
+    for (const action of ['copy', 'ref']) {
+      const control = document.querySelector(`#${name}-${action}`);
+      if (control) control.disabled = !tab?.text;
+    }
+  }
+
+  //  ---- the editor
+  //
+  //  Each store's editor is the Ace host of the %panel band in its pane.
+  //  It is mounted once; if Ace cannot load, the notice is shown and a
+  //  stand-in keeps the store working from the tabs' text.
+  function docHostOf(name) {
+    const bound = levelForKind(name);
+    if (!bound) return undefined;
+    return paneItem(bound.paneId, 'panel')?.host || undefined;
+  }
+
+  function docStandIn(name) {
+    return {
+      getSource: () => docActive(name)?.text ?? '',
+      setSource: () => {},
+      replaceRange: () => {},
+      getSelection: () => ({start: 0, end: 0}),
+      setSelection: () => {},
+      selectRange: () => {},
+      focus: () => {},
+      onChange: () => () => {},
+      isFocused: () => false,
+      setDiagnostic: () => {},
+      setTheme: () => {},
+      setKeybindings: () => {},
+      setReadOnly: () => {},
+      refresh: () => {}
+    };
+  }
+
+  function docMount(name) {
+    if (docEditorsByStore.has(name)) return;
+    const host = docHostOf(name);
+    if (!host) return;
+    const element = document.querySelector(`#${host.id}`);
+    if (!element) return;
+    let editor;
+    try {
+      editor = createAceEditorAdapter(element, {
+        assets: window[config.ace?.global],
+        mode: host.mode || undefined,
+        label: host.label
+      });
+    } catch (cause) {
+      element.hidden = true;
+      const notice = document.querySelector(`#${host.id}-load-error`);
+      if (notice) {
+        notice.hidden = false;
+        notice.title = String(cause);
+      }
+      editor = docStandIn(name);
+      docEditorFailed.add(name);
+    }
+    editor.onChange(() => docEdited(name));
+    docEditorsByStore.set(name, editor);
+  }
+
+  function documentEditors() {
+    return [...docEditorsByStore.values()];
+  }
+
+  //  An edit changes only the active tab's text; the strip's dirty mark
+  //  and any reference follow it.
+  function docEdited(name) {
+    const tab = docCapture(name);
+    if (!tab) return;
+    docSyncRef(name, tab);
+    docRender(name);
+    changed();
+  }
+
+  function docShow(name) {
+    const tab = docActive(name);
+    const editor = docEditorsByStore.get(name);
+    if (!tab) return;
+    if (editor) {
+      editor.setSource(tab.text, {
+        history: 'reset', notify: false, selection: tab.selection
+      });
+      editor.setReadOnly?.(!docCanSave(name, tab.path));
+    }
+    docApplyDisplay(name);
+  }
+
+  //  ---- source and preview
+  function docPreviewerFor(tab) {
+    return tab?.path ? docPreviewers.get(docMarkOf(tab.path)) : undefined;
+  }
+
+  function docPreviewHost(name) {
+    return document.querySelector(`#${name}-preview`);
+  }
+
+  function docApplyDisplay(name) {
+    const tab = docActive(name);
+    const previewer = docPreviewerFor(tab);
+    const host = docHostOf(name);
+    const editorElement = host ? document.querySelector(`#${host.id}`) : null;
+    const previewHost = docPreviewHost(name);
+    const toggle = document.querySelector(`#${name}-display`);
+    const showing = Boolean(previewer && previewHost)
+      && tab.display === 'preview';
+    if (toggle) {
+      toggle.hidden = !previewer || !previewHost;
+      for (const button of Array.from(toggle.children || [])) {
+        const shown = showing ? 'preview' : 'source';
+        const pressed = button.dataset?.display === shown;
+        button.setAttribute('aria-pressed', String(pressed));
+      }
+    }
+    //  a host whose editor failed stays hidden behind its notice
+    if (editorElement && !docEditorFailed.has(name)) {
+      editorElement.hidden = showing;
+    }
+    if (!previewHost) return;
+    previewHost.hidden = !showing;
+    for (const [mark, item] of docPreviewers) {
+      if (item !== previewer || !showing) {
+        if (docMounted.has(`${name}:${mark}`)) item.hide?.();
+      }
+    }
+    if (!showing) return;
+    const key = `${name}:${docMarkOf(tab.path)}`;
+    if (!docMounted.has(key)) {
+      previewer.mount?.(previewHost);
+      docMounted.add(key);
+    }
+    previewer.show?.(tab);
+    refreshEditors();
+  }
+
+  function docSetDisplay(name, display) {
+    const tab = docCapture(name);
+    if (!tab || !['source', 'preview'].includes(display)) return;
+    tab.display = display;
+    if (display === 'source') docShow(name);
+    else docApplyDisplay(name);
+    changed();
+  }
+
+  function docRegisterPreviewer(mark, previewer) {
+    if (!mark || !previewer) return;
+    docPreviewers.set(String(mark), previewer);
+  }
+
+  function safeMarkdownHref(value) {
+    if (value.startsWith('#')) return value;
+    try {
+      const url = new URL(value, window.location.href);
+      if (['http:', 'https:', 'mailto:'].includes(url.protocol)) {
+        return url.href;
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  function appendMarkdownInline(parent, value) {
+    const pattern = new RegExp([
+      '`[^`\\n]+`', '\\*\\*[^*\\n]+\\*\\*', '__[^_\\n]+__',
+      '\\*[^*\\n]+\\*', '_[^_\\n]+_', '\\[[^\\]\\n]+\\]\\([^) \\n]+\\)'
+    ].map((part) => `(?:${part})`).join('|'), 'g');
+    let offset = 0;
+    for (const match of value.matchAll(pattern)) {
+      parent.append(document.createTextNode(value.slice(offset, match.index)));
+      const token = match[0];
+      let node;
+      if (token.startsWith('`')) {
+        node = document.createElement('code');
+        node.textContent = token.slice(1, -1);
+      } else if (token.startsWith('**') || token.startsWith('__')) {
+        node = document.createElement('strong');
+        node.textContent = token.slice(2, -2);
+      } else if (token.startsWith('*') || token.startsWith('_')) {
+        node = document.createElement('em');
+        node.textContent = token.slice(1, -1);
+      } else {
+        const parts = /^\[([^\]]+)\]\(([^) ]+)\)$/.exec(token);
+        const href = parts ? safeMarkdownHref(parts[2]) : null;
+        if (parts && href) {
+          node = document.createElement('a');
+          node.textContent = parts[1];
+          node.href = href;
+          node.rel = 'noreferrer';
+          if (!href.startsWith(window.location.origin)) node.target = '_blank';
+        } else {
+          node = document.createTextNode(token);
+        }
+      }
+      parent.append(node);
+      offset = match.index + token.length;
+    }
+    parent.append(document.createTextNode(value.slice(offset)));
+  }
+
+  function markdownTableCells(line) {
+    let value = line.trim();
+    if (value.startsWith('|')) value = value.slice(1);
+    if (value.endsWith('|') && !value.endsWith('\\|')) {
+      value = value.slice(0, -1);
+    }
+    const cells = [];
+    let cell = '';
+    let escaped = false;
+    for (const character of value) {
+      if (escaped) {
+        cell += character;
+        escaped = false;
+      } else if (character === '\\') {
+        escaped = true;
+      } else if (character === '|') {
+        cells.push(cell.trim());
+        cell = '';
+      } else {
+        cell += character;
+      }
+    }
+    if (escaped) cell += '\\';
+    cells.push(cell.trim());
+    return cells;
+  }
+
+  function markdownTableDelimiter(line) {
+    const cells = markdownTableCells(line);
+    return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+  }
+
+  function markdownBlockStart(lines, index) {
+    const line = lines[index] || '';
+    const next = lines[index + 1] || '';
+    return /^ {0,3}```/.test(line) || /^ {0,3}#{1,6}\s+/.test(line)
+      || /^ {0,3}(?:[-*_]\s*){3,}$/.test(line)
+      || /^\s*>\s?/.test(line)
+      || /^\s*(?:[-+*]|\d+\.)\s+/.test(line)
+      || (line.includes('|') && markdownTableDelimiter(next));
+  }
+
+  function markdownCellAlign(cell, delimiter) {
+    if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
+      cell.style.textAlign = 'center';
+    } else if (delimiter.endsWith(':')) {
+      cell.style.textAlign = 'right';
+    }
+  }
+
+  //  A small, safe Markdown: fences, tables, headings, rules, quotes,
+  //  lists, and paragraphs; inline code, emphasis, and http(s) links.
+  //  Everything is built as nodes, never as HTML.
+  function markdownFragment(text) {
+    const fragment = document.createDocumentFragment();
+    const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+    let index = 0;
+    while (index < lines.length) {
+      const line = lines[index];
+      if (!line.trim()) {
+        index += 1;
+        continue;
+      }
+      const fence = /^ {0,3}```\s*([^ ]*)\s*$/.exec(line);
+      if (fence) {
+        const codeLines = [];
+        index += 1;
+        while (index < lines.length && !/^ {0,3}```\s*$/.test(lines[index])) {
+          codeLines.push(lines[index]);
+          index += 1;
+        }
+        if (index < lines.length) index += 1;
+        const pre = document.createElement('pre');
+        const code = document.createElement('code');
+        if (fence[1]) code.dataset.language = fence[1];
+        code.textContent = codeLines.join('\n');
+        pre.append(code);
+        fragment.append(pre);
+        continue;
+      }
+      if (index + 1 < lines.length && line.includes('|')
+        && markdownTableDelimiter(lines[index + 1])) {
+        const table = document.createElement('table');
+        const head = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        const delimiters = markdownTableCells(lines[index + 1]);
+        markdownTableCells(line).forEach((header, cellIndex) => {
+          const cell = document.createElement('th');
+          markdownCellAlign(cell, delimiters[cellIndex] || '');
+          appendMarkdownInline(cell, header);
+          headRow.append(cell);
+        });
+        head.append(headRow);
+        table.append(head);
+        const body = document.createElement('tbody');
+        index += 2;
+        while (index < lines.length && lines[index].trim()
+          && lines[index].includes('|')) {
+          const row = document.createElement('tr');
+          markdownTableCells(lines[index]).forEach((value, cellIndex) => {
+            const cell = document.createElement('td');
+            markdownCellAlign(cell, delimiters[cellIndex] || '');
+            appendMarkdownInline(cell, value);
+            row.append(cell);
+          });
+          body.append(row);
+          index += 1;
+        }
+        table.append(body);
+        fragment.append(table);
+        continue;
+      }
+      const heading = /^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
+      if (heading) {
+        const node = document.createElement(`h${heading[1].length}`);
+        appendMarkdownInline(node, heading[2]);
+        fragment.append(node);
+        index += 1;
+        continue;
+      }
+      if (/^ {0,3}(?:[-*_]\s*){3,}$/.test(line)) {
+        fragment.append(document.createElement('hr'));
+        index += 1;
+        continue;
+      }
+      if (/^\s*>\s?/.test(line)) {
+        const quote = document.createElement('blockquote');
+        const quoteLines = [];
+        while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+          quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
+          index += 1;
+        }
+        appendMarkdownInline(quote, quoteLines.join(' '));
+        fragment.append(quote);
+        continue;
+      }
+      const listItem = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(line);
+      if (listItem) {
+        const ordered = /\d+\./.test(listItem[1]);
+        const list = document.createElement(ordered ? 'ol' : 'ul');
+        while (index < lines.length) {
+          const item = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(lines[index]);
+          if (!item || /\d+\./.test(item[1]) !== ordered) break;
+          const node = document.createElement('li');
+          appendMarkdownInline(node, item[2]);
+          list.append(node);
+          index += 1;
+        }
+        fragment.append(list);
+        continue;
+      }
+      const paragraphLines = [line.trim()];
+      index += 1;
+      while (index < lines.length && lines[index].trim()
+        && !markdownBlockStart(lines, index)) {
+        paragraphLines.push(lines[index].trim());
+        index += 1;
+      }
+      const paragraph = document.createElement('p');
+      appendMarkdownInline(paragraph, paragraphLines.join(' '));
+      fragment.append(paragraph);
+    }
+    return fragment;
+  }
+
+  //  The built-in previewers.  HTML renders in a sandboxed frame with no
+  //  script, no same-origin access, and no referrer.
+  function markdownPreviewer() {
+    let view;
+    return {
+      mount(host) {
+        view = document.createElement('div');
+        view.className = 'markdown-view';
+        host.append(view);
+      },
+      show(tab) {
+        if (view) {
+          view.hidden = false;
+          view.replaceChildren(markdownFragment(tab.text));
+        }
+      },
+      hide() { if (view) view.hidden = true; },
+      render(panel, text) {
+        const node = document.createElement('div');
+        node.className = 'markdown-view';
+        node.append(markdownFragment(text));
+        panel.append(node);
+      }
+    };
+  }
+
+  function htmlFrame(title) {
+    const frame = document.createElement('iframe');
+    frame.setAttribute('sandbox', '');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    frame.title = title;
+    return frame;
+  }
+
+  function htmlPreviewer() {
+    let frame;
+    return {
+      mount(host) {
+        frame = htmlFrame('Rendered HTML');
+        host.append(frame);
+      },
+      show(tab) {
+        if (frame) {
+          frame.hidden = false;
+          frame.srcdoc = tab.text;
+        }
+      },
+      hide() { if (frame) frame.hidden = true; },
+      render(panel, text) {
+        const node = htmlFrame('Rendered HTML reference');
+        node.srcdoc = text;
+        panel.append(node);
+      }
+    };
+  }
+
+  docRegisterPreviewer('md', markdownPreviewer());
+  docRegisterPreviewer('html', htmlPreviewer());
+
+  //  ---- references
+  //
+  //  A store with `refs` is an app reference kind to the explorer:
+  //  dragging a tab, or Add Ref, opens one per tab, rendered by the
+  //  mark's previewer, and it follows the tab's edits and saves.
+  function documentRefHooks(name) {
+    const storeConfig = docStores.get(name);
+    if (!storeConfig?.refs) return undefined;
+    return {
+      create: ({parentId}) => {
+        const tab = docGet(name, parentId);
+        if (!tab) return undefined;
+        return {
+          label: tab.label,
+          data: {text: tab.text, mark: docMarkOf(tab.path) || null}
+        };
+      },
+      render: (panel, ref) => {
+        const render = docPreviewers.get(ref.data?.mark)?.render;
+        if (render) {
+          render(panel, String(ref.data.text));
+          return;
+        }
+        const source = document.createElement('pre');
+        source.className = 'ref-source';
+        source.textContent = String(ref.data?.text ?? '');
+        panel.append(source);
+      },
+      validate: (data) => {
+        if (typeof data?.text !== 'string') return undefined;
+        return {
+          text: data.text,
+          mark: typeof data.mark === 'string' ? data.mark : null
+        };
+      }
+    };
+  }
+
+  function docSyncRef(name, tab) {
+    if (!docStores.get(name)?.refs || !refForParent(name, tab.id)) return;
+    updateAppRef(name, tab.id, {
+      label: tab.label,
+      data: {text: tab.text, mark: docMarkOf(tab.path) || null}
+    });
+  }
+
+  function docAddRef(name, id = documentActiveId(name)) {
+    if (id === documentActiveId(name)) docCapture(name);
+    return openAppRef({kind: name, parentId: id});
+  }
+
+  //  ---- the wire
+  function docJsonTransport(url) {
+    async function post(body) {
+      const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(body)
+      });
+      let reply = null;
+      try {
+        reply = JSON.parse(await response.text());
+      } catch (_) {
+        reply = null;
+      }
+      if (!response.ok || !reply || reply.ok === false) {
+        const error = new Error(
+          reply?.error?.message || `Request failed (${response.status})`
+        );
+        error.status = response.status;
+        error.code = reply?.error?.code || null;
+        error.retryable = Boolean(reply?.error?.retryable);
+        error.details = Array.isArray(reply?.error?.details)
+          ? reply.error.details : [];
+        throw error;
+      }
+      return reply;
+    }
+    return {
+      browse: async (scope) => {
+        return (await post({op: 'browse', scope})).entries || [];
+      },
+      load: async (path) => {
+        const reply = await post({op: 'load', path});
+        return {text: String(reply.text ?? ''), hash: reply.hash ?? null};
+      },
+      save: async (path, text, choices = {}) => {
+        const reply = await post({
+          op: 'save',
+          path,
+          text,
+          base: choices.base ?? null,
+          overwrite: Boolean(choices.overwrite)
+        });
+        return {hash: reply.hash ?? null};
+      },
+      remove: async (path, choices = {}) => {
+        await post({op: 'delete', path, base: choices.base ?? null});
+      }
+    };
+  }
+
+  function docFailed(name, op, path, cause) {
+    docEvent(name, op, 'failed', path, cause);
+    notify(String(cause?.message || cause), {
+      kind: 'error', sticky: true, details: cause?.details || []
+    });
+  }
+
+  //  ---- open, save, delete
+  async function docOpen(name, requested) {
+    let path = requested;
+    if (!Array.isArray(path)) {
+      path = await docFileDialog({mode: 'open', store: name});
+      if (!path) return undefined;
+    }
+    const existing = docTabs(name).find((tab) => samePath(tab.path, path));
+    if (existing) {
+      if (existing.id === documentActiveId(name)) docCapture(name);
+      if (existing.text !== existing.clean) {
+        docSelect(name, existing.id, {focus: true});
+        if (!await confirmDialog('discard', {label: existing.label})) {
+          return existing;
+        }
+      }
+    }
+    docEvent(name, 'load', 'start', path);
+    let loaded;
+    try {
+      loaded = await docTransport.load(path);
+    } catch (cause) {
+      docFailed(name, 'load', path, cause);
+      return undefined;
+    }
+    docEvent(name, 'load', 'done', path);
+    let tab = existing;
+    if (tab) {
+      Object.assign(tab, {
+        text: loaded.text,
+        clean: loaded.text,
+        hash: loaded.hash,
+        selection: {start: 0, end: 0}
+      });
+      docSelect(name, tab.id, {focus: true, reactivate: true});
+      docSyncRef(name, tab);
+    } else {
+      tab = docCreate(name, {
+        path, text: loaded.text, clean: loaded.text, hash: loaded.hash,
+        focus: true
+      });
+    }
+    docHooks(name).loaded?.(tab);
+    return tab;
+  }
+
+  //  A new path, or an explicit Save As, goes through the file dialog;
+  //  `exists` and `changed` ask before overwriting.
+  async function docSave(name, choices = {}) {
+    const tab = docCapture(name);
+    if (!tab) return undefined;
+    if (!tab.path && !tab.text) {
+      notify(`Nothing to save in ${tab.label}.`);
+      return undefined;
+    }
+    let path = tab.path;
+    if (choices.as || !path || !docCanSave(name, path)) {
+      path = await docFileDialog({mode: 'save', store: name, tab});
+      if (!path) return undefined;
+    }
+    const text = tab.text;
+    let base = samePath(path, tab.path) ? tab.hash : null;
+    let overwrite = false;
+    let saved;
+    docEvent(name, 'save', 'start', path);
+    for (;;) {
+      try {
+        saved = await docTransport.save(path, text, {base, overwrite});
+        break;
+      } catch (cause) {
+        const conflict = cause?.code === 'exists' || cause?.code === 'changed';
+        if (!overwrite && conflict
+          && await confirmDialog(cause.code, {path: pathText(path)})) {
+          overwrite = true;
+          base = null;
+          continue;
+        }
+        docFailed(name, 'save', path, cause);
+        return undefined;
+      }
+    }
+    tab.path = path.slice();
+    tab.draft = undefined;
+    tab.clean = text;
+    tab.hash = saved.hash;
+    docRelabel(name);
+    docEvent(name, 'save', 'done', path);
+    docHooks(name).saved?.(tab);
+    docSyncRef(name, tab);
+    if (tab.id === documentActiveId(name)) docShow(name);
+    docRender(name);
+    changed();
+    notify(`Saved ${tab.label}.`);
+    docRefreshTrees(name);
+    return tab;
+  }
+
+  //  Tabs open on a deleted path keep their text as unsaved drafts.
+  async function docRemove(name, path) {
+    if (!Array.isArray(path)) return false;
+    if (!await confirmDialog('delete', {path: pathText(path)})) return false;
+    docEvent(name, 'delete', 'start', path);
+    try {
+      await docTransport.remove(path, {});
+    } catch (cause) {
+      docFailed(name, 'delete', path, cause);
+      return false;
+    }
+    docEvent(name, 'delete', 'done', path);
+    const label = docBaseLabel(name, path);
+    for (const tab of docTabs(name)) {
+      if (!samePath(tab.path, path)) continue;
+      if (tab.id === documentActiveId(name)) docCapture(name);
+      tab.path = null;
+      tab.draft = tab.label;
+      tab.clean = '';
+      tab.hash = null;
+    }
+    docRelabel(name);
+    docShow(name);
+    docRender(name);
+    changed();
+    notify(`Deleted ${label}.`);
+    docRefreshTrees(name);
+    return true;
+  }
+
+  //  ---- the tree
+  //
+  //  One per `config.files.trees` entry, in the %views panel it names.
+  //  Directories fold, and `fileTrees` remembers the folds.
+  function docScopes(name, tree) {
+    const scopes = tree?.scopes?.length
+      ? tree.scopes
+      : (docStores.get(name)?.roots || []).map((root) => root.scope);
+    const unique = [];
+    for (const scope of scopes) {
+      if (!unique.some((item) => samePath(item, scope))) unique.push(scope);
+    }
+    return unique;
+  }
+
+  async function docBrowse(name, scopes) {
+    const files = [];
+    for (const scope of scopes) {
+      for (const entry of await docTransport.browse(scope)) {
+        if (entry?.kind !== 'file' || !Array.isArray(entry.path)) continue;
+        if (!docRootOf(name, entry.path)) continue;
+        if (!files.some((item) => samePath(item, entry.path))) {
+          files.push(entry.path);
+        }
+      }
+    }
+    return files.sort((left, right) => {
+      return pathText(left).localeCompare(pathText(right));
+    });
+  }
+
+  async function docRefreshTree(tree) {
+    const node = document.querySelector(`#${tree.view}-tree`);
+    if (!node) return;
+    node.setAttribute('aria-busy', 'true');
+    let files;
+    try {
+      files = await docBrowse(tree.store, docScopes(tree.store, tree));
+    } catch (cause) {
+      node.setAttribute('aria-busy', 'false');
+      node.replaceChildren();
+      node.textContent = `Unable to load files: ${cause?.message || cause}`;
+      docFailed(tree.store, 'browse', undefined, cause);
+      return;
+    }
+    docRenderTree(tree, node, files);
+  }
+
+  function docRefreshTrees(name) {
+    return Promise.all(docTrees.filter((tree) => {
+      return !name || tree.store === name;
+    }).map(docRefreshTree));
+  }
+
+  function docTreeRow(tree, path) {
+    const name = tree.store;
+    const row = document.createElement('div');
+    row.className = 'explorer-file-row';
+    row.setAttribute('role', 'treeitem');
+    const file = document.createElement('button');
+    file.type = 'button';
+    file.className = 'file-tree-file';
+    file.dataset.path = pathText(path);
+    file.textContent = docBaseLabel(name, path);
+    file.title = pathText(path);
+    file.addEventListener('click', () => {
+      closeFileContext();
+      docOpen(name, path);
+    });
+    const openMenu = (source, event) => {
+      openFileContext(name, path, source, event);
+      contextTarget.doc = true;
+    };
+    row.addEventListener('contextmenu', (event) => openMenu(file, event));
+    const actions = document.createElement('button');
+    actions.type = 'button';
+    actions.className = 'file-tree-actions';
+    actions.setAttribute('aria-label', `Actions for ${file.textContent}`);
+    actions.setAttribute('aria-haspopup', 'menu');
+    actions.setAttribute('aria-expanded', 'false');
+    actions.textContent = '…';
+    actions.addEventListener('click', (event) => openMenu(actions, event));
+    row.append(file, actions);
+    return row;
+  }
+
+  function docRenderTree(tree, node, files) {
+    const root = {folders: new Map(), files: []};
+    for (const path of files) {
+      let branch = root;
+      const dirs = path.slice(0, -2);
+      dirs.forEach((part, index) => {
+        if (!branch.folders.has(part)) {
+          branch.folders.set(part, {
+            path: dirs.slice(0, index + 1), folders: new Map(), files: []
+          });
+        }
+        branch = branch.folders.get(part);
+      });
+      branch.files.push(path);
+    }
+    const build = (branch) => {
+      const list = document.createElement('div');
+      list.className = 'file-tree-children';
+      list.setAttribute('role', 'group');
+      for (const [part, folder] of branch.folders) {
+        const details = document.createElement('details');
+        details.className = 'file-tree-folder';
+        details.setAttribute('role', 'treeitem');
+        const key = `${tree.view}:${pathText(folder.path)}`;
+        details.open = docTreeState[key] !== false;
+        details.addEventListener('toggle', () => {
+          if (details.open) delete docTreeState[key];
+          else docTreeState[key] = false;
+          changed();
+        });
+        const summary = document.createElement('summary');
+        summary.textContent = part;
+        details.append(summary, build(folder));
+        list.append(details);
+      }
+      for (const path of branch.files) list.append(docTreeRow(tree, path));
+      return list;
+    };
+    node.replaceChildren();
+    node.setAttribute('aria-busy', 'false');
+    if (!files.length) {
+      node.textContent = 'No files yet.';
+      return;
+    }
+    const top = build(root);
+    top.className = 'file-tree-list';
+    node.append(top);
+  }
+
+  function docShowTree(name) {
+    const tree = docTrees.find((item) => item.store === name);
+    if (!tree) return;
+    if (!explorerOpen) setExplorerOpen(true, false);
+    setExplorerView(tree.view, true);
+    docRefreshTree(tree);
+  }
+
+  function documentTreeState() {
+    return docTreeState;
+  }
+
+  function documentValidTreeState(raw) {
+    if (!raw || typeof raw !== 'object') return {};
+    const valid = {};
+    for (const [key, value] of Object.entries(raw)) {
+      if (value === false && key.length <= 1_024) valid[key] = false;
+    }
+    return valid;
+  }
+
+  function documentSetTreeState(value) {
+    docTreeState = value || {};
+  }
+
+  //  ---- dialogs
+  //
+  //  The file dialog and the confirm dialog are modal: focus moves in,
+  //  Tab stays in, and Escape or Cancel gives focus back.
+  function docElement(id) {
+    return document.querySelector(`#${id}`);
+  }
+
+  function docFocusables(root) {
+    const found = [];
+    const walk = (node) => {
+      for (const child of Array.from(node?.children || [])) {
+        if (child.hidden) continue;
+        const name = String(child.localName || '').toLowerCase();
+        if (['button', 'input', 'select', 'textarea'].includes(name)
+          && !child.disabled) {
+          found.push(child);
+        }
+        walk(child);
+      }
+    };
+    walk(root);
+    return found;
+  }
+
+  function docTrapTab(event, root) {
+    const items = docFocusables(root);
+    if (!items.length) return false;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !root.contains(active))) {
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && (active === last || !root.contains(active))) {
+      first.focus();
+      return true;
+    }
+    return false;
+  }
+
+  function confirmMessage(kind, detail = {}) {
+    switch (kind) {
+      case 'discard': return `Discard unsaved changes in ${detail.label}?`;
+      case 'exists': return `${detail.path} already exists. Overwrite it?`;
+      case 'changed':
+        return `${detail.path} changed since it was loaded. Overwrite it?`;
+      case 'delete': return `Delete ${detail.path}? This cannot be undone.`;
+      default: return String(detail.message || kind);
+    }
+  }
+
+  function confirmDialog(kind, detail = {}) {
+    const message = confirmMessage(kind, detail);
+    const modal = docElement('urui-confirm');
+    if (!modal) return Promise.resolve(Boolean(window.confirm(message)));
+    if (docConfirm) docConfirm.finish(false);
+    return new Promise((resolve) => {
+      const returnFocus = document.activeElement;
+      const finish = (answer) => {
+        modal.hidden = true;
+        docConfirm = undefined;
+        returnFocus?.focus?.();
+        resolve(answer);
+      };
+      docConfirm = {finish, modal};
+      docElement('urui-confirm-message').textContent = message;
+      modal.hidden = false;
+      docElement('urui-confirm-cancel')?.focus();
+    });
+  }
+
+  function docDialogEntries(list, files, choose, open) {
+    list.replaceChildren();
+    if (!files.length) {
+      const empty = document.createElement('p');
+      empty.className = 'file-dialog-help';
+      empty.textContent = 'No files yet.';
+      list.append(empty);
+      return;
+    }
+    for (const path of files) {
+      const entry = document.createElement('button');
+      entry.type = 'button';
+      entry.className = 'file-dialog-entry';
+      entry.setAttribute('role', 'option');
+      entry.setAttribute('aria-selected', 'false');
+      entry.textContent = pathText(path);
+      entry.addEventListener('click', () => {
+        for (const item of Array.from(list.children || [])) {
+          item.setAttribute?.('aria-selected', String(item === entry));
+        }
+        choose(path);
+      });
+      entry.addEventListener('dblclick', () => open(path));
+      list.append(entry);
+    }
+  }
+
+  //  Segments a user may type: a knot each, never . or .., and the
+  //  server refines the rule further for a strict policy.
+  function docTypedSegments(value) {
+    const parts = String(value || '').trim().replace(/^\/+|\/+$/g, '')
+      .split('/').map((part) => part.trim());
+    if (!parts.length || parts.some((part) => {
+      return !part || part === '.' || part === '..'
+        || !/^[a-z0-9._~-]+$/.test(part);
+    })) {
+      return undefined;
+    }
+    return parts;
+  }
+
+  //  `{mode, store, tab, scope, title, extra, mark}` → a path, or null.
+  //  `open` lists the store's files; `save` and `pick` take a typed path
+  //  under a chosen root, with a format picker when the root holds more
+  //  than one mark (`mark: false` hides it; the path then keeps a mark
+  //  it names, or takes the root's first).
+  function docFileDialog(request) {
+    const modal = docElement('urui-file-dialog');
+    if (!modal) return Promise.resolve(null);
+    if (docDialog) docDialog.finish(null);
+    const name = request.store;
+    const storeConfig = docStores.get(name);
+    const mode = request.mode || 'pick';
+    const opening = mode === 'open';
+    const roots = (storeConfig?.roots || []).filter((root) => {
+      if (request.scope) return samePath(root.scope, request.scope);
+      return opening || root.save;
+    });
+    const title = docElement('urui-file-dialog-title');
+    const help = docElement('urui-file-dialog-help');
+    const rootField = docElement('urui-file-dialog-root-field');
+    const rootSelect = docElement('urui-file-dialog-root');
+    const list = docElement('urui-file-dialog-list');
+    const pathField = docElement('urui-file-dialog-path-field');
+    const pathInput = docElement('urui-file-dialog-path');
+    const markField = docElement('urui-file-dialog-mark-field');
+    const markSelect = docElement('urui-file-dialog-mark');
+    const extra = docElement('urui-file-dialog-extra');
+    const error = docElement('urui-file-dialog-error');
+    const confirm = docElement('urui-file-dialog-confirm');
+    const cancel = docElement('urui-file-dialog-cancel');
+    const noun = storeConfig?.noun || 'file';
+    title.textContent = request.title
+      || (opening ? `Open ${noun}` : `Save ${noun} As`);
+    help.textContent = opening
+      ? `Choose a saved ${noun.toLowerCase()}.`
+      : 'Use lower-case letters, digits, and hyphens; / makes folders.';
+    confirm.textContent = opening ? 'Open' : 'Save';
+    error.hidden = true;
+    extra.replaceChildren(...(request.extra ? [request.extra] : []));
+    let selected = null;
+    const rootAt = () => roots[Number(rootSelect.value) || 0];
+    const fillMarks = () => {
+      const root = rootAt();
+      markSelect.replaceChildren();
+      for (const mark of root?.marks || []) {
+        const option = document.createElement('option');
+        option.value = mark;
+        option.textContent = mark;
+        markSelect.append(option);
+      }
+      const current = request.tab?.path ? docMarkOf(request.tab.path) : null;
+      markSelect.value = root?.marks.includes(current)
+        ? current : root?.marks[0];
+      markField.hidden = opening || request.mark === false
+        || (root?.marks.length || 0) < 2;
+    };
+    const fillList = async () => {
+      const root = rootAt();
+      list.replaceChildren();
+      if (!root) return;
+      try {
+        const files = await docBrowse(name, [root.scope]);
+        docDialogEntries(list, files, (path) => {
+          selected = path;
+          if (!opening) {
+            pathInput.value = path.slice(root.scope.length, -1).join('/');
+            if (root.marks.includes(docMarkOf(path))) {
+              markSelect.value = docMarkOf(path);
+            }
+          }
+        }, (path) => {
+          selected = path;
+          if (opening) finish(path);
+          else accept();
+        });
+      } catch (cause) {
+        error.textContent = String(cause?.message || cause);
+        error.hidden = false;
+      }
+    };
+    rootSelect.replaceChildren();
+    roots.forEach((root, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = pathText(root.scope) || '/';
+      rootSelect.append(option);
+    });
+    const tabRoot = request.tab?.path
+      ? roots.findIndex((root) => root === docRootOf(name, request.tab.path))
+      : -1;
+    rootSelect.value = String(Math.max(0, tabRoot));
+    rootField.hidden = roots.length < 2;
+    pathField.hidden = opening;
+    list.hidden = false;
+    fillMarks();
+    if (!opening) {
+      const tab = request.tab;
+      pathInput.value = tab?.path && docCanSave(name, tab.path)
+        ? tab.path.slice(rootAt().scope.length, -1).join('/')
+        : String(tab?.label || '').toLowerCase()
+          .replace(/[^a-z0-9._~/-]+/g, '-');
+    }
+    let finish;
+    const done = new Promise((resolve) => {
+      const returnFocus = document.activeElement;
+      finish = (answer) => {
+        modal.hidden = true;
+        extra.replaceChildren();
+        docDialog = undefined;
+        returnFocus?.focus?.();
+        resolve(answer);
+      };
+    });
+    const accept = () => {
+      if (opening) {
+        if (selected) finish(selected);
+        return;
+      }
+      const root = rootAt();
+      const segments = docTypedSegments(pathInput.value);
+      if (!root || !segments) {
+        error.textContent = 'Enter a path such as folder/name.';
+        error.hidden = false;
+        pathInput.focus();
+        return;
+      }
+      const typedMark = root.marks.includes(segments[segments.length - 1])
+        && segments.length > 1;
+      const mark = markField.hidden
+        ? (typedMark ? segments.pop() : root.marks[0])
+        : markSelect.value;
+      if (typedMark && !markField.hidden) segments.pop();
+      finish([...root.scope, ...segments, mark]);
+    };
+    docDialog = {finish, accept, modal};
+    rootSelect.onchange = () => {
+      fillMarks();
+      fillList();
+    };
+    confirm.onclick = accept;
+    cancel.onclick = () => finish(null);
+    pathInput.onkeydown = (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      accept();
+    };
+    modal.hidden = false;
+    fillList();
+    (opening ? cancel : pathInput)?.focus();
+    return done;
+  }
+
+  //  Escape closes the topmost document dialog; Tab stays inside it.
+  function documentKeydown(event) {
+    const top = docConfirm || docDialog;
+    if (!top) return false;
+    if (event.key === 'Escape') {
+      top.finish(docConfirm ? false : null);
+      return true;
+    }
+    if (event.key === 'Tab') return docTrapTab(event, top.modal);
+    return false;
+  }
+
+  //  ---- feedback
+  function notify(message, choices = {}) {
+    const toast = docElement('urui-toast');
+    if (!toast) return;
+    const kind = choices.kind || 'info';
+    const details = Array.isArray(choices.details) ? choices.details : [];
+    clearTimeout(docToastTimer);
+    toast.dataset.kind = kind;
+    toast.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+    docElement('urui-toast-message').textContent = String(message);
+    const more = docElement('urui-toast-details');
+    if (more) {
+      more.textContent = details.join('\n');
+      more.hidden = !details.length;
+    }
+    toast.hidden = false;
+    if (!choices.sticky) {
+      docToastTimer = setTimeout(() => { toast.hidden = true; }, 4_000);
+    }
+  }
+
+  async function copyText(text) {
+    const value = String(text ?? '');
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch (_) {
+      // Fall through for browsers that restrict the Clipboard API.
+    }
+    const helper = document.createElement('textarea');
+    helper.value = value;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.append(helper);
+    helper.select();
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } finally {
+      helper.remove();
+    }
+    return copied;
+  }
+
+  //  ---- the session
+  //
+  //  A store's tabs, active id, and counter use the store-named slots
+  //  with the same shapes as the document tabs above.
+  function documentReadSlot(slot) {
+    const state = docState.get(slot.kind);
+    if (slot.shape === 'active') return state.activeId;
+    if (slot.shape === 'next') return state.next;
+    if (slot.shape !== 'tabs') return undefined;
+    return state.tabs.map((tab) => {
+      const {label, ...stored} = tab;
+      return stored;
+    });
+  }
+
+  function documentValidTab(candidate, name, seen) {
+    if (!candidate || typeof candidate !== 'object') return undefined;
+    if (!idPattern(name).test(candidate.id)) return undefined;
+    const text = validSavedSource(candidate.text);
+    if (text === undefined) return undefined;
+    const path = Array.isArray(candidate.path)
+      && candidate.path.every((part) => typeof part === 'string')
+      && docRootOf(name, candidate.path) ? candidate.path.slice() : null;
+    const base = {
+      id: candidate.id,
+      path,
+      draft: path ? undefined : validTabLabel(
+        candidate.draft ?? candidate.label, docStores.get(name).untitled
+      ),
+      text,
+      clean: validSavedSource(candidate.clean) ?? text,
+      hash: typeof candidate.hash === 'string' ? candidate.hash : null,
+      selection: {
+        start: Math.max(0, Math.trunc(Number(candidate.selection?.start)) || 0),
+        end: Math.max(0, Math.trunc(Number(candidate.selection?.end)) || 0)
+      },
+      display: ['source', 'preview'].includes(candidate.display)
+        ? candidate.display : docDefaultDisplay(name)
+    };
+    const extra = docHooks(name).fields?.validate?.(candidate, base, seen);
+    if (extra === false) return undefined;
+    return {...base, ...(extra || {})};
+  }
+
+  function documentApplySlot(slot, value) {
+    const state = docState.get(slot.kind);
+    if (slot.shape === 'tabs') {
+      state.tabs.splice(0, state.tabs.length, ...value);
+      docRelabel(slot.kind);
+    } else if (slot.shape === 'active') {
+      state.activeId = value;
+    } else if (slot.shape === 'next') {
+      state.next = value;
+    }
+  }
+
+  //  ---- start and wiring
+  //
+  //  `runtime.documents.start()` runs once, after `runtime.session.load()`:
+  //  it mounts the editors, adds a shared source, gives every store a
+  //  tab, shows each active one, and loads the trees.
+  function documentStart() {
+    if (!filesConfig || docStarted) return;
+    docStarted = true;
+    for (const name of docStores.keys()) {
+      docMount(name);
+      const state = docState.get(name);
+      const shared = docSharedSource(name);
+      if (shared !== undefined) {
+        docCreate(name, {text: shared, label: 'Shared', activate: false});
+        state.activeId = state.tabs[state.tabs.length - 1].id;
+      }
+      if (!state.tabs.length) docCreate(name, {activate: false});
+      if (!docGet(name, state.activeId)) state.activeId = state.tabs[0].id;
+      docSelect(name, state.activeId, {reactivate: true, restore: true});
+    }
+    docRefreshTrees();
+  }
+
+  function docSharedSource(name) {
+    const spec = docStores.get(name)?.share;
+    if (!spec) return undefined;
+    const encoded = new URL(window.location.href).searchParams.get(spec.name);
+    if (encoded === null) return undefined;
+    try {
+      return decodeSource(encoded, spec);
+    } catch (cause) {
+      notify(String(cause?.message || cause), {kind: 'error', sticky: true});
+      return undefined;
+    }
+  }
+
+  function documentOpenContext(name, path) {
+    docOpen(name, path);
+  }
+
+  function documentRemoveContext(name, path, source) {
+    docRemove(name, path).then((removed) => {
+      if (!removed) source?.focus?.();
+    });
+  }
+
+  function documentsWire() {
+    if (!filesConfig) return;
+    const run = {
+      open: (name) => docOpen(name),
+      save: (name) => docSave(name),
+      'save-as': (name) => docSave(name, {as: true}),
+      copy: async (name) => {
+        const tab = docCapture(name);
+        if (tab && await copyText(tab.text)) notify(`Copied ${tab.label}.`);
+      },
+      ref: (name) => docAddRef(name),
+      browse: (name) => docShowTree(name)
+    };
+    for (const [name, storeConfig] of docStores) {
+      for (const action of storeConfig.actions || []) {
+        document.querySelector(`#${name}-${action}`)
+          ?.addEventListener('click', () => run[action]?.(name));
+      }
+      const toggle = document.querySelector(`#${name}-display`);
+      for (const button of Array.from(toggle?.children || [])) {
+        button.addEventListener('click', () => {
+          docSetDisplay(name, button.dataset?.display);
+        });
+      }
+      registerShortcut(`open:${name}`, () => docOpen(name));
+      registerShortcut(`save:${name}`, () => docSave(name));
+      registerShortcut(`save-as:${name}`, () => docSave(name, {as: true}));
+    }
+    docElement('urui-confirm-ok')?.addEventListener('click', () => {
+      docConfirm?.finish(true);
+    });
+    docElement('urui-confirm-cancel')?.addEventListener('click', () => {
+      docConfirm?.finish(false);
+    });
+    docElement('urui-toast-close')?.addEventListener('click', () => {
+      clearTimeout(docToastTimer);
+      docElement('urui-toast').hidden = true;
+    });
+  }
+
+  const documentApi = {
+    start: documentStart,
+    list: (name) => docTabs(name).slice(),
+    active: docActive,
+    get: docGet,
+    create: docCreate,
+    update: docUpdate,
+    select: docSelect,
+    close: docClose,
+    open: docOpen,
+    save: docSave,
+    remove: docRemove,
+    dirty: docDirty,
+    addRef: docAddRef,
+    editor: (name) => docEditorsByStore.get(name),
+    pickPath: (request = {}) => docFileDialog({...request, mode: 'pick'}),
+    previews: {register: docRegisterPreviewer},
+    trees: {
+      refresh: (view) => view
+        ? docRefreshTree(docTrees.find((tree) => tree.view === view))
+        : docRefreshTrees(),
+      show: (view) => {
+        const tree = docTrees.find((item) => item.view === view);
+        if (tree) docShowTree(tree.store);
+      }
+    }
+  };
   '''
 ::
 ++  editor-adapter
@@ -3497,6 +5294,9 @@
       aceEditor.setKeyboardHandler(
         mode === 'vim' ? 'ace/keyboard/vim' : null
       );
+    },
+    setReadOnly(flag) {
+      aceEditor.setReadOnly(Boolean(flag));
     },
     refresh: () => aceEditor.resize(true)
   };

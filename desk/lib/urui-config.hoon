@@ -37,6 +37,7 @@
       ['ace' (ace-json ace-spec.config)]
       ['layout' s+`@t`layout.config]
       ['resultCollapse' b+collapse.config]
+      ['files' ?~(files.config ~ (files-json u.files.config))]
   ==
 ::
 ++  panes-json
@@ -162,6 +163,53 @@
   ?~  levels  ~
   ?:  =(%views source.i.levels)  fixed.i.levels
   $(levels t.levels)
+::
+++  files-json
+  ::  The document and file module, for ++documents:urui-js.
+  |=  =files:urui
+  ^-  json
+  %-  pairs:enjs:format
+  :~  ['url' s+url.files]
+      ['stores' a+(turn stores.files store-json)]
+      :-  'trees'
+      :-  %a
+      %+  turn  trees.files
+      |=  =tree:urui
+      %-  pairs:enjs:format
+      :~  ['view' s+view.tree]
+          ['store' s+store.tree]
+          ['scopes' a+(turn scopes.tree path-json)]
+      ==
+  ==
+::
+++  store-json
+  |=  =store:urui
+  ^-  json
+  %-  pairs:enjs:format
+  :~  ['name' s+name.store]
+      ['noun' s+noun.store]
+      ['untitled' s+untitled.store]
+      ['starter' s+starter.store]
+      :-  'roots'
+      :-  %a
+      %+  turn  roots.store
+      |=  =root:urui
+      %-  pairs:enjs:format
+      :~  ['scope' (path-json scope.root)]
+          ['marks' a+(turn marks.root |=(mark=@tas s+mark))]
+          ['ext' (unit-term-json ext.root)]
+          ['save' b+save.root]
+      ==
+      ['preview' ?~(preview.store ~ s+`@t`u.preview.store)]
+      ['actions' a+(turn actions.store |=(=action:urui s+`@t`action))]
+      ['refs' b+refs.store]
+      ['share' (share-json share.store)]
+  ==
+::
+++  path-json
+  |=  =path
+  ^-  json
+  a+(turn path |=(seg=@ta s+seg))
 ::
 ++  app-id-json
   |=  id=app-id:urui

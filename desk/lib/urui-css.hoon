@@ -434,6 +434,103 @@
   }
 
   .editor-pane { flex-direction: column; }
+
+  /* ---- documents --------------------------------------------------- */
+
+  /* A store's panel: the Ace host urui mounts, its load-error notice,
+     and the preview host that replaces the editor in preview. */
+  .pane-band-panel { position: relative; }
+
+  .pane-band-panel > .editor-host {
+    flex: 1 1 auto;
+    min-height: 12rem;
+  }
+
+  .editor-host[hidden] { display: none; }
+
+  .store-preview {
+    background: var(--surface);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding: 1rem;
+  }
+
+  .store-preview[hidden] { display: none; }
+
+  .store-preview iframe, .ref-explorer-panel iframe {
+    background: #fff;
+    border: 0;
+    height: 100%;
+    min-height: 20rem;
+    width: 100%;
+  }
+
+  .store-action { white-space: nowrap; }
+
+  .store-action[hidden] { display: none; }
+
+  .display-toggle { display: inline-flex; }
+
+  .display-toggle[hidden] { display: none; }
+
+  .display-toggle button { border-radius: 0; }
+
+  .display-toggle button:first-child { border-radius: 0.35rem 0 0 0.35rem; }
+
+  .display-toggle button:last-child {
+    border-left: 0;
+    border-radius: 0 0.35rem 0.35rem 0;
+  }
+
+  .display-toggle button[aria-pressed='true'] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+
+  /* Rendered Markdown, in a store's preview or an explorer reference. */
+  .markdown-view { line-height: 1.55; overflow-wrap: anywhere; }
+
+  .markdown-view h1, .markdown-view h2, .markdown-view h3,
+  .markdown-view h4, .markdown-view h5, .markdown-view h6 {
+    line-height: 1.25;
+    margin: 1.2em 0 0.5em;
+  }
+
+  .markdown-view p, .markdown-view ul, .markdown-view ol,
+  .markdown-view blockquote, .markdown-view pre, .markdown-view table {
+    margin: 0 0 0.9em;
+  }
+
+  .markdown-view blockquote {
+    border-left: 0.25rem solid var(--border);
+    color: var(--muted);
+    padding-left: 0.8rem;
+  }
+
+  .markdown-view code {
+    background: var(--surface-alt);
+    border-radius: 0.2rem;
+    font-family: ui-monospace, monospace;
+    padding: 0.05rem 0.25rem;
+  }
+
+  .markdown-view pre {
+    background: var(--surface-alt);
+    overflow: auto;
+    padding: 0.75rem;
+  }
+
+  .markdown-view pre code { background: transparent; padding: 0; }
+
+  .markdown-view table { border-collapse: collapse; }
+
+  .markdown-view th, .markdown-view td {
+    border: 1px solid var(--border);
+    padding: 0.3rem 0.5rem;
+    text-align: left;
+  }
   '''
 ::
 ++  explorer
@@ -616,6 +713,25 @@
     overflow-wrap: anywhere;
     white-space: pre-wrap;
   }
+
+  /* A store's tree: directories fold, and remember that they did. */
+  .file-tree-folder > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 0.15rem 0.4rem;
+  }
+
+  .file-tree-folder > summary::-webkit-details-marker { display: none; }
+
+  .file-tree-folder > summary::before {
+    content: '\25b8';
+    display: inline-block;
+    width: 1rem;
+  }
+
+  .file-tree-folder[open] > summary::before { content: '\25be'; }
+
+  .file-tree-children { padding-left: 1rem; }
   '''
 ::
 ++  tabs
@@ -960,6 +1076,86 @@
   }
 
   .shortcut-list { line-height: 1.8; padding-left: 1.5rem; }
+
+  /* ---- file dialog, confirm dialog, toast -------------------------- */
+
+  .file-dialog-card, .confirm-card { display: grid; gap: 0.75rem; }
+
+  .confirm-card { max-width: 28rem; padding-top: 1rem; }
+
+  .file-dialog-help, #urui-confirm-message { margin: 0; }
+
+  .file-dialog-help { color: var(--muted); }
+
+  .file-dialog-list {
+    align-content: start;
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    display: grid;
+    max-height: 16rem;
+    min-height: 6rem;
+    overflow: auto;
+    padding: 0.25rem;
+  }
+
+  .file-dialog-list[hidden], .settings-field[hidden],
+  .file-dialog-error[hidden] {
+    display: none;
+  }
+
+  .file-dialog-entry {
+    background: transparent;
+    border: 0;
+    font-family: ui-monospace, monospace;
+    padding: 0.3rem 0.5rem;
+    text-align: left;
+  }
+
+  .file-dialog-entry[aria-selected='true'] {
+    background: var(--surface-alt);
+    outline: 1px solid var(--accent);
+  }
+
+  .file-dialog-error { color: var(--danger); margin: 0; }
+
+  .dialog-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  .urui-toast {
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 0.3rem solid var(--accent);
+    border-radius: 0.35rem;
+    bottom: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.18);
+    display: grid;
+    gap: 0.35rem 0.75rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    max-width: min(32rem, calc(100vw - 2rem));
+    padding: 0.65rem 0.8rem;
+    position: fixed;
+    right: 1rem;
+    z-index: 80;
+  }
+
+  .urui-toast[hidden] { display: none; }
+
+  .urui-toast[data-kind='error'] { border-left-color: var(--danger); }
+
+  .urui-toast-details {
+    font-size: 0.8rem;
+    grid-column: 1 / -1;
+    margin: 0;
+    max-height: 10rem;
+    overflow: auto;
+    white-space: pre-wrap;
+  }
+
+  .urui-toast-details[hidden] { display: none; }
   '''
 ::
 ++  controls

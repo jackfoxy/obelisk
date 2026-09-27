@@ -103,6 +103,7 @@
       ;+  (help-panel spec)
       ;+  context-menu
       ;+  error-dialog
+      ;*  (document-dialogs config)
       ;*  (extra-dialogs dialogs.spec)
       ;*  script-tags
     ==
@@ -210,11 +211,15 @@
   ==
 ::
 ++  pane-bands
+  ::  Every band sees the whole pane: a band finds its store through the
+  ::  pane's %tabs band, wherever that band sits in the stack.
   |=  [=pane:urui config=app-config:urui]
   ^-  marl
-  ?~  bands.pane  ~
-  %+  weld  (band-nodes pane i.bands.pane config)
-  $(bands.pane t.bands.pane)
+  %-  zing
+  %+  turn  bands.pane
+  |=  =band:urui
+  ^-  marl
+  (band-nodes pane band config)
 ::
 ++  band-nodes
   ::  One band: its reveal toggle, when it has one, and then the band.
@@ -305,6 +310,8 @@
   ::
       %panel
     %:  panel-band
+      pane
+      config
       id.item.band
       host.item.band
       body.item.band
@@ -342,9 +349,14 @@
     ==
   ::  the collapse control is the last action, so it sits hard right
   ::  with the consumer's own actions rather than as a fourth child
+  ::  a store's file actions follow the consumer's own
+  =/  store=(unit store:urui)  (pane-store pane config)
+  =/  stored=marl
+    ?~  store  actions
+    (weld actions (store-actions u.store))
   =/  all-actions=marl
-    ?.  ?&(collapse.config =(%result role.pane))  actions
-    (snoc actions (result-collapse label.pane layout.config))
+    ?.  ?&(collapse.config =(%result role.pane))  stored
+    (snoc stored (result-collapse label.pane layout.config))
   =/  acted=marl
     ?~  all-actions  ~
     :~  ;div.pane-actions
@@ -370,18 +382,28 @@
   ::  The tab panel: the Ace host urui manages, then the consumer's own
   ::  marl.  Deeper tab strips are generated into this element by the
   ::  runtime, so its id is the one a consumer addresses a panel by.
+  ::  A store's panel also carries its editor's load-error notice and,
+  ::  when the store previews, its preview host.
   ::
-  ::  `panel` is cast before ++weld sees it: weld casts its product to
+  ::  Each part is cast before ++weld sees it: weld casts its product to
   ::  its second argument, so a bare Sail literal there would be the type
   ::  the Ace host has to nest in.
-  |=  [id=@t host=(unit editor:urui) body=marl]
+  |=  $:  =pane:urui
+          config=app-config:urui
+          id=@t
+          host=(unit editor:urui)
+          body=marl
+      ==
   ^-  marl
   =/  panel=marl
     :~  ;div.pane-body(id (trip id))
           ;*  body
         ==
     ==
-  (weld (editor-host host) panel)
+  =/  store=(unit store:urui)  (pane-store pane config)
+  =/  extras=marl  ?~(store ~ (store-hosts u.store host))
+  =/  hosted=marl  (editor-host host)
+  :(weld hosted extras panel)
 ::
 ++  editor-host
   ::  An Ace host is an empty `.editor-host` carrying the mode; the
@@ -541,6 +563,182 @@
     ==
   :-  panel
   $(views t.views, kinds ?~(kinds ~ t.kinds), first |)
+::
+++  pane-store
+  ::  The store whose strip is this pane's %documents level, if any.
+  |=  [=pane:urui config=app-config:urui]
+  ^-  (unit store:urui)
+  ?~  files.config  ~
+  =/  names=(list @tas)
+    %+  roll  bands.pane
+    |=  [=band:urui seen=(list @tas)]
+    ^-  (list @tas)
+    ?.  ?=([%tabs *] item.band)  seen
+    =/  more=(list @tas)
+      %+  murn  levels.item.band
+      |=  level=tab-level:urui
+      ^-  (unit @tas)
+      ?.  =(%documents source.level)  ~
+      kind.level
+    (weld seen more)
+  =/  found=(list store:urui)
+    %+  skim  stores.u.files.config
+    |=(=store:urui ?=(^ (find ~[name.store] names)))
+  ?~(found ~ `i.found)
+::
+++  store-actions
+  ::  A store's file actions, `{store}-{action}`, and its source/preview
+  ::  toggle, `{store}-display`.  The toggle starts hidden: the runtime
+  ::  shows it for a tab whose mark has a previewer.
+  |=  =store:urui
+  ^-  marl
+  =/  name=tape  (trip name.store)
+  =/  buttons=marl
+    %+  turn  actions.store
+    |=  =action:urui
+    ^-  manx
+    ;button.store-action
+      =type         "button"
+      =id           "{name}-{(trip action)}"
+      =data-action  (trip action)
+      ;+  ;/  (trip (action-label action))
+    ==
+  ?~  preview.store  buttons
+  =/  toggle=manx
+    ;div.display-toggle
+      =id          "{name}-display"
+      =role        "group"
+      =aria-label  "{(trip noun.store)} view"
+      =hidden      ""
+      ;button
+        =type          "button"
+        =data-display  "source"
+        =aria-pressed  "true"
+        Source
+      ==
+      ;button
+        =type          "button"
+        =data-display  "preview"
+        =aria-pressed  "false"
+        Preview
+      ==
+    ==
+  (snoc buttons toggle)
+::
+++  action-label
+  |=  =action:urui
+  ^-  @t
+  ?-  action
+    %open     'Open…'
+    %save     'Save'
+    %save-as  'Save As…'
+    %copy     'Copy'
+    %ref      'Add Ref'
+    %browse   'Browse'
+  ==
+::
+++  store-hosts
+  ::  A store's editor load-error notice, `{host}-load-error`, and its
+  ::  preview host, `{store}-preview`.
+  |=  [=store:urui host=(unit editor:urui)]
+  ^-  marl
+  =/  notice=marl
+    ?~  host  ~
+    :~  ;div.editor-load-error
+          =id      "{(trip id.u.host)}-load-error"
+          =hidden  ""
+          =role    "alert"
+          ;strong: Editor unavailable
+          ;span: Reload the page.
+          ;span: If the problem continues, verify the Ace assets are installed.
+        ==
+    ==
+  ?~  preview.store  notice
+  =/  preview=manx
+    ;div.store-preview
+      =id          "{(trip name.store)}-preview"
+      =hidden      ""
+      =aria-label  "{(trip noun.store)} preview"
+      ;span(hidden "");
+    ==
+  (snoc notice preview)
+::
+++  document-dialogs
+  ::  The file dialog, the confirm dialog, and the toast, once per page
+  ::  and only with a files module, at the ids ++documents:urui-js binds.
+  |=  config=app-config:urui
+  ^-  marl
+  ?~  files.config  ~
+  ~[file-dialog confirm-dialog toast]
+::
+++  file-dialog
+  ::  Open and Save As.  The runtime fills the location and format
+  ::  pickers and the file list, and shows only what a request needs.
+  ^-  manx
+  ;aside#urui-file-dialog.help-panel
+    =hidden           ""
+    =role             "dialog"
+    =aria-modal       "true"
+    =aria-labelledby  "urui-file-dialog-title"
+    ;div.help-card.file-dialog-card
+      ;div.pane-header
+        ;h2#urui-file-dialog-title: Open
+      ==
+      ;p#urui-file-dialog-help.file-dialog-help;
+      ;label#urui-file-dialog-root-field.settings-field(hidden "")
+        ;span.settings-label: Location
+        ;select#urui-file-dialog-root;
+      ==
+      ;div#urui-file-dialog-list.file-dialog-list
+        =role        "listbox"
+        =aria-label  "Files"
+        ;span(hidden "");
+      ==
+      ;label#urui-file-dialog-path-field.settings-field(hidden "")
+        ;span.settings-label: Path
+        ;input#urui-file-dialog-path(type "text", autocomplete "off");
+      ==
+      ;label#urui-file-dialog-mark-field.settings-field(hidden "")
+        ;span.settings-label: Format
+        ;select#urui-file-dialog-mark;
+      ==
+      ;div#urui-file-dialog-extra;
+      ;p#urui-file-dialog-error.file-dialog-error(role "alert", hidden "");
+      ;div.dialog-actions
+        ;button#urui-file-dialog-cancel(type "button"): Cancel
+        ;button#urui-file-dialog-confirm.primary(type "button"): Open
+      ==
+    ==
+  ==
+::
+++  confirm-dialog
+  ^-  manx
+  ;aside#urui-confirm.help-panel
+    =hidden            ""
+    =role              "alertdialog"
+    =aria-modal        "true"
+    =aria-describedby  "urui-confirm-message"
+    ;div.help-card.confirm-card
+      ;p#urui-confirm-message;
+      ;div.dialog-actions
+        ;button#urui-confirm-cancel(type "button"): Cancel
+        ;button#urui-confirm-ok.primary(type "button"): OK
+      ==
+    ==
+  ==
+::
+++  toast
+  ::  File feedback: brief on success, sticky with details on failure.
+  ^-  manx
+  ;div#urui-toast.urui-toast(hidden "", role "status", aria-live "polite")
+    ;span#urui-toast-message;
+    ;pre#urui-toast-details.urui-toast-details(hidden "");
+    ;button#urui-toast-close.icon-button
+      =type        "button"
+      =aria-label  "Dismiss"
+      ;span.close-icon(aria-hidden "true");
+    ==
+  ==
 ::
 ++  frame-settings
   ::  The frame's Settings button, unless the consumer's toolbar places
