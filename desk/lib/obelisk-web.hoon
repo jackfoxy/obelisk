@@ -2,7 +2,7 @@
 ::
 /-  urui, web=obelisk-web
 /+  shell=urui-shell, ucss=urui-css, uace=urui-ace
-/+  ucfg=urui-config, ujs=urui-js
+/+  ucfg=urui-config, ujs=urui-js, ufiles=urui-files
 |%
 ::
 ++  empty-durable-state
@@ -13,7 +13,6 @@
   ^-  transient-state:web
   :*  %unbound
       0
-      ~
       ~
       ~
       ~
@@ -93,6 +92,34 @@
   %-  mule  |.
   =/  old  !<(versioned-saved-state:web old-vase)
   (load-state old)
+::
+++  files
+  ::  Obelisk's document store and file tree, as urui declares them.
+  ::
+  ::  Only +file-policy reads this until urui's documents module lands.
+  ::  `/results` is written by result export alone, through +write.
+  ^-  files:urui
+  :*  url='/apps/obelisk/files'
+      :~  :*  name=%script
+              noun='Script'
+              untitled='script'
+              starter=''
+              :~  [/scripts ~[%txt] ~ &]
+                  [/results ~[%csv %tab %txt %md %html %json %noun] ~ |]
+              ==
+              preview=`%source
+              actions=~[%open %save %save-as %copy]
+              refs=&
+              share=~
+      ==  ==
+      ~[[view=%files store=%script scopes=~]]
+  ==
+::
+++  file-policy
+  ::  The stock codecs, plus `noun` results stored as lines.
+  ^-  policy:ufiles
+  =/  base=policy:ufiles  (make-policy:ufiles files /data/obelisk &)
+  base(codecs (snoc codecs.base [%noun %wain]))
 ::
 ++  ace-spec
   ::  Text mode for scripts and result files alike; the vim keymap is
@@ -1327,6 +1354,18 @@
             return {label: `Results ${nextResultRef++}`, data};
           },
           render: renderResultRef
+        },
+        //  parse output is plain text, so unlike a result set it is
+        //  small enough to keep across reloads
+        parse: {
+          create: ({data}) => {
+            return {label: `Parse ${nextParseRef++}`, data};
+          },
+          render: renderParseRef,
+          validate: (data) => {
+            return typeof data?.text === 'string' ?
+              {text: data.text} : undefined;
+          }
         }
       }
     });
@@ -1386,6 +1425,7 @@
     let busy = false;
     let outputRun = 0;
     let nextResultRef = 1;
+    let nextParseRef = 1;
     let fileDialogMode = 'open';
     let selectedFilePath = null;
     let contextFilePath = null;
@@ -2069,26 +2109,21 @@
     }
 
     function errorMessage(body, fallback) {
-      if (!body || body.type !== 'error' || !body.error) return fallback;
+      if (!body || !body.error) return fallback;
       const details = Array.isArray(body.error.details) ?
         body.error.details.join('\n') : '';
       return details ? `${body.error.message}\n${details}` :
         body.error.message;
     }
 
-    async function api(operation, payload) {
-      const route = {
-        'result-save': 'results/save',
-        'file-browse': 'files/browse',
-        'file-load': 'files/load',
-        'file-save': 'files/save',
-        'file-delete': 'files/delete'
-      }[operation] || operation;
-      const response = await fetch(`/apps/obelisk/api/${route}`, {
+    //  Obelisk's api answers `{type: 'error'}` on failure; urui's file
+    //  wire answers `{ok: false}`.  Both carry the same `error` record.
+    async function post(url, payload) {
+      const response = await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'content-type': 'application/json'},
-        body: JSON.stringify(Object.assign({type: operation}, payload))
+        body: JSON.stringify(payload)
       });
       let body = null;
       try {
@@ -2096,7 +2131,7 @@
       } catch (_) {
         throw new Error(`Server returned invalid JSON (${response.status}).`);
       }
-      if (!response.ok || body.type === 'error') {
+      if (!response.ok || body.type === 'error' || body.ok === false) {
         const fallback = `Request failed (${response.status}).`;
         const error = new Error(errorMessage(body, fallback));
         error.status = response.status;
@@ -2106,6 +2141,72 @@
         error.details = body && body.error ? body.error.details : [];
         throw error;
       }
+      return body;
+    }
+
+    //  Files travel on urui's file wire, whose paths end in the stored
+    //  mark.  Until the script tabs and the tree move onto urui's
+    //  documents, this keeps their logical paths: a script is
+    //  `scripts/…/name`, stored under a `txt` leaf.
+    function storedPath(path) {
+      return path[0] === 'scripts' ? [...path, 'txt'] : path.slice();
+    }
+
+    function logicalPath(path) {
+      return path[0] === 'scripts' && path[path.length - 1] === 'txt' ?
+        path.slice(0, -1) : path.slice();
+    }
+
+    async function fileApi(operation, payload) {
+      const url = '/apps/obelisk/files';
+      if (operation === 'file-browse') {
+        const whole = payload.path.length === 0;
+        const scopes = whole ? [['scripts'], ['results']] : [payload.path];
+        const entries = [];
+        for (const scope of scopes) {
+          const body = await post(url, {op: 'browse', scope});
+          if (whole) entries.push({path: scope, kind: 'directory'});
+          for (const entry of body.entries || []) {
+            entries.push({path: logicalPath(entry.path), kind: entry.kind});
+          }
+        }
+        entries.sort((left, right) => {
+          const a = left.path.join('/');
+          const b = right.path.join('/');
+          return a < b ? -1 : (a > b ? 1 : 0);
+        });
+        return {entries};
+      }
+      const path = storedPath(payload.path);
+      if (operation === 'file-load') {
+        const body = await post(url, {op: 'load', path});
+        return {path: payload.path, content: body.text};
+      }
+      if (operation === 'file-save') {
+        await post(url, {
+          op: 'save',
+          path,
+          text: payload.content,
+          overwrite: Boolean(payload.overwrite)
+        });
+        return {path: payload.path};
+      }
+      await post(url, {op: 'delete', path});
+      return {path: payload.path};
+    }
+
+    async function api(operation, payload) {
+      if (operation.startsWith('file-')) return fileApi(operation, payload);
+      const route = {
+        'result-save': 'results/save',
+        'result-text-save': 'results/save-text'
+      }[operation] || operation;
+      const body = await post(
+        `/apps/obelisk/api/${route}`,
+        Object.assign({type: operation}, payload)
+      );
+      //  urui's +write answers an export without echoing its path
+      if (operation.startsWith('result-')) return {path: payload.path};
       return body;
     }
 
@@ -2645,9 +2746,9 @@
             overwrite
           });
         } else {
-          const content = resultSaveText();
-          if (content === null) return false;
-          body = await api('file-save', {path, content, overwrite});
+          const text = resultSaveText();
+          if (text === null) return false;
+          body = await api('result-text-save', {path, text, overwrite});
         }
         outputState.path = body.path.slice();
         outputState.format = format;
@@ -3289,6 +3390,13 @@
       return section;
     }
 
+    function renderParseRef(panel, ref) {
+      const pre = document.createElement('pre');
+      pre.className = 'parse-output';
+      pre.textContent = ref.data.text;
+      panel.appendChild(pre);
+    }
+
     function renderResultRef(panel, ref) {
       const {command, pages} = ref.data;
       const resultSets = resultSetsForCommand(command);
@@ -3480,10 +3588,25 @@
       lastOutputText = value;
       results.replaceChildren();
       clearCommandTabs();
+      //  The tab is what drags to the explorer: a draggable <pre> would
+      //  lose mouse text selection.
+      const heading = document.createElement('div');
+      heading.className = 'result-tabs';
+      const tab = document.createElement('span');
+      tab.className = 'result-tab';
+      tab.setAttribute('aria-selected', 'true');
+      tab.title = 'Drag to the explorer to keep a reference';
+      tab.textContent = 'Parse output';
+      heading.appendChild(tab);
+      //  parse refs outlive the page, so the id cannot restart per load
+      const parentId = `parse-${Date.now().toString(36)}`;
+      runtime.explorer.refs.draggable(tab, () => {
+        return {kind: 'parse', parentId, data: {text: value}};
+      });
       const pre = document.createElement('pre');
       pre.className = 'parse-output';
       pre.textContent = value;
-      results.appendChild(pre);
+      results.append(heading, pre);
       revealOutput();
     }
 

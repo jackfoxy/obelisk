@@ -104,23 +104,11 @@
         ['overwrite' b+overwrite.req]
     ==
   ::
-      %file-browse
+      %result-text-save
     %-  pairs:enjs:format
-    ~[['type' s+'file-browse'] ['path' (path-json path.req)]]
-  ::
-      %file-load
-    %-  pairs:enjs:format
-    ~[['type' s+'file-load'] ['path' (path-json path.req)]]
-  ::
-      %file-delete
-    %-  pairs:enjs:format
-    ~[['type' s+'file-delete'] ['path' (path-json path.req)]]
-  ::
-      %file-save
-    %-  pairs:enjs:format
-    :~  ['type' s+'file-save']
+    :~  ['type' s+'result-text-save']
         ['path' (path-json path.req)]
-        ['content' s+content.req]
+        ['text' s+text.req]
         ['overwrite' b+overwrite.req]
     ==
   ==
@@ -153,16 +141,10 @@
           (need (path-field 'path' jon))
           (need (bool-field 'overwrite' jon))
       ==
-    ?:  =(kind 'file-browse')
-      [%file-browse (need (path-field 'path' jon))]
-    ?:  =(kind 'file-load')
-      [%file-load (need (path-field 'path' jon))]
-    ?:  =(kind 'file-delete')
-      [%file-delete (need (path-field 'path' jon))]
-    ?:  =(kind 'file-save')
-      :*  %file-save
+    ?:  =(kind 'result-text-save')
+      :*  %result-text-save
           (need (path-field 'path' jon))
-          (need (text-field 'content' jon))
+          (need (text-field 'text' jon))
           (need (bool-field 'overwrite' jon))
       ==
     !!
@@ -297,12 +279,6 @@
       ['results' [%a (turn results.command result-json)]]
   ==
 ::
-++  file-entry-json
-  |=  entry=file-entry-dto:web
-  ^-  json
-  %-  pairs:enjs:format
-  ~[['path' (path-json path.entry)] ['kind' s+kind.entry]]
-::
 ++  error-json
   |=  error=web-error:web
   ^-  json
@@ -336,27 +312,6 @@
       %schema
     %-  pairs:enjs:format
     ~[['type' s+'schema'] ['value' (schema-json value.response)]]
-  ::
-      %file-list
-    %-  pairs:enjs:format
-    :~  ['type' s+'file-list']
-        ['entries' [%a (turn entries.response file-entry-json)]]
-    ==
-  ::
-      %file
-    %-  pairs:enjs:format
-    :~  ['type' s+'file']
-        ['path' (path-json path.response)]
-        ['content' s+content.response]
-    ==
-  ::
-      %saved
-    %-  pairs:enjs:format
-    ~[['type' s+'saved'] ['path' (path-json path.response)]]
-  ::
-      %deleted
-    %-  pairs:enjs:format
-    ~[['type' s+'deleted'] ['path' (path-json path.response)]]
   ::
       %error
     %-  pairs:enjs:format

@@ -25,7 +25,7 @@
   :*  request-id
       `@ta`(cat 3 'file-' (scot %ud request-id))
       now
-      [%file-browse ~]
+      [%result-text-save ~[%results %result-1 %txt] 'x' %.n]
   ==
 ::
 ++  work
@@ -75,7 +75,7 @@
   |=  request=web-request:web
   ^-  (unit work-plan)
   ?-  -.request
-    ?(%result-save %file-browse %file-load %file-save %file-delete)  ~
+    ?(%result-save %result-text-save)  ~
     ?(%run %parse %schema)  `work
   ==
 ::

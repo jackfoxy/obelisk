@@ -1,7 +1,7 @@
 ::  Tests for %obelisk-web shared types and state lifecycle.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  file-lib=obelisk-web-file, json-lib=obelisk-web-json
+/+  json-lib=obelisk-web-json, ufiles=urui-files
 /+  result-lib=obelisk-web-result
 /+  schema-lib=obelisk-web-schema
 /+  state=obelisk-web, *test
@@ -39,8 +39,7 @@
       queue=~[queued-fixture]
       active=`active-fixture
       readiness=~
-      file-save=~
-      file-delete=~
+      files=~
       result-cache=~
   ==
 ::
@@ -65,7 +64,7 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~ ~]])
+    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
 ++  test-save-load-roundtrip-02
@@ -853,11 +852,7 @@
             ~[%results %result-1 %md]
             %.n
         ==
-        [%file-browse ~]
-        [%file-browse ~[%scripts %nested]]
-        [%file-load ~[%scripts %query-1]]
-        [%file-delete ~[%scripts %query-1]]
-        [%file-save ~[%results %result-1] hostile-text %.y]
+        [%result-text-save ~[%results %result-1 %txt] hostile-text %.y]
     ==
   %-  zing
   %+  turn  fixtures
@@ -914,10 +909,6 @@
     :~  [%run 7 ~[[0 results]] %.y]
         [%parse ~[hostile-text ''] hostile-text]
         [%schema schema]
-        [%file-list ~[[~[%scripts %query-1] %file]]]
-        [%file ~[%scripts %query-1] hostile-text]
-        [%saved ~[%scripts %query-1]]
-        [%deleted ~[%scripts %query-1]]
         [%error error]
     ==
   =/  checks=tang
@@ -1843,184 +1834,43 @@
   =/  table=result-set-dto:web  value.result
   (expect-eq !>(800) !>((lent rows.table)))
 ::
-++  test-file-path-validation-60
+++  test-file-route-refusals-60
+  ::  Files are urui's wire: urui-files validates them, and its own
+  ::  tests cover the policy.  These pin obelisk's route and policy.
+  =/  body=@t
+    '{"op":"load","path":["scripts","..","query","txt"]}'
+  =/  bad-path
+    (api-request '/apps/obelisk/files' %.y `body `'application/json')
+  =/  guest  (api-request '/apps/obelisk/files' %.n `body `'application/json')
+  =/  results=@t
+    '{"op":"save","path":["results","r1","csv"],"text":"a"}'
+  =/  into-results
+    (api-request '/apps/obelisk/files' %.y `results `'application/json')
+  =/  getting  (request %'GET' '/apps/obelisk/files')
+  =/  bad-path-out  (poke-http bad-path)
+  =/  guest-out  (poke-http guest)
+  =/  results-out  (poke-http into-results)
+  =/  getting-out  (poke-http getting)
   ;:  weld
-    (expect !>((valid-browse-path:file-lib ~)))
-    (expect !>((valid-browse-path:file-lib ~[%scripts %nested])))
-    (expect !>((valid-file-path:file-lib ~[%scripts %nested %query-1])))
-    (expect !>((valid-file-path:file-lib ~[%results %results-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts])))
-    (expect !>(!(valid-file-path:file-lib ~[%other %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '.' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '..' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts 'bad path'])))
-    (expect !>((valid-storage-mark:file-lib %txt)))
-    (expect !>((valid-storage-mark:file-lib %csv)))
-    (expect !>((valid-storage-mark:file-lib %tab)))
-    (expect !>((valid-storage-mark:file-lib %md)))
-    (expect !>((valid-storage-mark:file-lib %html)))
-    (expect !>((valid-storage-mark:file-lib %json)))
-    (expect !>((valid-storage-mark:file-lib %noun)))
-    (expect !>(!(valid-storage-mark:file-lib %hoon)))
-    %+  expect-eq
-      !>(/data/obelisk/scripts/nested/query-1/txt)
-    !>((storage-path:file-lib ~[%scripts %nested %query-1]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-1/csv)
-    !>((storage-path:file-lib ~[%results %results-1 %csv]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-2/txt)
-    !>((storage-path:file-lib ~[%results %results-2 %txt]))
-    %+  expect-eq
-      !>(`~[%results %results-1 %csv])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/results/results-1/csv
-    %+  expect-eq
-      !>(`~[%scripts %nested %query-1])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/scripts/nested/query-1/txt
-    %+  expect-eq
-      !>(/~zod//~2026.8.1/tomb/~zod/obelisk/~2026.8.1/data/obelisk/txt)
-    !>  %:  tomb-beam:file-lib
-          %:  clay-beam:file-lib
-            ~zod  %obelisk  da+~2026.8.1  /data/obelisk/txt
-          ==
-        ==
+    (expect-eq !>(400) !>((response-status -.bad-path-out)))
+    (expect-eq !>('invalid-path') !>((response-error-code -.bad-path-out)))
+    (expect-eq !>(401) !>((response-status -.guest-out)))
+    (expect-eq !>(400) !>((response-status -.results-out)))
+    (expect-eq !>('invalid-path') !>((response-error-code -.results-out)))
+    (expect-eq !>(405) !>((response-status -.getting-out)))
   ==
 ::
-++  test-file-recursive-ordering-61
-  =/  physical=(list path)
-    :~  /data/obelisk/scripts/zeta/txt
-        /data/obelisk/scripts/nested/beta/txt
-        /data/obelisk/results/result-1/txt
-        /data/obelisk/scripts/nested/alpha/txt
-        /data/obelisk/scripts/ignored/hoon
-    ==
-  =/  expected=(list file-entry-dto:web)
-    :~  [~[%scripts %nested] %directory]
-        [~[%scripts %nested %alpha] %file]
-        [~[%scripts %nested %beta] %file]
-        [~[%scripts %zeta] %file]
-    ==
-  %+  expect-eq
-    !>(expected)
-  !>((entries-from-physical:file-lib ~[%scripts] physical))
-::
-++  test-file-text-and-conflicts-62
-  =/  text-cage-value=cage  (text-cage:file-lib hostile-text)
-  =/  trailing=@t  'first\0a\0a'
-  =/  trailing-cage=cage  (text-cage:file-lib trailing)
-  =/  md-cage=cage  [%md !>(hostile-text)]
-  =/  noun-cage=cage
-    [%noun !>((storage-wain:file-lib hostile-text))]
-  =/  encoded-md=(each cage tang)
-    (cage-from-text:file-lib %md hostile-text)
-  =/  encoded-noun=(each cage tang)
-    (cage-from-text:file-lib %noun hostile-text)
-  =/  invalid-json=(each cage tang)
-    (cage-from-text:file-lib %json '{]')
-  ?>  ?=(%.y -.encoded-md)
-  ?>  ?=(%.y -.encoded-noun)
+++  test-file-policy-61
+  =/  policy  file-policy:state
   ;:  weld
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib text-cage-value))
-    (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
-    (expect !>(=(%md p.p.encoded-md)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-md))
-    (expect !>(=(%noun p.p.encoded-noun)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-noun))
-    (expect !>(?=(%.n -.invalid-json)))
-    (expect !>((save-conflict:file-lib %.y %.n)))
-    (expect !>(!(save-conflict:file-lib %.y %.y)))
-    (expect !>(!(save-conflict:file-lib %.n %.n)))
-  ==
-::
-++  test-file-invalid-http-paths-63
-  =/  save-body
-    (request-text [%file-save ~[%scripts '..' %query] 'x' %.n])
-  =/  save-req
-    %:  api-request
-      '/apps/obelisk/api/files/save'
-      %.y
-      `save-body
-      `'application/json'
-    ==
-  =/  load-body  (request-text [%file-load ~[%outside %query]])
-  =/  load-req
-    %:  api-request
-      '/apps/obelisk/api/files/load'
-      %.y
-      `load-body
-      `'application/json'
-    ==
-  =/  delete-body  (request-text [%file-delete ~[%outside %query]])
-  =/  delete-req
-    %:  api-request
-      '/apps/obelisk/api/files/delete'
-      %.y
-      `delete-body
-      `'application/json'
-    ==
-  =/  save-out  (poke-http save-req)
-  =/  load-out  (poke-http load-req)
-  =/  delete-out  (poke-http delete-req)
-  ;:  weld
-    (expect-eq !>(400) !>((response-status -.save-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.save-out)))
-    (expect-eq !>(400) !>((response-status -.load-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.load-out)))
-    (expect-eq !>(400) !>((response-status -.delete-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.delete-out)))
-  ==
-::
-++  test-file-save-persistence-64
-  =/  relative=relative-path:web  ~[%scripts %step-10-persist]
-  =/  content=@t  hostile-text
-  =/  json-content=@t  '{"value":"safe"}\0a'
-  =/  clay-path=path  (storage-path:file-lib relative)
-  =/  riot=riot:clay
-    `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
-  =/  csv-path=path  /data/obelisk/results/results-1/csv
-  =/  csv-cage=cage  [%csv !>((storage-wain:file-lib content))]
-  =/  csv-riot=riot:clay  `[[%x ud+1 %obelisk] csv-path csv-cage]
-  =/  html-path=path  /data/obelisk/results/results-1/html
-  =/  html-cage=cage  [%html !>(content)]
-  =/  html-riot=riot:clay  `[[%x ud+1 %obelisk] html-path html-cage]
-  =/  md-path=path  /data/obelisk/results/results-1/md
-  =/  md-cage=cage  [%md !>(content)]
-  =/  md-riot=riot:clay  `[[%x ud+1 %obelisk] md-path md-cage]
-  =/  json-path=path  /data/obelisk/results/results-1/json
-  =/  json-cage=cage  [%json !>((need (de:json:html json-content)))]
-  =/  json-riot=riot:clay  `[[%x ud+1 %obelisk] json-path json-cage]
-  =/  tab-path=path  /data/obelisk/results/results-1/tab
-  =/  tab-cage=cage  [%tab !>((storage-wain:file-lib content))]
-  =/  tab-riot=riot:clay  `[[%x ud+1 %obelisk] tab-path tab-cage]
-  ;:  weld
-    %+  expect-eq
-      !>(/data/obelisk/scripts/step-10-persist/txt)
-    !>(clay-path)
-    (expect !>((save-verifies:file-lib content riot)))
-    (expect !>((save-verifies:file-lib content csv-riot)))
-    (expect !>((save-verifies:file-lib content html-riot)))
-    (expect !>((save-verifies:file-lib content md-riot)))
-    (expect !>((save-verifies:file-lib json-content json-riot)))
-    (expect !>((save-verifies:file-lib content tab-riot)))
-  ==
-::
-++  test-file-save-clay-failure-65
-  =/  malformed=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/bad [%noun !>('x')]]
-  ;:  weld
-    (expect !>(!(save-verifies:file-lib 'x' ~)))
-    (expect !>(!(save-verifies:file-lib 'x' malformed)))
+    (expect-eq !>(`path`/data/obelisk) !>(root.policy))
+    (expect !>(strict.policy))
+    (expect !>(verify.policy))
+    (expect !>(=(`%wain (file-codec:ufiles policy /scripts/q1/txt &))))
+    (expect !>(=(`%wain (file-codec:ufiles policy /results/r1/noun |))))
+    (expect !>(=(`%json (file-codec:ufiles policy /results/r1/json |))))
+    (expect !>(=(~ (file-codec:ufiles policy /results/r1/csv &))))
+    (expect !>(=(~ (file-codec:ufiles policy /scripts/q1/csv |))))
   ==
 ::
 ++  test-sail-shell-landmarks-and-controls-66
@@ -2190,10 +2040,10 @@
     (expect !>(?=(^ (find "files-panel" html))))
     (expect !>(?=(^ (find "files-tree" html))))
     (expect !>(?=(^ (find "file-path-input" html))))
-    (expect !>(?=(^ (find "files/browse" script))))
-    (expect !>(?=(^ (find "files/load" script))))
-    (expect !>(?=(^ (find "files/save" script))))
-    (expect !>(?=(^ (find "files/delete" script))))
+    (expect !>(?=(^ (find "/apps/obelisk/files" script))))
+    (expect !>(?=(^ (find "results/save-text" script))))
+    (expect !>(?=(^ (find "storedPath" script))))
+    (expect !>(?=(^ (find "logicalPath" script))))
     (expect !>(?=(^ (find "file-context-menu" html))))
     (expect !>(?=(^ (find "file-context-open" html))))
     (expect !>(?=(^ (find "file-context-delete" html))))
