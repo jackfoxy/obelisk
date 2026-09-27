@@ -1,5 +1,10 @@
 # Releases
 
+## v0.9.3-beta
+* Optional Vim key bindings
+* Alternate screen formats
+* Themes
+
 ## v0.9.2-beta
 * fix slowness on UI startup
 * make sure DB has foreign keys view in migration

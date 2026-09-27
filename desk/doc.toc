@@ -1,3 +1,4 @@
+/keyboard-shortcuts/md      Keyboard Shortcuts
 /usr                        User Docs
   /users-guide/md             Users Guide
   /reference                  Reference
@@ -20,3 +21,5 @@
 /dev                        Developer Docs
   /performance/md             Performance
   /users-guide-script/txt     Users Guide Scripts
+/release-notes/md          Release Notes
+/about/md                  About Obelisk and Ace editor
