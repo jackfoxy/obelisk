@@ -471,7 +471,7 @@
           ;option(value "%raw"): %raw
         ==
       ==
-      ;div#relation-menu.relation-menu.hidden(role "menu")
+      ;div#relation-menu.relation-menu(role "menu", hidden "")
         ;button#relation-select(type "button", role "menuitem")
           SELECT
         ==
@@ -591,6 +591,8 @@
     position: fixed;
     z-index: 60;
   }
+
+  .relation-menu[hidden] { display: none; }
 
   .relation-menu button {
     background: transparent;
@@ -1322,7 +1324,6 @@
     function schemaChildren() {
       const children = document.createElement('div');
       children.className = 'schema-children';
-      children.setAttribute('role', 'group');
       return children;
     }
 
@@ -1434,24 +1435,23 @@
       return '';
     }
 
+    //  urui's menu: keyboard, placement, Escape, and outside clicks
+    const relationActions = runtime.a11y.menu(relationMenu, {
+      onClose: () => { relationContext = null; }
+    });
+
     function closeRelationMenu() {
-      relationMenu.classList.add('hidden');
-      relationContext = null;
+      relationActions.close();
     }
 
-    function openRelationMenu(event, relation) {
+    function openRelationMenu(event, relation, source) {
       event.preventDefault();
       event.stopPropagation();
-      relationContext = relation;
       const table = relation.kind === 'table';
-      byId('relation-insert').classList.toggle('hidden', !table);
-      byId('relation-create').classList.toggle('hidden', !table);
-      relationMenu.classList.remove('hidden');
-      const rect = relationMenu.getBoundingClientRect();
-      relationMenu.style.left = `${Math.min(event.clientX,
-        window.innerWidth - rect.width - 8)}px`;
-      relationMenu.style.top = `${Math.min(event.clientY,
-        window.innerHeight - rect.height - 8)}px`;
+      byId('relation-insert').hidden = !table;
+      byId('relation-create').hidden = !table;
+      relationActions.open(source, event);
+      relationContext = relation;
     }
 
     function openRelationAction(action) {
@@ -1464,7 +1464,6 @@
     function renderColumn(column, relation) {
       const row = document.createElement('div');
       row.className = 'schema-column';
-      row.setAttribute('role', 'treeitem');
       const key = document.createElement('span');
       key.className = 'schema-key';
       key.textContent = column.key ?
@@ -1493,7 +1492,6 @@
     function renderRelation(relation) {
       const details = document.createElement('details');
       details.className = 'schema-node';
-      details.setAttribute('role', 'treeitem');
       const key = `rel:${relation.database}.${relation.namespace}.` +
         `${relation.kind}.${relation.name}`;
       schemaExpansion(key, details);
@@ -1502,16 +1500,18 @@
         relation.name
       );
       summary.classList.add('relation-summary');
-      summary.addEventListener('contextmenu', (event) => {
-        openRelationMenu(event, relation);
-      });
       const actions = document.createElement('button');
       actions.type = 'button';
       actions.className = 'relation-actions';
       actions.setAttribute('aria-label', `Actions for ${relation.name}`);
+      actions.setAttribute('aria-haspopup', 'menu');
+      actions.setAttribute('aria-expanded', 'false');
       actions.textContent = '…';
       actions.addEventListener('click', (event) => {
-        openRelationMenu(event, relation);
+        openRelationMenu(event, relation, actions);
+      });
+      summary.addEventListener('contextmenu', (event) => {
+        openRelationMenu(event, relation, actions);
       });
       summary.appendChild(actions);
       const children = schemaChildren();
@@ -1525,7 +1525,6 @@
     function renderNamespace(database, namespace) {
       const details = document.createElement('details');
       details.className = 'schema-node';
-      details.setAttribute('role', 'treeitem');
       schemaExpansion(`ns:${database.name}.${namespace.name}`, details);
       const summary = schemaSummary('ns', namespace.name);
       const children = schemaChildren();
@@ -1540,7 +1539,6 @@
     function renderDatabase(database) {
       const details = document.createElement('details');
       details.className = 'schema-node';
-      details.setAttribute('role', 'treeitem');
       schemaExpansion(`db:${database.name}`, details);
       const marker = database.name === state.defaultDatabase ?
         '(default)' : '';
@@ -1984,6 +1982,7 @@
       });
       messagesTab.addEventListener('click', () => selectTab(false));
       tabList.append(resultsTab, messagesTab);
+      runtime.a11y.tablist(tabList);
       group.append(tabList, resultPanel, messagePanel);
       return group;
     }
@@ -2234,16 +2233,6 @@
       attributes: true,
       attributeFilter: ['class']
     });
-    document.addEventListener('click', (event) => {
-      if (!event.target.closest('#relation-menu') &&
-          !event.target.closest('.relation-actions')) {
-        closeRelationMenu();
-      }
-    });
-    //  urui's dialogs and menus close themselves on Escape
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeRelationMenu();
-    }, true);
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
     });

@@ -544,7 +544,7 @@
   =/  tree=manx
     ;div.explorer-file-tree
       =id          (trip tree-id)
-      =role        "tree"
+      =role        "group"
       =aria-label  (trip label)
       =aria-busy   "true"
       ;p: Loading…

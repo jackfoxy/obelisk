@@ -490,7 +490,7 @@
         "const modal = topModal()"
         "modal.close()"
         "modalTrapTab(event, modal.element())"
-        "closeFileContext(true)"
+        "menu.close(true)"
         "parts.includes('alt')"
         "editor.isFocused?.(target)"
         "if (inEditor) return"

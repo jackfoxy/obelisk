@@ -1756,69 +1756,172 @@
     else disableDocsExplorer();
   }
 
+  // ---- menus and tablists ------------------------------------------
+  //
+  // Keyboard mechanics over markup urui or a consumer owns; the commands
+  // and the content stay the owner's.  Both are `runtime.a11y`.
+  //
+  // `createMenu(menu, {onClose})` drives a role=menu element holding
+  // role=menuitem buttons.  `open(source, event)` shows it at the
+  // pointer for a contextmenu event, else beside `source`, clamped to
+  // the viewport, and focuses the first item.  Up and Down wrap, Home
+  // and End go to the ends, and Escape or Tab closes it and focuses
+  // `source` again.  The shortcut dispatcher closes an open menu on
+  // Escape too, wherever focus is.  A click outside the menu and
+  // `source` closes it, as does a window resize.  `onClose` runs after
+  // every close of an open menu.
+  //
+  // `createTablist(list)` drives the role=tab buttons inside `list`.
+  // The selected tab (aria-selected="true") is the one tab stop; Left
+  // and Right (Up and Down under aria-orientation="vertical") wrap, and
+  // Home and End go to the ends.  A key moves focus to a tab and clicks
+  // it, so the owner's click handler stays the one place selection
+  // changes.  `sync()` re-reads the selection after the owner changes it
+  // without a click.
+  const menus = [];
+
+  function roleItems(root, role) {
+    const found = [];
+    const walk = (node) => {
+      for (const child of Array.from(node?.children || [])) {
+        if (child.hidden) continue;
+        if (child.getAttribute?.('role') === role && !child.disabled) {
+          found.push(child);
+        }
+        walk(child);
+      }
+    };
+    walk(root);
+    return found;
+  }
+
+  function stepIndex(key, current, count, back, forward) {
+    if (key === 'Home') return 0;
+    if (key === 'End') return count - 1;
+    if (key === back) return (current - 1 + count) % count;
+    if (key === forward) return (current + 1) % count;
+    return undefined;
+  }
+
+  function createMenu(menu, choices = {}) {
+    let source = null;
+    const isOpen = () => Boolean(menu) && !menu.hidden;
+
+    function close(restoreFocus = false) {
+      if (!menu) return;
+      const wasOpen = isOpen();
+      const from = source;
+      menu.hidden = true;
+      source = null;
+      from?.setAttribute?.('aria-expanded', 'false');
+      if (wasOpen) choices.onClose?.();
+      if (restoreFocus) from?.focus?.();
+    }
+
+    function open(from, event) {
+      if (!menu) return;
+      close();
+      source = from || null;
+      source?.setAttribute?.('aria-expanded', 'true');
+      menu.style.left = '0px';
+      menu.style.top = '0px';
+      menu.hidden = false;
+      const menuRect = menu.getBoundingClientRect();
+      const anchor = source?.getBoundingClientRect?.();
+      const pointer = event?.type === 'contextmenu' || !anchor;
+      const margin = 8;
+      const maximumLeft = window.innerWidth - menuRect.width - margin;
+      const maximumTop = window.innerHeight - menuRect.height - margin;
+      menu.style.left = `${clamp(
+        pointer ? event?.clientX ?? 0 : anchor.right,
+        margin,
+        Math.max(margin, maximumLeft)
+      )}px`;
+      menu.style.top = `${clamp(
+        pointer ? event?.clientY ?? 0 : anchor.top,
+        margin,
+        Math.max(margin, maximumTop)
+      )}px`;
+      roleItems(menu, 'menuitem')[0]?.focus();
+    }
+
+    function keydown(event) {
+      if (event.key === 'Escape' || event.key === 'Tab') {
+        event.preventDefault();
+        close(true);
+        return;
+      }
+      const items = roleItems(menu, 'menuitem');
+      const next = stepIndex(
+        event.key, items.indexOf(document.activeElement), items.length,
+        'ArrowUp', 'ArrowDown'
+      );
+      if (next === undefined || !items.length) return;
+      event.preventDefault();
+      items[next].focus();
+    }
+
+    menu?.addEventListener('keydown', keydown);
+    document.addEventListener('click', (event) => {
+      if (!isOpen() || menu.contains(event.target)) return;
+      if (source?.contains?.(event.target)) return;
+      close();
+    });
+    const control = {open, close, isOpen, keydown, source: () => source};
+    menus.push(control);
+    return control;
+  }
+
+  function createTablist(list) {
+    const tabs = () => roleItems(list, 'tab');
+
+    function sync() {
+      const all = tabs();
+      const selected = all.find((tab) => {
+        return tab.getAttribute('aria-selected') === 'true';
+      }) || all[0];
+      for (const tab of all) tab.tabIndex = tab === selected ? 0 : -1;
+    }
+
+    list?.addEventListener('keydown', (event) => {
+      const all = tabs();
+      const current = all.indexOf(event.target);
+      if (current < 0) return;
+      const vertical = list.getAttribute('aria-orientation') === 'vertical';
+      const next = stepIndex(
+        event.key, current, all.length,
+        vertical ? 'ArrowUp' : 'ArrowLeft',
+        vertical ? 'ArrowDown' : 'ArrowRight'
+      );
+      if (next === undefined) return;
+      event.preventDefault();
+      all[next].focus();
+      all[next].click();
+      sync();
+    });
+    list?.addEventListener('click', sync);
+    sync();
+    return {sync};
+  }
+
   // ---- the file context menu ---------------------------------------
   //
   // One menu for every file tree: right-click (or a row's own button)
-  // opens it, positioned to stay inside the viewport.
+  // opens it.  `contextTarget` is the file it acts on.
+  const fileMenu = createMenu(elements.contextMenu, {
+    onClose: () => { contextTarget = {}; }
+  });
 
   function closeFileContext(restoreFocus = false) {
-    elements.contextMenu.hidden = true;
-    if (contextTarget.source) {
-      contextTarget.source.setAttribute('aria-expanded', 'false');
-      if (restoreFocus) contextTarget.source.focus();
-    }
+    fileMenu.close(restoreFocus);
     contextTarget = {};
   }
 
   function openFileContext(name, path, source, event) {
     event.preventDefault();
     event.stopPropagation();
-    closeFileContext();
+    fileMenu.open(source, event);
     contextTarget = {kind: name, path, source};
-    source.setAttribute('aria-expanded', 'true');
-    const menu = elements.contextMenu;
-    menu.style.left = '0px';
-    menu.style.top = '0px';
-    menu.hidden = false;
-    const menuRect = menu.getBoundingClientRect();
-    const sourceRect = source.getBoundingClientRect();
-    const margin = 8;
-    const maximumLeft = window.innerWidth - menuRect.width - margin;
-    const maximumTop = window.innerHeight - menuRect.height - margin;
-    const pointer = event.type === 'contextmenu';
-    menu.style.left = `${clamp(
-      pointer ? event.clientX : sourceRect.right,
-      margin,
-      Math.max(margin, maximumLeft)
-    )}px`;
-    menu.style.top = `${clamp(
-      pointer ? event.clientY : sourceRect.top,
-      margin,
-      Math.max(margin, maximumTop)
-    )}px`;
-    elements.contextOpen?.focus();
-  }
-
-  function fileContextKeydown(event) {
-    const items = [elements.contextOpen, elements.contextDelete]
-      .filter((item) => item && !item.disabled);
-    const current = items.indexOf(document.activeElement);
-    let next = current;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeFileContext(true);
-      return;
-    }
-    if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = items.length - 1;
-    else if (event.key === 'ArrowDown') next = (current + 1) % items.length;
-    else if (event.key === 'ArrowUp') {
-      next = (current - 1 + items.length) % items.length;
-    } else {
-      return;
-    }
-    event.preventDefault();
-    items[next].focus();
   }
 
   // ---- persistence --------------------------------------------------
@@ -2365,7 +2468,6 @@
       });
       tab.addEventListener('keydown', explorerTabKeydown);
     }
-    elements.contextMenu?.addEventListener('keydown', fileContextKeydown);
     //  a reference is created by dropping a document tab, or anything
     //  the consumer made draggable, on the aside
     const droppableRef = () => {
@@ -2384,15 +2486,9 @@
       draggedTab = undefined;
       openAppRef(payload);
     });
-    document.addEventListener('click', (event) => {
-      const menu = elements.contextMenu;
-      if (!menu || menu.hidden || menu.contains(event.target)) return;
-      if (contextTarget.source?.parentElement?.contains(event.target)) return;
-      closeFileContext();
-    });
     window.addEventListener('beforeunload', saveSession);
     window.addEventListener('resize', () => {
-      closeFileContext();
+      for (const menu of menus) menu.close();
       options.onResize?.();
       refreshEditors();
     });
@@ -2495,7 +2591,7 @@
       context: {
         open: openFileContext,
         close: closeFileContext,
-        keydown: fileContextKeydown,
+        keydown: fileMenu.keydown,
         target: () => contextTarget
       }
     },
@@ -2517,6 +2613,7 @@
       setLayout
     },
     documents: documentApi,
+    a11y: {menu: createMenu, tablist: createTablist},
     notify,
     confirm: confirmDialog,
     copy: copyText,
@@ -2573,10 +2670,10 @@
       }
       return;
     }
-    if (event.key === 'Escape'
-      && elements.contextMenu && !elements.contextMenu.hidden) {
+    const menu = menus.find((item) => item.isOpen());
+    if (event.key === 'Escape' && menu) {
       consume();
-      closeFileContext(true);
+      menu.close(true);
       return;
     }
     const target = event.target || document.activeElement;
@@ -3825,7 +3922,6 @@
     const name = tree.store;
     const row = document.createElement('div');
     row.className = 'explorer-file-row';
-    row.setAttribute('role', 'treeitem');
     const file = document.createElement('button');
     file.type = 'button';
     file.className = 'file-tree-file';
@@ -3852,6 +3948,8 @@
     return row;
   }
 
+  //  Folders are native <details> disclosures and files are buttons:
+  //  no tree role, since there is no tree keyboard model to go with it.
   function docRenderTree(tree, node, files) {
     const root = {folders: new Map(), files: []};
     for (const path of files) {
@@ -3870,11 +3968,9 @@
     const build = (branch) => {
       const list = document.createElement('div');
       list.className = 'file-tree-children';
-      list.setAttribute('role', 'group');
       for (const [part, folder] of branch.folders) {
         const details = document.createElement('details');
         details.className = 'file-tree-folder';
-        details.setAttribute('role', 'treeitem');
         const key = `${tree.view}:${pathText(folder.path)}`;
         details.open = docTreeState[key] !== false;
         details.addEventListener('toggle', () => {
