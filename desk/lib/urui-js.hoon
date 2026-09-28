@@ -180,7 +180,6 @@
   //  the consumer's starting format; a saved preference replaces it
   let layout = validLayout(config.layout);
   let keybindings = 'ace';
-  let settingsReturnFocus = null;
   const themeMedia = matchMedia('(prefers-color-scheme: dark)');
   const statusLabels = new Map(
     (config.statuses || []).map((entry) => [entry.name, entry.label])
@@ -1012,43 +1011,145 @@
     return explorerOpen;
   }
 
+  // ---- modals -------------------------------------------------------
+  //
+  // Help, settings, the file dialog, and the confirm dialog share one
+  // controller.  Each is a `hidden`-toggled aside; the open one with the
+  // highest rank is on top.  While one is open, Tab and Shift+Tab stay
+  // inside it, Escape runs its `close`, the rest of the page is inert
+  // (live regions excepted), and no app shortcut runs.  Opening one
+  // remembers what held focus; hiding it gives focus back, or to its
+  // `fallback` when nothing did.  Which modal is open is read from the
+  // DOM, so every runtime on the page agrees.
+  const modals = [];
+  const modalInert = new Set();
+
+  function defineModal(rank, element, close, fallback) {
+    const modal = {rank, element, close, fallback, returnFocus: null};
+    modals.push(modal);
+    modals.sort((left, right) => right.rank - left.rank);
+    return modal;
+  }
+
+  function modalIsOpen(modal) {
+    const element = modal.element();
+    return Boolean(element) && !element.hidden;
+  }
+
+  function topModal() {
+    return modals.find(modalIsOpen);
+  }
+
+  function modalFocusables(root) {
+    const found = [];
+    const walk = (node) => {
+      for (const child of Array.from(node?.children || [])) {
+        if (child.hidden) continue;
+        const name = String(child.localName || '').toLowerCase();
+        if (['button', 'input', 'select', 'textarea'].includes(name)
+          && !child.disabled) {
+          found.push(child);
+        }
+        walk(child);
+      }
+    };
+    walk(root);
+    return found;
+  }
+
+  function modalTrapTab(event, root) {
+    const items = modalFocusables(root);
+    if (!items.length) return false;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !root.contains(active))) {
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && (active === last || !root.contains(active))) {
+      first.focus();
+      return true;
+    }
+    return false;
+  }
+
+  //  Everything beside the top modal goes inert; nodes the page had
+  //  already made inert are left alone.
+  function syncModalInert() {
+    for (const node of modalInert) node.inert = false;
+    modalInert.clear();
+    const top = topModal()?.element();
+    if (!top) return;
+    for (const node of Array.from(document.body?.children || [])) {
+      if (node === top || node.inert
+        || node.getAttribute?.('aria-live')) {
+        continue;
+      }
+      node.inert = true;
+      modalInert.add(node);
+    }
+  }
+
+  function showModal(modal, focus) {
+    const element = modal.element();
+    if (!element) return;
+    if (element.hidden && !element.contains(document.activeElement)) {
+      modal.returnFocus = document.activeElement;
+    }
+    element.hidden = false;
+    syncModalInert();
+    focus?.focus?.();
+  }
+
+  function hideModal(modal, restoreFocus = true) {
+    const element = modal.element();
+    if (!element) return;
+    const wasOpen = !element.hidden;
+    element.hidden = true;
+    syncModalInert();
+    if (wasOpen && restoreFocus) {
+      (modal.returnFocus ?? modal.fallback?.())?.focus?.();
+    }
+    modal.returnFocus = null;
+  }
+
   // ---- help and settings ------------------------------------------
   //
-  // Both are `hidden`-toggled asides that move focus: each focuses its
-  // close button and restores the control that opened it.
-  // `options.onHelpOpen` runs before help takes focus.  Escape ordering
-  // between them lives in the shortcut dispatcher.
+  // Both are modals.  `options.onHelpOpen` runs before help takes focus.
+  const helpModal = defineModal(1, () => elements.helpPanel, () => {
+    setHelpOpen(false, true);
+  }, () => elements.helpToggle);
+  const settingsModal = defineModal(2, () => elements.settingsModal, () => {
+    setSettingsOpen(false, true);
+  }, () => elements.settingsToggle);
+
   function helpIsOpen() {
-    return !elements.helpPanel.hidden;
+    return modalIsOpen(helpModal);
   }
 
   function setHelpOpen(open, restoreFocus = false) {
-    elements.helpPanel.hidden = !open;
     elements.helpToggle?.setAttribute('aria-expanded', String(open));
-    if (open) {
-      setHelpVariant(docsAvailable === true);
-      refreshHelpVariant();
-      options.onHelpOpen?.();
-      elements.closeHelp.focus();
+    if (!open) {
+      hideModal(helpModal, restoreFocus);
+      return;
     }
-    if (!open && restoreFocus) elements.helpToggle?.focus();
+    showModal(helpModal);
+    setHelpVariant(docsAvailable === true);
+    refreshHelpVariant();
+    options.onHelpOpen?.();
+    elements.closeHelp.focus();
   }
 
   function settingsIsOpen() {
-    return Boolean(elements.settingsModal) && !elements.settingsModal.hidden;
+    return modalIsOpen(settingsModal);
   }
 
   function setSettingsOpen(open, restoreFocus = false) {
     if (!elements.settingsModal) return;
-    if (open && !elements.settingsModal.contains(document.activeElement)) {
-      settingsReturnFocus = document.activeElement;
-    }
-    elements.settingsModal.hidden = !open;
     elements.settingsToggle?.setAttribute('aria-expanded', String(open));
-    if (open) elements.closeSettings?.focus();
-    if (!open && restoreFocus) {
-      (settingsReturnFocus ?? elements.settingsToggle)?.focus?.();
-    }
+    if (open) showModal(settingsModal, elements.closeSettings);
+    else hideModal(settingsModal, restoreFocus);
   }
 
 
@@ -2441,33 +2542,42 @@
     shortcutCommands.set(command, handler);
   }
 
+  function shortcutMatches(shortcut, event) {
+    const parts = shortcut.binding.toLowerCase().split('-');
+    const key = parts.pop();
+    const primary = parts.includes('ctrl') || parts.includes('meta');
+    return String(event.key).toLowerCase() === key
+      && Boolean(event.ctrlKey || event.metaKey) === primary
+      && Boolean(event.shiftKey) === parts.includes('shift')
+      && Boolean(event.altKey) === parts.includes('alt');
+  }
+
   function dispatchShortcut(event) {
     const consume = () => {
       event.preventDefault();
       event.stopPropagation?.();
     };
-    //  a document dialog sits above everything else: it takes Escape,
-    //  and holds Tab inside itself
-    if (documentKeydown(event)) {
-      consume();
+    //  the top modal takes Escape and holds Tab; a bound chord behind it
+    //  is swallowed, not run, and every other key reaches the modal
+    const modal = topModal();
+    if (modal) {
+      if (event.key === 'Escape') {
+        consume();
+        modal.close();
+      } else if (event.key === 'Tab') {
+        if (modalTrapTab(event, modal.element())) consume();
+      } else if ((config.shortcuts || []).some((shortcut) => {
+        return shortcutMatches(shortcut, event);
+      })) {
+        consume();
+      }
       return;
     }
-    if (event.key === 'Escape') {
-      if (settingsIsOpen()) {
-        consume();
-        setSettingsOpen(false, true);
-        return;
-      }
-      if (helpIsOpen()) {
-        consume();
-        setHelpOpen(false, true);
-        return;
-      }
-      if (elements.contextMenu && !elements.contextMenu.hidden) {
-        consume();
-        closeFileContext(true);
-        return;
-      }
+    if (event.key === 'Escape'
+      && elements.contextMenu && !elements.contextMenu.hidden) {
+      consume();
+      closeFileContext(true);
+      return;
     }
     const target = event.target || document.activeElement;
     const inEditor = editors().some((editor) => editor.isFocused?.(target));
@@ -2478,14 +2588,9 @@
       preview: options.shortcuts?.preview?.(event) ?? false
     };
     for (const shortcut of config.shortcuts || []) {
-      if (!contexts[shortcut.when]) continue;
-      const parts = shortcut.binding.toLowerCase().split('-');
-      const key = parts.pop();
-      const primary = parts.includes('ctrl') || parts.includes('meta');
-      if (event.key.toLowerCase() !== key
-        || Boolean(event.ctrlKey || event.metaKey) !== primary
-        || Boolean(event.shiftKey) !== parts.includes('shift')
-        || Boolean(event.altKey) !== parts.includes('alt')) continue;
+      if (!contexts[shortcut.when] || !shortcutMatches(shortcut, event)) {
+        continue;
+      }
       const handler = shortcutCommands.get(shortcut.command);
       if (!handler) continue;
       consume();
@@ -3823,45 +3928,19 @@
 
   //  ---- dialogs
   //
-  //  The file dialog and the confirm dialog are modal: focus moves in,
-  //  Tab stays in, and Escape or Cancel gives focus back.
+  //  The file dialog and the confirm dialog are modals (see the runtime's
+  //  modal section); the confirm dialog ranks above the file dialog, and
+  //  both above settings and help.
   function docElement(id) {
     return document.querySelector(`#${id}`);
   }
 
-  function docFocusables(root) {
-    const found = [];
-    const walk = (node) => {
-      for (const child of Array.from(node?.children || [])) {
-        if (child.hidden) continue;
-        const name = String(child.localName || '').toLowerCase();
-        if (['button', 'input', 'select', 'textarea'].includes(name)
-          && !child.disabled) {
-          found.push(child);
-        }
-        walk(child);
-      }
-    };
-    walk(root);
-    return found;
-  }
-
-  function docTrapTab(event, root) {
-    const items = docFocusables(root);
-    if (!items.length) return false;
-    const first = items[0];
-    const last = items[items.length - 1];
-    const active = document.activeElement;
-    if (event.shiftKey && (active === first || !root.contains(active))) {
-      last.focus();
-      return true;
-    }
-    if (!event.shiftKey && (active === last || !root.contains(active))) {
-      first.focus();
-      return true;
-    }
-    return false;
-  }
+  const docFileModal = defineModal(
+    3, () => docElement('urui-file-dialog'), () => docDialog?.finish(null)
+  );
+  const docConfirmModal = defineModal(
+    4, () => docElement('urui-confirm'), () => docConfirm?.finish(false)
+  );
 
   function confirmMessage(kind, detail = {}) {
     switch (kind) {
@@ -3880,17 +3959,14 @@
     if (!modal) return Promise.resolve(Boolean(window.confirm(message)));
     if (docConfirm) docConfirm.finish(false);
     return new Promise((resolve) => {
-      const returnFocus = document.activeElement;
       const finish = (answer) => {
-        modal.hidden = true;
         docConfirm = undefined;
-        returnFocus?.focus?.();
+        hideModal(docConfirmModal);
         resolve(answer);
       };
-      docConfirm = {finish, modal};
+      docConfirm = {finish};
       docElement('urui-confirm-message').textContent = message;
-      modal.hidden = false;
-      docElement('urui-confirm-cancel')?.focus();
+      showModal(docConfirmModal, docElement('urui-confirm-cancel'));
     });
   }
 
@@ -4042,12 +4118,10 @@
     }
     let finish;
     const done = new Promise((resolve) => {
-      const returnFocus = document.activeElement;
       finish = (answer) => {
-        modal.hidden = true;
         extra.replaceChildren();
         docDialog = undefined;
-        returnFocus?.focus?.();
+        hideModal(docFileModal);
         resolve(answer);
       };
     });
@@ -4072,7 +4146,7 @@
       if (typedMark && !markField.hidden) segments.pop();
       finish([...root.scope, ...segments, mark]);
     };
-    docDialog = {finish, accept, modal};
+    docDialog = {finish, accept};
     rootSelect.onchange = () => {
       fillMarks();
       fillList();
@@ -4084,22 +4158,9 @@
       event.preventDefault();
       accept();
     };
-    modal.hidden = false;
+    showModal(docFileModal, opening ? cancel : pathInput);
     fillList();
-    (opening ? cancel : pathInput)?.focus();
     return done;
-  }
-
-  //  Escape closes the topmost document dialog; Tab stays inside it.
-  function documentKeydown(event) {
-    const top = docConfirm || docDialog;
-    if (!top) return false;
-    if (event.key === 'Escape') {
-      top.finish(docConfirm ? false : null);
-      return true;
-    }
-    if (event.key === 'Tab') return docTrapTab(event, top.modal);
-    return false;
   }
 
   //  ---- feedback
