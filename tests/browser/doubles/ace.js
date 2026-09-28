@@ -113,6 +113,7 @@ function createFakeAceEditor(host) {
     setOptions(options) { this.options = options; },
     setTheme(theme) { this.theme = theme; host.aceTheme = theme; },
     setKeyboardHandler(handler) { this.keyboardHandler = handler || null; },
+    setReadOnly(flag) { this.readOnly = flag; host.aceReadOnly = flag; },
     getKeyboardHandler() { return this.keyboardHandler || null; },
     focus: () => host.focus(),
     clearSelection() {

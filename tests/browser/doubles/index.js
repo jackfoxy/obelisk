@@ -18,9 +18,10 @@ function createEnvironment(options = {}) {
   const profile = options.profile || 'fixture';
   const dom = createDom();
   const graphViz = profile === 'graph-viz';
+  //  graph-viz's record is version 2 since its documents moved onto
+  //  urui's store module; `source` is no longer one of its slots
   const graphVizSession = {
-    version: 1,
-    source: 'digraph saved { Alpha -> Beta }',
+    version: 2,
     paneWidth: 62,
     view: {scale: 2, x: 20, y: 30},
     preferences: {autoRender: false}

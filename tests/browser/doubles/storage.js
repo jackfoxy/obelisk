@@ -4,7 +4,6 @@ const SESSION_KEY = 'urui-fixture.session.v1';
 
 const defaultSession = {
   version: 1,
-  source: 'fixture source',
   paneWidth: 62,
   view: {scale: 2, x: 20, y: 30},
   preferences: {autoRender: false}
