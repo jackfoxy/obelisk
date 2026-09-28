@@ -3516,7 +3516,7 @@
   function docFocus(name) {
     const tab = docActive(name);
     if (!tab) return;
-    if (tab.display === 'preview' && docPreviewerFor(tab)) {
+    if (tab.display === 'preview' && docPreviewerFor(name, tab)) {
       docPreviewHost(name)?.focus?.();
     } else {
       docEditorsByStore.get(name)?.focus();
@@ -3790,8 +3790,16 @@
   }
 
   //  ---- source and preview
-  function docPreviewerFor(tab) {
-    return tab?.path ? docPreviewers.get(docMarkOf(tab.path)) : undefined;
+  //  A saved tab's mark is its path's last segment; a draft's is the
+  //  store's default, the first mark of its first root, which is the
+  //  mark a first save would give it.
+  function docTabMark(name, tab) {
+    if (tab?.path) return docMarkOf(tab.path);
+    return docStores.get(name)?.roots?.[0]?.marks?.[0];
+  }
+
+  function docPreviewerFor(name, tab) {
+    return tab ? docPreviewers.get(docTabMark(name, tab)) : undefined;
   }
 
   function docPreviewHost(name) {
@@ -3800,7 +3808,7 @@
 
   function docApplyDisplay(name) {
     const tab = docActive(name);
-    const previewer = docPreviewerFor(tab);
+    const previewer = docPreviewerFor(name, tab);
     const host = docHostOf(name);
     const editorElement = host ? document.querySelector(`#${host.id}`) : null;
     const previewHost = docPreviewHost(name);
@@ -3827,7 +3835,7 @@
       }
     }
     if (!showing) return;
-    const key = `${name}:${docMarkOf(tab.path)}`;
+    const key = `${name}:${docTabMark(name, tab)}`;
     if (!docMounted.has(key)) {
       previewer.mount?.(previewHost);
       docMounted.add(key);
@@ -4139,7 +4147,7 @@
         if (!tab) return undefined;
         return {
           label: tab.label,
-          data: {text: tab.text, mark: docMarkOf(tab.path) || null}
+          data: {text: tab.text, mark: docTabMark(name, tab) || null}
         };
       },
       render: (panel, ref) => {
@@ -4167,7 +4175,7 @@
     if (!docStores.get(name)?.refs || !refForParent(name, tab.id)) return;
     updateAppRef(name, tab.id, {
       label: tab.label,
-      data: {text: tab.text, mark: docMarkOf(tab.path) || null}
+      data: {text: tab.text, mark: docTabMark(name, tab) || null}
     });
   }
 
