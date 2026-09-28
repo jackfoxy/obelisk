@@ -1731,6 +1731,7 @@
   const slots = config.slots || [];
   const maxSource = limits.maxSource ?? 262144;
   let saveTimer;
+  let saveFailing = false;
 
   function sourceByteLength(source) {
     return new TextEncoder().encode(source).byteLength;
@@ -1745,12 +1746,11 @@
     return source;
   }
 
+  //  Restoring checks shape, never size: text the user already has is
+  //  not dropped.  The size limit belongs to load, save, and render.
   function validSavedSource(source) {
-    try {
-      return validateSource(source);
-    } catch (_) {
-      return undefined;
-    }
+    return typeof source === 'string' && !source.includes('\0')
+      ? source : undefined;
   }
 
   function validTabLabel(label, fallback) {
@@ -1863,8 +1863,16 @@
         writeEnvelope(record, slot.key, readSlot(slot));
       }
       localStorage.setItem(storageKey, JSON.stringify(record));
-    } catch (_) {
-      // Storage can be disabled or full without blocking the editor.
+      saveFailing = false;
+    } catch (cause) {
+      //  storage can be disabled or full without blocking the editor;
+      //  the user hears once per run of failures
+      if (!saveFailing) {
+        saveFailing = true;
+        notify(`Session not saved: ${cause?.message || cause}`, {
+          kind: 'error'
+        });
+      }
     }
   }
 
