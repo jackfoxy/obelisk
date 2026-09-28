@@ -2826,8 +2826,12 @@
   //
   // `options.onFile({store, op, phase, path, error})` reports each file
   // operation; `options.transport` replaces the json wire, for tests.
-  // `runtime.documents.previews.register(mark, previewer)` adds a
-  // preview, `{mount(host), show(tab), hide(), render(panel, text)}`.
+  // `runtime.documents.previews.register(mark, factory)` adds a preview.
+  // `factory({host, store})` mounts one instance into one store's
+  // preview host and returns `{show(tab), hide(), dispose()}`; each
+  // store showing that mark gets its own instance.  `factory.render(
+  // panel, text)` draws a reference.  Registering a mark again disposes
+  // its instances; the stores showing it rebuild from the new factory.
   const filesConfig = config.files || null;
   const docStores = new Map((filesConfig?.stores || []).map((item) => {
     return [item.name, item];
@@ -2838,8 +2842,8 @@
   const docTrees = filesConfig?.trees || [];
   const docEditorsByStore = new Map();
   const docEditorFailed = new Set();
-  const docMounted = new Set();
   const docPreviewers = new Map();
+  const docPreviewInstances = new Map();
   const docOpening = new Map();
   const docTransport = options.transport
     || (filesConfig ? docJsonTransport(filesConfig.url) : null);
@@ -3402,19 +3406,27 @@
     }
     if (!previewHost) return;
     previewHost.hidden = !showing;
-    for (const [mark, item] of docPreviewers) {
-      if (item !== previewer || !showing) {
-        if (docMounted.has(`${name}:${mark}`)) item.hide?.();
-      }
+    const mark = docTabMark(name, tab);
+    for (const entry of docPreviewInstances.values()) {
+      if (entry.store !== name) continue;
+      if (!showing || entry.mark !== mark) entry.instance.hide?.();
     }
     if (!showing) return;
-    const key = `${name}:${docTabMark(name, tab)}`;
-    if (!docMounted.has(key)) {
-      previewer.mount?.(previewHost);
-      docMounted.add(key);
-    }
-    previewer.show?.(tab);
+    docPreviewInstance(name, mark, previewHost).show?.(tab);
     refreshEditors();
+  }
+
+  //  One instance per store and mark, built on first show into that
+  //  store's own host.
+  function docPreviewInstance(name, mark, host) {
+    const key = `${name}:${mark}`;
+    let entry = docPreviewInstances.get(key);
+    if (!entry) {
+      const instance = docPreviewers.get(mark)({host, store: name});
+      entry = {store: name, mark, instance};
+      docPreviewInstances.set(key, entry);
+    }
+    return entry.instance;
   }
 
   function docSetDisplay(name, display) {
@@ -3426,9 +3438,21 @@
     changed();
   }
 
-  function docRegisterPreviewer(mark, previewer) {
-    if (!mark || !previewer) return;
-    docPreviewers.set(String(mark), previewer);
+  function docRegisterPreviewer(mark, factory) {
+    if (!mark) return;
+    if (typeof factory !== 'function') {
+      throw new TypeError(`urui: the "${mark}" previewer must be a factory`);
+    }
+    const key = String(mark);
+    const stale = new Set();
+    for (const [instanceKey, entry] of docPreviewInstances) {
+      if (entry.mark !== key) continue;
+      entry.instance.dispose?.();
+      docPreviewInstances.delete(instanceKey);
+      stale.add(entry.store);
+    }
+    docPreviewers.set(key, factory);
+    for (const name of stale) docApplyDisplay(name);
   }
 
   function safeMarkdownHref(value) {
@@ -3649,29 +3673,26 @@
 
   //  The built-in previewers.  HTML renders in a sandboxed frame with no
   //  script, no same-origin access, and no referrer.
-  function markdownPreviewer() {
-    let view;
+  function markdownPreviewer({host}) {
+    const view = document.createElement('div');
+    view.className = 'markdown-view';
+    host.append(view);
     return {
-      mount(host) {
-        view = document.createElement('div');
-        view.className = 'markdown-view';
-        host.append(view);
-      },
       show(tab) {
-        if (view) {
-          view.hidden = false;
-          view.replaceChildren(markdownFragment(tab.text));
-        }
+        view.hidden = false;
+        view.replaceChildren(markdownFragment(tab.text));
       },
-      hide() { if (view) view.hidden = true; },
-      render(panel, text) {
-        const node = document.createElement('div');
-        node.className = 'markdown-view';
-        node.append(markdownFragment(text));
-        panel.append(node);
-      }
+      hide() { view.hidden = true; },
+      dispose() { view.remove(); }
     };
   }
+
+  markdownPreviewer.render = (panel, text) => {
+    const node = document.createElement('div');
+    node.className = 'markdown-view';
+    node.append(markdownFragment(text));
+    panel.append(node);
+  };
 
   function htmlFrame(title) {
     const frame = document.createElement('iframe');
@@ -3681,30 +3702,27 @@
     return frame;
   }
 
-  function htmlPreviewer() {
-    let frame;
+  function htmlPreviewer({host}) {
+    const frame = htmlFrame('Rendered HTML');
+    host.append(frame);
     return {
-      mount(host) {
-        frame = htmlFrame('Rendered HTML');
-        host.append(frame);
-      },
       show(tab) {
-        if (frame) {
-          frame.hidden = false;
-          frame.srcdoc = tab.text;
-        }
+        frame.hidden = false;
+        frame.srcdoc = tab.text;
       },
-      hide() { if (frame) frame.hidden = true; },
-      render(panel, text) {
-        const node = htmlFrame('Rendered HTML reference');
-        node.srcdoc = text;
-        panel.append(node);
-      }
+      hide() { frame.hidden = true; },
+      dispose() { frame.remove(); }
     };
   }
 
-  docRegisterPreviewer('md', markdownPreviewer());
-  docRegisterPreviewer('html', htmlPreviewer());
+  htmlPreviewer.render = (panel, text) => {
+    const node = htmlFrame('Rendered HTML reference');
+    node.srcdoc = text;
+    panel.append(node);
+  };
+
+  docRegisterPreviewer('md', markdownPreviewer);
+  docRegisterPreviewer('html', htmlPreviewer);
 
   //  ---- references
   //
