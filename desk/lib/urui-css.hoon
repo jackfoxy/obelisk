@@ -54,9 +54,6 @@
     --spinner-track: #bfdbfe;
     --state-ink: #52525b;
     --state-title: #27272a;
-    --inspector-background: #fffbeb;
-    --inspector-border: #fde68a;
-    --inspector-ink: #78350f;
     --editor-width: 44%;
   }
 
@@ -83,9 +80,6 @@
     --spinner-track: #4c1d95;
     --state-ink: #a7a79e;
     --state-title: #f2f2ec;
-    --inspector-background: #33270e;
-    --inspector-border: #854d0e;
-    --inspector-ink: #fde68a;
   }
   '''
 ::
@@ -415,6 +409,10 @@
   }
 
   @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation: none; }
+  }
 
   .error {
     background: var(--danger-background);
@@ -1220,8 +1218,6 @@
 
   .preference input { accent-color: var(--accent); }
 
-  .source-auto-render { margin-left: 0.5rem; white-space: nowrap; }
-
   .copy-icon {
     height: 0.9rem;
     position: relative;
@@ -1269,8 +1265,9 @@
   '''
 ::
 ++  responsive
-  ::  The single narrow-viewport query, at the same 760px `limits.narrow`
-  ::  the runtime matches on.  Last in the cascade, by convention.
+  ::  The single narrow-viewport query, at the same 760px the runtime's
+  ::  `narrowMedia` matches on; change both.  Last in the cascade, by
+  ::  convention.
   ^-  @t
   '''
   @media (max-width: 760px) {

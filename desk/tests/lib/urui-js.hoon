@@ -19,7 +19,6 @@
     divider.limits          10
     pane-min.limits         25
     pane-max.limits         70
-    narrow.limits           760
     max-source.limits       262.144
     slots
       :~  ['paneWidth' %urui %scalar ~]
@@ -126,7 +125,6 @@
         "\"divider\":10"
         "\"paneMin\":25"
         "\"paneMax\":70"
-        "\"narrow\":760"
     ==
   =/  tests=tang
     %-  zing
@@ -210,7 +208,7 @@
         "limits.paneMax ?? 70"
         "limits.minExplorer ?? 180"
         "limits.divider ?? 10"
-        "limits.narrow ?? 760"
+        "(max-width: 760px)"
         "role('reference')"
         "#explorer-resizer"
         "#explorer-collapse"

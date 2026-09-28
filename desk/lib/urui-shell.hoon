@@ -22,12 +22,18 @@
   ::  reference pane whose tab band carries a %views level.  A spec
   ::  without one gets the compact frame.
   ::
+  ::  The compact frame is presentation only: it has no workbench and no
+  ::  document dialogs, so a spec that declares document stores without
+  ::  an explorer crashes here rather than boot a runtime that cannot run.
+  ::
   ::  Example:
   ::    ++  page  (build:shell spec)
   |=  spec=shell-spec:urui
   ^-  manx
   ?:  (has-views reference.panes.spec)
     (full spec)
+  ~|  'urui-shell: document stores need the full frame (a %views level)'
+  ?>  ?=(~ files.app-config.spec)
   (compact spec)
 ::
 ++  has-views
@@ -71,6 +77,7 @@
       ;title:"{(trip title.id)}"
       ;*  boot
       ;*  style-tags
+      ;*  head.spec
     ==
     ;body
       ;header.app-header
@@ -128,6 +135,7 @@
       ;meta(name "viewport", content "width=device-width, initial-scale=1");
       ;title:"{(trip title.id)}"
       ;*  style-tags
+      ;*  head.spec
     ==
     ;body(data-app (trip name.id))
       ;header.app-header

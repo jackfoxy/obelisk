@@ -172,7 +172,8 @@
   const paneMax = limits.paneMax ?? 70;
   const minExplorer = limits.minExplorer ?? 180;
   const dividerWidth = limits.divider ?? 10;
-  const narrowMedia = matchMedia(`(max-width: ${limits.narrow ?? 760}px)`);
+  //  the one breakpoint, shared with ++responsive:urui-css
+  const narrowMedia = matchMedia('(max-width: 760px)');
   const themes = ['system', 'light', 'dark'];
   const layouts = ['columns', 'rows'];
   const keyModes = ['ace', 'vim'];

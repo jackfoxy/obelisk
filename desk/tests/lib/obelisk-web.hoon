@@ -604,13 +604,14 @@
 ::
 ++  test-web-page-root-09
   =/  out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  body  (trip (response-body -.out))
   ;:  weld
     (expect-eq !>(200) !>((response-status -.out)))
     %+  expect-eq
       !>(~[['content-type' 'text/html; charset=utf-8']])
     !>((response-headers -.out))
-    %-  expect
-    !>(?=(^ (find "Obelisk" (trip (response-body -.out)))))
+    (expect !>(?=(^ (find "Obelisk" body))))
+    (expect !>(?=(^ (find "href=\"/apps/obelisk/favicon.ico\"" body))))
   ==
 ::
 ++  test-web-page-shell-09-a
@@ -1981,7 +1982,7 @@
     (expect !>(?=(^ (find "validWorkbench(raw)" script))))
     (expect !>(?=(^ (find "setBusy" script))))
     (expect !>(?=(^ (find "event.preventDefault()" script))))
-    (expect !>(?=(^ (find "/apps/obelisk/favicon.ico" script))))
+    (expect !>(?=(~ (find "/apps/obelisk/favicon.ico" script))))
     (expect !>(?=(~ (find "byId('help-panel')" script))))
     (expect !>(?=(~ (find "outputRatio: 1 / 3" script))))
     (expect !>(?=(~ (find "renderDocsHelpTree" script))))

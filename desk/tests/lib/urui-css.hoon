@@ -25,6 +25,7 @@
   =/  cases=(list [name=section:ucss needle=@t])
     :~  [%tokens '--surface-alt:']
         [%shell '.workbench {']
+        [%shell '@media (prefers-reduced-motion: reduce)']
         [%explorer '.explorer-file-tree {']
         [%tabs '.document-tab-control {']
         [%dialogs '.help-panel {']
@@ -44,15 +45,12 @@
         '--surface-alt: #fafafa'  '--surface-alt: #22221f'
         '--preview-background: #ffffff'
         '--preview-background: #11110f'
-        '--inspector-background: #fffbeb'
-        '--inspector-background: #33270e'
         '--background:'  '--surface:'  '--border:'  '--ink:'
         '--muted:'  '--accent:'  '--accent-text:'  '--focus:'
         '--danger:'  '--danger-background:'  '--danger-border:'
         '--editor-error:'  '--preview-grid:'  '--floating-control:'
         '--selection-hover:'  '--selection-active:'  '--spinner-track:'
-        '--state-ink:'  '--state-title:'  '--inspector-border:'
-        '--inspector-ink:'  '--editor-width:'
+        '--state-ink:'  '--state-title:'  '--editor-width:'
     ==
   %-  zing
   %+  turn  needles

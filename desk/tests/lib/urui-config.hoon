@@ -18,7 +18,6 @@
           divider=10
           pane-min=25
           pane-max=70
-          narrow=760
           max-source=262.144
       ==
       ~[['textTabs' %urui %tabs `%text]]
@@ -154,6 +153,7 @@
       dialogs=~
       styles=~
       scripts=~
+      head=~
   ==
 ::
 ++  source  (trip (emit:config spec))
@@ -190,7 +190,7 @@
   ;:  weld
     (expect !>((has "\"renderDebounce\":350")))
     (expect !>((has "\"paneMin\":25")))
-    (expect !>((has "\"narrow\":760")))
+    (expect-eq !>(%.n) !>((has "\"narrow\"")))
     (expect !>((has "\"maxSource\":262144")))
   ==
 ::

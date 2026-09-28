@@ -156,7 +156,6 @@
           divider=10
           pane-min=30
           pane-max=85
-          narrow=760
           max-source=262.144
       ==
       slots
@@ -215,7 +214,12 @@
           '/apps/obelisk/ace/ext-beautify.js'
           '/apps/obelisk/app.js'
       ==
+      head=~[favicon]
   ==
+::
+++  favicon
+  ^-  manx
+  ;link(rel "icon", type "image/x-icon", href "/apps/obelisk/favicon.ico");
 ::
 ++  pinned
   ::  A band the user cannot hide: no reveal key, so no toggle.
@@ -1005,15 +1009,6 @@
     const docs = runtime.documents;
     const notify = runtime.notify;
 
-    //  urui's <head> has no consumer slot, so the icon arrives here
-    if (!document.querySelector('link[rel="icon"]')) {
-      const icon = document.createElement('link');
-      icon.id = 'favicon';
-      icon.rel = 'icon';
-      icon.type = 'image/x-icon';
-      icon.href = '/apps/obelisk/favicon.ico';
-      document.head.appendChild(icon);
-    }
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',

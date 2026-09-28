@@ -229,7 +229,6 @@
       ['divider' (number divider.limits)]
       ['paneMin' (number pane-min.limits)]
       ['paneMax' (number pane-max.limits)]
-      ['narrow' (number narrow.limits)]
       ['maxSource' (number max-source.limits)]
   ==
 ::

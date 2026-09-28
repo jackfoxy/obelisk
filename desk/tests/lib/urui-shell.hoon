@@ -148,6 +148,7 @@
       dialogs=~[;div#probe-dialog.dialog;]
       styles=~['/probe/app.css']
       scripts=~['/probe/app.js' '/probe/extra.js']
+      head=~[;meta(name "probe-head", content "yes");]
   ==
 ::
 ++  doc  (build:shell spec)
@@ -219,6 +220,7 @@
       dialogs=~[;div#probe-dialog.dialog;]
       styles=~['body { color: black; }']
       scripts=~['/probe/app.js']
+      head=~[;meta(name "probe-head", content "yes");]
   ==
 ::
 ++  full-doc  (build:shell full-spec)
@@ -588,6 +590,26 @@
     (expect-eq !>("/probe/app.css") !>((attribute (snag 0 links) %href)))
   ==
 ::
+++  test-shell-appends-consumer-head-marl
+  ::  last in <head>, after the styles, in both frames
+  ;:  weld
+    (expect-eq !>("probe-head") !>((last-in-head doc)))
+    (expect-eq !>("probe-head") !>((last-in-head full-doc)))
+  ==
+::
+++  last-in-head
+  ::  The name attribute of the last element in <head>, or "".
+  ::
+  ::  =(~ kids), not ?~: ?~ would narrow `kids` to a non-empty list,
+  ::  and snag's recursion into its tail then fails to nest.
+  |=  top=manx
+  ^-  tape
+  =/  heads=(list manx)  (elements top %head)
+  ?~  heads  ""
+  =/  kids=marl  c.i.heads
+  ?:  =(~ kids)  ""
+  (attribute (snag (dec (lent kids)) kids) %name)
+::
 ++  test-shell-titles-the-document-from-the-app-id
   =/  titles  (elements doc %title)
   =/  frame=manx  (head (elements doc %body))
@@ -633,6 +655,11 @@
     :-  !>("explorer-pane")
     !>((attribute (head full-asides) %class))
   ==
+::
+++  test-compact-shell-refuses-document-stores
+  =/  base=shell-spec:urui  spec
+  %-  expect-fail
+  |.((build:shell base(files.app-config `store-files)))
 ::
 ++  test-full-shell-emits-explorer-regions
   =/  asides  (elements full-doc %aside)
