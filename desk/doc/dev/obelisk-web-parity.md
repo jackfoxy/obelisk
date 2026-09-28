@@ -94,21 +94,30 @@ execution; correctness is preferred over adding an alternate execution API.
 
 ### Clay file namespace
 
-Saved scripts and result exports use Clay under `/data/obelisk`, in the
-`scripts` and `results` scopes, with `%txt` content. API paths are relative to
-that root. Empty components, `.` and `..`, absolute paths, control characters,
-and invalid Clay components are rejected.
+Saved scripts and result exports use Clay under `/data/obelisk`: scripts in
+`/scripts` as `%txt`, result exports in `/results` as `%csv`, `%tab`, `%txt`,
+`%md`, `%html`, `%json`, or `%noun`. These are the roots of urui's `script`
+document store (`++files` in `lib/obelisk-web.hoon`); `/results` has no user
+save, so a result opened in a tab is read-only. urui-files validates every
+path against those roots and rejects empty components, `.` and `..`,
+absolute paths, control characters, and invalid Clay components.
 
-The file browser is recursive. Save distinguishes create from overwrite;
-overwrite requires an explicit flag. Save As uses the same endpoint with a new
-path. New unsaved editor tabs use browser-only names such as `script-1` until
-saved. Result exports default to names such as `results-1`.
+The file tree is urui's, browsing both roots recursively. Save sends the
+loaded file's hash, and a changed or existing file asks before it is
+overwritten. Save As goes through urui's file dialog. New unsaved tabs are
+drafts named `script`, `script 2`, and so on until saved. Result exports pick
+their path in the same dialog, with Obelisk's format field added.
 
 ### Browser state
 
-Open tabs, active tab, unsaved text, selections, pane sizes, active output tab,
-schema expansion, default database, and pagination live in `sessionStorage`.
-Clay is used only for explicitly saved scripts and result exports.
+Everything a reload should restore lives in one `localStorage` record,
+`obelisk.session.v1`, version 2, laid out by `++slots`: urui's slots (script
+tabs with their unsaved text and selections, the active tab, pane sizes and
+bands, explorer width, view, order, and folds, docs and reference tabs, and
+the theme, layout, and keybinding preferences) and Obelisk's one `%app` slot,
+`workbench` (the default database, schema expansion, and the database names
+it has seen). Clay is used
+only for explicitly saved scripts and result exports.
 
 ### HTTP and JSON contract
 
@@ -128,9 +137,10 @@ Route contract:
 | `POST` | `/apps/obelisk/api/run` | Parse, run selected/full urQL, return all results | `200 application/json` |
 | `POST` | `/apps/obelisk/api/parse` | Parse selected/full urQL | `200 application/json` |
 | `POST` | `/apps/obelisk/api/schema` | Load the complete schema tree | `200 application/json` |
-| `POST` | `/apps/obelisk/api/files/browse` | Recursively list the UI Clay namespace | `200 application/json` |
-| `POST` | `/apps/obelisk/api/files/load` | Load one saved text file | `200 application/json` |
-| `POST` | `/apps/obelisk/api/files/save` | Create or explicitly overwrite one text file | `200 application/json` |
+| `POST` | `/apps/obelisk/api/results/save` | Render cached run results to a `/results` file | `200 application/json` |
+| `POST` | `/apps/obelisk/api/results/save-text` | Save parse output text to a `/results` file | `200 application/json` |
+| `POST` | `/apps/obelisk/files` | urui's json file wire: `browse`, `load`, `save`, `delete`, served by `handle:urui-files` | `200 application/json` |
+| `GET` | `/apps/obelisk/favicon.ico` | Application icon | `200 image/x-icon` |
 
 Status policy:
 
