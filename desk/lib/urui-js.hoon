@@ -2528,6 +2528,7 @@
   const docEditorFailed = new Set();
   const docMounted = new Set();
   const docPreviewers = new Map();
+  const docOpening = new Map();
   const docTransport = options.transport
     || (filesConfig ? docJsonTransport(filesConfig.url) : null);
   let docTreeState = {};
@@ -3489,22 +3490,45 @@
   }
 
   //  ---- open, save, delete
+  //
+  //  One open per store and path at a time: a second open of a path
+  //  waits for the first, then reloads against what that one left.
   async function docOpen(name, requested) {
     let path = requested;
     if (!Array.isArray(path)) {
       path = await docFileDialog({mode: 'open', store: name});
       if (!path) return undefined;
     }
-    const existing = docTabs(name).find((tab) => samePath(tab.path, path));
-    if (existing) {
-      if (existing.id === documentActiveId(name)) docCapture(name);
-      if (existing.text !== existing.clean) {
-        docSelect(name, existing.id, {focus: true});
-        if (!await confirmDialog('discard', {label: existing.label})) {
-          return existing;
-        }
-      }
-    }
+    const key = `${name}:${pathText(path)}`;
+    const opening = (docOpening.get(key) || Promise.resolve())
+      .then(() => docLoad(name, path));
+    const settled = opening.catch(() => undefined);
+    docOpening.set(key, settled);
+    settled.then(() => {
+      if (docOpening.get(key) === settled) docOpening.delete(key);
+    });
+    return opening;
+  }
+
+  function docOnPath(name, path) {
+    return docTabs(name).find((tab) => samePath(tab.path, path));
+  }
+
+  //  True when the user keeps a dirty tab's edits over a reload.
+  async function docKeep(name, tab) {
+    if (tab.id === documentActiveId(name)) docCapture(name);
+    if (tab.text === tab.clean) return false;
+    docSelect(name, tab.id, {focus: true});
+    return !await confirmDialog('discard', {label: tab.label});
+  }
+
+  //  The response lands on the tab only if nothing moved while it was
+  //  out: a tab closed meanwhile gets nothing, and a tab edited
+  //  meanwhile asks again before its text is replaced.
+  async function docLoad(name, path) {
+    let tab = docOnPath(name, path);
+    if (tab && await docKeep(name, tab)) return tab;
+    const before = tab && {id: tab.id, text: tab.text};
     docEvent(name, 'load', 'start', path);
     let loaded;
     try {
@@ -3514,7 +3538,12 @@
       return undefined;
     }
     docEvent(name, 'load', 'done', path);
-    let tab = existing;
+    if (before && !docGet(name, before.id)) return undefined;
+    tab = docOnPath(name, path);
+    if (tab?.id === documentActiveId(name)) docCapture(name);
+    const moved = Boolean(tab)
+      && (tab.id !== before?.id || tab.text !== before.text);
+    if (moved && await docKeep(name, tab)) return tab;
     if (tab) {
       Object.assign(tab, {
         text: loaded.text,
@@ -3569,6 +3598,15 @@
         return undefined;
       }
     }
+    //  the file is written either way; a tab closed meanwhile is not
+    //  revived, and edits made meanwhile stay unsaved
+    if (!docGet(name, tab.id)) {
+      docEvent(name, 'save', 'done', path);
+      notify(`Saved ${docBaseLabel(name, path)}.`);
+      docRefreshTrees(name);
+      return undefined;
+    }
+    if (tab.id === documentActiveId(name)) docCapture(name);
     tab.path = path.slice();
     tab.draft = undefined;
     tab.clean = text;
