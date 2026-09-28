@@ -293,7 +293,7 @@ qualified and escaped correctly.
 | Hawk child-file APIs are not available to the native app. | Use the validated Clay namespace and typed file API. |
 | The template's unavailable view assumes Hawk can refresh installation. | Return `503` with a retryable native unavailable state. |
 | `%relations` and `%select-relation` may be uncommon under `%vector`. | Convert or explicitly represent them; never drop an unknown current variant. |
-| There is no npm/browser test harness in this desk. | Test pure Hoon behavior and asset hooks automatically; verify browser interaction on a fake ship in final acceptance. |
+| Browser tests run outside the desk. | `tests/browser/run-real.sh` (Playwright, `VERE` set, after `npm install`) compiles the page with `vere eval` and runs obelisk's workflows against route doubles: schema → relation menu → script, multi-command results by keyboard, export and reopen, and a v2 session restore. Hoon tests cover pure behavior and asset hooks; a fake ship still covers the live agent. |
 
 ## Requirement-to-Work Matrix
 

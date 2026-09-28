@@ -1,0 +1,11 @@
+{
+  "name": "obelisk-browser-tests",
+  "private": true,
+  "scripts": {
+    "test:browser:real": "playwright test --config tests/browser/real/playwright.config.js",
+    "test:assets": "node --test tests/ace-assets-routed.test.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

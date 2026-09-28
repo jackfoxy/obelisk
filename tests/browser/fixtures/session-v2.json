@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "workbench": {
+    "defaultDatabase": "db1",
+    "schemaExpanded": ["db:db1"],
+    "schemaDatabaseNames": ["db1"]
+  },
+  "explorerOpen": true,
+  "explorerView": "files",
+  "scriptTabs": [
+    {
+      "id": "script-1",
+      "path": ["scripts", "q1", "txt"],
+      "text": "FROM db1.dbo.widgets SELECT id;\n",
+      "clean": "FROM db1.dbo.widgets SELECT id;\n",
+      "hash": "0vq1",
+      "selection": {"start": 0, "end": 0},
+      "display": "source"
+    },
+    {
+      "id": "script-2",
+      "path": null,
+      "draft": "draft-a",
+      "text": "FROM db1.dbo.widgets SELECT name;\n",
+      "clean": "",
+      "hash": null,
+      "selection": {"start": 0, "end": 0},
+      "display": "source"
+    }
+  ],
+  "activeScriptId": "script-2",
+  "nextScript": 3,
+  "preferences": {"layout": "columns"}
+}
