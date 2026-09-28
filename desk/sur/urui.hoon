@@ -24,8 +24,9 @@
 +$  pane-role  ?(%reference %editor %result)
 ::
 +$  pane-mode
-  ::  %read-only forbids the `+` control, tab close, dirty marks, and
-  ::  every file-write path into the pane, whatever a band declares.
+  ::  %read-only forbids the `+` control, tab close, dirty marks, every
+  ::  file-write path into the pane, and every edit to a store bound
+  ::  there (drafts included), whatever a band declares.
   ::
   ::  It does not forbid document tabs: a read-only pane may carry a
   ::  %documents or %views level and show an imported copy of anything
@@ -108,14 +109,12 @@
   ==
 ::
 +$  editor
-  ::  An Ace host managed by urui.
+  ::  An Ace host managed by urui.  Ace always wraps; a store's editor
+  ::  is read-only where its pane is %read-only or its root has no save.
   ::
   $:  id=@t
       label=@t
       mode=@t
-      wrap=?
-      read-only=?
-      max-bytes=@ud
   ==
 ::
 +$  ace-spec

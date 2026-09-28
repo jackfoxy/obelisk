@@ -94,9 +94,6 @@
   :*  id='probe-editor-host'
       label='Probe editor host'
       mode='ace/mode/text'
-      wrap=&
-      read-only=|
-      max-bytes=262.144
   ==
 ::
 ++  reference-pane
@@ -240,8 +237,8 @@
     (expect !>((has "\"kind\":\"controls\"")))
     (expect !>((has "\"kind\":\"panel\"")))
     (expect !>((has "\"id\":\"probe-editor-host\"")))
-    (expect !>((has "\"readOnly\":false")))
-    (expect !>((has "\"maxBytes\":262144")))
+    (expect-eq !>(%.n) !>((has "\"readOnly\"")))
+    (expect-eq !>(%.n) !>((has "\"maxBytes\"")))
     (expect !>((has "\"key\":\"resultTabs\"")))
     (expect !>((has "\"open\":false")))
     (expect-eq !>(%.n) !>((has "config-action")))

@@ -281,7 +281,7 @@
           %+  pinned  %head
           [%heading ~ ~ ~[;span#editor-language.editor-mode:"urQL"]]
           %+  pinned  %body
-          [%panel 'editor-body' `['query-editor' 'urQL query' '' | | 262.144] ~]
+          [%panel 'editor-body' `['query-editor' 'urQL query' ''] ~]
       ==
   ==
 ::
@@ -943,7 +943,6 @@
 
     const byId = (id) => document.getElementById(id);
     const workbench = byId('workbench');
-    const explorerPane = byId('explorer-pane');
     const outputTabsBand = byId('output-pane-tabs');
     const editorLanguage = byId('editor-language');
     const runButton = byId('run-btn');
@@ -951,7 +950,6 @@
     const saveOutputButton = byId('save-output-btn');
     const copyOutputButton = byId('copy-output-btn');
     const defaultDatabase = byId('default-db');
-    const schemasPanel = byId('schemas-panel');
     const schemaTree = byId('schemas-tree');
     const results = byId('results');
     const resultsFormatField = byId('results-format-field');
@@ -2223,29 +2221,13 @@
       persist();
       ensureSchemaLoaded({force: true});
     });
-    //  urui switches views and collapses the explorer; the schema loads
-    //  the first time its panel is actually on screen
-    new MutationObserver(() => ensureSchemaLoaded()).observe(schemasPanel, {
-      attributes: true,
-      attributeFilter: ['hidden']
-    });
-    new MutationObserver(() => ensureSchemaLoaded()).observe(explorerPane, {
-      attributes: true,
-      attributeFilter: ['class']
-    });
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
     });
 
-    runtime.wire();
-    const saved = runtime.session.load();
-    if (saved?.workbench) state = saved.workbench;
-    runtime.layout.apply();
-    runtime.explorer.docs.render();
-    runtime.explorer.refs.render();
-    runtime.explorer.setView(runtime.explorer.view());
-    runtime.explorer.docs.refreshVariant();
-    docs.start();
+    runtime.start((saved) => {
+      if (saved?.workbench) state = saved.workbench;
+    });
     editor = docs.editor('script');
     updateOutputControls();
     //  show the saved default before the schema arrives with the rest
@@ -2259,6 +2241,9 @@
     clearCommandTabs();
     setBusy(false);
     ensureSchemaLoaded({always: true});
+    //  after that, the schema loads the first time its panel is on
+    //  screen: urui reports each view switch, collapse, and expand
+    runtime.explorer.onChange(() => ensureSchemaLoaded());
     document.documentElement.dataset.obelisk = 'ready';
 
     window.ObeliskWorkbench = {

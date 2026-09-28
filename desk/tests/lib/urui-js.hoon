@@ -75,7 +75,8 @@
   ;:  weld
     (expect !>((has "let booted = false" core-source)))
     (expect !>((has "urui.boot called more than once" core-source)))
-    (expect !>((has "invoke(null, 'onReady', [api])" core-source)))
+    (expect !>((has "hook(null, 'onReady')?.(api)" core-source)))
+    (expect !>((has "hook installed" core-source)))
     (expect !>((has "return target(...args)" core-source)))
   ==
 ::
@@ -480,6 +481,21 @@
     (expect !>(?=(~ (find "window.prompt" runtime))))
     (expect !>(?=(~ (find "clay-error" runtime))))
   ==
+::
+++  test-boot-and-validation-contract
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "validateConfig();"
+        "urui config: "
+        "function start(restore)"
+        "restore?.(saved);"
+        "onChange: onExplorerChange"
+        "function docPaneReadOnly(name)"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
 ::
 ++  test-shortcut-contract
   =/  source  (trip shortcuts:ujs)

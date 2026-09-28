@@ -133,9 +133,6 @@
   :*  id='probe-secondary'
       label='Probe secondary'
       mode='ace/mode/text'
-      wrap=&
-      read-only=|
-      max-bytes=1.024
   ==
 ::
 ++  spec

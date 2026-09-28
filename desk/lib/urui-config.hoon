@@ -138,9 +138,6 @@
   :~  ['id' s+id.editor]
       ['label' s+label.editor]
       ['mode' s+mode.editor]
-      ['wrap' b+wrap.editor]
-      ['readOnly' b+read-only.editor]
-      ['maxBytes' (number max-bytes.editor)]
   ==
 ::
 ++  permanent-views

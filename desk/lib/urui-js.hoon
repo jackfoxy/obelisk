@@ -57,10 +57,20 @@
         let hooks = Object.create(null);
         let booted = false;
 
-        function invoke(group, method, args) {
+        function hook(group, method) {
           const owner = group ? hooks[group] : hooks;
           const target = owner?.[method];
-          if (typeof target !== 'function') return undefined;
+          return typeof target === 'function' ? target : undefined;
+        }
+
+        //  A facade method with no hook behind it is an error, not a
+        //  silent undefined.
+        function invoke(group, method, args) {
+          const target = hook(group, method);
+          if (!target) {
+            const name = group ? `${group}.${method}` : method;
+            throw new Error(`urui: no ${name} hook installed`);
+          }
           return target(...args);
         }
 
@@ -96,7 +106,7 @@
             }
             hooks = next;
             booted = true;
-            invoke(null, 'onReady', [api]);
+            hook(null, 'onReady')?.(api);
             return api;
           },
           status: (...args) => invoke(null, 'status', args),
@@ -113,12 +123,13 @@
           dialog: Object.freeze({
             help: (...args) => invoke('dialog', 'help', args),
             error: (...args) => invoke('dialog', 'error', args),
+            //  these two fall back to the browser's own dialog
             confirm: (...args) => {
-              const answer = invoke('dialog', 'confirm', args);
+              const answer = hook('dialog', 'confirm')?.(...args);
               return answer === undefined ? window.confirm(...args) : answer;
             },
             prompt: (...args) => {
-              const answer = invoke('dialog', 'prompt', args);
+              const answer = hook('dialog', 'prompt')?.(...args);
               return answer === undefined ? window.prompt(...args) : answer;
             }
           }),
@@ -216,6 +227,7 @@
   };
   let explorerOpen = true;
   let resultOpen = true;
+  const explorerListeners = new Set();
   let refreshQueued = false;
 
   function changed() {
@@ -273,6 +285,7 @@
     .map((role) => (config.panes || {})[role])
     .filter(Boolean);
   const paneById = new Map(panes.map((pane) => [pane.id, pane]));
+  validateConfig();
   const dynamicTabs = new Map();
   const levelPanels = new Map();
   const chainHosts = new Map();
@@ -340,6 +353,51 @@
   function paneBody(paneId) {
     const id = paneItem(paneId, 'panel')?.id;
     return id ? document.querySelector(`#${id}`) : null;
+  }
+
+  //  A config the runtime cannot honour is refused here, by name, rather
+  //  than left half-working: duplicate pane, level, or store ids, a
+  //  %documents level naming no store, and a store with no %documents
+  //  level or with more than one.
+  function validateConfig() {
+    const problems = [];
+    const duplicates = (label, values) => {
+      const seen = new Set();
+      for (const value of values) {
+        if (seen.has(value)) problems.push(`duplicate ${label} "${value}"`);
+        seen.add(value);
+      }
+    };
+    duplicates('pane id', panes.map((pane) => pane.id));
+    for (const pane of panes) {
+      duplicates(
+        `level name in pane "${pane.id}"`,
+        paneLevels(pane.id).map((level) => level.name)
+      );
+    }
+    const stores = (config.files?.stores || []).map((store) => store.name);
+    duplicates('store', stores);
+    const bindings = panes.flatMap((pane) => {
+      return paneLevels(pane.id)
+        .filter((level) => level.source === 'documents')
+        .map((level) => ({pane: pane.id, store: level.kind}));
+    });
+    for (const {pane, store} of bindings) {
+      if (!stores.includes(store)) {
+        problems.push(`pane "${pane}" binds unknown store "${store}"`);
+      }
+    }
+    for (const store of stores) {
+      const bound = bindings.filter((binding) => binding.store === store);
+      if (!bound.length) {
+        problems.push(`store "${store}" has no %documents level`);
+      } else if (bound.length > 1) {
+        problems.push(`store "${store}" is bound by ${bound.length} levels`);
+      }
+    }
+    if (problems.length) {
+      throw new Error(`urui config: ${problems.join('; ')}`);
+    }
   }
 
   //  A read-only pane refuses the `+` control and every close control,
@@ -987,21 +1045,39 @@
     return next;
   }
 
+  //  The compact frame has no explorer: nothing to lay out, and
+  //  `runtime.start` calls this on every frame.
   function applyExplorerLayout() {
-    elements.explorerPane.classList.toggle('collapsed', !explorerOpen);
-    elements.workbench.classList.toggle('explorer-collapsed', !explorerOpen);
-    elements.explorerResizer.classList.toggle('inactive', !explorerOpen);
-    elements.explorerResizer.disabled = !explorerOpen;
-    elements.explorerCollapse.setAttribute(
-      'aria-expanded',
-      String(explorerOpen)
-    );
-    elements.explorerCollapse.setAttribute(
-      'aria-label',
-      explorerOpen ? 'Collapse explorer' : 'Expand explorer'
-    );
-    elements.explorerCollapse.textContent = explorerOpen ? '‹' : '›';
+    const {explorerPane, workbench, explorerResizer, explorerCollapse} =
+      elements;
+    explorerPane?.classList.toggle('collapsed', !explorerOpen);
+    workbench?.classList.toggle('explorer-collapsed', !explorerOpen);
+    explorerResizer?.classList.toggle('inactive', !explorerOpen);
+    if (explorerResizer) explorerResizer.disabled = !explorerOpen;
+    if (explorerCollapse) {
+      explorerCollapse.setAttribute('aria-expanded', String(explorerOpen));
+      explorerCollapse.setAttribute(
+        'aria-label',
+        explorerOpen ? 'Collapse explorer' : 'Expand explorer'
+      );
+      explorerCollapse.textContent = explorerOpen ? '‹' : '›';
+    }
     refreshEditors();
+    explorerChanged();
+  }
+
+  //  `runtime.explorer.onChange(fn)`: `fn({view, open})` after every
+  //  view switch and every collapse or expand, so a consumer can load a
+  //  view's content the first time it is on screen.  Returns an
+  //  unsubscribe.
+  function onExplorerChange(listener) {
+    explorerListeners.add(listener);
+    return () => explorerListeners.delete(listener);
+  }
+
+  function explorerChanged() {
+    const state = {view: explorerView, open: explorerOpen};
+    for (const listener of explorerListeners) listener(state);
   }
 
   function setExplorerOpen(open, persist = true) {
@@ -1308,6 +1384,7 @@
     }
     refreshEditors();
     changed();
+    explorerChanged();
   }
 
   function explorerTabKeydown(event) {
@@ -1920,6 +1997,9 @@
   function openFileContext(name, path, source, event) {
     event.preventDefault();
     event.stopPropagation();
+    if (elements.contextDelete) {
+      elements.contextDelete.disabled = docPaneReadOnly(name);
+    }
     fileMenu.open(source, event);
     contextTarget = {kind: name, path, source};
   }
@@ -2353,6 +2433,25 @@
   // frame into a live surface.  A consumer that wants different
   // behavior simply does not call it.  `options.onResize` runs on every
   // window resize, before the editors are refreshed.
+  //  The standard boot, in order: wire the frame, load the session, lay
+  //  out and draw the explorer, start the document stores, then check
+  //  for the docs site.  `restore(record)` runs once the session is
+  //  applied and before the stores start, with the app slots' record
+  //  (undefined when nothing was saved); `start` returns the same record.
+  //  The stores' tree browses go out before the docs check.
+  function start(restore) {
+    wire();
+    const saved = loadSession();
+    applyExplorerLayout();
+    renderExplorerTabs('docs');
+    renderExplorerTabs('ref');
+    setExplorerView(explorerView);
+    restore?.(saved);
+    documentStart();
+    refreshHelpVariant();
+    return saved;
+  }
+
   function wire() {
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
     elements.contextOpen?.addEventListener('click', () => {
@@ -2552,6 +2651,7 @@
     explorer: {
       view: () => explorerView,
       setView: setExplorerView,
+      onChange: onExplorerChange,
       validView: validExplorerView,
       order: () => explorerOrder,
       setOrder: (list) => { explorerOrder = list; },
@@ -2617,6 +2717,7 @@
     notify,
     confirm: confirmDialog,
     copy: copyText,
+    start,
     wire
   };
   '''
@@ -2841,7 +2942,16 @@
     return `${base} ${number}`;
   }
 
+  //  A store whose %documents level sits in a %read-only pane writes
+  //  nothing: no save, no Save As, no delete, and no edit, drafts
+  //  included.
+  function docPaneReadOnly(name) {
+    const bound = levelForKind(name);
+    return Boolean(bound) && paneReadOnly(bound.paneId);
+  }
+
   function docCanSave(name, path) {
+    if (docPaneReadOnly(name)) return false;
     return !path || Boolean(docRootOf(name, path)?.save);
   }
 
@@ -2904,6 +3014,7 @@
   function docUpdate(name, id, change = {}) {
     const tab = docGet(name, id);
     if (!tab) return undefined;
+    if (change.text !== undefined && docPaneReadOnly(name)) return undefined;
     const active = tab.id === documentActiveId(name);
     if (active) docCapture(name);
     if (change.text !== undefined) tab.text = String(change.text);
@@ -3139,8 +3250,14 @@
   //  not write, and Copy and Add Ref need text.
   function docApplyActions(name) {
     const tab = docActive(name);
+    const locked = docPaneReadOnly(name);
     const save = document.querySelector(`#${name}-save`);
-    if (save) save.hidden = Boolean(tab?.path) && !docCanSave(name, tab.path);
+    if (save) {
+      save.hidden = locked
+        || (Boolean(tab?.path) && !docCanSave(name, tab.path));
+    }
+    const saveAs = document.querySelector(`#${name}-save-as`);
+    if (saveAs) saveAs.hidden = locked;
     for (const action of ['copy', 'ref']) {
       const control = document.querySelector(`#${name}-${action}`);
       if (control) control.disabled = !tab?.text;
@@ -3777,6 +3894,7 @@
   //  A new path, or an explicit Save As, goes through the file dialog;
   //  `exists` and `changed` ask before overwriting.
   async function docSave(name, choices = {}) {
+    if (docPaneReadOnly(name)) return undefined;
     const tab = docCapture(name);
     if (!tab) return undefined;
     if (!tab.path && !tab.text) {
@@ -3836,7 +3954,7 @@
 
   //  Tabs open on a deleted path keep their text as unsaved drafts.
   async function docRemove(name, path) {
-    if (!Array.isArray(path)) return false;
+    if (!Array.isArray(path) || docPaneReadOnly(name)) return false;
     if (!await confirmDialog('delete', {path: pathText(path)})) return false;
     docEvent(name, 'delete', 'start', path);
     try {
@@ -4503,6 +4621,7 @@
   const textInput = aceEditor.textInput.getElement();
   let errorMarker;
   let suppressChanges = 0;
+  let readOnly = false;
 
   aceEditor.setOptions({
     displayIndentGuides: true,
@@ -4643,7 +4762,10 @@
     }, options.notify);
   }
 
+  //  A read-only editor refuses programmatic edits as it refuses typing;
+  //  `setSource` still loads a tab's text into it.
   function replaceRange(start, end, replacement, options = {}) {
+    if (readOnly) return false;
     const rangeStart = clampOffset(start);
     const rangeEnd = Math.max(rangeStart, clampOffset(end));
     const first = offsetToPosition(rangeStart);
@@ -4755,7 +4877,8 @@
       );
     },
     setReadOnly(flag) {
-      aceEditor.setReadOnly(Boolean(flag));
+      readOnly = Boolean(flag);
+      aceEditor.setReadOnly(readOnly);
     },
     refresh: () => aceEditor.resize(true)
   };
