@@ -150,9 +150,6 @@
           storage-key='obelisk.session.v1'
           storage-version=2
       ==
-      ::  script tabs and the file tree are urui's `script` store, below
-      kinds=~
-      *endpoints:urui
       :*  render-debounce=0
           save-debounce=150
           min-explorer=180
@@ -166,7 +163,6 @@
       ~[['F5' 'run' %always]]
       ~[[%ready 'Ready']]
       docs-root=`'/docs/d/obelisk/'
-      share-param=~
       ace-spec
       layout=%rows
       collapse=&
@@ -2314,10 +2310,7 @@
         show: runtime.explorer.setView,
         openDocs: runtime.explorer.docs.open
       },
-      dialog: {
-        help: runtime.dialogs.setHelpOpen,
-        error: runtime.dialogs.showError
-      },
+      dialog: {help: runtime.dialogs.setHelpOpen},
       session: {
         save: runtime.session.save,
         queue: runtime.session.queue,

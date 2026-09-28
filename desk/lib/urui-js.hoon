@@ -141,15 +141,15 @@
   ::  The body of createRuntime: shell behavior every consumer shares.
   ::
   ::  The runtime owns the frame urui emits — theme, status lines, the
-  ::  two resizers, explorer collapse, the help panel, the Clay error
-  ::  dialog, the panes (their bands, reveal toggles, and every tab
-  ::  level), document tabs, the explorer (permanent views, docs tabs,
-  ::  ref tabs, the Clay file tree and its context menu), and session
-  ::  persistence, Clay file operations, and shortcut dispatch.
+  ::  two resizers, explorer collapse, the help panel, the panes (their
+  ::  bands, reveal toggles, and every tab level), the explorer
+  ::  (permanent views, docs tabs, ref tabs, and the file context menu),
+  ::  session persistence, and shortcut dispatch.
   ::  It reads its policy from `window.URUI_CONFIG` and reaches the frame
   ::  through `data-role` and the ids `urui-shell` fixes, so nothing here
   ::  names a consumer. Section banners mark each responsibility;
-  ::  ++files and ++shortcuts are composed into the same lexical scope.
+  ::  ++shortcuts and ++documents are composed into the same lexical
+  ::  scope.
   ::
   ::  Every `options` field is documented at the banner of the section
   ::  that reads it.  The object ++runtime returns is runtime-internal,
@@ -206,9 +206,6 @@
     helpToggle: document.querySelector('#help'),
     helpPanel: document.querySelector('#help-panel'),
     closeHelp: document.querySelector('#close-help'),
-    errorModal: document.querySelector('#clay-error-modal'),
-    errorMessage: document.querySelector('#clay-error-message'),
-    closeError: document.querySelector('#close-clay-error'),
     contextMenu: document.querySelector('#file-context-menu'),
     contextOpen: document.querySelector('#file-context-open'),
     contextDelete: document.querySelector('#file-context-delete'),
@@ -220,7 +217,6 @@
   let explorerOpen = true;
   let resultOpen = true;
   let refreshQueued = false;
-  let errorReturnFocus;
 
   function changed() {
     if (options.onChange) options.onChange();
@@ -461,10 +457,7 @@
         || [];
     }
     if (level.source === 'documents') {
-      if (documentStore(level.kind)) return documentLevelTabs(level.kind);
-      return tabList(level.kind).map((tab) => {
-        return {id: tab.id, label: tab.label, title: tab.path || tab.label};
-      });
+      return documentStore(level.kind) ? documentLevelTabs(level.kind) : [];
     }
     return [];
   }
@@ -661,10 +654,9 @@
     const levels = paneLevels(paneId);
     if (!levels.length) return;
     const first = levels[0];
-    //  ++renderTabs ends in ++syncLevelsBelow, which renders the rest
+    //  ++docRender ends in ++syncLevelsBelow, which renders the rest
     if (first.source === 'documents') {
       if (documentStore(first.kind)) docRender(first.kind);
-      else renderTabs(first.kind);
       return;
     }
     if (first.source !== 'views') renderLevelStrip(paneId, 0);
@@ -692,14 +684,13 @@
 
   //  A document store owns its own depth-0 strip; these two are how the
   //  levels under it follow the tab that store just selected.  The path
-  //  moves first — ++selectTab calls ++syncStorePath before its
-  //  onActivate hook — so a consumer that fills a %dynamic level from
+  //  moves first — ++docSelect calls ++syncStorePath before its
+  //  activate hook — so a consumer that fills a %dynamic level from
   //  that hook files its tabs under the parent path they belong to.
   function syncStorePath(name) {
     const found = levelForKind(name);
-    const id = documentStore(name)
-      ? documentActiveId(name) : activeTabId(name);
-    if (found) writePathSegment(found.paneId, found.depth, id);
+    if (!found) return;
+    writePathSegment(found.paneId, found.depth, documentActiveId(name));
   }
 
   function syncLevelsBelow(name) {
@@ -721,10 +712,8 @@
     const level = paneLevel(paneId, depth);
     if (!level) return undefined;
     if (level.source === 'documents') {
-      if (documentStore(level.kind)) {
-        return docSelect(level.kind, id, choices);
-      }
-      return selectTab(level.kind, id, choices);
+      return documentStore(level.kind)
+        ? docSelect(level.kind, id, choices) : undefined;
     }
     if (level.source === 'views') return setExplorerView(id, choices.focus);
     writePathSegment(paneId, depth, id, true);
@@ -1022,13 +1011,12 @@
     return explorerOpen;
   }
 
-  // ---- help and error dialogs ---------------------------------------
+  // ---- help and settings ------------------------------------------
   //
-  // Both are `hidden`-toggled asides that move focus: help focuses its
-  // close button and restores the toggle, the error modal restores
-  // whatever was focused when it opened.  `options.onHelpOpen` runs
-  // before help takes focus.  Escape ordering between them lives in the
-  // shortcut dispatcher.
+  // Both are `hidden`-toggled asides that move focus: each focuses its
+  // close button and restores the control that opened it.
+  // `options.onHelpOpen` runs before help takes focus.  Escape ordering
+  // between them lives in the shortcut dispatcher.
   function helpIsOpen() {
     return !elements.helpPanel.hidden;
   }
@@ -1062,59 +1050,21 @@
     }
   }
 
-  function showError(cause) {
-    if (!elements.errorModal.contains(document.activeElement)) {
-      errorReturnFocus = document.activeElement;
-    }
-    elements.errorMessage.textContent = String(cause);
-    elements.errorModal.hidden = false;
-    elements.closeError.focus();
-  }
 
-  function hideError() {
-    elements.errorModal.hidden = true;
-    errorReturnFocus?.focus?.();
-    errorReturnFocus = undefined;
-  }
-
-  function errorIsOpen() {
-    return !elements.errorModal.hidden;
-  }
-
-
-  // ---- document tabs ------------------------------------------------
+  // ---- references and drags ---------------------------------------
   //
-  // One store per `config.kinds` entry.  Everything structural lives
-  // here; a consumer supplies only what differs between its kinds,
-  // through `options.tabs[kindName]`:
-  //
-  //   defaults(options, source)  extra fields for a new tab
-  //   dirty(tab)                 override the source/cleanSource comparison
-  //   onCapture(tab)             copy live editor state into the tab
-  //   onActivate(tab, …)         react to the active id moving, before render
-  //   afterActivate(…)           react after render and persistence
-  //   onClose(tab)               react to a tab leaving the store
-  //   empty()                    react to the store just emptying
-  //
-  //  The `+` control is not a hook: its label is the `add` field of the
-  //  %documents level the kind is bound to, and a read-only pane has
-  //  none whatever the level says.
-  const kinds = config.kinds || [];
-  const kindByName = new Map(kinds.map((kind) => [kind.name, kind]));
-  const stores = new Map(kinds.map((kind) => [kind.name, {
-    tabs: [], activeId: undefined, next: 1
-  }]));
-  const tabHooks = (name) => (options.tabs || {})[name] || {};
-  let draggedTab;
-
-  //  A consumer's own reference kinds, `options.refs[kind]`, for tabs
-  //  no document store holds.  A drag carries a payload
-  //  `{kind, parentId, ...}`; one reference per kind and parentId.
+  // A drag carries `draggedTab`: a document tab being reordered, a
+  // document tab or app element offering a reference, or an explorer
+  // tab.  References are app kinds, `options.refs[kind]`, and the
+  // document stores with refs=&.  A reference payload is
+  // `{kind, parentId, ...}`; one reference per kind and parentId.
   //
   //   create(payload)     `{label, data}` for a new reference, or nothing
   //   render(panel, ref)  fill the reference panel from `ref.data`
   //   validate(data)      repaired data from a saved record, or undefined
   //   persist             false keeps the kind out of the session record
+  let draggedTab;
+
   function refHooks(kind) {
     if (documentStore(kind)) return documentRefHooks(kind);
     const hooks = options.refs || {};
@@ -1123,105 +1073,15 @@
       : undefined;
   }
 
-  function store(name) {
-    const found = stores.get(name);
-    if (!found) throw new Error(`unknown document kind: ${name}`);
-    return found;
-  }
-
-  function tabList(name) {
-    return store(name).tabs;
-  }
-
-  function activeTabId(name) {
-    return store(name).activeId;
-  }
-
-  function activeTab(name) {
-    return tabList(name).find((tab) => tab.id === activeTabId(name));
-  }
-
-  function getTab(name, id) {
-    return tabList(name).find((tab) => tab.id === id);
-  }
-
-  //  A path's last segment is the clay leaf, not a file name: a kind
-  //  stored under `%txt` and labelled `.foo` shows `left/txt` as
-  //  `left.foo`.
-  function tabLabel(name, path) {
-    const kind = kindByName.get(name);
-    if (!path) return kind?.untitled || 'Untitled';
-    const parts = path.split('/');
-    const leaf = parts.at(-1);
-    if (kind && leaf === kind.leaf && parts.length > 1) {
-      return `${parts.at(-2)}.${kind.ext}`;
-    }
-    return leaf;
-  }
-
-  function tabDirty(name, tab) {
-    const hook = tabHooks(name).dirty;
-    return hook ? hook(tab) : tab.source !== tab.cleanSource;
-  }
-
-  function createTab(name, source, options = {}) {
-    const hooks = tabHooks(name);
-    const state = store(name);
-    const tab = {
-      id: `${name}-${state.next++}`,
-      label: options.label || tabLabel(name, options.path),
-      path: options.path,
-      source,
-      cleanSource: options.cleanSource ?? source,
-      ...(hooks.defaults ? hooks.defaults(options, source) : {})
-    };
-    state.tabs.push(tab);
-    return tab;
-  }
-
-  function captureTab(name) {
-    const tab = activeTab(name);
-    if (!tab) return undefined;
-    tabHooks(name).onCapture?.(tab);
-    syncRefFromParent(name, tab.id);
-    return tab;
-  }
-
-  //  the strip a kind renders into is the one its %documents level
+  //  the strip a store renders into is the one its %documents level
   //  declared, `{pane}-{level}-tabs`
   function tabContainer(name) {
     const found = levelForKind(name);
     return found ? stripFor(found.paneId, found.level.name) : null;
   }
 
-  function focusTab(name, id) {
-    tabContainer(name)?.querySelector(`[data-document-tab="${id}"]`)?.focus();
-  }
-
-  function tabKeydown(event, name) {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End']
-      .includes(event.key)) return;
-    event.preventDefault();
-    const tabs = tabList(name);
-    const current = tabs.findIndex((tab) => {
-      return tab.id === event.currentTarget.dataset.documentTab;
-    });
-    let next = current;
-    if (event.key === 'Home') next = 0;
-    else if (event.key === 'End') next = tabs.length - 1;
-    else if (event.key === 'ArrowLeft') {
-      next = (current - 1 + tabs.length) % tabs.length;
-    } else {
-      next = (current + 1) % tabs.length;
-    }
-    selectTab(name, tabs[next].id, {focus: true});
-  }
-
-  function moveTab(name, sourceId, targetId, after) {
-    const explorer = !stores.has(name);
-    const order = explorer
-      ? explorerOrder
-      : tabList(name).map((tab) => tab.id);
+  function moveExplorerTab(sourceId, targetId, after) {
+    const order = explorerOrder;
     const source = order.indexOf(sourceId);
     const target = order.indexOf(targetId);
     if (source < 0 || target < 0 || source === target) return;
@@ -1229,158 +1089,37 @@
     let insertion = order.indexOf(targetId) + (after ? 1 : 0);
     insertion = Math.max(0, Math.min(order.length, insertion));
     order.splice(insertion, 0, sourceId);
-    if (explorer) {
-      explorerOrder = order;
-      syncExplorerTabOrder();
-    } else {
-      //  reorder in place: a consumer may hold this array by reference
-      const tabs = tabList(name);
-      const byId = new Map(tabs.map((tab) => [tab.id, tab]));
-      tabs.splice(0, tabs.length, ...order.map((id) => byId.get(id)));
-      renderTabs(name);
-    }
+    explorerOrder = order;
+    syncExplorerTabOrder();
     changed();
   }
 
-  function enableTabDrag(wrapper, name, id) {
+  function enableExplorerDrag(wrapper, id) {
     if (wrapper.dataset.dragEnabled) return;
     wrapper.dataset.dragEnabled = 'true';
     wrapper.draggable = true;
     wrapper.addEventListener('dragstart', (event) => {
-      draggedTab = {kind: name, id};
+      draggedTab = {kind: 'explorer', id};
       wrapper.classList.add('is-dragging');
       event.dataTransfer?.setData('text/plain', id);
       if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copyMove';
     });
     wrapper.addEventListener('dragover', (event) => {
-      if (draggedTab?.kind !== name) return;
+      if (draggedTab?.kind !== 'explorer') return;
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     });
     wrapper.addEventListener('drop', (event) => {
-      if (draggedTab?.kind !== name) return;
+      if (draggedTab?.kind !== 'explorer') return;
       event.preventDefault();
       const bounds = wrapper.getBoundingClientRect();
       const after = event.clientX > bounds.left + bounds.width / 2;
-      moveTab(name, draggedTab.id, id, after);
+      moveExplorerTab(draggedTab.id, id, after);
     });
     wrapper.addEventListener('dragend', () => {
       wrapper.classList.remove('is-dragging');
       draggedTab = undefined;
     });
-  }
-
-  function renderTabs(name) {
-    const container = tabContainer(name);
-    if (!container) return;
-    const bound = levelForKind(name);
-    const closes = levelCloses(bound?.paneId, bound?.level);
-    const activeId = activeTabId(name);
-    container.replaceChildren();
-    for (const tab of tabList(name)) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'document-tab-control';
-      wrapper.classList.toggle('active', tab.id === activeId);
-      const control = document.createElement('button');
-      control.type = 'button';
-      control.className = 'document-tab';
-      control.dataset.documentTab = tab.id;
-      control.setAttribute('role', 'tab');
-      control.setAttribute('aria-selected', String(tab.id === activeId));
-      control.tabIndex = tab.id === activeId ? 0 : -1;
-      control.textContent = tab.label;
-      control.title = tab.path || tab.label;
-      control.addEventListener('click', () => selectTab(name, tab.id));
-      control.addEventListener('keydown', (event) => tabKeydown(event, name));
-      wrapper.append(control);
-      if (closes) {
-        const close = document.createElement('button');
-        close.type = 'button';
-        close.className = 'document-tab-close';
-        const dirty = tabDirty(name, tab);
-        close.textContent = dirty ? 'O' : 'X';
-        close.title = dirty ? 'Unsaved changes; close tab' : 'Close tab';
-        close.setAttribute('aria-label', `Close ${tab.label}`);
-        close.addEventListener('click', (event) => {
-          event.stopPropagation?.();
-          closeTab(name, tab.id);
-        });
-        wrapper.append(close);
-      }
-      enableTabDrag(wrapper, name, tab.id);
-      container.append(wrapper);
-    }
-    const addLabel = bound && levelAddLabel(bound.paneId, bound.level);
-    if (addLabel) {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'document-tab-control document-tab-add-control';
-      wrapper.setAttribute('role', 'presentation');
-      const add = document.createElement('button');
-      add.type = 'button';
-      add.className = 'document-tab-add';
-      add.setAttribute('aria-label', addLabel);
-      add.title = addLabel;
-      add.textContent = '+';
-      add.addEventListener('click', () => addEmptyTab(name));
-      wrapper.append(add);
-      container.append(wrapper);
-    }
-    updateRefActions();
-    options.onTabsRendered?.(name);
-    syncLevelsBelow(name);
-  }
-
-  function addEmptyTab(name) {
-    const kind = kindByName.get(name);
-    const tab = createTab(name, '', {label: kind?.untitled || 'Untitled'});
-    selectTab(name, tab.id, {focus: true});
-    return tab;
-  }
-
-  function selectTab(name, id, choices = {}) {
-    const {focus = false, capture = true} = choices;
-    const tab = getTab(name, id);
-    if (!tab) return undefined;
-    if (capture && id === activeTabId(name)) {
-      if (focus) focusTab(name, id);
-      return tab;
-    }
-    if (capture) captureTab(name);
-    const previousId = activeTabId(name);
-    store(name).activeId = id;
-    //  before the hook, not after: a consumer filling a level below
-    //  this one needs the pane's path to already name the new tab
-    syncStorePath(name);
-    tabHooks(name).onActivate?.(tab, {...choices, previousId});
-    renderTabs(name);
-    changed();
-    tabHooks(name).afterActivate?.(tab, {...choices, previousId});
-    if (focus) focusTab(name, id);
-    return tab;
-  }
-
-  function closeTab(name, id) {
-    captureTab(name);
-    const tabs = tabList(name);
-    const index = tabs.findIndex((tab) => tab.id === id);
-    if (index < 0) return;
-    const tab = tabs[index];
-    if (tabDirty(name, tab)
-      && !window.confirm(`Discard unsaved changes in ${tab.label}?`)) {
-      return;
-    }
-    const wasActive = id === activeTabId(name);
-    tabs.splice(index, 1);
-    tabHooks(name).onClose?.(tab);
-    if (!tabs.length) tabHooks(name).empty?.();
-    if (wasActive) {
-      store(name).activeId = undefined;
-      const next = tabs[Math.min(index, tabs.length - 1)];
-      selectTab(name, next.id, {focus: true, capture: false});
-    } else {
-      renderTabs(name);
-      changed();
-    }
   }
 
 
@@ -1390,8 +1129,6 @@
   // file trees named by `config.permanentViews`, documentation tabs
   // backed by iframes, and reference tabs mirroring an open document.
   // All three share the strip's order, which the user can drag.
-  //
-  // Clay networking is shared with the file-operation section below.
   const permanentViews = (config.permanentViews || []).map((view) => {
     return view.name;
   });
@@ -1414,15 +1151,6 @@
   for (const name of permanentViews) {
     const tab = document.querySelector(`#${name}-tab`);
     if (tab?.parentElement) tab.parentElement.dataset.explorerTabId = name;
-  }
-
-  //  a permanent view owns the tree for the kind it is named after
-  function viewForKind(name) {
-    return `${name}-files`;
-  }
-
-  function treeForKind(name) {
-    return document.querySelector(`#${viewForKind(name)}-tree`);
   }
 
   //  the seeded panels live inside the tabs band urui-shell emitted, so
@@ -1515,7 +1243,7 @@
     for (const id of explorerOrder) {
       const wrapper = wrappers.get(id);
       if (!wrapper) continue;
-      enableTabDrag(wrapper, 'explorer', id);
+      enableExplorerDrag(wrapper, id);
       elements.explorerTabs.append(wrapper);
     }
   }
@@ -1646,7 +1374,6 @@
       createExplorerTab(tab, variant);
     }
     syncExplorerTabOrder();
-    if (!docs) updateRefActions();
   }
 
   function closeExplorerTab(id, variant) {
@@ -1704,7 +1431,7 @@
     }
     const source = document.createElement('pre');
     source.className = 'ref-source';
-    source.textContent = tab.source;
+    source.textContent = String(tab.data?.text ?? '');
     panel.replaceChildren(source);
   }
 
@@ -1712,19 +1439,6 @@
     return refTabs.find((tab) => {
       return tab.kind === name && tab.parentId === parentId;
     });
-  }
-
-  function canAddRef(name, id) {
-    const tab = getTab(name, id);
-    return Boolean(tab?.source.trim() && !refForParent(name, id));
-  }
-
-  function updateRefActions() {
-    for (const kind of kinds) {
-      if (!kind.refs) continue;
-      const control = document.querySelector(`#add-${kind.name}-ref`);
-      if (control) control.disabled = !canAddRef(kind.name, activeTabId(kind.name));
-    }
   }
 
   function relabelRef(ref) {
@@ -1736,43 +1450,6 @@
     control.title = ref.label;
     control.parentElement?.querySelector('.ref-tab-close')
       ?.setAttribute('aria-label', `Close ${ref.label} reference`);
-  }
-
-  function syncRefFromParent(name, parentId) {
-    if (!stores.has(name)) return;
-    const ref = refForParent(name, parentId);
-    const parent = getTab(name, parentId);
-    if (!ref || !parent) return;
-    ref.label = parent.label;
-    ref.source = parent.source;
-    relabelRef(ref);
-    updateRefContent(ref);
-    updateRefActions();
-  }
-
-  function syncAllRefs() {
-    for (const ref of refTabs) syncRefFromParent(ref.kind, ref.parentId);
-  }
-
-  function addRef(name, parentId) {
-    if (parentId === activeTabId(name)) captureTab(name);
-    if (!canAddRef(name, parentId)) return;
-    const parent = getTab(name, parentId);
-    const tab = {
-      id: `ref-${nextRef++}`,
-      kind: name,
-      parentId,
-      label: parent.label,
-      source: parent.source
-    };
-    refTabs.push(tab);
-    explorerOrder.push(tab.id);
-    createExplorerTab(tab, 'ref');
-    syncExplorerTabOrder();
-    if (!explorerOpen) setExplorerOpen(true, false);
-    setExplorerView(tab.id, true);
-    renderTabs(name);
-    changed();
   }
 
   function showRef(ref) {
@@ -1839,10 +1516,7 @@
   }
 
   function closeRefTab(id) {
-    const closed = closeExplorerTab(id, 'ref');
-    if (!closed) return;
-    renderTabs(closed.tab.kind);
-    changed();
+    if (closeExplorerTab(id, 'ref')) changed();
   }
 
   // ---- documentation ------------------------------------------------
@@ -1980,12 +1654,10 @@
     else disableDocsExplorer();
   }
 
-  // ---- clay file tree and its context menu --------------------------
+  // ---- the file context menu ---------------------------------------
   //
-  // The browse endpoint's flat path list becomes a nested tree, one
-  // row per directory or leaf; right-click (or the row's own button)
-  // opens the shared context menu, positioned to stay inside the
-  // viewport.
+  // One menu for every file tree: right-click (or a row's own button)
+  // opens it, positioned to stay inside the viewport.
 
   function closeFileContext(restoreFocus = false) {
     elements.contextMenu.hidden = true;
@@ -2047,130 +1719,6 @@
     items[next].focus();
   }
 
-  function normalizeClayPath(value) {
-    const path = value.trim().replace(/^\/+/, '');
-    if (!path || path.split('/').some((part) => {
-      return !part || part === '.' || part === '..';
-    })) {
-      throw new Error('Enter a relative Clay path');
-    }
-    if (!/^[A-Za-z0-9._~/-]+$/.test(path)) {
-      throw new Error('Clay path contains unsupported characters');
-    }
-    return path;
-  }
-
-  function renderFileTree(paths, name) {
-    const tree = treeForKind(name);
-    if (!tree) return;
-    const root = new Map();
-    for (const rawPath of paths) {
-      if (typeof rawPath !== 'string') {
-        throw new Error('Invalid Clay file list');
-      }
-      const path = normalizeClayPath(rawPath);
-      const parts = path.split('/');
-      let branch = root;
-      for (const [index, part] of parts.entries()) {
-        if (!branch.has(part)) {
-          branch.set(part, {children: new Map(), path: undefined});
-        }
-        const node = branch.get(part);
-        if (index === parts.length - 1) node.path = path;
-        branch = node.children;
-      }
-    }
-    tree.replaceChildren();
-    tree.setAttribute('aria-busy', 'false');
-    if (!root.size) {
-      tree.textContent = `No /${kindByName.get(name)?.leaf} files found.`;
-      return;
-    }
-    function appendFile(item, label, path) {
-      const row = document.createElement('div');
-      row.className = 'explorer-file-row';
-      row.setAttribute('role', 'treeitem');
-      const file = document.createElement('button');
-      file.type = 'button';
-      file.className = 'file-tree-file';
-      file.dataset.path = path;
-      file.textContent = label;
-      file.title = path;
-      file.addEventListener('click', async () => {
-        closeFileContext();
-        await loadFile(name, path);
-      });
-      row.addEventListener('contextmenu', (event) => {
-        openFileContext(name, path, file, event);
-      });
-      const actions = document.createElement('button');
-      actions.type = 'button';
-      actions.className = 'file-tree-actions';
-      actions.setAttribute('aria-label', `Actions for ${label}`);
-      actions.setAttribute('aria-haspopup', 'menu');
-      actions.setAttribute('aria-expanded', 'false');
-      actions.textContent = '…';
-      actions.addEventListener('click', (event) => {
-        openFileContext(name, path, actions, event);
-      });
-      row.append(file, actions);
-      item.append(row);
-    }
-    //  A directory holding exactly one leaf file is shown as one row:
-    //  `left/txt` reads as a file, not as a folder with one child.
-    function renderBranch(branch) {
-      const list = document.createElement('ul');
-      list.className = 'file-tree-list';
-      const entries = [...branch.entries()]
-        .sort(([left], [right]) => left.localeCompare(right));
-      for (const [part, node] of entries) {
-        const item = document.createElement('li');
-        const children = [...node.children.entries()];
-        const suffix = children.length === 1 ? children[0] : undefined;
-        if (!node.path && suffix && suffix[1].path
-          && !suffix[1].children.size) {
-          appendFile(item, `${part}/${suffix[0]}`, suffix[1].path);
-          list.append(item);
-          continue;
-        }
-        if (node.children.size) {
-          const directory = document.createElement('div');
-          directory.className = 'file-tree-directory';
-          directory.textContent = `${part}/`;
-          item.append(directory);
-        }
-        if (node.path) appendFile(item, part, node.path);
-        if (node.children.size) item.append(renderBranch(node.children));
-        list.append(item);
-      }
-      return list;
-    }
-    tree.append(renderBranch(root));
-  }
-
-  async function refreshFileTree(name) {
-    const tree = treeForKind(name);
-    if (!tree) return;
-    tree.replaceChildren();
-    tree.textContent = 'Loading…';
-    tree.setAttribute('aria-busy', 'true');
-    try {
-      renderFileTree(await browseClayNode(name), name);
-    } catch (cause) {
-      tree.setAttribute('aria-busy', 'false');
-      tree.replaceChildren();
-      tree.textContent = `Unable to load files: ${String(cause)}`;
-      showError(cause);
-    }
-  }
-
-  function showFileExplorer(name) {
-    if (!explorerOpen) setExplorerOpen(true, false);
-    setExplorerView(viewForKind(name), true);
-    refreshFileTree(name);
-  }
-
-
   // ---- persistence --------------------------------------------------
   //
   // One localStorage record under `config.appId.storageKey`, described
@@ -2182,7 +1730,6 @@
   const storageVersion = config.appId?.storageVersion ?? 1;
   const slots = config.slots || [];
   const maxSource = limits.maxSource ?? 262144;
-  const share = config.shareParam;
   let saveTimer;
 
   function sourceByteLength(source) {
@@ -2206,16 +1753,6 @@
     }
   }
 
-  function validTabPath(path) {
-    if (path === undefined) return undefined;
-    if (typeof path !== 'string' || path.length > 1_024) return undefined;
-    try {
-      return normalizeClayPath(path);
-    } catch (_) {
-      return undefined;
-    }
-  }
-
   function validTabLabel(label, fallback) {
     return typeof label === 'string' && label.trim() && label.length <= 200
       ? label.trim()
@@ -2232,24 +1769,6 @@
     return tabs.reduce((highest, tab) => {
       return Math.max(highest, Number(tab.id.split('-').pop()) + 1);
     }, 1);
-  }
-
-  function validDocumentTab(candidate, name, seen) {
-    if (!candidate || typeof candidate !== 'object') return undefined;
-    if (!idPattern(name).test(candidate.id)) return undefined;
-    const source = validSavedSource(candidate.source);
-    if (source === undefined) return undefined;
-    const path = validTabPath(candidate.path);
-    const base = {
-      id: candidate.id,
-      label: validTabLabel(candidate.label, tabLabel(name, path)),
-      path,
-      source,
-      cleanSource: validSavedSource(candidate.cleanSource) ?? source
-    };
-    const extra = tabHooks(name).validate?.(candidate, base, seen);
-    if (extra === false) return undefined;
-    return {...base, ...(extra || {})};
   }
 
   function validDocsTab(candidate) {
@@ -2273,20 +1792,6 @@
   function validRefTab(candidate) {
     if (!candidate || typeof candidate !== 'object') return undefined;
     if (!idPattern('ref').test(candidate.id)) return undefined;
-    if (!stores.has(candidate.kind)) return validAppRef(candidate);
-    if (!idPattern(candidate.kind).test(candidate.parentId)) return undefined;
-    const source = validSavedSource(candidate.source);
-    if (source === undefined) return undefined;
-    return {
-      id: candidate.id,
-      kind: candidate.kind,
-      parentId: candidate.parentId,
-      label: validTabLabel(candidate.label, 'Reference'),
-      source
-    };
-  }
-
-  function validAppRef(candidate) {
     const hooks = refHooks(candidate.kind);
     if (!hooks?.validate || hooks.persist === false) return undefined;
     const parentId = String(candidate.parentId ?? '');
@@ -2324,11 +1829,7 @@
   function readSlot(slot) {
     if (slot.owner === 'app') return options.session?.read?.(slot.key);
     if (slot.kind) {
-      if (documentStore(slot.kind)) return documentReadSlot(slot);
-      if (slot.shape === 'tabs') return tabList(slot.kind);
-      if (slot.shape === 'active') return activeTabId(slot.kind);
-      if (slot.shape === 'next') return store(slot.kind).next;
-      return undefined;
+      return documentStore(slot.kind) ? documentReadSlot(slot) : undefined;
     }
     switch (slot.key) {
       case 'paneWidth': return paneWidth();
@@ -2356,7 +1857,6 @@
   function saveSession() {
     clearTimeout(saveTimer);
     try {
-      for (const kind of kinds) captureTab(kind.name);
       documentCaptureAll();
       const record = {version: storageVersion};
       for (const slot of slots) {
@@ -2388,7 +1888,8 @@
 
     //  documents first: references and the active id point at them
     for (const slot of slots) {
-      if (slot.owner !== 'urui' || slot.shape !== 'tabs' || !slot.kind) {
+      if (slot.owner !== 'urui' || slot.shape !== 'tabs'
+        || !documentStore(slot.kind)) {
         continue;
       }
       const seenIds = new Set();
@@ -2396,13 +1897,10 @@
       const raw = readEnvelope(saved, slot.key);
       const tabs = Array.isArray(raw)
         ? raw.map((candidate) => {
-          return documentStore(slot.kind)
-            ? documentValidTab(candidate, slot.kind, acceptedIds)
-            : validDocumentTab(candidate, slot.kind, acceptedIds);
+          return documentValidTab(candidate, slot.kind, acceptedIds);
         }).filter((tab) => {
           if (!tab || seenIds.has(tab.id)) return false;
-          //  a store's path is its segments; a kind's is one string
-          const where = Array.isArray(tab.path) ? tab.path.join('/') : tab.path;
+          const where = tab.path ? tab.path.join('/') : '';
           if (where && seenPaths.has(where)) return false;
           seenIds.add(tab.id);
           if (where) seenPaths.add(where);
@@ -2565,16 +2063,7 @@
       const value = record[slot.key];
       if (value === undefined) continue;
       if (slot.kind) {
-        if (documentStore(slot.kind)) {
-          documentApplySlot(slot, value);
-        } else if (slot.shape === 'tabs') {
-          const tabs = tabList(slot.kind);
-          tabs.splice(0, tabs.length, ...value);
-        } else if (slot.shape === 'active') {
-          store(slot.kind).activeId = value;
-        } else if (slot.shape === 'next') {
-          store(slot.kind).next = value;
-        }
+        if (documentStore(slot.kind)) documentApplySlot(slot, value);
         continue;
       }
       switch (slot.key) {
@@ -2605,10 +2094,9 @@
 
   // ---- shared source in the url -------------------------------------
   //
-  // `config.shareParam` names a url query parameter that carries one
-  // document's source, base64url-encoded, for an app that supports
-  // sharing a link. `decodeSource` refuses when `config.shareParam` is
-  // absent, oversized, or does not round-trip.
+  // A store's `share` names a url query parameter that carries one
+  // document's source, base64url-encoded. `decodeSource` refuses a
+  // parameter that is absent, oversized, or does not round-trip.
 
   function encodeSource(source) {
     const bytes = new TextEncoder().encode(source);
@@ -2622,7 +2110,7 @@
 
   //  A shared link must round-trip exactly: anything that re-encodes
   //  differently is a mangled or hand-edited parameter, not a source.
-  function decodeSource(encoded, spec = share) {
+  function decodeSource(encoded, spec) {
     if (!spec) throw new Error('This application does not share sources');
     if (!encoded || encoded.length > spec.paramMax) {
       throw new Error(`Shared ${spec.name} parameter is missing or too large`);
@@ -2642,15 +2130,7 @@
     return source;
   }
 
-  function sourceFromUrl() {
-    if (!share) return undefined;
-    const encoded = new URL(window.location.href)
-      .searchParams.get(share.name);
-    return encoded === null ? undefined : decodeSource(encoded);
-  }
-
   '''
-  files
   shortcuts
   documents
   '''
@@ -2658,32 +2138,19 @@
   //
   // Everything above is callable on its own; `wire` is what turns the
   // frame into a live surface.  A consumer that wants different
-  // behavior simply does not call it.  Its file controls are bound by
-  // name — `#browse-{kind}`, `#load-{kind}`, `#save-{kind}`, one set per
-  // `config.kinds` entry — and `options.onResize` runs on every window
-  // resize, before the editors are refreshed.
+  // behavior simply does not call it.  `options.onResize` runs on every
+  // window resize, before the editors are refreshed.
   function wire() {
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
-    for (const {name} of kinds) {
-      for (const [action, handler] of Object.entries({
-        browse: showFileExplorer, load: loadFile, save: saveFile
-      })) {
-        document.querySelector(`#${action}-${name}`)
-          ?.addEventListener('click', () => handler(name));
-      }
-    }
-    //  a store's tree marks its menu `doc`; a kind's tree does not
     elements.contextOpen?.addEventListener('click', () => {
-      const {kind, path, doc} = contextTarget;
+      const {kind, path} = contextTarget;
       closeFileContext();
-      if (kind && path && doc) documentOpenContext(kind, path);
-      else if (kind && path) loadFile(kind, path);
+      if (kind && path) documentOpenContext(kind, path);
     });
     elements.contextDelete?.addEventListener('click', () => {
-      const {kind, path, source, doc} = contextTarget;
+      const {kind, path, source} = contextTarget;
       closeFileContext();
-      if (kind && path && doc) documentRemoveContext(kind, path, source);
-      else if (kind && path) deleteFile(kind, path, source);
+      if (kind && path) documentRemoveContext(kind, path, source);
     });
     documentsWire();
     elements.themeControl?.addEventListener('change', () => {
@@ -2700,10 +2167,6 @@
     });
     elements.helpPanel?.addEventListener('click', (event) => {
       if (event.target === elements.helpPanel) setHelpOpen(false, true);
-    });
-    elements.closeError?.addEventListener('click', hideError);
-    elements.errorModal?.addEventListener('click', (event) => {
-      if (event.target === elements.errorModal) hideError();
     });
     elements.explorerCollapse?.addEventListener('click', () => {
       setExplorerOpen(!explorerOpen);
@@ -2793,11 +2256,10 @@
       tab.addEventListener('keydown', explorerTabKeydown);
     }
     elements.contextMenu?.addEventListener('keydown', fileContextKeydown);
-    //  a reference is created by dropping a document tab on the aside
+    //  a reference is created by dropping a document tab, or anything
+    //  the consumer made draggable, on the aside
     const droppableRef = () => {
-      if (draggedTab?.ref) return Boolean(refHooks(draggedTab.ref.kind));
-      return Boolean(draggedTab) && stores.has(draggedTab.kind)
-        && canAddRef(draggedTab.kind, draggedTab.id);
+      return Boolean(draggedTab?.ref) && Boolean(refHooks(draggedTab.ref.kind));
     };
     elements.explorerPane?.addEventListener('dragover', (event) => {
       if (!droppableRef()) return;
@@ -2808,13 +2270,9 @@
       if (!droppableRef()) return;
       event.preventDefault();
       event.stopPropagation?.();
-      if (draggedTab.ref) {
-        const payload = draggedTab.ref;
-        draggedTab = undefined;
-        openAppRef(payload);
-      } else {
-        addRef(draggedTab.kind, draggedTab.id);
-      }
+      const payload = draggedTab.ref;
+      draggedTab = undefined;
+      openAppRef(payload);
     });
     document.addEventListener('click', (event) => {
       const menu = elements.contextMenu;
@@ -2840,40 +2298,7 @@
     elements,
     clamp,
     refreshEditors,
-    files: {
-      browse: refreshFileTree, load: loadFile, save: saveFile,
-      delete: deleteFile
-    },
     shortcuts: {register: registerShortcut, dispatch: dispatchShortcut},
-    tabs: {
-      kinds,
-      kind: (name) => kindByName.get(name),
-      list: tabList,
-      active: activeTab,
-      activeId: activeTabId,
-      setActiveId: (name, id) => { store(name).activeId = id; },
-      setList: (name, list) => {
-        const tabs = tabList(name);
-        tabs.splice(0, tabs.length, ...list);
-      },
-      next: (name) => store(name).next,
-      setNext: (name, value) => { store(name).next = value; },
-      get: getTab,
-      label: tabLabel,
-      dirty: tabDirty,
-      create: createTab,
-      addEmpty: addEmptyTab,
-      capture: captureTab,
-      select: selectTab,
-      close: closeTab,
-      render: renderTabs,
-      move: moveTab,
-      container: tabContainer,
-      focus: focusTab,
-      enableDrag: enableTabDrag,
-      dragged: () => draggedTab,
-      clearDragged: () => { draggedTab = undefined; }
-    },
     panes: {
       list: () => panes,
       get: (paneId) => paneById.get(paneId),
@@ -2951,23 +2376,11 @@
         setNext: (value) => { nextRef = value; },
         byId: refTabById,
         render: () => renderExplorerTabs('ref'),
-        add: addRef,
         open: openAppRef,
         update: updateAppRef,
         draggable: enableRefDrag,
         close: closeRefTab,
-        can: canAddRef,
-        forParent: refForParent,
-        syncFromParent: syncRefFromParent,
-        syncAll: syncAllRefs,
-        updateActions: updateRefActions
-      },
-      tree: {
-        render: renderFileTree,
-        refresh: refreshFileTree,
-        show: showFileExplorer,
-        normalize: normalizeClayPath,
-        node: treeForKind
+        forParent: refForParent
       },
       context: {
         open: openFileContext,
@@ -2984,7 +2397,6 @@
       queue: queueSaveSession,
       validateSource,
       byteLength: sourceByteLength,
-      sourceFromUrl,
       encodeSource,
       decodeSource
     },
@@ -2992,10 +2404,7 @@
       helpIsOpen,
       setHelpOpen,
       setSettingsOpen,
-      setLayout,
-      showError,
-      hideError,
-      errorIsOpen
+      setLayout
     },
     documents: documentApi,
     notify,
@@ -3005,179 +2414,6 @@
   };
   '''
   ==
-::
-++  files
-  ::  Clay operations in the runtime scope; per-kind hooks supply policy.
-  ^-  @t
-  '''
-  // ---- Clay files ---------------------------------------------------
-  // Per-kind hooks only supply document policy and application feedback:
-  // validate(source), canSave(tab), status(label, action), loaded(tab),
-  // saved(tab, source), error(cause, action). Tabs and requests stay here.
-  const endpoints = config.endpoints || {};
-  const fileHooks = (name) => options.files?.[name] || {};
-
-  function fileStatus(name, label, action) {
-    const hook = fileHooks(name).status;
-    if (hook) hook(label, action);
-    else setStatus(kinds[0]?.name === name ? 'editor' : 'result', label);
-  }
-
-  function requestClayPath(name) {
-    const value = window.prompt(`${kindByName.get(name).label} path`);
-    return value === null ? undefined : normalizeClayPath(value);
-  }
-
-  async function clayFileRequest(
-    name, action, source = '', requestedPath, overwrite = false
-  ) {
-    store(name);
-    const path = requestedPath === undefined
-      ? requestClayPath(name)
-      : action === 'browse' && requestedPath === ''
-        ? '' : normalizeClayPath(requestedPath);
-    if (path === undefined) return undefined;
-    const route = endpoints[action];
-    if (!route) throw new Error(`Missing Clay endpoint: ${action}`);
-    const headers = {};
-    const request = {method: 'POST', headers};
-    if (endpoints.transport === 'body') {
-      headers['content-type'] = 'application/json';
-      request.body = JSON.stringify({
-        path: path ? path.split('/') : [], source, overwrite
-      });
-    } else {
-      if (action !== 'browse') {
-        headers['content-type'] = 'text/plain; charset=utf-8';
-        request.body = source;
-      }
-      if (path || action !== 'browse') headers[endpoints.pathHeader] = path;
-      if (overwrite) headers[endpoints.flagHeader] = 'true';
-    }
-    const response = await fetch(route.replaceAll('{kind}', name), request);
-    const body = await response.text();
-    if (action === 'save' && response.status === 409 && !overwrite) {
-      const label = kindByName.get(name).label;
-      if (!window.confirm(
-        `${label} path "${path}" already exists. Overwrite it?`
-      )) return undefined;
-      return clayFileRequest(name, action, source, path, true);
-    }
-    if (!response.ok) {
-      throw new Error(body || `Clay request failed (${response.status})`);
-    }
-    return body;
-  }
-
-  async function browseClayNode(name, path = '') {
-    const node = JSON.parse(await clayFileRequest(name, 'browse', '', path));
-    if (!node || typeof node.file !== 'boolean'
-      || !Array.isArray(node.children)) {
-      throw new Error('Invalid Clay directory');
-    }
-    const paths = node.file ? [path] : [];
-    for (const child of node.children) {
-      if (typeof child !== 'string' || !child || child.includes('/')) {
-        throw new Error('Invalid Clay directory');
-      }
-      const next = normalizeClayPath(path ? `${path}/${child}` : child);
-      paths.push(...await browseClayNode(name, next));
-    }
-    return paths;
-  }
-
-  async function loadFile(name, path) {
-    const hooks = fileHooks(name);
-    try {
-      const requested = path == null
-        ? requestClayPath(name) : normalizeClayPath(path);
-      if (requested === undefined) return;
-      const existing = tabList(name).find((tab) => tab.path === requested);
-      if (existing) {
-        selectTab(name, existing.id, {focus: true});
-        return existing;
-      }
-      fileStatus(name, 'Loading', 'load');
-      const source = await clayFileRequest(name, 'load', '', requested);
-      validateSource(source);
-      hooks.validate?.(source);
-      const tab = createTab(name, source, {path: requested});
-      selectTab(name, tab.id, {focus: true});
-      hooks.loaded?.(tab);
-      fileStatus(name, 'Ready', 'load');
-      return tab;
-    } catch (cause) {
-      showError(cause);
-      fileStatus(name, 'Load failed', 'load');
-      hooks.error?.(cause, 'load');
-    }
-  }
-
-  async function saveFile(name) {
-    const hooks = fileHooks(name);
-    try {
-      const tab = captureTab(name);
-      if (!tab || hooks.canSave?.(tab) === false) return;
-      const source = validateSource(tab.source);
-      hooks.validate?.(source);
-      const path = tab.path ?? requestClayPath(name);
-      if (path === undefined) return;
-      if (tab.path) {
-        let stored;
-        try {
-          stored = await clayFileRequest(name, 'load', '', path);
-        } catch (_) {
-          // A missing stored copy must not prevent recreating the file.
-        }
-        if (stored !== undefined && stored !== tab.cleanSource
-          && !window.confirm(
-            `${path} changed in Clay since it was loaded. Overwrite it?`
-          )) {
-          fileStatus(name, 'Ready', 'save');
-          return;
-        }
-      }
-      fileStatus(name, 'Saving', 'save');
-      const result = await clayFileRequest(
-        name, 'save', source, path, Boolean(tab.path)
-      );
-      fileStatus(name, result === undefined ? 'Ready' : 'Saved', 'save');
-      if (result === undefined) return;
-      tab.path = path;
-      tab.label = tabLabel(name, path);
-      tab.cleanSource = source;
-      hooks.saved?.(tab, source);
-      syncRefFromParent(name, tab.id);
-      renderTabs(name);
-      changed();
-      await refreshFileTree(name);
-      return result;
-    } catch (cause) {
-      showError(cause);
-      fileStatus(name, 'Save failed', 'save');
-      hooks.error?.(cause, 'save');
-    }
-  }
-
-  async function deleteFile(name, requestedPath, returnFocus) {
-    try {
-      const path = requestedPath == null
-        ? requestClayPath(name) : normalizeClayPath(requestedPath);
-      if (path === undefined) return;
-      if (!window.confirm(`Delete ${path}? This cannot be undone.`)) {
-        returnFocus?.focus();
-        return;
-      }
-      const result = await clayFileRequest(name, 'delete', '', path);
-      await refreshFileTree(name);
-      fileStatus(name, `${path} deleted`, 'delete');
-      return result;
-    } catch (cause) {
-      showError(cause);
-      fileHooks(name).error?.(cause, 'delete');
-    }
-  }
-  '''
 ::
 ++  shortcuts
   ::  Capture app chords before Ace, preserving unclaimed editor keys.
@@ -3216,11 +2452,6 @@
       if (helpIsOpen()) {
         consume();
         setHelpOpen(false, true);
-        return;
-      }
-      if (errorIsOpen()) {
-        consume();
-        hideError();
         return;
       }
       if (elements.contextMenu && !elements.contextMenu.hidden) {
@@ -3267,8 +2498,7 @@
   //
   // The document and file module, live only when `config.files` is set.
   // One store per `config.files.stores` entry, each rendered by the
-  // %documents tab level whose `kind` names it; a level naming a
-  // $doc-kind still belongs to the document tabs above.
+  // %documents tab level whose `kind` names it.
   //
   // Behaviour is urui's and the same for every application: labels,
   // draft names, dirtiness, reopening, the file dialog, conflicts,
@@ -3735,18 +2965,32 @@
     };
   }
 
+  //  The host is a region named by its pane's source heading, when the
+  //  pane has one, and described by its own load-error notice.
+  //  `options.acePlatform` overrides Ace's keyboard platform.
   function docMount(name) {
     if (docEditorsByStore.has(name)) return;
     const host = docHostOf(name);
     if (!host) return;
     const element = document.querySelector(`#${host.id}`);
     if (!element) return;
+    const paneKind = paneById.get(levelForKind(name)?.paneId)?.kind;
+    const heading = paneKind ? `${paneKind}-source-heading` : '';
+    const labelledBy = heading && document.getElementById(heading)
+      ? heading : undefined;
+    const describedBy = `${host.id}-load-error`;
+    element.setAttribute('role', 'region');
+    if (labelledBy) element.setAttribute('aria-labelledby', labelledBy);
+    element.setAttribute('aria-describedby', describedBy);
     let editor;
     try {
       editor = createAceEditorAdapter(element, {
         assets: window[config.ace?.global],
         mode: host.mode || undefined,
-        label: host.label
+        label: host.label,
+        labelledBy,
+        describedBy,
+        platform: options.acePlatform
       });
     } catch (cause) {
       element.hidden = true;
@@ -4142,9 +3386,10 @@
     const storeConfig = docStores.get(name);
     if (!storeConfig?.refs) return undefined;
     return {
+      //  an empty tab has nothing to refer to, dragged or by Add Ref
       create: ({parentId}) => {
         const tab = docGet(name, parentId);
-        if (!tab) return undefined;
+        if (!tab?.text) return undefined;
         return {
           label: tab.label,
           data: {text: tab.text, mark: docTabMark(name, tab) || null}
@@ -4441,7 +3686,6 @@
     });
     const openMenu = (source, event) => {
       openFileContext(name, path, source, event);
-      contextTarget.doc = true;
     };
     row.addEventListener('contextmenu', (event) => openMenu(file, event));
     const actions = document.createElement('button');

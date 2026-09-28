@@ -102,7 +102,6 @@
       ;+  settings-modal
       ;+  (help-panel spec)
       ;+  context-menu
-      ;+  error-dialog
       ;*  (document-dialogs config)
       ;*  (extra-dialogs dialogs.spec)
       ;*  script-tags
@@ -323,7 +322,7 @@
   ::
   ::  An editor pane's title carries `{kind}-source-heading`: the id an
   ::  Ace host labels itself by, and the one id in the shell derived from
-  ::  a $doc-kind rather than from a band.
+  ::  the pane's kind rather than from a band.
   |=  $:  =pane:urui
           title=(unit @t)
           status-id=(unit @t)
@@ -479,7 +478,7 @@
       ==
     ==
   :-  header
-  (explorer-panels fixed.level kinds.config &)
+  (explorer-panels fixed.level &)
 ::
 ++  explorer-tabs
   ::  Ids are derived from the view name — `{view}-tab` controlling
@@ -524,10 +523,9 @@
 ::
 ++  explorer-panels
   ::  Each seeded view gets one file tree, `{view}-tree`, labelled after
-  ::  the $doc-kind in the same position: the first view owns the first
-  ::  kind.  `aria-busy` stays true until the runtime's first browse
+  ::  the view.  `aria-busy` stays true until the runtime's first browse
   ::  response replaces the placeholder.
-  |=  [views=(list [@tas @t]) kinds=(list doc-kind:urui) first=?]
+  |=  [views=(list [@tas @t]) first=?]
   ^-  marl
   ?~  views  ~
   =/  [name=@tas label=@t]  i.views
@@ -535,14 +533,11 @@
   =/  tab-id  (cat 3 view '-tab')
   =/  panel-id  (cat 3 view '-panel')
   =/  tree-id  (cat 3 view '-tree')
-  =/  tree-label=@t
-    ?~  kinds  label
-    (cat 3 label.i.kinds ' files')
   =/  tree=manx
     ;div.explorer-file-tree
       =id          (trip tree-id)
       =role        "tree"
-      =aria-label  (trip tree-label)
+      =aria-label  (trip label)
       =aria-busy   "true"
       ;p: Loading…
     ==
@@ -562,7 +557,7 @@
       ;+  tree
     ==
   :-  panel
-  $(views t.views, kinds ?~(kinds ~ t.kinds), first |)
+  $(views t.views, first |)
 ::
 ++  pane-store
   ::  The store whose strip is this pane's %documents level, if any.
@@ -884,27 +879,6 @@
       =type  "button"
       =role  "menuitem"
       Delete
-    ==
-  ==
-::
-++  error-dialog
-  ::  The Clay failure modal, at ids the runtime's error path binds.
-  ^-  manx
-  ;aside#clay-error-modal.help-panel
-    =hidden          ""
-    =role            "dialog"
-    =aria-modal      "true"
-    =aria-labelledby  "clay-error-title"
-    ;div.help-card
-      ;div.pane-header
-        ;h2#clay-error-title: Clay error
-        ;button#close-clay-error
-          =type        "button"
-          =aria-label  "Close Clay error"
-          ;span: Close
-        ==
-      ==
-      ;pre#clay-error-message.clay-error-message;
     ==
   ==
 ::

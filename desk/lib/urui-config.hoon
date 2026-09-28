@@ -24,14 +24,11 @@
   =/  views  (permanent-views reference.panes)
   %-  pairs:enjs:format
   :~  ['appId' (app-id-json app-id.config)]
-      ['kinds' a+(turn kinds.config doc-kind-json)]
-      ['endpoints' (endpoints-json endpoints.config)]
       ['limits' (limits-json limits.config)]
       ['slots' a+(turn slots.config slot-json)]
       ['shortcuts' a+(turn shortcuts.config shortcut-json)]
       ['statuses' a+(turn statuses.config status-json)]
       ['docsRoot' (unit-text-json docs-root.config)]
-      ['shareParam' (share-json share-param.config)]
       ['panes' (panes-json panes)]
       ['permanentViews' a+(turn views view-json)]
       ['ace' (ace-json ace-spec.config)]
@@ -220,33 +217,6 @@
       ['base' s+base.id]
       ['storageKey' s+storage-key.id]
       ['storageVersion' (number storage-version.id)]
-  ==
-::
-++  doc-kind-json
-  |=  kind=doc-kind:urui
-  ^-  json
-  %-  pairs:enjs:format
-  :~  ['name' s+name.kind]
-      ['label' s+label.kind]
-      ['untitled' s+untitled.kind]
-      ['ext' s+ext.kind]
-      ['leaf' s+leaf.kind]
-      ['mime' s+mime.kind]
-      ['tabs' b+tabs.kind]
-      ['refs' b+refs.kind]
-  ==
-::
-++  endpoints-json
-  |=  endpoints=endpoints:urui
-  ^-  json
-  %-  pairs:enjs:format
-  :~  ['transport' s+`@t`transport.endpoints]
-      ['pathHeader' (unit-text-json path-header.endpoints)]
-      ['flagHeader' (unit-text-json flag-header.endpoints)]
-      ['browse' s+browse.endpoints]
-      ['load' s+load.endpoints]
-      ['save' s+save.endpoints]
-      ['delete' s+delete.endpoints]
   ==
 ::
 ++  limits-json

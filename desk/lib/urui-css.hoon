@@ -676,11 +676,6 @@
 
   .explorer-file-tree > .file-tree-list { padding-left: 0; }
 
-  .file-tree-directory {
-    color: var(--muted);
-    padding: 0.2rem 0;
-  }
-
   .explorer-file-row {
     align-items: stretch;
     display: flex;
@@ -709,12 +704,6 @@
     color: var(--muted);
     flex: 0 0 auto;
     padding: 0.2rem 0.45rem;
-  }
-
-  .clay-error-message {
-    color: var(--danger);
-    overflow-wrap: anywhere;
-    white-space: pre-wrap;
   }
 
   /* A store's tree: directories fold, and remember that they did. */
@@ -944,7 +933,7 @@
 ::
 ++  dialogs
   ::  The help panel and its card, including the documentation nav the
-  ::  runtime builds from doc.toc.  The Clay error modal reuses .help-card.
+  ::  runtime builds from doc.toc.
   ^-  @t
   '''
   .help-panel {

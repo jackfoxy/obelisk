@@ -21,24 +21,6 @@
       storage-version=@ud
   ==
 ::
-+$  doc-kind
-  ::  One class of document the application edits or displays.
-  ::
-  ::  `leaf` is the clay extension the document is stored under; `ext`
-  ::  is the suffix a tab label shows.  They differ whenever a mark is
-  ::  reused for a format that names itself differently — DOT stored as
-  ::  `%txt` and labelled `.dot` is the case that forced the split.
-  ::  `tabs` asks for a document tab strip, `refs` for the Add Ref control.
-  $:  name=@tas
-      label=@t
-      untitled=@t
-      ext=@ta
-      leaf=@ta
-      mime=@t
-      tabs=?
-      refs=?
-  ==
-::
 +$  pane-role  ?(%reference %editor %result)
 ::
 +$  pane-mode
@@ -65,9 +47,8 @@
   ::  Where one level's tabs come from.
   ::
   ::  %views      the explorer strip: `fixed` seeds it and the runtime
-  ::              appends documentation tabs and one reference tab per
-  ::              imported document, for every $doc-kind with refs=&
-  ::  %documents  the $doc-kind tab store -- clay-backed, persisted
+  ::              appends documentation tabs and reference tabs
+  ::  %documents  the $store its `kind` names -- clay-backed, persisted
   ::  %fixed      exactly `fixed`, for the life of the page
   ::  %dynamic    replaced wholesale by `runtime.panes.set`
   $?  %views  %documents  %fixed  %dynamic  ==
@@ -150,23 +131,6 @@
       dark=@t
       exts=(list @t)  ::  Full module ids, e.g. 'ace/ext/searchbox'.
       use-worker=?
-  ==
-::
-+$  transport  ?(%header %body)
-::
-+$  endpoints
-  ::  The four file operations and how the path travels.
-  ::
-  ::  %header sends the clay path in `path-header`; %body sends it as a
-  ::  json object with `path` segments, `source` text, and `overwrite`.
-  ::  `{kind}` in a route is replaced by the $doc-kind name.
-  $:  =transport
-      path-header=(unit @t)
-      flag-header=(unit @t)
-      browse=@t
-      load=@t
-      save=@t
-      delete=@t
   ==
 ::
 +$  slot
@@ -271,18 +235,14 @@
   ::  config built by `%*` over a bunt does not opt in by accident.
   ::
   ::  `files` turns on urui's document and file module; ~ leaves it off.
-  ::  A %documents tab level whose `kind` names one of its stores is
-  ::  that store's strip; any other `kind` names a $doc-kind.
+  ::  A %documents tab level's `kind` names one of its stores.
   ::
   $:  =app-id
-      kinds=(list doc-kind)
-      =endpoints
       =limits
       slots=(list slot)
       shortcuts=(list shortcut)
       statuses=(list [@tas @t])
       docs-root=(unit @t)
-      share-param=(unit [name=@t max=@ud param-max=@ud])
       =ace-spec
       layout=screen-format
       collapse=$~(| ?)

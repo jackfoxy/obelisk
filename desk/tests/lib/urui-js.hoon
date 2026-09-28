@@ -33,8 +33,6 @@
           ['nextRef' %urui %next ~]
       ==
     docs-root  `'/docs/d/urui-fixture/'
-    share-param
-      `[name='source' max=12.288 param-max=16.384]
   ==
 ::
 ++  fixture-spec
@@ -185,10 +183,6 @@
         "\"key\":\"nextRef\""
         "\"owner\":\"urui\""
         "\"shape\":\"tabs\""
-        "\"shareParam\""
-        "\"name\":\"source\""
-        "\"max\":12288"
-        "\"paramMax\":16384"
     ==
   =/  api-needles=(list tape)
     :~  "session: methods('session', ['save', 'queue', 'get', 'set'])"
@@ -222,9 +216,6 @@
         "#explorer-collapse"
         "#help-panel"
         "#close-help"
-        "#clay-error-modal"
-        "#clay-error-message"
-        "#close-clay-error"
         "#splitter"
         "#workbench"
         "#workspace"
@@ -239,7 +230,6 @@
         "Collapse explorer"
         "Expand explorer"
         "aria-expanded"
-        "errorReturnFocus"
         "function wire()"
         "if (options.onChange) options.onChange()"
         "else queueSaveSession()"
@@ -258,14 +248,12 @@
   ==
 ::
 ++  test-document-tab-contract
-  ::  Tabs are parameterized over `config.kinds`; the strip markup and
-  ::  the clay-leaf label rule belong to urui, not to a consumer.
-  =/  source  (trip runtime:ujs)
+  ::  Document tabs are urui's `files` stores; the strip markup, labels,
+  ::  and dirtiness belong to urui, not to a consumer.
+  =/  source  (trip documents:ujs)
+  =/  runtime  (trip runtime:ujs)
   =/  needles=(list tape)
-    :~  "const kinds = config.kinds"
-        "unknown document kind:"
-        "kind?.untitled"
-        "leaf === kind.leaf"
+    :~  "config.files || null"
         "document-tab-control"
         "document-tab-add-control"
         "data-document-tab"
@@ -275,12 +263,9 @@
         "effectAllowed = 'copyMove'"
         "dropEffect = 'move'"
         "is-dragging"
-        "options.onTabsRendered"
-        "syncExplorerTabOrder()"
-        "tabHooks(name).onActivate"
-        "tabHooks(name).afterActivate"
-        "tabHooks(name).onCapture"
-        "tabHooks(name).onClose"
+        "syncLevelsBelow(name)"
+        "docHooks(name).activate"
+        "docHooks(name).afterActivate"
     ==
   =/  tests=tang
     %-  zing
@@ -289,6 +274,11 @@
     (expect !>((has needle source)))
   ;:  weld
     tests
+    (expect !>((has "syncExplorerTabOrder()" runtime)))
+    ::  the retired $doc-kind store and its hooks are gone
+    (expect !>(?=(~ (find "config.kinds" runtime))))
+    (expect !>(?=(~ (find "tabHooks" runtime))))
+    (expect !>(?=(~ (find "onTabsRendered" runtime))))
     (expect !>(?=(~ (find "dotTabs" source))))
     (expect !>(?=(~ (find "svgTabs" source))))
   ==
@@ -359,9 +349,10 @@
 ::
 ++  test-explorer-contract
   ::  One strip holds the permanent file trees, documentation tabs and
-  ::  reference tabs; the tree, its context menu, and the `doc.toc`
+  ::  reference tabs; the trees, their context menu, and the `doc.toc`
   ::  format are urui's, and none of it names a consumer.
   =/  source  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
   =/  needles=(list tape)
     :~  "config.permanentViews"
         "config.docsRoot"
@@ -376,15 +367,6 @@
         "ref-source"
         "aria-labelledby"
         "reference'"
-        "explorer-file-row"
-        "file-tree-file"
-        "file-tree-actions"
-        "file-tree-directory"
-        "file-tree-list"
-        "Invalid Clay file list"
-        "Enter a relative Clay path"
-        "Clay path contains unsupported characters"
-        "Unable to load files:"
         "aria-haspopup"
         "docs-help-group"
         "docs-help-summary"
@@ -392,17 +374,32 @@
         "docs-help-link"
         "doc.toc"
         "text/plain"
-        "browseClayNode(name)"
-        "loadFile(name, path)"
-        "kindByName.get(name)?.leaf"
+    ==
+  =/  tree-needles=(list tape)
+    :~  "explorer-file-row"
+        "file-tree-file"
+        "file-tree-actions"
+        "file-tree-folder"
+        "file-tree-list"
+        "Unable to load files:"
+        "`#$\{tree.view}-tree`"
     ==
   =/  tests=tang
     %-  zing
     %+  turn  needles
     |=  needle=tape
     (expect !>((has needle source)))
+  =/  tree-tests=tang
+    %-  zing
+    %+  turn  tree-needles
+    |=  needle=tape
+    (expect !>((has needle documents)))
   ;:  weld
     tests
+    tree-tests
+    ::  the `{kind}-files` view rule and the Clay tree are retired
+    (expect !>(?=(~ (find "-files`" source))))
+    (expect !>(?=(~ (find "Clay" source))))
     (expect !>(?=(~ (find "dot-files" source))))
     (expect !>(?=(~ (find "svg-files" source))))
   ==
@@ -411,11 +408,11 @@
   ::  The record is described slot by slot by `config.slots`, each slot
   ::  naming the json key already on disk, so no migration is written.
   =/  source  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
   =/  needles=(list tape)
     :~  "config.appId?.storageKey"
         "config.appId?.storageVersion"
         "config.slots"
-        "config.shareParam"
         "saved.version !== storageVersion"
         "localStorage.setItem(storageKey"
         "localStorage.getItem(storageKey)"
@@ -425,7 +422,6 @@
         "slot.owner === 'app'"
         "options.session?.read?.(slot.key)"
         "options.session?.validate?.(slot.key, raw)"
-        "tabHooks(name).validate"
         "highestId"
         "Number.isSafeInteger(value)"
         "limits.saveDebounce ?? 150"
@@ -436,7 +432,6 @@
         "TextEncoder"
         "TextDecoder"
         "is not canonical"
-        "searchParams.get(share.name)"
         "applySession(record)"
     ==
   =/  tests=tang
@@ -446,6 +441,10 @@
     (expect !>((has needle source)))
   ;:  weld
     tests
+    ::  a store restores its app fields, and its own share parameter
+    (expect !>((has "fields?.validate?.(candidate, base, seen)" documents)))
+    (expect !>((has "searchParams.get(spec.name)" documents)))
+    (expect !>(?=(~ (find "config.shareParam" source))))
     ::  the slot keys are data, never spelled out in the runtime
     (expect !>(?=(~ (find "dotTabs" source))))
     (expect !>(?=(~ (find "activeDotTabId" source))))
@@ -454,25 +453,35 @@
   ==
 ::
 ++  test-files-contract
-  =/  source  (trip files:ujs)
+  ::  One json wire for every store: path segments, a `base` hash, and
+  ::  typed conflicts the confirm dialog answers.  The header transport,
+  ::  `window.prompt`, and the Clay error modal are retired.
+  =/  source  (trip documents:ujs)
+  =/  runtime  (trip runtime:ujs)
   =/  needles=(list tape)
-    :~  "config.endpoints"
-        "endpoints.transport"
-        "path.split('/')"
-        "endpoints.pathHeader"
-        "endpoints.flagHeader"
-        "route.replaceAll('\{kind}', name)"
-        "response.status === 409"
-        "changed in Clay since it was loaded"
-        "Delete $\{path}? This cannot be undone."
-        "tab.cleanSource = source"
-        "await refreshFileTree(name)"
-        "hooks.saved?.(tab, source)"
+    :~  "op: 'browse'"
+        "op: 'load'"
+        "op: 'save'"
+        "op: 'delete'"
+        "base: choices.base ?? null"
+        "overwrite: Boolean(choices.overwrite)"
+        "cause?.code === 'exists'"
+        "cause?.code === 'changed'"
+        "confirmDialog('delete'"
+        "This cannot be undone."
     ==
-  %-  zing
-  %+  turn  needles
-  |=  needle=tape
-  (expect !>((has needle source)))
+  =/  tests=tang
+    %-  zing
+    %+  turn  needles
+    |=  needle=tape
+    (expect !>((has needle source)))
+  ;:  weld
+    tests
+    (expect !>(?=(~ (find "pathHeader" source))))
+    (expect !>(?=(~ (find "window.prompt" source))))
+    (expect !>(?=(~ (find "window.prompt" runtime))))
+    (expect !>(?=(~ (find "clay-error" runtime))))
+  ==
 ::
 ++  test-shortcut-contract
   =/  source  (trip shortcuts:ujs)
@@ -481,7 +490,6 @@
         "config.shortcuts"
         "contexts[shortcut.when]"
         "helpIsOpen()"
-        "errorIsOpen()"
         "closeFileContext(true)"
         "parts.includes('alt')"
         "editor.isFocused?.(target)"

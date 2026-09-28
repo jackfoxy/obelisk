@@ -12,24 +12,6 @@
           storage-key='probe.session.v2'
           storage-version=2
       ==
-      :~  :*  name=%text
-              label='Text'
-              untitled='Untitled'
-              ext=%txt
-              leaf=%txt
-              mime='text/plain'
-              tabs=&
-              refs=|
-          ==
-      ==
-      :*  transport=%body
-          path-header=~
-          flag-header=`'x-overwrite'
-          browse='/browse'
-          load='/load'
-          save='/save'
-          delete='/delete'
-      ==
       :*  render-debounce=350
           save-debounce=150
           min-explorer=180
@@ -43,7 +25,6 @@
       ~[['Ctrl-S' 'save' %editor]]
       ~[[%ready 'Ready']]
       docs-root=`'/docs/probe/'
-      share-param=`[name='text' max=12.288 param-max=16.384]
       :*  base='/apps/probe/ace'
           global='probeAce'
           version='1.44.0'
@@ -197,21 +178,12 @@
     (expect !>((has "\"storageVersion\":2")))
   ==
 ::
-++  test-config-emits-document-kinds
+++  test-config-emits-no-retired-keys
+  ::  Documents are $store data under `files`; nothing else describes them.
   ;:  weld
-    (expect !>((has (trip '\22kinds\22:[{'))))
-    (expect !>((has "\"ext\":\"txt\"")))
-    (expect !>((has "\"leaf\":\"txt\"")))
-    (expect !>((has "\"tabs\":true")))
-    (expect !>((has "\"refs\":false")))
-  ==
-::
-++  test-config-emits-endpoints
-  ;:  weld
-    (expect !>((has "\"transport\":\"body\"")))
-    (expect !>((has "\"pathHeader\":null")))
-    (expect !>((has "\"flagHeader\":\"x-overwrite\"")))
-    (expect !>((has "\"delete\":\"/delete\"")))
+    (expect-eq !>(%.n) !>((has "\"kinds\"")))
+    (expect-eq !>(%.n) !>((has "\"endpoints\"")))
+    (expect-eq !>(%.n) !>((has "\"shareParam\"")))
   ==
 ::
 ++  test-config-emits-limits
@@ -247,8 +219,6 @@
     ==
   ;:  weld
     (expect !>((has "\"docsRoot\":\"/docs/probe/\"")))
-    (expect !>((has (trip '\22shareParam\22:{'))))
-    (expect !>((has "\"paramMax\":16384")))
     (expect !>((has views)))
   ==
 ::

@@ -157,26 +157,6 @@
   %*  .  config
     storage-key.app-id      'probe.session.v1'
     storage-version.app-id  1
-    kinds
-      :~  :*  name=%text
-              label='Text'
-              untitled='Untitled'
-              ext=%txt
-              leaf=%txt
-              mime='text/plain'
-              tabs=&
-              refs=&
-          ==
-          :*  name=%note
-              label='Note'
-              untitled='Preview'
-              ext=%md
-              leaf=%md
-              mime='text/markdown'
-              tabs=&
-              refs=&
-          ==
-      ==
     statuses  ~[[%ready 'Ready'] [%busy 'Busy'] [%empty 'Empty']]
   ==
 ::
@@ -366,8 +346,6 @@
         "file-context-menu"
         "file-context-open"
         "file-context-delete"
-        "clay-error-modal"
-        "clay-error-message"
         "probe-status"
         "probe-save"
     ==
@@ -382,10 +360,10 @@
     (expect !>((has-node-id fixture-doc id)))
   ;:  weld
     id-tests
-    (expect-eq !>(3) !>((lent dialogs)))
+    (expect-eq !>(2) !>((lent dialogs)))
     (expect-eq !>("true") !>((attribute (snag 0 dialogs) %aria-modal)))
     (expect-eq !>("true") !>((attribute (snag 1 dialogs) %aria-modal)))
-    (expect-eq !>("true") !>((attribute (snag 2 dialogs) %aria-modal)))
+    (expect !>(!(has-node-id fixture-doc "clay-error-modal")))
     ::  one theme control in the page, and it is urui's: a consumer that
     ::  still emitted its own would double these options
     (expect-eq !>(3) !>((lent options)))
@@ -709,10 +687,9 @@
     %+  skim  (elements full-doc %div)
     |=(kid=manx =("menu" (attribute kid %role)))
   ;:  weld
-    (expect-eq !>(3) !>((lent dialogs)))
+    (expect-eq !>(2) !>((lent dialogs)))
     (expect-eq !>("settings-modal") !>((attribute (snag 0 dialogs) %id)))
     (expect-eq !>("help-panel") !>((attribute (snag 1 dialogs) %id)))
-    (expect-eq !>("clay-error-modal") !>((attribute (snag 2 dialogs) %id)))
     (expect-eq !>(1) !>((lent menus)))
     (expect-eq !>("file-context-menu") !>((attribute (head menus) %id)))
   ==
@@ -780,8 +757,8 @@
   ==
 ::
 ++  store-files
-  ::  A `note` store: the result pane's %documents level, whose kind the
-  ::  $doc-kind above also names, becomes the store's strip.
+  ::  A `note` store: the result pane's %documents level, whose kind
+  ::  names it, becomes the store's strip.
   ^-  files:urui
   :*  url='/probe/files'
       :~  :*  name=%note
