@@ -96,8 +96,8 @@
 ++  files
   ::  Obelisk's document store and file tree, as urui declares them.
   ::
-  ::  Only +file-policy reads this until urui's documents module lands.
-  ::  `/results` is written by result export alone, through +write.
+  ::  `/results` is written by result export alone, through +write, so
+  ::  a result opened in a tab is read-only.
   ^-  files:urui
   :*  url='/apps/obelisk/files'
       :~  :*  name=%script
@@ -148,21 +148,11 @@
           title='Obelisk'
           base='/apps/obelisk'
           storage-key='obelisk.session.v1'
-          storage-version=1
+          storage-version=2
       ==
-      ::  no urui-managed $doc-kind: query and result tabs are obelisk's
-      ::  own %dynamic levels, and its trees are filled by its own code
+      ::  script tabs and the file tree are urui's `script` store, below
       kinds=~
-      ::  inert while `kinds` is empty; they name obelisk's real file
-      ::  routes, whose json wire urui's runtime does not speak
-      :*  transport=%body
-          path-header=~
-          flag-header=~
-          browse='/apps/obelisk/api/files/browse'
-          load='/apps/obelisk/api/files/load'
-          save='/apps/obelisk/api/files/save'
-          delete='/apps/obelisk/api/files/delete'
-      ==
+      *endpoints:urui
       :*  render-debounce=0
           save-debounce=150
           min-explorer=180
@@ -180,8 +170,7 @@
       ace-spec
       layout=%rows
       collapse=&
-      ::  urui's document module stays off until this app moves onto it
-      files=~
+      files=`files
   ==
 ::
 ++  slots
@@ -196,6 +185,10 @@
       ['explorerOpen' %urui %scalar ~]
       ['explorerView' %urui %scalar ~]
       ['explorerOrder' %urui %scalar ~]
+      ['scriptTabs' %urui %tabs `%script]
+      ['activeScriptId' %urui %active `%script]
+      ['nextScript' %urui %next `%script]
+      ['fileTrees' %urui %record ~]
       ['docsTabs' %urui %tabs ~]
       ['nextDocs' %urui %next ~]
       ['refTabs' %urui %tabs ~]
@@ -235,8 +228,8 @@
   [name [key=~ open=& label=''] item]
 ::
 ++  reference-pane
-  ::  The explorer.  Neither view is named `{kind}-files`, so urui fills
-  ::  neither tree: obelisk renders `#schemas-tree` and `#files-tree`.
+  ::  The explorer.  urui fills `#files-tree` from the `script` store;
+  ::  obelisk renders `#schemas-tree`.
   |=  our=@p
   ^-  pane:urui
   :*  role=%reference
@@ -264,8 +257,9 @@
   ==
 ::
 ++  editor-pane
-  ::  Tabs first, then the heading: the urQL label and markdown toggle
-  ::  on the left, save and copy on the right.
+  ::  Tabs first, then the heading: the language on the left, urui's
+  ::  file actions and source/preview toggle on the right.  The panel is
+  ::  urui's editor host, load-error notice, and preview host.
   ^-  pane:urui
   :*  role=%editor
       id='editor-pane'
@@ -276,83 +270,18 @@
           :-  %tabs
           :~  :*  name=%script
                   label='Query tabs'
-                  source=%dynamic
-                  kind=~
+                  source=%documents
+                  kind=`%script
                   fixed=~
                   add=`'New query tab'
                   close=&
-                  reorder=|
+                  reorder=&
               ==
           ==
-          (pinned %head [%heading ~ ~ editor-actions])
-          (pinned %body [%panel 'editor-body' ~ editor-body])
-      ==
-  ==
-::
-++  editor-actions
-  ^-  marl
-  :~  ;div.editor-mode
-        ;span#editor-language: urQL
-        ;div#markdown-view-toggle.markdown-view-toggle.hidden
-          =role        "group"
-          =aria-label  "Markdown view"
-          ;button#markdown-source-btn.active
-            =type          "button"
-            =aria-pressed  "true"
-            Source
-          ==
-          ;button#markdown-preview-btn
-            =type          "button"
-            =aria-pressed  "false"
-            Preview
-          ==
-        ==
-      ==
-      ;div.editor-actions
-        ;button#save-query-btn.icon-button.save-action
-          =type           "button"
-          =title          "Save script"
-          =aria-label     "Save script"
-          =aria-haspopup  "menu"
-          =aria-expanded  "false"
-          ;span.save-icon(aria-hidden "true");
-        ==
-        ;button#copy-query-btn.icon-button
-          =type        "button"
-          =title       "Copy script"
-          =aria-label  "Copy script"
-          ;span.copy-icon(aria-hidden "true");
-        ==
-      ==
-  ==
-::
-++  editor-body
-  ^-  marl
-  :~  ;div.editor-body
-        ;div#editor-load-error.editor-load-error
-          =hidden  ""
-          =role    "alert"
-          ;strong: Query editor unavailable
-          ;span: Reload the page.
-          ;span: If the problem continues, verify the Ace assets are installed.
-        ==
-        ;div#query-editor.ace-editor-host
-          =role        "region"
-          =aria-label  "urQL query"
-          ;span(hidden "");
-        ==
-        ;div#markdown-preview.markdown-preview.hidden
-          =role        "document"
-          =tabindex    "0"
-          =aria-label  "Rendered Markdown"
-          ;*  ~[;/("")]
-        ==
-        ;iframe#html-preview.html-preview.hidden
-          =title           "Rendered HTML"
-          =sandbox         ""
-          =referrerpolicy  "no-referrer"
-          ;*  ~[;/("")]
-        ==
+          %+  pinned  %head
+          [%heading ~ ~ ~[;span#editor-language.editor-mode:"urQL"]]
+          %+  pinned  %body
+          [%panel 'editor-body' `['query-editor' 'urQL query' '' | | 262.144] ~]
       ==
   ==
 ::
@@ -522,49 +451,24 @@
   ==
 ::
 ++  dialogs
-  ::  The file context menu is urui's; these are obelisk's own.
+  ::  The file dialog, confirm dialog, toast, and file context menu are
+  ::  urui's.  The results format field waits hidden here until result
+  ::  export lends it to urui's file dialog.
   ^-  marl
-  :~  ;div#app-status.app-status.hidden
-        =role       "status"
-        =aria-live  "polite"
-        ;*  ~[;/("")]
-      ==
-      ;dialog#file-dialog.file-dialog
-        =aria-labelledby  "file-dialog-title"
-        ;form#file-dialog-form(method "dialog")
-          ;h2#file-dialog-title: Open script
-          ;p#file-dialog-help.dialog-help
-            Choose a saved script.
-          ==
-          ;div#file-dialog-list.file-dialog-list
-            =role        "tree"
-            =aria-label  "Saved scripts"
-            ;*  ~[;/("")]
-          ==
-          ;label#file-path-label.hidden(for "file-path-input")
-            Script path
-          ==
-          ;input#file-path-input.hidden(placeholder "folder/script-name");
-          ;label#results-format-field.hidden(for "results-format-select")
-            Format
-            ;select#results-format-select(name "results-format")
-              ;option(value "%csv"): comma-separated
-              ;option(value "%tab"): tab-separated
-              ;option(value "%spac"): space-separated
-              ;option(value "%markdown"): markdown
-              ;option(value "%html"): html
-              ;option(value "%tape"): text
-              ;option(value "%json"): json
-              ;option(value "%wain"): %wain
-              ;option(value "%manx"): %manx
-              ;option(value "%vector"): %vector
-              ;option(value "%raw"): %raw
-            ==
-          ==
-          ;div.dialog-actions
-            ;button#file-dialog-cancel(type "button"): Cancel
-            ;button#file-dialog-confirm.primary(type "submit"): Open
-          ==
+  :~  ;label#results-format-field(for "results-format-select", hidden "")
+        Format
+        ;select#results-format-select(name "results-format")
+          ;option(value "%csv"): comma-separated
+          ;option(value "%tab"): tab-separated
+          ;option(value "%spac"): space-separated
+          ;option(value "%markdown"): markdown
+          ;option(value "%html"): html
+          ;option(value "%tape"): text
+          ;option(value "%json"): json
+          ;option(value "%wain"): %wain
+          ;option(value "%manx"): %manx
+          ;option(value "%vector"): %vector
+          ;option(value "%raw"): %raw
         ==
       ==
       ;div#relation-menu.relation-menu.hidden(role "menu")
@@ -576,14 +480,6 @@
         ==
         ;button#relation-create(type "button", role "menuitem")
           CREATE
-        ==
-      ==
-      ;div#save-context-menu.save-context-menu.hidden(role "menu")
-        ;button#save-context-save(type "button", role "menuitem")
-          Save
-        ==
-        ;button#save-context-save-as(type "button", role "menuitem")
-          Save As...
         ==
       ==
   ==
@@ -599,10 +495,10 @@
   ==
 ::
 ++  app-css
-  ::  Obelisk's palette and its own surfaces: menus, dialogs, the status
-  ::  toast, the schema and file trees, the editor heading and previews,
-  ::  and command output.  The frame, panes, tabs, explorer, help, and
-  ::  dark theme are urui's.
+  ::  Obelisk's palette and its own surfaces: the relation menu, the
+  ::  results format field, the schema tree, the editor heading, and
+  ::  command output.  The frame, panes, tabs, explorer, file tree,
+  ::  dialogs, toast, previews, help, and dark theme are urui's.
   ::
   ::  The light palette overrides urui's tokens on `:root`; urui's dark
   ::  palette is already obelisk's, and its `data-effective-theme`
@@ -663,78 +559,9 @@
 
   .hidden { display: none !important; }
 
-  .app-status {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 0.3rem solid var(--accent);
-    border-radius: 0.35rem;
-    bottom: 1rem;
-    box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.18);
-    max-width: min(32rem, calc(100vw - 2rem));
-    padding: 0.65rem 0.8rem;
-    position: fixed;
-    right: 1rem;
-    white-space: pre-wrap;
-    z-index: 50;
-  }
+  /* ---- menus and the results format field -------------------------- */
 
-  .app-status[data-kind="error"] { border-left-color: #dc2626; }
-
-  /* ---- dialogs and menus ------------------------------------------- */
-
-  .file-dialog {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.55rem;
-    color: var(--ink);
-    max-width: min(34rem, calc(100vw - 2rem));
-    padding: 0;
-    width: 30rem;
-  }
-
-  .file-dialog::backdrop { background: rgb(0 0 0 / 0.38); }
-
-  .file-dialog form {
-    display: grid;
-    gap: 0.8rem;
-    padding: 1rem;
-  }
-
-  .file-dialog h2, .dialog-help { margin: 0; }
-
-  .dialog-help {
-    color: var(--muted);
-    font-size: 0.86rem;
-  }
-
-  .file-dialog-list {
-    border: 1px solid var(--border);
-    border-radius: 0.35rem;
-    display: grid;
-    max-height: 22rem;
-    min-height: 8rem;
-    overflow: auto;
-    padding: 0.3rem;
-  }
-
-  .file-entry {
-    align-items: center;
-    background: transparent;
-    border: 0;
-    display: flex;
-    font-family: ui-monospace, monospace;
-    gap: 0.45rem;
-    min-height: 2rem;
-    text-align: left;
-    width: 100%;
-  }
-
-  .file-entry.directory {
-    color: var(--muted);
-    cursor: default;
-  }
-
-  #file-path-input, #results-format-select {
+  #results-format-select {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.3rem;
@@ -751,15 +578,9 @@
     gap: 0.3rem;
   }
 
-  .dialog-actions {
-    display: flex;
-    gap: 0.45rem;
-    justify-content: flex-end;
-  }
+  #results-format-field[hidden] { display: none; }
 
-  .dialog-actions button { padding: 0.35rem 0.75rem; }
-
-  .relation-menu, .save-context-menu, .file-context-menu {
+  .relation-menu {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.4rem;
@@ -771,8 +592,7 @@
     z-index: 60;
   }
 
-  .relation-menu button, .save-context-menu button,
-  .file-context-menu button {
+  .relation-menu button {
     background: transparent;
     border: 0;
     text-align: left;
@@ -792,41 +612,13 @@
     padding: 0.75rem;
   }
 
-  .file-node { margin: 0.1rem 0; }
-
-  .file-node > summary {
-    border-radius: 0.25rem;
-    color: var(--muted);
-    cursor: pointer;
-    font-family: ui-monospace, monospace;
-    min-height: 1.9rem;
-    padding: 0.3rem 0.25rem;
-  }
-
-  .file-node > summary:hover, .explorer-file-row:hover {
-    background: var(--surface-alt);
-  }
-
-  .file-children, .schema-children {
+  .schema-children {
     border-left: 1px solid var(--border);
     margin-left: 0.7rem;
     padding-left: 0.65rem;
   }
 
-  .explorer-file-row {
-    align-items: center;
-    border-radius: 0.25rem;
-    display: flex;
-  }
-
-  .explorer-file {
-    min-width: 0;
-    padding: 0.15rem 0.25rem;
-  }
-
-  /* urui's %shell gives `.file-actions` a flex row; here it is one
-     button at the end of a tree row */
-  .relation-actions, #files-tree .file-actions {
+  .relation-actions {
     display: inline-block;
     flex: 0 0 auto;
     margin-left: auto;
@@ -883,51 +675,18 @@
   }
 
   /* the heading has no title, so its one action row spans it: the
-     language and markdown toggle left, save and copy right */
-  .editor-pane > .pane-header .pane-actions {
-    flex: 1;
-    justify-content: space-between;
-  }
+     language left, urui's file actions and view toggle right */
+  .editor-pane > .pane-header .pane-actions { flex: 1; }
 
-  .pane-actions, .editor-actions {
+  .pane-actions {
     align-items: center;
     display: flex;
     gap: 0.35rem;
   }
 
-  .editor-mode, .markdown-view-toggle {
-    align-items: center;
-    display: flex;
-  }
+  .editor-mode { margin-right: auto; }
 
-  .editor-mode { gap: 0.65rem; }
-
-  .markdown-view-toggle {
-    border: 1px solid var(--border);
-    border-radius: 0.35rem;
-    overflow: hidden;
-  }
-
-  .markdown-view-toggle button {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    min-height: 1.65rem;
-    padding: 0.15rem 0.5rem;
-  }
-
-  .markdown-view-toggle button + button {
-    border-left: 1px solid var(--border);
-  }
-
-  .markdown-view-toggle button.active {
-    background: var(--surface-alt);
-    color: var(--ink);
-    font-weight: 600;
-  }
-
-  #copy-query-btn, #copy-output-btn,
-  #save-query-btn, #save-output-btn, #result-collapse {
+  #copy-output-btn, #save-output-btn, #result-collapse {
     height: 2rem;
     padding: 0;
     width: 2rem;
@@ -962,17 +721,13 @@
 
   .copy-icon::after { background: var(--surface); }
 
-  .editor-body { display: flex; flex-direction: column; }
-
-  #query-editor, .markdown-preview, .html-preview {
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-
+  /* urui's host keeps a 12rem floor; the rows layout's editor may be
+     shorter, as it was before urui mounted it */
   #query-editor {
     background: var(--surface);
     border: 0;
     font: 0.95rem/1.55 ui-monospace, monospace;
+    min-height: 0;
     outline: none;
     width: 100%;
   }
@@ -984,76 +739,6 @@
   }
 
   #query-editor[hidden] { display: none; }
-
-  .html-preview {
-    background: #fff;
-    border: 0;
-    width: 100%;
-  }
-
-  .markdown-preview {
-    background: var(--surface);
-    color: var(--ink);
-    overflow: auto;
-    padding: 1rem 1.25rem;
-  }
-
-  .markdown-preview > :first-child { margin-top: 0; }
-
-  .markdown-preview > :last-child { margin-bottom: 0; }
-
-  .markdown-preview h1, .markdown-preview h2,
-  .markdown-preview h3, .markdown-preview h4,
-  .markdown-preview h5, .markdown-preview h6 {
-    line-height: 1.25;
-    margin: 1.2em 0 0.55em;
-  }
-
-  .markdown-preview p, .markdown-preview ul,
-  .markdown-preview ol, .markdown-preview blockquote {
-    line-height: 1.6;
-    margin: 0.7em 0;
-  }
-
-  .markdown-preview blockquote {
-    border-left: 0.25rem solid var(--border);
-    color: var(--muted);
-    padding-left: 0.85rem;
-  }
-
-  .markdown-preview code {
-    background: var(--surface-alt);
-    border-radius: 0.25rem;
-    font-family: ui-monospace, monospace;
-    padding: 0.1rem 0.25rem;
-  }
-
-  .markdown-preview pre {
-    background: var(--surface-alt);
-    border-radius: 0.35rem;
-    overflow: auto;
-    padding: 0.75rem;
-  }
-
-  .markdown-preview pre code {
-    background: transparent;
-    padding: 0;
-  }
-
-  .markdown-preview table {
-    border-collapse: collapse;
-    margin: 0.8rem 0;
-  }
-
-  .markdown-preview th, .markdown-preview td {
-    border: 1px solid var(--border);
-    padding: 0.35rem 0.55rem;
-    text-align: left;
-  }
-
-  .markdown-preview th { background: var(--surface-alt); }
-
-  .markdown-preview a { color: var(--accent); }
 
   /* ---- output ------------------------------------------------------ */
 
@@ -1117,14 +802,6 @@
   .result-tab[draggable='true'] { cursor: grab; }
 
   .result-tab.is-dragging { opacity: 0.45; }
-
-  .ref-explorer-panel .ref-markdown { overflow: visible; padding: 0; }
-
-  .ref-explorer-panel .ref-html {
-    display: block;
-    height: 100%;
-    min-height: 20rem;
-  }
 
   .result-tab[aria-selected="true"] {
     background: var(--surface);
@@ -1253,9 +930,10 @@
 ::
 ++  app-js
   ::  Obelisk's behaviour on urui's frame.  urui owns layout, the
-  ::  explorer strip, docs tabs, help, settings, theme, and the tab
-  ::  strips; this owns the query and command tabs' contents, the
-  ::  schema and file trees, files, dialogs, menus, and output.
+  ::  explorer strip, docs tabs, help, settings, theme, the tab strips,
+  ::  and the `script` store: its tabs, editor, files, tree, dialogs,
+  ::  previews, and toast.  This owns the schema tree, the relation
+  ::  menu, run and parse, command output, and result export.
   ^-  @t
   '''
   (() => {
@@ -1265,91 +943,48 @@
     const workbench = byId('workbench');
     const explorerPane = byId('explorer-pane');
     const outputTabsBand = byId('output-pane-tabs');
-    const editorHost = byId('query-editor');
-    const editorLoadError = byId('editor-load-error');
     const editorLanguage = byId('editor-language');
-    const markdownViewToggle = byId('markdown-view-toggle');
-    const markdownSourceButton = byId('markdown-source-btn');
-    const markdownPreviewButton = byId('markdown-preview-btn');
-    const markdownPreview = byId('markdown-preview');
-    const htmlPreview = byId('html-preview');
     const runButton = byId('run-btn');
     const parseButton = byId('parse-btn');
-    const saveQueryButton = byId('save-query-btn');
     const saveOutputButton = byId('save-output-btn');
-    const copyQueryButton = byId('copy-query-btn');
     const copyOutputButton = byId('copy-output-btn');
     const defaultDatabase = byId('default-db');
     const schemasPanel = byId('schemas-panel');
     const schemaTree = byId('schemas-tree');
-    const filesTree = byId('files-tree');
     const results = byId('results');
-    const status = byId('app-status');
-    const fileDialog = byId('file-dialog');
-    const fileDialogForm = byId('file-dialog-form');
-    const fileDialogTitle = byId('file-dialog-title');
-    const fileDialogHelp = byId('file-dialog-help');
-    const fileDialogList = byId('file-dialog-list');
-    const filePathLabel = byId('file-path-label');
-    const filePathInput = byId('file-path-input');
     const resultsFormatField = byId('results-format-field');
     const resultsFormatSelect = byId('results-format-select');
-    const fileDialogConfirm = byId('file-dialog-confirm');
     const relationMenu = byId('relation-menu');
-    const saveContextMenu = byId('save-context-menu');
-    const saveContextSave = byId('save-context-save');
-    const saveContextSaveAs = byId('save-context-save-as');
-    const fileContextMenu = byId('file-context-menu');
-    const fileContextOpen = byId('file-context-open');
-    const fileContextDelete = byId('file-context-delete');
-    //  a click on a query tab focuses the editor; arrow keys keep focus
-    //  on the strip, as they did before the strip was urui's
-    let pointerSelect = false;
+    //  urui mounts the query editor in `docs.start()`, at boot
     let editor;
     const runtime = window.urui.runtime({
-      editors: () => [editor],
       session: {
-        read: (key) => {
-          if (key !== 'workbench') return undefined;
-          if (editor) captureEditor();
-          return state;
-        },
+        read: (key) => key === 'workbench' ? state : undefined,
         validate: (key, raw) => {
           return key === 'workbench' ? validWorkbench(raw) : undefined;
         }
       },
       panes: {
         onSelect: (paneId, _level, id) => {
-          if (paneId === 'editor-pane') activateTab(id, pointerSelect);
-          if (paneId === 'output-pane') {
-            const position = Number(String(id).replace('command-', ''));
-            if (Number.isInteger(position)) selectCommand(position);
-          }
-          pointerSelect = false;
-        },
-        onAdd: (paneId) => {
-          if (paneId === 'editor-pane') addDraft();
-        },
-        onClose: (paneId, _level, id) => {
-          if (paneId === 'editor-pane') closeTab(id);
-        },
-        onRendered: (paneId, level) => {
-          if (paneId === 'editor-pane' && level === 'script') {
-            enableScriptRefDrag();
+          if (paneId !== 'output-pane') return;
+          const position = Number(String(id).replace('command-', ''));
+          if (Number.isInteger(position)) selectCommand(position);
+        }
+      },
+      //  Script tabs are urui's `script` store: tabs, files, the tree,
+      //  source and preview, and their references.  A result opened from
+      //  the tree is read-only, and neither runs nor parses.
+      documents: {
+        script: {
+          activate: (tab) => {
+            showLanguage(tab);
+            updateExecutionControls();
+            updateOutputControls();
           }
         }
       },
-      //  a script reference follows its editor tab and outlives it; a
-      //  result reference is a snapshot and is not saved
+      //  a result reference is a snapshot and is not saved
       refs: {
-        script: {
-          create: ({parentId}) => {
-            const tab = state.tabs.find((each) => each.id === parentId);
-            return tab ? scriptRefContent(tab) : undefined;
-          },
-          render: renderScriptRef,
-          validate: validScriptRef
-        },
         result: {
           persist: false,
           create: ({data}) => {
@@ -1371,37 +1006,8 @@
         }
       }
     });
-    byId('editor-pane-script-tabs')?.addEventListener('pointerdown', () => {
-      pointerSelect = true;
-    });
-    editor = mountEditor();
-
-    //  The Ace adapter throws when its assets did not load; the page
-    //  then shows `#editor-load-error`, and a stand-in keeps every
-    //  caller working from the saved tab text.
-    function mountEditor() {
-      try {
-        return window.urui.editor.adapter(editorHost, {
-          assets: window.obeliskAceAssets,
-          label: 'urQL query'
-        });
-      } catch (_) {
-        editorLoadError.hidden = false;
-        editorHost.hidden = true;
-        return {
-          getSource: () => activeTab().text,
-          setSource: () => {},
-          getSelection: () => ({start: 0, end: 0}),
-          setSelection: () => {},
-          focus: () => {},
-          onChange: () => () => {},
-          isFocused: () => false,
-          setTheme: () => {},
-          setKeybindings: () => {},
-          refresh: () => {}
-        };
-      }
-    }
+    const docs = runtime.documents;
+    const notify = runtime.notify;
 
     //  urui's <head> has no consumer slot, so the icon arrives here
     if (!document.querySelector('link[rel="icon"]')) {
@@ -1412,7 +1018,6 @@
       icon.href = '/apps/obelisk/favicon.ico';
       document.head.appendChild(icon);
     }
-    let statusTimer = 0;
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',
@@ -1428,662 +1033,72 @@
     let outputRun = 0;
     let nextResultRef = 1;
     let nextParseRef = 1;
-    let fileDialogMode = 'open';
-    let selectedFilePath = null;
-    let contextFilePath = null;
-    let contextFileSource = null;
-    let fileEntries = [];
-    let explorerFileEntries = [];
     let schemaValue = null;
     let schemaPromise = null;
     let relationContext = null;
-    let saveContextKind = null;
-    let saveContextSource = null;
 
     function initialState() {
       return {
-        version: 1,
-        tabs: [{
-          id: 'draft-1',
-          name: 'script-1',
-          path: null,
-          text: '',
-          savedText: null,
-          selectionStart: 0,
-          selectionEnd: 0,
-          resultView: 'source'
-        }],
-        activeId: 'draft-1',
-        nextDraft: 2,
-        nextFile: 1,
         defaultDatabase: null,
         schemaExpanded: [],
-        schemaDatabaseNames: [],
-        filesCollapsed: []
+        schemaDatabaseNames: []
       };
     }
 
-    function validTab(tab) {
-      return tab && typeof tab.id === 'string' &&
-        typeof tab.name === 'string' && typeof tab.text === 'string' &&
-        Number.isInteger(tab.selectionStart) &&
-        Number.isInteger(tab.selectionEnd) &&
-        (tab.savedText === null || typeof tab.savedText === 'string' ||
-          typeof tab.savedText === 'undefined') &&
-        (typeof tab.resultView === 'undefined' ||
-          ['source', 'preview'].includes(tab.resultView)) &&
-        (tab.path === null || Array.isArray(tab.path));
-    }
-
-    //  The `workbench` slot of urui's session record, repaired on load:
-    //  anything unreadable starts a fresh workbench rather than failing.
+    //  The `workbench` slot of urui's session record: the default
+    //  database and the schema tree's folds.  Anything unreadable starts
+    //  afresh rather than failing.
     function validWorkbench(saved) {
-      try {
-        if (!saved || saved.version !== 1 || !Array.isArray(saved.tabs) ||
-            saved.tabs.length === 0 || !saved.tabs.every(validTab)) {
-          return initialState();
-        }
-        if (!saved.tabs.some((tab) => tab.id === saved.activeId)) {
-          saved.activeId = saved.tabs[0].id;
-        }
-        const base = initialState();
-        const restored = Object.assign(base, saved);
-        restored.tabs.forEach((tab) => {
-          if (typeof tab.savedText === 'undefined') {
-            tab.savedText = tab.path ? tab.text : null;
-          }
-          if (typeof tab.resultView === 'undefined') {
-            tab.resultView = tab.markdownView || 'source';
-          }
-          delete tab.markdownView;
-        });
-        if (!Array.isArray(restored.schemaExpanded)) {
-          restored.schemaExpanded = [];
-        }
-        if (!Array.isArray(restored.schemaDatabaseNames)) {
-          restored.schemaDatabaseNames = [];
-        }
-        if (!Array.isArray(restored.filesCollapsed)) {
-          restored.filesCollapsed = [];
-        }
-        //  layout, explorer view, and docs tabs are urui's now
-        ['outputSize', 'schemaSize', 'outputRatio', 'schemaOpen',
-          'outputOpen', 'explorerView', 'docsTabs', 'nextDocs']
-          .forEach((key) => delete restored[key]);
-        return restored;
-      } catch (_) {
-        return initialState();
+      const restored = initialState();
+      if (!saved || typeof saved !== 'object') return restored;
+      if (typeof saved.defaultDatabase === 'string') {
+        restored.defaultDatabase = saved.defaultDatabase;
       }
+      ['schemaExpanded', 'schemaDatabaseNames'].forEach((key) => {
+        if (Array.isArray(saved[key])) {
+          restored[key] = saved[key].filter((item) => {
+            return typeof item === 'string';
+          });
+        }
+      });
+      return restored;
     }
 
     //  replaced by the saved workbench once urui's session loads
     let state = initialState();
 
     //  urui writes the whole record, `workbench` included, on a short
-    //  debounce and again on unload; `session.read` captures the editor
+    //  debounce and again on unload
     function persist() {
       runtime.session.queue();
     }
 
     function activeTab() {
-      return state.tabs.find((tab) => tab.id === state.activeId) ||
-        state.tabs[0];
+      return docs.active('script');
     }
 
-    function previewResultMark(tab) {
-      if (!Array.isArray(tab.path) || tab.path[0] !== 'results') return null;
-      const mark = tab.path[tab.path.length - 1];
-      return ['md', 'html'].includes(mark) ? mark : null;
+    function activeTabIsResult() {
+      return activeTab()?.path?.[0] === 'results';
     }
 
-    function safeMarkdownHref(value) {
-      if (value.startsWith('#')) return value;
-      try {
-        const url = new URL(value, window.location.href);
-        if (['http:', 'https:', 'mailto:'].includes(url.protocol)) {
-          return url.href;
-        }
-      } catch (_) {
-        return null;
-      }
-      return null;
-    }
+    //  The heading names what the active tab holds: urQL for a script,
+    //  else the stored result's format.
+    const languageNames = {md: 'Markdown', html: 'HTML'};
 
-    function appendMarkdownInline(parent, value) {
-      const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|__[^_\n]+__|\*[^*\n]+\*|_[^_\n]+_|\[[^\]\n]+\]\([^) \n]+\))/g;
-      let offset = 0;
-      for (const match of value.matchAll(pattern)) {
-        parent.appendChild(document.createTextNode(
-          value.slice(offset, match.index)
-        ));
-        const token = match[0];
-        let node;
-        if (token.startsWith('`')) {
-          node = document.createElement('code');
-          node.textContent = token.slice(1, -1);
-        } else if (token.startsWith('**') || token.startsWith('__')) {
-          node = document.createElement('strong');
-          node.textContent = token.slice(2, -2);
-        } else if (token.startsWith('*') || token.startsWith('_')) {
-          node = document.createElement('em');
-          node.textContent = token.slice(1, -1);
-        } else {
-          const parts = /^\[([^\]]+)\]\(([^) ]+)\)$/.exec(token);
-          const href = parts ? safeMarkdownHref(parts[2]) : null;
-          if (parts && href) {
-            node = document.createElement('a');
-            node.textContent = parts[1];
-            node.href = href;
-            node.rel = 'noreferrer';
-            if (!href.startsWith(window.location.origin)) {
-              node.target = '_blank';
-            }
-          } else {
-            node = document.createTextNode(token);
-          }
-        }
-        parent.appendChild(node);
-        offset = match.index + token.length;
-      }
-      parent.appendChild(document.createTextNode(value.slice(offset)));
-    }
-
-    function markdownTableCells(line) {
-      let value = line.trim();
-      if (value.startsWith('|')) value = value.slice(1);
-      if (value.endsWith('|') && !value.endsWith('\\|')) {
-        value = value.slice(0, -1);
-      }
-      const cells = [];
-      let cell = '';
-      let escaped = false;
-      for (const character of value) {
-        if (escaped) {
-          cell += character;
-          escaped = false;
-        } else if (character === '\\') {
-          escaped = true;
-        } else if (character === '|') {
-          cells.push(cell.trim());
-          cell = '';
-        } else {
-          cell += character;
-        }
-      }
-      if (escaped) cell += '\\';
-      cells.push(cell.trim());
-      return cells;
-    }
-
-    function markdownTableDelimiter(line) {
-      const cells = markdownTableCells(line);
-      return cells.length > 0 && cells.every((cell) => {
-        return /^:?-{3,}:?$/.test(cell);
-      });
-    }
-
-    function markdownBlockStart(lines, index) {
-      const line = lines[index] || '';
-      const next = lines[index + 1] || '';
-      return /^ {0,3}```/.test(line) || /^ {0,3}#{1,6}\s+/.test(line) ||
-        /^ {0,3}(?:[-*_]\s*){3,}$/.test(line) ||
-        /^\s*>\s?/.test(line) ||
-        /^\s*(?:[-+*]|\d+\.)\s+/.test(line) ||
-        (line.includes('|') && markdownTableDelimiter(next));
-    }
-
-    function renderMarkdown(text) {
-      markdownPreview.replaceChildren(markdownFragment(text));
-    }
-
-    function markdownFragment(text) {
-      const fragment = document.createDocumentFragment();
-      const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
-      let index = 0;
-      while (index < lines.length) {
-        const line = lines[index];
-        if (!line.trim()) {
-          index += 1;
-          continue;
-        }
-        const fence = /^ {0,3}```\s*([^ ]*)\s*$/.exec(line);
-        if (fence) {
-          const codeLines = [];
-          index += 1;
-          while (index < lines.length && !/^ {0,3}```\s*$/.test(
-            lines[index]
-          )) {
-            codeLines.push(lines[index]);
-            index += 1;
-          }
-          if (index < lines.length) index += 1;
-          const pre = document.createElement('pre');
-          const code = document.createElement('code');
-          if (fence[1]) code.dataset.language = fence[1];
-          code.textContent = codeLines.join('\n');
-          pre.appendChild(code);
-          fragment.appendChild(pre);
-          continue;
-        }
-        if (index + 1 < lines.length && line.includes('|') &&
-            markdownTableDelimiter(lines[index + 1])) {
-          const table = document.createElement('table');
-          const head = document.createElement('thead');
-          const headRow = document.createElement('tr');
-          const headers = markdownTableCells(line);
-          const delimiters = markdownTableCells(lines[index + 1]);
-          headers.forEach((header, cellIndex) => {
-            const cell = document.createElement('th');
-            const delimiter = delimiters[cellIndex] || '';
-            if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
-              cell.style.textAlign = 'center';
-            } else if (delimiter.endsWith(':')) {
-              cell.style.textAlign = 'right';
-            }
-            appendMarkdownInline(cell, header);
-            headRow.appendChild(cell);
-          });
-          head.appendChild(headRow);
-          table.appendChild(head);
-          const body = document.createElement('tbody');
-          index += 2;
-          while (index < lines.length && lines[index].trim() &&
-              lines[index].includes('|')) {
-            const row = document.createElement('tr');
-            markdownTableCells(lines[index]).forEach((value, cellIndex) => {
-              const cell = document.createElement('td');
-              const delimiter = delimiters[cellIndex] || '';
-              if (delimiter.startsWith(':') && delimiter.endsWith(':')) {
-                cell.style.textAlign = 'center';
-              } else if (delimiter.endsWith(':')) {
-                cell.style.textAlign = 'right';
-              }
-              appendMarkdownInline(cell, value);
-              row.appendChild(cell);
-            });
-            body.appendChild(row);
-            index += 1;
-          }
-          table.appendChild(body);
-          fragment.appendChild(table);
-          continue;
-        }
-        const heading = /^ {0,3}(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
-        if (heading) {
-          const node = document.createElement(`h${heading[1].length}`);
-          appendMarkdownInline(node, heading[2]);
-          fragment.appendChild(node);
-          index += 1;
-          continue;
-        }
-        if (/^ {0,3}(?:[-*_]\s*){3,}$/.test(line)) {
-          fragment.appendChild(document.createElement('hr'));
-          index += 1;
-          continue;
-        }
-        if (/^\s*>\s?/.test(line)) {
-          const quote = document.createElement('blockquote');
-          const quoteLines = [];
-          while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
-            quoteLines.push(lines[index].replace(/^\s*>\s?/, ''));
-            index += 1;
-          }
-          appendMarkdownInline(quote, quoteLines.join(' '));
-          fragment.appendChild(quote);
-          continue;
-        }
-        const listItem = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(line);
-        if (listItem) {
-          const ordered = /\d+\./.test(listItem[1]);
-          const list = document.createElement(ordered ? 'ol' : 'ul');
-          while (index < lines.length) {
-            const item = /^\s*([-+*]|\d+\.)\s+(.+)$/.exec(lines[index]);
-            if (!item || /\d+\./.test(item[1]) !== ordered) break;
-            const node = document.createElement('li');
-            appendMarkdownInline(node, item[2]);
-            list.appendChild(node);
-            index += 1;
-          }
-          fragment.appendChild(list);
-          continue;
-        }
-        const paragraphLines = [line.trim()];
-        index += 1;
-        while (index < lines.length && lines[index].trim() &&
-            !markdownBlockStart(lines, index)) {
-          paragraphLines.push(lines[index].trim());
-          index += 1;
-        }
-        const paragraph = document.createElement('p');
-        appendMarkdownInline(paragraph, paragraphLines.join(' '));
-        fragment.appendChild(paragraph);
-      }
-      return fragment;
-    }
-
-    function updateEditorView(focus = false) {
-      const tab = activeTab();
-      const mark = previewResultMark(tab);
-      const preview = Boolean(mark) && tab.resultView === 'preview';
-      editorLanguage.textContent = mark === 'md' ? 'Markdown' :
-        mark === 'html' ? 'HTML' : 'urQL';
-      markdownViewToggle.classList.toggle('hidden', !mark);
-      markdownViewToggle.setAttribute(
-        'aria-label', mark === 'html' ? 'HTML view' : 'Markdown view'
-      );
-      markdownSourceButton.classList.toggle('active', !preview);
-      markdownPreviewButton.classList.toggle('active', preview);
-      markdownSourceButton.setAttribute('aria-pressed', String(!preview));
-      markdownPreviewButton.setAttribute('aria-pressed', String(preview));
-      editorHost.hidden = preview;
-      markdownPreview.classList.toggle(
-        'hidden', !(preview && mark === 'md')
-      );
-      htmlPreview.classList.toggle(
-        'hidden', !(preview && mark === 'html')
-      );
-      const sourceLabel = mark === 'md' ? 'Markdown source' :
-        mark === 'html' ? 'HTML source' : 'urQL query';
-      editorHost.setAttribute('aria-label', sourceLabel);
-      editorHost.querySelector('textarea')
-        ?.setAttribute('aria-label', sourceLabel);
-      if (!preview) editor.refresh();
-      if (preview && mark === 'md') renderMarkdown(tab.text);
-      if (preview && mark === 'html' && htmlPreview.srcdoc !== tab.text) {
-        htmlPreview.srcdoc = tab.text;
-      }
-      if (focus) {
-        requestAnimationFrame(() => {
-          if (preview && mark === 'md') markdownPreview.focus();
-          else if (preview && mark === 'html') htmlPreview.focus();
-          else editor.focus();
-        });
-      }
-    }
-
-    function setResultView(view) {
-      const tab = activeTab();
-      if (!previewResultMark(tab)) return;
-      captureEditor();
-      tab.resultView = view;
-      updateEditorView(true);
-      persist();
-    }
-
-    function captureEditor() {
-      const tab = activeTab();
-      const selection = editor.getSelection();
-      tab.text = editor.getSource();
-      tab.selectionStart = selection.start;
-      tab.selectionEnd = selection.end;
-    }
-
-    function restoreEditor(focus) {
-      const tab = activeTab();
-      const start = Math.min(tab.selectionStart, tab.text.length);
-      const end = Math.min(tab.selectionEnd, tab.text.length);
-      editor.setSource(tab.text, {
-        history: 'reset',
-        notify: false,
-        selection: {start, end}
-      });
-      updateEditorView(focus);
-      requestAnimationFrame(() => {
-        if (focus && tab.resultView !== 'preview') editor.focus();
-      });
-    }
-
-    function scriptRefContent(tab) {
-      return {
-        label: tab.name,
-        data: {text: tab.text, mark: previewResultMark(tab)}
-      };
-    }
-
-    function validScriptRef(data) {
-      if (!data || typeof data.text !== 'string') return undefined;
-      const mark = ['md', 'html'].includes(data.mark) ? data.mark : null;
-      return {text: data.text, mark};
-    }
-
-    function renderScriptRef(panel, ref) {
-      const {text, mark} = ref.data;
-      if (mark === 'md') {
-        const view = document.createElement('div');
-        view.className = 'markdown-preview ref-markdown';
-        view.appendChild(markdownFragment(text));
-        panel.appendChild(view);
-      } else if (mark === 'html') {
-        const frame = document.createElement('iframe');
-        frame.className = 'html-preview ref-html';
-        frame.title = `${ref.label} rendered HTML`;
-        frame.setAttribute('sandbox', '');
-        frame.referrerPolicy = 'no-referrer';
-        frame.srcdoc = text;
-        panel.appendChild(frame);
-      } else {
-        const source = document.createElement('pre');
-        source.className = 'ref-source';
-        source.textContent = text;
-        panel.appendChild(source);
-      }
-    }
-
-    function syncScriptRefs(tabs = state.tabs) {
-      tabs.forEach((tab) => {
-        const ref = runtime.explorer.refs.forParent('script', tab.id);
-        if (!ref) return;
-        const next = scriptRefContent(tab);
-        if (ref.label === next.label && ref.data.text === next.data.text &&
-            ref.data.mark === next.data.mark) return;
-        runtime.explorer.refs.update('script', tab.id, next);
-      });
-    }
-
-    function enableScriptRefDrag() {
-      const strip = byId('editor-pane-script-tabs');
-      strip?.querySelectorAll('[data-pane-tab]').forEach((control) => {
-        const id = control.dataset.paneTab;
-        runtime.explorer.refs.draggable(control.parentElement, () => {
-          if (id === state.activeId) captureEditor();
-          return {kind: 'script', parentId: id};
-        });
-      });
-    }
-
-    function tabIsDirty(tab) {
-      return tab.savedText !== null && tab.text !== tab.savedText;
-    }
-
-    //  The strip is urui's %dynamic level; `state.tabs` stays the
-    //  source of truth and is handed over whole on every change.
-    function renderTabs() {
-      runtime.panes.set('editor-pane', 'script', state.tabs.map((tab) => {
-        return {
-          id: tab.id,
-          label: `${tab.name}${tabIsDirty(tab) ? ' •' : ''}`,
-          title: tab.path ? tab.path.join('/') : tab.name
-        };
-      }));
-      runtime.panes.select('editor-pane', [state.activeId]);
-      syncScriptRefs();
-      updateExecutionControls();
-      updateOutputControls();
-    }
-
-    function activateTab(id, focusEditor) {
-      if (id === state.activeId) {
-        if (focusEditor) {
-          const mark = previewResultMark(activeTab());
-          if (mark && activeTab().resultView === 'preview') {
-            if (mark === 'md') markdownPreview.focus();
-            else htmlPreview.focus();
-          } else {
-            editor.focus();
-          }
-        }
-        return;
-      }
-      if (!state.tabs.some((tab) => tab.id === id)) return;
-      captureEditor();
-      state.activeId = id;
-      renderTabs();
-      restoreEditor(focusEditor);
-      persist();
-    }
-
-    function nextDraftName() {
-      let name;
-      do {
-        name = `script-${state.nextDraft}`;
-        state.nextDraft += 1;
-      } while (state.tabs.some((tab) => tab.name === name));
-      return name;
-    }
-
-    function uniqueTabName(candidate, exceptId = null) {
-      const used = new Set(state.tabs
-        .filter((tab) => tab.id !== exceptId)
-        .map((tab) => tab.name));
-      if (!used.has(candidate)) return candidate;
-      let suffix = 2;
-      while (used.has(`${candidate} (${suffix})`)) suffix += 1;
-      return `${candidate} (${suffix})`;
-    }
-
-    function addDraft(text = '') {
-      captureEditor();
-      const name = nextDraftName();
-      const tab = {
-        id: `draft-${state.nextDraft - 1}`,
-        name,
-        path: null,
-        text,
-        savedText: null,
-        selectionStart: 0,
-        selectionEnd: 0,
-        resultView: 'source'
-      };
-      state.tabs.push(tab);
-      state.activeId = tab.id;
-      renderTabs();
-      restoreEditor(true);
-      persist();
-      closeMenus();
-      return tab;
-    }
-
-    function pathKey(path) {
-      return path.join('/');
-    }
-
-    function savedFileTabName(path) {
-      if (path[0] === 'results' && path.length >= 3) {
-        return path.slice(-2).join('/');
-      }
-      return path[path.length - 1] || 'script';
-    }
-
-    function addFileTab(path, text) {
-      const key = pathKey(path);
-      const existing = state.tabs.find((tab) => {
-        return tab.path && pathKey(tab.path) === key;
-      });
-      if (existing) {
-        captureEditor();
-        existing.path = path.slice();
-        existing.name = uniqueTabName(savedFileTabName(path), existing.id);
-        existing.text = text;
-        existing.savedText = text;
-        existing.selectionStart = 0;
-        existing.selectionEnd = 0;
-        state.activeId = existing.id;
-        renderTabs();
-        restoreEditor(true);
-        persist();
-        return existing;
-      }
-      captureEditor();
-      const tab = {
-        id: `file-${state.nextFile++}`,
-        name: uniqueTabName(savedFileTabName(path)),
-        path: path.slice(),
-        text,
-        savedText: text,
-        selectionStart: 0,
-        selectionEnd: 0,
-        resultView: 'source'
-      };
-      state.tabs.push(tab);
-      state.activeId = tab.id;
-      renderTabs();
-      restoreEditor(true);
-      persist();
-      return tab;
-    }
-
-    function closeTab(id) {
-      const active = id === state.activeId;
-      if (active) captureEditor();
-      const index = state.tabs.findIndex((tab) => tab.id === id);
-      if (index < 0) return;
-      state.tabs.splice(index, 1);
-      if (state.tabs.length === 0) {
-        const name = nextDraftName();
-        state.tabs.push({
-          id: `draft-${state.nextDraft - 1}`,
-          name,
-          path: null,
-          text: '',
-          savedText: null,
-          selectionStart: 0,
-          selectionEnd: 0,
-          resultView: 'source'
-        });
-      }
-      if (active) {
-        const next = Math.min(index, state.tabs.length - 1);
-        state.activeId = state.tabs[next].id;
-      }
-      renderTabs();
-      if (active) restoreEditor(true);
-      persist();
-      closeMenus();
-    }
-
-    function closeActiveTab() {
-      closeTab(state.activeId);
-    }
-
-    function setStatus(message, kind = 'info', sticky = false) {
-      clearTimeout(statusTimer);
-      status.textContent = message;
-      status.dataset.kind = kind;
-      status.classList.remove('hidden');
-      if (!sticky) {
-        statusTimer = window.setTimeout(() => {
-          status.classList.add('hidden');
-        }, 3500);
-      }
+    function showLanguage(tab) {
+      const path = tab?.path;
+      const mark = path?.[0] === 'results' ? path[path.length - 1] : null;
+      editorLanguage.textContent = mark ?
+        (languageNames[mark] || mark.toUpperCase()) : 'urQL';
     }
 
     function updateOutputControls() {
       copyOutputButton.disabled = !outputCopyAvailable();
-      saveQueryButton.disabled = busy || activeTabIsResult();
       saveOutputButton.disabled = busy || !outputState.exportable;
-      saveQueryButton.setAttribute(
-        'aria-disabled',
-        String(saveQueryButton.disabled)
-      );
       saveOutputButton.setAttribute(
         'aria-disabled',
         String(saveOutputButton.disabled)
       );
-    }
-
-    function activeTabIsResult() {
-      const tab = activeTab();
-      return Array.isArray(tab.path) && tab.path[0] === 'results';
     }
 
     function updateExecutionControls() {
@@ -2097,17 +1112,20 @@
       workbench.setAttribute('aria-busy', String(value));
       results.setAttribute('aria-busy', String(value));
       updateExecutionControls();
-      fileContextOpen.disabled = value;
-      fileContextDelete.disabled = value;
       runButton.firstElementChild.textContent = value && label === 'run' ?
         'Running…' : 'Run';
       parseButton.textContent = value && label === 'parse' ?
         'Parsing…' : 'Parse';
       updateOutputControls();
-      if (fileDialog.open) {
-        fileDialogConfirm.disabled = value ||
-          (fileDialogMode === 'open' && !selectedFilePath);
-      }
+    }
+
+    function notifyError(error) {
+      const message = error instanceof Error ? error.message : String(error);
+      notify(message, {
+        kind: 'error',
+        sticky: true,
+        details: Array.isArray(error?.details) ? error.details : []
+      });
     }
 
     function errorMessage(body, fallback) {
@@ -2146,59 +1164,7 @@
       return body;
     }
 
-    //  Files travel on urui's file wire, whose paths end in the stored
-    //  mark.  Until the script tabs and the tree move onto urui's
-    //  documents, this keeps their logical paths: a script is
-    //  `scripts/…/name`, stored under a `txt` leaf.
-    function storedPath(path) {
-      return path[0] === 'scripts' ? [...path, 'txt'] : path.slice();
-    }
-
-    function logicalPath(path) {
-      return path[0] === 'scripts' && path[path.length - 1] === 'txt' ?
-        path.slice(0, -1) : path.slice();
-    }
-
-    async function fileApi(operation, payload) {
-      const url = '/apps/obelisk/files';
-      if (operation === 'file-browse') {
-        const whole = payload.path.length === 0;
-        const scopes = whole ? [['scripts'], ['results']] : [payload.path];
-        const entries = [];
-        for (const scope of scopes) {
-          const body = await post(url, {op: 'browse', scope});
-          if (whole) entries.push({path: scope, kind: 'directory'});
-          for (const entry of body.entries || []) {
-            entries.push({path: logicalPath(entry.path), kind: entry.kind});
-          }
-        }
-        entries.sort((left, right) => {
-          const a = left.path.join('/');
-          const b = right.path.join('/');
-          return a < b ? -1 : (a > b ? 1 : 0);
-        });
-        return {entries};
-      }
-      const path = storedPath(payload.path);
-      if (operation === 'file-load') {
-        const body = await post(url, {op: 'load', path});
-        return {path: payload.path, content: body.text};
-      }
-      if (operation === 'file-save') {
-        await post(url, {
-          op: 'save',
-          path,
-          text: payload.content,
-          overwrite: Boolean(payload.overwrite)
-        });
-        return {path: payload.path};
-      }
-      await post(url, {op: 'delete', path});
-      return {path: payload.path};
-    }
-
     async function api(operation, payload) {
-      if (operation.startsWith('file-')) return fileApi(operation, payload);
       const route = {
         'result-save': 'results/save',
         'result-text-save': 'results/save-text'
@@ -2212,484 +1178,13 @@
       return body;
     }
 
-    function relativePathFromInput(value, root) {
-      const parts = String(value || '').split('/').map((part) => {
-        return part.trim();
-      });
-      if (parts[0] === root) parts.shift();
-      const valid = parts.length > 0 && parts.every((part) => {
-        return /^[a-z][a-z0-9-]*$/.test(part);
-      });
-      return valid ? [root, ...parts] : null;
-    }
-
-    function scriptPathFromInput(value) {
-      return relativePathFromInput(value, 'scripts');
-    }
-
-    function resultPathFromInput(value, mark = null) {
-      const path = relativePathFromInput(value, 'results');
-      if (!path || !mark || path[path.length - 1] === mark) return path;
-      return [...path, mark];
-    }
-
-    function displayScriptPath(path) {
-      return path[0] === 'scripts' ? path.slice(1).join('/') :
-        path.join('/');
-    }
-
-    function suggestScriptPath(tab) {
-      if (tab.path) return tab.path.slice(1).join('/');
-      return tab.name.replace(/\s+\(\d+\)$/, '');
-    }
-
-    function tabStorageRoot(tab) {
-      return tab.path && tab.path[0] === 'results' ? 'results' : 'scripts';
-    }
-
-    function closeFileDialog() {
-      if (fileDialog.open) fileDialog.close();
-      selectedFilePath = null;
-      resultsFormatField.classList.add('hidden');
-    }
-
-    function samePath(left, right) {
-      return left.length === right.length && left.every((part, index) => {
-        return part === right[index];
-      });
-    }
-
-    function explorerFileParent(entry) {
-      const result = entry.kind === 'file' && entry.path[0] === 'results';
-      return entry.path.slice(0, result ? -2 : -1);
-    }
-
-    function childFileEntries(parent) {
-      return explorerFileEntries.filter((entry) => {
-        return Array.isArray(entry.path) &&
-          samePath(explorerFileParent(entry), parent);
-      });
-    }
-
-    function neededExplorerDirectory(directory, entries) {
-      return entries.some((entry) => {
-        if (entry.kind !== 'file') return false;
-        const parent = explorerFileParent(entry);
-        return directory.path.length <= parent.length &&
-          samePath(directory.path, parent.slice(0, directory.path.length));
-      });
-    }
-
-    function explorerFileLabel(entry) {
-      const result = entry.kind === 'file' && entry.path[0] === 'results';
-      return entry.path.slice(result ? -2 : -1).join('/');
-    }
-
-    function closeFileContext(restoreFocus = false) {
-      fileContextMenu.hidden = true;
-      if (contextFileSource) {
-        contextFileSource.setAttribute('aria-expanded', 'false');
-        if (restoreFocus) contextFileSource.focus();
-      }
-      contextFilePath = null;
-      contextFileSource = null;
-    }
-
-    function openFileContext(path, source, event = null) {
-      if (event) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      closeMenus();
-      closeRelationMenu();
-      closeSaveContext();
-      closeFileContext();
-      contextFilePath = path.slice();
-      contextFileSource = source;
-      source.setAttribute('aria-expanded', 'true');
-      fileContextMenu.style.left = '0px';
-      fileContextMenu.style.top = '0px';
-      fileContextMenu.hidden = false;
-      const menuRect = fileContextMenu.getBoundingClientRect();
-      const sourceRect = source.getBoundingClientRect();
-      const margin = 8;
-      const maximumLeft = window.innerWidth - menuRect.width - margin;
-      const maximumTop = window.innerHeight - menuRect.height - margin;
-      const pointer = event && event.type === 'contextmenu';
-      const left = clamp(
-        pointer ? event.clientX : sourceRect.right,
-        margin,
-        maximumLeft
-      );
-      const top = clamp(
-        pointer ? event.clientY : sourceRect.top,
-        margin,
-        maximumTop
-      );
-      fileContextMenu.style.left = `${left}px`;
-      fileContextMenu.style.top = `${top}px`;
-      fileContextOpen.focus();
-    }
-
-    async function openContextFile() {
-      const path = contextFilePath ? contextFilePath.slice() : null;
-      closeFileContext();
-      if (path) await loadFilePath(path);
-    }
-
-    async function deleteContextFile() {
-      const path = contextFilePath ? contextFilePath.slice() : null;
-      const source = contextFileSource;
-      if (!path) return;
-      const name = path.slice(1).join('/');
-      if (!window.confirm(`Delete ${name}? This cannot be undone.`)) {
-        closeFileContext();
-        if (source) source.focus();
-        return;
-      }
-      closeFileContext();
-      setBusy(true, 'delete');
-      try {
-        await api('file-delete', {path});
-        await refreshFiles();
-        setStatus(`${name} deleted.`);
-      } catch (error) {
-        setStatus(error.message, 'error', true);
-      } finally {
-        setBusy(false);
-      }
-    }
-
-    function fileExpansion(path, details) {
-      const key = pathKey(path);
-      details.open = !state.filesCollapsed.includes(key);
-      details.addEventListener('toggle', () => {
-        const collapsed = new Set(state.filesCollapsed);
-        if (details.open) collapsed.delete(key);
-        else collapsed.add(key);
-        state.filesCollapsed = Array.from(collapsed);
-        persist();
-      });
-    }
-
-    function renderExplorerFile(entry) {
-      if (entry.kind === 'directory') {
-        const details = document.createElement('details');
-        details.className = 'file-node';
-        details.setAttribute('role', 'treeitem');
-        fileExpansion(entry.path, details);
-        const summary = document.createElement('summary');
-        summary.textContent = entry.path[entry.path.length - 1];
-        const children = document.createElement('div');
-        children.className = 'file-children';
-        children.setAttribute('role', 'group');
-        childFileEntries(entry.path).forEach((child) => {
-          children.appendChild(renderExplorerFile(child));
-        });
-        details.append(summary, children);
-        return details;
-      }
-      const row = document.createElement('div');
-      row.className = 'explorer-file-row';
-      row.setAttribute('role', 'treeitem');
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'file-entry explorer-file';
-      button.textContent = explorerFileLabel(entry);
-      button.title = entry.path.join('/');
-      button.addEventListener('click', () => {
-        closeFileContext();
-        loadFilePath(entry.path);
-      });
-      row.addEventListener('contextmenu', (event) => {
-        openFileContext(entry.path, button, event);
-      });
-      const actions = document.createElement('button');
-      actions.type = 'button';
-      actions.className = 'file-actions';
-      actions.setAttribute(
-        'aria-label',
-        `Actions for ${explorerFileLabel(entry)}`
-      );
-      actions.setAttribute('aria-haspopup', 'menu');
-      actions.setAttribute('aria-expanded', 'false');
-      actions.textContent = '…';
-      actions.addEventListener('click', (event) => {
-        openFileContext(entry.path, actions, event);
-      });
-      row.append(button, actions);
-      return row;
-    }
-
-    function renderFiles(entries) {
-      const candidates = entries.filter((entry) => {
-        return Array.isArray(entry.path) &&
-          ['scripts', 'results'].includes(entry.path[0]);
-      });
-      explorerFileEntries = candidates.filter((entry) => {
-        return entry.kind !== 'directory' ||
-          neededExplorerDirectory(entry, candidates);
-      });
-      filesTree.replaceChildren();
-      const roots = childFileEntries([]);
-      if (roots.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'empty-state';
-        empty.textContent = 'No saved scripts or results.';
-        filesTree.appendChild(empty);
-      } else {
-        roots.forEach((entry) => {
-          filesTree.appendChild(renderExplorerFile(entry));
-        });
-      }
-      filesTree.setAttribute('aria-busy', 'false');
-    }
-
-    async function refreshFiles() {
-      filesTree.setAttribute('aria-busy', 'true');
-      try {
-        const body = await api('file-browse', {path: []});
-        const entries = Array.isArray(body.entries) ? body.entries : [];
-        renderFiles(entries);
-      } catch (error) {
-        filesTree.replaceChildren();
-        const failure = document.createElement('p');
-        failure.className = 'error-pane';
-        failure.textContent = error.message;
-        filesTree.appendChild(failure);
-        filesTree.setAttribute('aria-busy', 'false');
-      }
-    }
-
     function schemasShowing() {
       return runtime.layout.explorerOpen() &&
         runtime.explorer.view() === 'schemas';
     }
 
-    function renderFileEntries() {
-      fileDialogList.replaceChildren();
-      const entries = fileEntries.filter((entry) => {
-        return Array.isArray(entry.path) && entry.path[0] === 'scripts';
-      });
-      if (entries.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'empty-state';
-        empty.textContent = 'No saved scripts.';
-        fileDialogList.appendChild(empty);
-        return;
-      }
-      entries.forEach((entry) => {
-        const button = document.createElement('button');
-        const directory = entry.kind === 'directory';
-        button.type = 'button';
-        button.className = directory ? 'file-entry directory' :
-          'file-entry';
-        button.setAttribute('role', 'treeitem');
-        button.style.paddingLeft =
-          `${Math.max(0, entry.path.length - 2) * 1.1 + 0.35}rem`;
-        button.textContent = `${directory ? '▸' : '•'} ` +
-          entry.path[entry.path.length - 1];
-        if (directory) {
-          button.disabled = true;
-        } else {
-          button.addEventListener('click', () => {
-            selectedFilePath = entry.path.slice();
-            fileDialogList.querySelectorAll('.file-entry').forEach((node) => {
-              node.setAttribute('aria-selected', 'false');
-            });
-            button.setAttribute('aria-selected', 'true');
-            fileDialogConfirm.disabled = false;
-          });
-          button.addEventListener('dblclick', () => {
-            selectedFilePath = entry.path.slice();
-            openSelectedFile();
-          });
-        }
-        fileDialogList.appendChild(button);
-      });
-    }
-
-    async function showOpenDialog() {
-      if (busy) return;
-      closeMenus();
-      fileDialogMode = 'open';
-      selectedFilePath = null;
-      fileDialogTitle.textContent = 'Open script';
-      fileDialogHelp.textContent = 'Choose a saved script.';
-      fileDialogList.classList.remove('hidden');
-      filePathLabel.classList.add('hidden');
-      filePathInput.classList.add('hidden');
-      resultsFormatField.classList.add('hidden');
-      fileDialogConfirm.textContent = 'Open';
-      fileDialogConfirm.disabled = true;
-      fileDialog.showModal();
-      setBusy(true, 'browse');
-      try {
-        const body = await api('file-browse', {path: ['scripts']});
-        fileEntries = Array.isArray(body.entries) ? body.entries : [];
-        renderFileEntries();
-      } catch (error) {
-        closeFileDialog();
-        setStatus(error.message, 'error', true);
-      } finally {
-        setBusy(false);
-      }
-    }
-
-    function showSaveAsDialog() {
-      if (busy) return;
-      closeMenus();
-      closeSaveContext();
-      const root = tabStorageRoot(activeTab());
-      fileDialogMode = root === 'results' ? 'save-result-as' : 'save-as';
-      selectedFilePath = null;
-      fileDialogTitle.textContent = root === 'results' ?
-        'Save result as' : 'Save script as';
-      fileDialogHelp.textContent =
-        'Use lower-case letters, digits, and hyphens in each path part.';
-      fileDialogList.classList.add('hidden');
-      filePathLabel.classList.remove('hidden');
-      filePathLabel.textContent = root === 'results' ?
-        'Result path' : 'Script path';
-      filePathInput.classList.remove('hidden');
-      resultsFormatField.classList.add('hidden');
-      filePathInput.value = suggestScriptPath(activeTab());
-      fileDialogConfirm.textContent = 'Save';
-      fileDialogConfirm.disabled = false;
-      fileDialog.showModal();
-      filePathInput.focus();
-      filePathInput.select();
-    }
-
-    function nextResultName(entries) {
-      const names = new Set(entries.filter((entry) => {
-        return Array.isArray(entry.path) && entry.path.length >= 2 &&
-          entry.path[0] === 'results';
-      }).map((entry) => entry.path[1]));
-      let number = 1;
-      while (names.has(`results-${number}`)) number += 1;
-      return `results-${number}`;
-    }
-
-    async function showSaveResultsDialog() {
-      if (busy || !outputState.exportable) return;
-      closeMenus();
-      closeSaveContext();
-      setBusy(true, 'browse');
-      let entries = [];
-      try {
-        const body = await api('file-browse', {path: ['results']});
-        entries = Array.isArray(body.entries) ? body.entries : [];
-      } catch (error) {
-        setStatus(error.message, 'error', true);
-        return;
-      } finally {
-        setBusy(false);
-      }
-      fileDialogMode = 'save-results';
-      selectedFilePath = null;
-      fileDialogTitle.textContent = 'Save results';
-      fileDialogHelp.textContent =
-        'Save under results using lower-case letters, digits, and hyphens.';
-      fileDialogList.classList.add('hidden');
-      filePathLabel.classList.remove('hidden');
-      filePathLabel.textContent = 'Result path';
-      filePathInput.classList.remove('hidden');
-      const showFormat = outputState.kind === 'run';
-      resultsFormatField.classList.toggle('hidden', !showFormat);
-      resultsFormatSelect.value = showFormat ?
-        (outputState.format || '%csv') : '%tape';
-      filePathInput.value = outputState.path ?
-        outputState.path.slice(1).join('/') : nextResultName(entries);
-      fileDialogConfirm.textContent = 'Save';
-      fileDialogConfirm.disabled = false;
-      fileDialog.showModal();
-      filePathInput.focus();
-      filePathInput.select();
-    }
-
-    async function loadFilePath(filePath, closeDialog = false) {
-      if (busy || !filePath) return;
-      const path = filePath.slice();
-      const existing = state.tabs.find((tab) => {
-        return tab.path && pathKey(tab.path) === pathKey(path);
-      });
-      setBusy(true, 'open');
-      try {
-        const body = await api('file-load', {path});
-        addFileTab(body.path, body.content);
-        if (closeDialog) closeFileDialog();
-        const action = existing ? 'reloaded' : 'opened';
-        setStatus(`${displayScriptPath(body.path)} ${action}.`);
-      } catch (error) {
-        setStatus(error.message, 'error', true);
-      } finally {
-        setBusy(false);
-      }
-    }
-
-    async function openSelectedFile() {
-      if (!selectedFilePath) return;
-      await loadFilePath(selectedFilePath, true);
-    }
-
-    async function saveTab(tab, path, overwrite) {
-      if (busy) return false;
-      captureEditor();
-      const content = tab.text;
-      setBusy(true, 'save');
-      try {
-        const body = await api('file-save', {path, content, overwrite});
-        tab.path = body.path.slice();
-        tab.name = uniqueTabName(savedFileTabName(body.path), tab.id);
-        tab.savedText = content;
-        renderTabs();
-        persist();
-        await refreshFiles();
-        setStatus(`${displayScriptPath(body.path)} saved.`);
-        return true;
-      } catch (error) {
-        const overwriteMessage =
-          `${displayScriptPath(path)} exists. Overwrite it?`;
-        if (!overwrite && error.status === 409 &&
-            window.confirm(overwriteMessage)) {
-          setBusy(false);
-          return await saveTab(tab, path, true);
-        }
-        setStatus(error.message, 'error', true);
-        return false;
-      } finally {
-        setBusy(false);
-      }
-    }
-
-    async function saveActiveTab() {
-      if (busy || activeTabIsResult()) return;
-      closeMenus();
-      const tab = activeTab();
-      if (!tab.path) {
-        showSaveAsDialog();
-        return;
-      }
-      await saveTab(tab, tab.path, true);
-    }
-
-    async function saveAsFromDialog() {
-      const root = tabStorageRoot(activeTab());
-      const path = root === 'results' ?
-        resultPathFromInput(filePathInput.value) :
-        scriptPathFromInput(filePathInput.value);
-      if (!path) {
-        fileDialogHelp.textContent = root === 'results' ?
-          'Invalid path. Use names like folder/result-name.' :
-          'Invalid path. Use names like folder/script-name.';
-        filePathInput.focus();
-        return;
-      }
-      const saved = await saveTab(activeTab(), path, false);
-      if (saved) closeFileDialog();
-    }
-
+    //  Result export is obelisk's: urui's file dialog picks the path,
+    //  with the format field lent to it, and the agent writes the file.
     const resultFormatMarks = {
       '%csv': 'csv',
       '%tab': 'tab',
@@ -2703,20 +1198,26 @@
       '%vector': 'noun',
       '%raw': 'noun'
     };
-    const resultStorageMarks = new Set(Object.values(resultFormatMarks));
 
-    function selectedResultsFormat() {
-      return resultsFormatSelect.value || '%csv';
-    }
-
-    function updateDisplayedResultMark() {
-      const nextMark = resultFormatMarks[selectedResultsFormat()];
-      const parts = filePathInput.value.split('/');
-      const shownMark = parts[parts.length - 1];
-      if (!nextMark || parts.length < 2 ||
-          !resultStorageMarks.has(shownMark)) return;
-      parts[parts.length - 1] = nextMark;
-      filePathInput.value = parts.join('/');
+    //  The first `results-N` no saved result uses; a failed listing
+    //  still suggests one, and a clash then asks before overwriting.
+    async function nextResultName() {
+      let entries = [];
+      try {
+        const body = await post(window.urui.config.files.url, {
+          op: 'browse',
+          scope: ['results']
+        });
+        entries = Array.isArray(body.entries) ? body.entries : [];
+      } catch (_) {
+        entries = [];
+      }
+      const names = new Set(entries.filter((entry) => {
+        return Array.isArray(entry.path) && entry.path.length >= 2;
+      }).map((entry) => entry.path[1]));
+      let number = 1;
+      while (names.has(`results-${number}`)) number += 1;
+      return `results-${number}`;
     }
 
     function resultSaveText() {
@@ -2724,6 +1225,28 @@
         return ensureTrailingNewline(outputState.text);
       }
       return null;
+    }
+
+    async function showSaveResultsDialog() {
+      if (busy || !outputState.exportable) return;
+      const run = outputState.kind === 'run';
+      const value = outputState.path ?
+        outputState.path.slice(1, -1).join('/') : await nextResultName();
+      resultsFormatSelect.value = run ? (outputState.format || '%csv') :
+        '%tape';
+      resultsFormatField.hidden = !run;
+      const picked = await docs.pickPath({
+        store: 'script',
+        scope: ['results'],
+        title: 'Save results',
+        extra: resultsFormatField,
+        mark: false,
+        value
+      });
+      if (!picked) return;
+      const format = run ? (resultsFormatSelect.value || '%csv') : '%tape';
+      const path = [...picked.slice(0, -1), resultFormatMarks[format]];
+      await saveResultsFile(path, false, format);
     }
 
     async function saveResultsFile(path, overwrite, format) {
@@ -2735,7 +1258,10 @@
           const command = Number.isInteger(outputState.activeCommand) ?
             outputState.commands[outputState.activeCommand] : null;
           if (!command || outputState.resultId === null) {
-            setStatus('Results are no longer available.', 'error', true);
+            notify('Results are no longer available.', {
+              kind: 'error',
+              sticky: true
+            });
             return false;
           }
           const commandIndex = Number.isInteger(command.index) ?
@@ -2754,36 +1280,23 @@
         }
         outputState.path = body.path.slice();
         outputState.format = format;
-        await refreshFiles();
-        setStatus(`${body.path.slice(1).join('/')} saved.`);
+        docs.trees.refresh();
+        const mark = body.path[body.path.length - 1];
+        notify(`Saved ${body.path.slice(1, -1).join('/')}.${mark}.`);
         return true;
       } catch (error) {
-        const name = path.slice(1).join('/');
-        if (!overwrite && error.status === 409 &&
-            window.confirm(`${name} exists. Overwrite it?`)) {
+        if (!overwrite && ['exists', 'changed'].includes(error.code)) {
           setBusy(false);
-          return await saveResultsFile(path, true, format);
+          const replace = await runtime.confirm(error.code, {
+            path: path.join('/')
+          });
+          return replace ? await saveResultsFile(path, true, format) : false;
         }
-        setStatus(error.message, 'error', true);
+        notifyError(error);
         return false;
       } finally {
         setBusy(false);
       }
-    }
-
-    async function saveResultsFromDialog() {
-      const format = outputState.kind === 'run' ?
-        selectedResultsFormat() : '%tape';
-      const mark = resultFormatMarks[format];
-      const path = resultPathFromInput(filePathInput.value, mark);
-      if (!path) {
-        fileDialogHelp.textContent =
-          'Invalid path. Use names like folder/results-name.';
-        filePathInput.focus();
-        return;
-      }
-      const saved = await saveResultsFile(path, false, format);
-      if (saved) closeFileDialog();
     }
 
     function schemaExpansion(key, details) {
@@ -2954,7 +1467,7 @@
       if (!relationContext) return;
       const text = relationTemplate(action, relationContext);
       closeRelationMenu();
-      if (text) addDraft(text);
+      if (text) docs.create('script', {text, focus: true});
     }
 
     function renderColumn(column, relation) {
@@ -3126,12 +1639,9 @@
     }
 
     function selectedScript() {
-      captureEditor();
-      const tab = activeTab();
-      if (tab.selectionEnd > tab.selectionStart) {
-        return tab.text.slice(tab.selectionStart, tab.selectionEnd);
-      }
-      return tab.text;
+      const text = editor.getSource();
+      const {start, end} = editor.getSelection();
+      return end > start ? text.slice(start, end) : text;
     }
 
     const resultPageSize = 500;
@@ -3665,7 +2175,7 @@
       const script = selectedScript();
       clearOutput();
       setBusy(true, operation);
-      setStatus(operation === 'run' ? 'Running query…' : 'Parsing query…');
+      notify(operation === 'run' ? 'Running query…' : 'Parsing query…');
       try {
         const body = await api(operation, {
           defaultDatabase: defaultDatabase.value,
@@ -3673,7 +2183,7 @@
         });
         if (operation === 'parse') {
           showParseOutput(body.text || '');
-          setStatus('Parse complete.');
+          notify('Parse complete.');
         } else {
           showRunOutput(body.commands || [], body.resultId ?? null);
           if (body.schemaChanged) {
@@ -3683,209 +2193,28 @@
               preferNewDatabase: true
             });
           }
-          setStatus('Run complete.');
+          notify('Run complete.');
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        showErrorOutput(message);
-        setStatus(message, 'error', true);
+        showErrorOutput(error instanceof Error ? error.message : String(error));
+        notifyError(error);
       } finally {
         setBusy(false);
       }
     }
 
-    async function copyText(text, label) {
-      try {
-        if (window.isSecureContext && navigator.clipboard) {
-          await navigator.clipboard.writeText(text);
-        } else {
-          const helper = document.createElement('textarea');
-          helper.value = text;
-          helper.setAttribute('readonly', '');
-          helper.style.position = 'fixed';
-          helper.style.opacity = '0';
-          document.body.appendChild(helper);
-          helper.select();
-          if (!document.execCommand('copy')) throw new Error('copy failed');
-          helper.remove();
-        }
-        setStatus(`${label} copied.`);
-      } catch (_) {
-        setStatus(`Could not copy ${label.toLowerCase()}.`, 'error', true);
+    async function copyOutput() {
+      if (await runtime.copy(outputCopyText())) {
+        notify('Results copied.');
+      } else {
+        notify('Could not copy results.', {kind: 'error', sticky: true});
       }
     }
-
-    function menuParts(menu) {
-      return {
-        toggle: menu.querySelector('.menu-toggle'),
-        panel: menu.querySelector('.menu-panel')
-      };
-    }
-
-    function setMenu(menu, open, focusFirst = false) {
-      const parts = menuParts(menu);
-      menu.dataset.open = String(open);
-      parts.toggle.setAttribute('aria-expanded', String(open));
-      parts.panel.classList.toggle('hidden', !open);
-      if (open && focusFirst) {
-        const selector = '[role="menuitem"]:not(:disabled)';
-        const first = parts.panel.querySelector(selector);
-        if (first) first.focus();
-      }
-    }
-
-    const menus = Array.from(document.querySelectorAll('.menu'));
-
-    function closeMenus(except = null) {
-      menus.forEach((menu) => {
-        if (menu !== except) setMenu(menu, false);
-      });
-    }
-
-    function directSaveAvailable(kind) {
-      if (kind === 'script') {
-        const tab = activeTab();
-        return Boolean(tab.path) && tab.savedText !== null &&
-          tab.text !== tab.savedText;
-      }
-      return kind === 'result' && outputState.exportable &&
-        Array.isArray(outputState.path);
-    }
-
-    function closeSaveContext(restoreFocus = false) {
-      saveContextMenu.classList.add('hidden');
-      if (saveContextSource) {
-        saveContextSource.setAttribute('aria-expanded', 'false');
-        if (restoreFocus) saveContextSource.focus();
-      }
-      saveContextKind = null;
-      saveContextSource = null;
-    }
-
-    function openSaveContext(kind, event) {
-      if (busy || (kind === 'script' && activeTabIsResult()) ||
-          (kind === 'result' && !outputState.exportable)) return;
-      captureEditor();
-      closeMenus();
-      closeRelationMenu();
-      closeSaveContext();
-      saveContextKind = kind;
-      saveContextSource = kind === 'script' ?
-        saveQueryButton : saveOutputButton;
-      saveContextSave.disabled = !directSaveAvailable(kind);
-      saveContextSaveAs.disabled = false;
-      saveContextSource.setAttribute('aria-expanded', 'true');
-      saveContextMenu.style.left = '0px';
-      saveContextMenu.style.top = '0px';
-      saveContextMenu.classList.remove('hidden');
-      const menuRect = saveContextMenu.getBoundingClientRect();
-      const sourceRect = saveContextSource.getBoundingClientRect();
-      const margin = 8;
-      let left = event.clientX;
-      let top = event.clientY;
-      if (left === 0 && top === 0) {
-        left = sourceRect.left;
-        top = sourceRect.bottom;
-      }
-      if (left + menuRect.width > window.innerWidth - margin) {
-        left -= menuRect.width;
-      }
-      if (top + menuRect.height > window.innerHeight - margin) {
-        top -= menuRect.height;
-      }
-      left = clamp(left, margin, window.innerWidth - menuRect.width - margin);
-      top = clamp(top, margin, window.innerHeight - menuRect.height - margin);
-      saveContextMenu.style.left = `${left}px`;
-      saveContextMenu.style.top = `${top}px`;
-      const first = saveContextMenu.querySelector(
-        '[role="menuitem"]:not(:disabled)'
-      );
-      if (first) first.focus();
-    }
-
-    async function directSaveFromContext() {
-      const kind = saveContextKind;
-      const path = kind === 'result' && outputState.path ?
-        outputState.path.slice() : null;
-      closeSaveContext();
-      if (kind === 'script') await saveActiveTab();
-      else if (path) {
-        await saveResultsFile(path, true, outputState.format || '%csv');
-      }
-    }
-
-    function saveAsFromContext() {
-      const kind = saveContextKind;
-      closeSaveContext();
-      if (kind === 'script') showSaveAsDialog();
-      else if (kind === 'result') showSaveResultsDialog();
-    }
-
-    function menuKeydown(event) {
-      const panel = event.currentTarget;
-      const items = Array.from(
-        panel.querySelectorAll('[role="menuitem"]:not(:disabled)')
-      );
-      const current = items.indexOf(document.activeElement);
-      let next = current;
-      if (event.key === 'ArrowDown') next = (current + 1) % items.length;
-      if (event.key === 'ArrowUp') {
-        next = (current + items.length - 1) % items.length;
-      }
-      if (event.key === 'Home') next = 0;
-      if (event.key === 'End') next = items.length - 1;
-      if (next === current || items.length === 0) return;
-      event.preventDefault();
-      items[next].focus();
-    }
-
-    menus.forEach((menu) => {
-      const parts = menuParts(menu);
-      parts.toggle.addEventListener('click', () => {
-        const open = menu.dataset.open !== 'true';
-        closeMenus(menu);
-        setMenu(menu, open);
-      });
-      parts.toggle.addEventListener('keydown', (event) => {
-        if (event.key !== 'ArrowDown') return;
-        event.preventDefault();
-        closeMenus(menu);
-        setMenu(menu, true, true);
-      });
-      parts.panel.addEventListener('keydown', menuKeydown);
-    });
 
     function clamp(value, minimum, maximum) {
       return Math.min(maximum, Math.max(minimum, value));
     }
 
-    let wasDirty = tabIsDirty(activeTab());
-    editor.onChange(() => {
-      captureEditor();
-      const dirty = tabIsDirty(activeTab());
-      if (dirty !== wasDirty) renderTabs();
-      else syncScriptRefs([activeTab()]);
-      wasDirty = dirty;
-      persist();
-    });
-    markdownSourceButton.addEventListener('click', () => {
-      setResultView('source');
-    });
-    markdownPreviewButton.addEventListener('click', () => {
-      setResultView('preview');
-    });
-    byId('file-dialog-cancel').addEventListener('click', closeFileDialog);
-    //  urui's own tree binds these too; with no urui tree open, its
-    //  handlers only hide the menu, and arrow keys are its keydown's
-    fileContextOpen.addEventListener('click', openContextFile);
-    fileContextDelete.addEventListener('click', deleteContextFile);
-    resultsFormatSelect.addEventListener('change', updateDisplayedResultMark);
-    fileDialogForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      if (fileDialogMode === 'open') openSelectedFile();
-      else if (fileDialogMode === 'save-results') saveResultsFromDialog();
-      else saveAsFromDialog();
-    });
     byId('relation-select').addEventListener('click', () => {
       openRelationAction('SELECT');
     });
@@ -3897,20 +2226,8 @@
     });
     runButton.addEventListener('click', () => execute('run'));
     parseButton.addEventListener('click', () => execute('parse'));
-    saveQueryButton.addEventListener('click', (event) => {
-      openSaveContext('script', event);
-    });
     saveOutputButton.addEventListener('click', showSaveResultsDialog);
-    saveContextSave.addEventListener('click', directSaveFromContext);
-    saveContextSaveAs.addEventListener('click', saveAsFromContext);
-    saveContextMenu.addEventListener('keydown', menuKeydown);
-    copyQueryButton.addEventListener('click', () => {
-      captureEditor();
-      copyText(activeTab().text, 'Script');
-    });
-    copyOutputButton.addEventListener('click', () => {
-      copyText(outputCopyText(), 'Results');
-    });
+    copyOutputButton.addEventListener('click', copyOutput);
     defaultDatabase.addEventListener('change', () => {
       state.defaultDatabase = defaultDatabase.value;
       persist();
@@ -3927,45 +2244,14 @@
       attributeFilter: ['class']
     });
     document.addEventListener('click', (event) => {
-      if (!event.target.closest('.menu')) closeMenus();
-      if (!event.target.closest('#save-context-menu') &&
-          !event.target.closest('.save-action')) {
-        closeSaveContext();
-      }
       if (!event.target.closest('#relation-menu') &&
           !event.target.closest('.relation-actions')) {
         closeRelationMenu();
       }
-      if (!event.target.closest('#file-context-menu') &&
-          !event.target.closest('.explorer-file-row')) {
-        closeFileContext();
-      }
     });
-    //  Window capture runs before urui's document-capture dispatcher, so
-    //  obelisk's menus close, and give focus back, before urui would
-    //  close the shared context menu without knowing its source.
+    //  urui's dialogs and menus close themselves on Escape
     window.addEventListener('keydown', (event) => {
-      if (event.key !== 'Escape') return;
-      if (runtime.dialogs.helpIsOpen() ||
-          byId('settings-modal')?.hidden === false) return;
-      const consume = () => {
-        event.preventDefault();
-        event.stopPropagation();
-      };
-      if (!saveContextMenu.classList.contains('hidden')) {
-        consume();
-        closeSaveContext(true);
-        return;
-      }
-      if (!fileContextMenu.hidden) {
-        consume();
-        closeFileContext(true);
-        return;
-      }
-      const open = menus.find((menu) => menu.dataset.open === 'true');
-      closeMenus();
-      closeRelationMenu();
-      if (open) menuParts(open).toggle.focus();
+      if (event.key === 'Escape') closeRelationMenu();
     }, true);
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
@@ -3974,12 +2260,13 @@
     runtime.wire();
     const saved = runtime.session.load();
     if (saved?.workbench) state = saved.workbench;
-    wasDirty = tabIsDirty(activeTab());
     runtime.layout.apply();
     runtime.explorer.docs.render();
     runtime.explorer.refs.render();
     runtime.explorer.setView(runtime.explorer.view());
     runtime.explorer.docs.refreshVariant();
+    docs.start();
+    editor = docs.editor('script');
     updateOutputControls();
     //  show the saved default before the schema arrives with the rest
     const savedDefault = state.defaultDatabase || 'sys';
@@ -3990,38 +2277,25 @@
     }
     defaultDatabase.value = savedDefault;
     clearCommandTabs();
-    renderTabs();
-    restoreEditor(false);
     setBusy(false);
     ensureSchemaLoaded({always: true});
-    refreshFiles();
     document.documentElement.dataset.obelisk = 'ready';
 
     window.ObeliskWorkbench = {
       api,
-      addDraft,
-      addFileTab,
-      activateTab,
-      closeActiveTab,
       closeDocsTab: runtime.explorer.docs.close,
       execute,
       getState: () => state,
       openRelationAction,
       openDocsTab: runtime.explorer.docs.open,
       persist,
-      refreshFiles,
       refreshHelpVariant: runtime.explorer.docs.refreshVariant,
       refreshSchema,
       relationTemplate,
       renderCommand,
       runCopyText,
       runExportText,
-      saveActiveTab,
-      openSaveContext,
       showSaveResultsDialog,
-      showOpenDialog,
-      showSaveAsDialog,
-      setStatus,
       showOutput,
       showRunOutput
     };

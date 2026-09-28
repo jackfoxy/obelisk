@@ -4644,11 +4644,12 @@
     return parts;
   }
 
-  //  `{mode, store, tab, scope, title, extra, mark}` → a path, or null.
-  //  `open` lists the store's files; `save` and `pick` take a typed path
-  //  under a chosen root, with a format picker when the root holds more
-  //  than one mark (`mark: false` hides it; the path then keeps a mark
-  //  it names, or takes the root's first).
+  //  `{mode, store, tab, scope, title, extra, mark, value}` → a path, or
+  //  null.  `open` lists the store's files; `save` and `pick` take a
+  //  typed path under a chosen root, starting from `value` when given,
+  //  with a format picker when the root holds more than one mark
+  //  (`mark: false` hides it; the path then keeps a mark it names, or
+  //  takes the root's first).
   function docFileDialog(request) {
     const modal = docElement('urui-file-dialog');
     if (!modal) return Promise.resolve(null);
@@ -4739,7 +4740,9 @@
     pathField.hidden = opening;
     list.hidden = false;
     fillMarks();
-    if (!opening) {
+    if (!opening && typeof request.value === 'string') {
+      pathInput.value = request.value;
+    } else if (!opening) {
       const tab = request.tab;
       pathInput.value = tab?.path && docCanSave(name, tab.path)
         ? tab.path.slice(rootAt().scope.length, -1).join('/')

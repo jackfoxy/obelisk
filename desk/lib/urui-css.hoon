@@ -448,6 +448,9 @@
 
   .editor-host[hidden] { display: none; }
 
+  /* an empty panel body beside an editor would take half its height */
+  .pane-band-panel > .editor-host ~ .pane-body:empty { display: none; }
+
   .store-preview {
     background: var(--surface);
     flex: 1 1 auto;
