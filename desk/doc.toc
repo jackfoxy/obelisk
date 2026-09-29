@@ -22,4 +22,5 @@
   /performance/md             Performance
   /users-guide-script/txt     Users Guide Scripts
 /release-notes/md          Release Notes
+/roadmap/md                Obelisk roadmap
 /about/md                  About Obelisk and Ace editor
