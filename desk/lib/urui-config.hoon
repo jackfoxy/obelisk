@@ -35,6 +35,9 @@
       ['layout' s+`@t`layout.config]
       ['resultCollapse' b+collapse.config]
       ['files' ?~(files.config ~ (files-json u.files.config))]
+      :-  'tips'
+      %-  pairs:enjs:format
+      (turn tips.config |=([key=@t text=@t] [key s+text]))
   ==
 ::
 ++  panes-json

@@ -85,3 +85,44 @@ test('multi-command results switch by keyboard at both levels',
     await expect(results).toHaveAttribute('aria-selected', 'true');
     await expect(panel.locator('#command-1-results')).toBeVisible();
   });
+
+//  urui's fullscreen toggle expands the whole output pane, so a paged
+//  result keeps its pagers, and its command tabs, while expanded.
+test('fullscreen output keeps the result pagers', async ({page}) => {
+  const rows = Array.from({length: 900}, (_, index) => {
+    return [cell('id', '@ud', String(index + 1))];
+  });
+  const paged = [{
+    index: 0,
+    results: [{
+      type: 'result-set',
+      value: {columns: [{name: 'id', aura: '@ud'}], rows}
+    }]
+  }];
+  await installBackend(page, {run: () => paged, calls: []});
+  await openReady(page);
+  await setEditorSource(page, 'FROM t SELECT *');
+  await page.locator('#run-btn').click();
+
+  const toggle = page.locator('#output-fullscreen');
+  await expect(toggle).toHaveAttribute('title', 'Expand results to fullscreen');
+  await toggle.click();
+  await expect.poll(() => page.evaluate(() => {
+    return document.fullscreenElement?.id;
+  })).toBe('output-pane');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+  const pager = page.locator('#output-pane .result-pager-top');
+  await expect(pager).toBeVisible();
+  await expect(pager.locator('.result-pager-status'))
+    .toContainText('Page 1 of 2');
+  await pager.getByRole('button', {name: 'Next'}).click();
+  await expect(pager.locator('.result-pager-status'))
+    .toContainText('Page 2 of 2');
+
+  await toggle.click();
+  await expect.poll(() => page.evaluate(() => {
+    return document.fullscreenElement === null;
+  })).toBe(true);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+});

@@ -27,6 +27,7 @@ const selectors = [
   '#add-svg-ref', '#browse-svg', '#load-svg', '#save-svg', '#fit',
   '#auto-render', '#theme', '#help',
   '#help-panel', '#editor-help-card', '#close-help',
+  '#settings', '#settings-modal', '#close-settings',
   '#fallback-help-content', '#docs-help-content', '#docs-help-nav',
   '#workbench', '#explorer', '#explorer-pane', '#editor-pane',
   '#preview-pane', '#result-pane',
@@ -61,6 +62,9 @@ const selectors = [
   '#page-open', '#page-save', '#page-save-as', '#page-copy', '#page-ref',
   '#page-browse', '#page-display',
   '#page-files-tab', '#page-files-panel', '#page-files-tree',
+  '#memo-editor', '#memo-editor-load-error', '#memo-preview', '#memo-display',
+  //  urui-fixture-web: the result pane's fullscreen toggle
+  '#result-fullscreen',
   '#urui-file-dialog', '#urui-file-dialog-title', '#urui-file-dialog-help',
   '#urui-file-dialog-root-field', '#urui-file-dialog-root',
   '#urui-file-dialog-list', '#urui-file-dialog-path-field',
@@ -288,12 +292,14 @@ function createDom() {
   }));
   elements['#auto-render'].checked = true;
   elements['#help-panel'].hidden = true;
+  elements['#settings-modal'].hidden = true;
   elements['#docs-help-content'].hidden = true;
   elements['#file-context-menu'].hidden = true;
   elements['#editor-load-error'].hidden = true;
   //  the document Sail's own starting state
   for (const name of [
     '#page-editor-load-error', '#page-preview', '#page-display',
+    '#memo-editor-load-error', '#memo-preview', '#memo-display',
     '#note-display', '#note-preview', '#result-editor-load-error',
     '#dot-load-error', '#svg-source-load-error', '#svg-preview',
     '#svg-display',
@@ -306,11 +312,27 @@ function createDom() {
     ['#urui-file-dialog-root', 'select'], ['#urui-file-dialog-mark', 'select'],
     ['#urui-file-dialog-path', 'input'], ['#urui-file-dialog-cancel', 'button'],
     ['#urui-file-dialog-confirm', 'button'], ['#urui-confirm-ok', 'button'],
-    ['#urui-confirm-cancel', 'button']
+    ['#urui-confirm-cancel', 'button'], ['#close-help', 'button'],
+    ['#close-settings', 'button'], ['#file-context-open', 'button'],
+    ['#file-context-delete', 'button']
   ]) {
     elements[name].localName = tag;
   }
-  for (const toggle of ['#page-display', '#svg-display', '#note-display']) {
+  //  fullscreen toggles, as ++fullscreen-toggle:urui-shell draws them:
+  //  the fixture's expands its result pane, graph-viz's its preview
+  for (const [name, target, label] of [
+    ['#result-fullscreen', 'result-pane', 'result'],
+    ['#fullscreen-svg', 'preview-shell', 'SVG']
+  ]) {
+    const toggle = elements[name];
+    toggle.localName = 'button';
+    toggle.id = name.slice(1);
+    toggle.dataset.fullscreenTarget = target;
+    toggle.dataset.fullscreenLabel = label;
+  }
+  for (const toggle of [
+    '#page-display', '#svg-display', '#note-display', '#memo-display'
+  ]) {
     for (const display of ['source', 'preview']) {
       const button = new Element('button');
       button.dataset.display = display;
@@ -322,6 +344,16 @@ function createDom() {
     elements['#urui-file-dialog-mark'], elements['#urui-file-dialog-cancel'],
     elements['#urui-file-dialog-confirm']
   );
+  elements['#urui-confirm'].append(
+    elements['#urui-confirm-cancel'], elements['#urui-confirm-ok']
+  );
+  elements['#settings-modal'].append(elements['#close-settings']);
+  elements['#file-context-menu'].setAttribute('role', 'menu');
+  for (const name of ['#file-context-open', '#file-context-delete']) {
+    elements[name].setAttribute('role', 'menuitem');
+    elements['#file-context-menu'].append(elements[name]);
+  }
+  elements['#urui-toast'].setAttribute('aria-live', 'polite');
 
   //  Each consumer seeds its own explorer strip: graph-viz's two file
   //  trees in `#explorer-tabs`, the fixture's in `#explorer-view-tabs`.
@@ -363,9 +395,19 @@ function createDom() {
     });
   }
 
+  //  <body>'s direct children, as urui-shell's full frame lays them out:
+  //  the modals go inert around each other, the toast never does
+  const body = new Element('body');
+  body.append(
+    elements['#workbench'], elements['#settings-modal'],
+    elements['#help-panel'], elements['#urui-file-dialog'],
+    elements['#urui-confirm'], elements['#urui-toast']
+  );
+
   const document = {
     fullscreenElement: null,
     documentElement: new Element('html'),
+    body,
     querySelector: (selector) => {
       if (elements[selector]) return elements[selector];
       const panelFrame = selector.match(/^#([^ ]+) iframe$/);
@@ -396,7 +438,12 @@ function createDom() {
       }
       return null;
     },
-    querySelectorAll: () => [],
+    querySelectorAll: (selector) => {
+      if (selector !== '[data-fullscreen-target]') return [];
+      return [...new Set(documentDescendants())].filter((item) => {
+        return item.dataset?.fullscreenTarget;
+      });
+    },
     getElementById: (id) => elements[`#${id}`] ||
       documentDescendants().find((item) => item.id === id) || null,
     importNode: (node) => node,

@@ -141,7 +141,7 @@
         %tabs  %dialogs  %responsive
     ==
   =/  selectors=(list @t)
-    :~  '#dot'  '.preview'  '.inspector'  '.zoom-'  '.fullscreen'
+    :~  '#dot'  '.preview'  '.inspector'  '.zoom-'
         '.visual-tools'  '.attribute-form'  '#shape-control'
         '#svg-source'  'filter: invert(1)'
     ==
@@ -149,4 +149,16 @@
   %+  turn  selectors
   |=  selector=@t
   (expect !>(?=(~ (find (trip selector) style))))
+::
+++  test-controls-carry-the-fullscreen-state
+  =/  style  (trip controls:ucss)
+  =/  needles=(list @t)
+    :~  '.fullscreen-icon {'
+        '.fullscreen-only:not(.is-fullscreen *)'
+        '.is-fullscreen {'
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=@t
+  (expect !>(?=(^ (find (trip needle) style))))
 --

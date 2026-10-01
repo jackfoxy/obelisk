@@ -36,6 +36,7 @@
       layout=%rows
       collapse=&
       files=~
+      tips=~[['probe-save' 'Keep "it"']]
   ==
 ::
 ++  pinned
@@ -304,4 +305,9 @@
     (expect !>((has "\"layout\":\"rows\"")))
     (expect !>((has "\"resultCollapse\":true")))
   ==
+::
+++  test-config-emits-tips-by-key
+  ::  a cord, not a tape: { would open an interpolation
+  =/  expected=@t  '\22tips\22:{\22probe-save\22:\22Keep \\\22it\\\22\22}'
+  (expect !>((has (trip expected))))
 --

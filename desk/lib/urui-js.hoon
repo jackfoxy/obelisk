@@ -593,7 +593,7 @@
       close.type = 'button';
       close.className = 'document-tab-close';
       close.textContent = 'X';
-      close.title = 'Close tab';
+      close.title = tip('tab-close', 'Close tab');
       close.setAttribute('aria-label', `Close ${tab.label}`);
       close.addEventListener('click', (event) => {
         event.stopPropagation?.();
@@ -989,11 +989,12 @@
     elements.splitter?.classList.toggle('inactive', !resultOpen);
     if (control) {
       const label = config.panes?.result?.label || 'result pane';
+      const text = resultOpen
+        ? tip('result-collapse', `Collapse ${label}`)
+        : tip('result-expand', `Expand ${label}`);
       control.setAttribute('aria-expanded', String(resultOpen));
-      control.setAttribute(
-        'aria-label',
-        `${resultOpen ? 'Collapse' : 'Expand'} ${label}`
-      );
+      control.setAttribute('aria-label', text);
+      control.title = text;
       control.textContent = layout === 'rows'
         ? (resultOpen ? '⌄' : '⌃')
         : (resultOpen ? '›' : '‹');
@@ -1055,11 +1056,12 @@
     explorerResizer?.classList.toggle('inactive', !explorerOpen);
     if (explorerResizer) explorerResizer.disabled = !explorerOpen;
     if (explorerCollapse) {
+      const text = explorerOpen
+        ? tip('explorer-collapse', 'Collapse explorer')
+        : tip('explorer-expand', 'Expand explorer');
       explorerCollapse.setAttribute('aria-expanded', String(explorerOpen));
-      explorerCollapse.setAttribute(
-        'aria-label',
-        explorerOpen ? 'Collapse explorer' : 'Expand explorer'
-      );
+      explorerCollapse.setAttribute('aria-label', text);
+      explorerCollapse.title = text;
       explorerCollapse.textContent = explorerOpen ? '‹' : '›';
     }
     refreshEditors();
@@ -1167,9 +1169,15 @@
     }
   }
 
+  //  A modal lives outside any fullscreen element, so opening one
+  //  leaves fullscreen first.
   function showModal(modal, focus) {
     const element = modal.element();
     if (!element) return;
+    if (document.fullscreenElement
+      && !document.fullscreenElement.contains(element)) {
+      document.exitFullscreen?.()?.catch?.(() => {});
+    }
     if (element.hidden && !element.contains(document.activeElement)) {
       modal.returnFocus = document.activeElement;
     }
@@ -1188,6 +1196,129 @@
       (modal.returnFocus ?? modal.fallback?.())?.focus?.();
     }
     modal.returnFocus = null;
+  }
+
+  // ---- tooltips -----------------------------------------------------
+  //
+  // Every button carries a tooltip.  urui's own come through
+  // `tip(key, fallback)`: the config's `tips[key]` when the consumer
+  // replaced it, else urui's default.  A key is the control's id, or a
+  // name for a control urui draws many of.  A button that reaches the
+  // page untitled, a consumer's included, is titled from its
+  // accessible name or its text, and kept in step with them.
+  const tips = config.tips || {};
+
+  function tip(key, fallback) {
+    return Object.hasOwn(tips, key) ? String(tips[key]) : fallback;
+  }
+
+  function applyTips() {
+    for (const [key, text] of Object.entries(tips)) {
+      const node = document.getElementById?.(key);
+      if (node) node.title = String(text);
+    }
+  }
+
+  //  Only a changed name is written: an attribute write is a mutation
+  //  even when the value is the same, and the observer would loop.
+  function autoTitle(button) {
+    const name = button.getAttribute?.('aria-label')
+      || String(button.textContent || '').trim();
+    if (!name || button.title === name) return;
+    button.title = name;
+    button.dataset.autoTitle = name;
+  }
+
+  function titleButtons(root) {
+    const found = root?.localName === 'button' ? [root]
+      : Array.from(root?.querySelectorAll?.('button') || []);
+    for (const button of found) {
+      if (!button.getAttribute?.('title')) autoTitle(button);
+    }
+  }
+
+  function watchTitles() {
+    titleButtons(document.body);
+    if (typeof MutationObserver !== 'function' || !document.body) return;
+    new MutationObserver((records) => {
+      for (const record of records) {
+        const changed = record.target?.nodeType === 1
+          ? record.target : record.target?.parentElement;
+        const owner = changed?.closest?.('button');
+        if (owner?.dataset.autoTitle !== undefined) {
+          //  a title someone else wrote is theirs to keep
+          if (owner.title !== owner.dataset.autoTitle) {
+            delete owner.dataset.autoTitle;
+          } else {
+            autoTitle(owner);
+          }
+        }
+        for (const node of record.addedNodes || []) {
+          if (node.nodeType === 1) titleButtons(node);
+        }
+      }
+    }).observe(document.body, {
+      childList: true, subtree: true, characterData: true,
+      attributes: true, attributeFilter: ['aria-label', 'title']
+    });
+  }
+
+  // ---- fullscreen ---------------------------------------------------
+  //
+  // A button ++fullscreen-toggle:urui-shell drew expands the element its
+  // `data-fullscreen-target` names.  While expanded the target carries
+  // `.is-fullscreen`, which shows its `.fullscreen-only` controls, and
+  // the toast moves inside it so feedback stays visible.  Tooltip keys
+  // are the button's id and `{id}-exit`.
+  const fullscreenToggles = [];
+
+  function fullscreenTarget(button) {
+    const id = button.dataset?.fullscreenTarget;
+    return id ? document.getElementById?.(id) : null;
+  }
+
+  function syncFullscreen() {
+    const expandedElement = document.fullscreenElement;
+    for (const button of fullscreenToggles) {
+      const target = fullscreenTarget(button);
+      const expanded = Boolean(target) && expandedElement === target;
+      const label = button.dataset?.fullscreenLabel || 'view';
+      const text = expanded
+        ? tip(`${button.id}-exit`, `Return ${label} to its pane`)
+        : tip(button.id, `Expand ${label} to fullscreen`);
+      button.setAttribute('aria-pressed', String(expanded));
+      button.setAttribute('aria-label', text);
+      button.title = text;
+      target?.classList.toggle('is-fullscreen', expanded);
+    }
+    const toast = document.getElementById?.('urui-toast');
+    const host = expandedElement || document.body;
+    if (toast && host && toast.parentElement !== host) host.append(toast);
+    refreshEditors();
+  }
+
+  async function toggleFullscreen(button) {
+    const target = fullscreenTarget(button);
+    if (!target || button.disabled) return;
+    try {
+      if (document.fullscreenElement === target) {
+        await document.exitFullscreen();
+      } else {
+        await target.requestFullscreen();
+      }
+    } catch (_) {
+      notify('Unable to change fullscreen mode.', {kind: 'error'});
+    }
+  }
+
+  function wireFullscreen() {
+    const found = document.querySelectorAll?.('[data-fullscreen-target]');
+    for (const button of Array.from(found || [])) {
+      fullscreenToggles.push(button);
+      button.addEventListener('click', () => toggleFullscreen(button));
+    }
+    document.addEventListener('fullscreenchange', syncFullscreen);
+    syncFullscreen();
   }
 
   // ---- help and settings ------------------------------------------
@@ -1507,6 +1638,9 @@
       'aria-label',
       docs ? `Close ${title}` : `Close ${label} reference`
     );
+    close.title = docs
+      ? tip('docs-tab-close', 'Close documentation tab')
+      : tip('ref-tab-close', 'Close reference');
     close.textContent = 'X';
     close.addEventListener('click', () => {
       if (docs) closeDocsTab(tab.id);
@@ -2454,6 +2588,8 @@
 
   function wire() {
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
+    applyTips();
+    wireFullscreen();
     elements.contextOpen?.addEventListener('click', () => {
       const {kind, path} = contextTarget;
       closeFileContext();
@@ -2591,6 +2727,7 @@
       options.onResize?.();
       refreshEditors();
     });
+    watchTitles();
   }
 
   // ---- the runtime object -------------------------------------------
@@ -2714,6 +2851,8 @@
     },
     documents: documentApi,
     a11y: {menu: createMenu, tablist: createTablist},
+    tip,
+    fullscreen: {toggle: toggleFullscreen, sync: syncFullscreen},
     notify,
     confirm: confirmDialog,
     copy: copyText,
@@ -3218,7 +3357,9 @@
         close.className = 'document-tab-close';
         close.dataset.dirty = String(dirty);
         close.textContent = dirty ? '●' : '×';
-        close.title = dirty ? 'Unsaved changes; close tab' : 'Close tab';
+        close.title = dirty
+          ? tip('tab-close-unsaved', 'Unsaved changes; close tab')
+          : tip('tab-close', 'Close tab');
         close.setAttribute(
           'aria-label',
           dirty ? `Close ${tab.label}, unsaved changes` : `Close ${tab.label}`
@@ -3250,18 +3391,19 @@
     syncLevelsBelow(name);
   }
 
-  //  The store's heading actions: Save disappears for a tab it could
-  //  not write, and Copy and Add Ref need text.
+  //  The store's heading actions: Save and Save As disappear in a
+  //  read-only pane and are disabled for a tab from an app-written
+  //  root, and Copy and Add Ref need text.
   function docApplyActions(name) {
     const tab = docActive(name);
     const locked = docPaneReadOnly(name);
-    const save = document.querySelector(`#${name}-save`);
-    if (save) {
-      save.hidden = locked
-        || (Boolean(tab?.path) && !docCanSave(name, tab.path));
+    const written = Boolean(tab?.path) && !docCanSave(name, tab.path);
+    for (const action of ['save', 'save-as']) {
+      const control = document.querySelector(`#${name}-${action}`);
+      if (!control) continue;
+      control.hidden = locked;
+      control.disabled = written;
     }
-    const saveAs = document.querySelector(`#${name}-save-as`);
-    if (saveAs) saveAs.hidden = locked;
     for (const action of ['copy', 'ref']) {
       const control = document.querySelector(`#${name}-${action}`);
       if (control) control.disabled = !tab?.text;
@@ -3919,8 +4061,10 @@
       notify(`Nothing to save in ${tab.label}.`);
       return undefined;
     }
+    //  a tab from an app-written root saves nowhere, by any route
+    if (tab.path && !docCanSave(name, tab.path)) return undefined;
     let path = tab.path;
-    if (choices.as || !path || !docCanSave(name, path)) {
+    if (choices.as || !path) {
       path = await docFileDialog({mode: 'save', store: name, tab});
       if (!path) return undefined;
     }
@@ -4076,6 +4220,7 @@
     actions.type = 'button';
     actions.className = 'file-tree-actions';
     actions.setAttribute('aria-label', `Actions for ${file.textContent}`);
+    actions.title = tip('file-actions', 'File actions');
     actions.setAttribute('aria-haspopup', 'menu');
     actions.setAttribute('aria-expanded', 'false');
     actions.textContent = '…';
@@ -4218,6 +4363,7 @@
       entry.setAttribute('role', 'option');
       entry.setAttribute('aria-selected', 'false');
       entry.textContent = pathText(path);
+      entry.title = pathText(path);
       entry.addEventListener('click', () => {
         for (const item of Array.from(list.children || [])) {
           item.setAttribute?.('aria-selected', String(item === entry));
@@ -4229,18 +4375,27 @@
     }
   }
 
-  //  Segments a user may type: a knot each, never . or .., and the
-  //  server refines the rule further for a strict policy.
+  //  Segments a user may type, and whether the last one followed a dot.
+  //  A path segment never holds a dot: `notes/plan.txt` is the path
+  //  notes/plan/txt, and its `.txt` names a format.  The server refines
+  //  the rule further for a strict policy.
   function docTypedSegments(value) {
-    const parts = String(value || '').trim().replace(/^\/+|\/+$/g, '')
-      .split('/').map((part) => part.trim());
+    const text = String(value || '').trim().replace(/^\/+|\/+$/g, '');
+    const parts = text.split(/[/.]/).map((part) => part.trim());
     if (!parts.length || parts.some((part) => {
-      return !part || part === '.' || part === '..'
-        || !/^[a-z0-9._~-]+$/.test(part);
+      return !part || !/^[a-z0-9_~-]+$/.test(part);
     })) {
       return undefined;
     }
-    return parts;
+    const cut = Math.max(text.lastIndexOf('/'), text.lastIndexOf('.'));
+    return {parts, suffix: cut >= 0 && text[cut] === '.'};
+  }
+
+  //  The mark a typed segment names under `root`: one of its marks, or
+  //  its label extension, which stands for its first mark.
+  function docTypedMark(root, segment) {
+    if (root.marks.includes(segment)) return segment;
+    return root.ext && segment === root.ext ? root.marks[0] : undefined;
   }
 
   //  `{mode, store, tab, scope, title, extra, mark, value}` → a path, or
@@ -4281,6 +4436,9 @@
       ? `Choose a saved ${noun.toLowerCase()}.`
       : 'Use lower-case letters, digits, and hyphens; / makes folders.';
     confirm.textContent = opening ? 'Open' : 'Save';
+    confirm.title = opening
+      ? tip('urui-file-dialog-open', 'Open the selected file')
+      : tip('urui-file-dialog-save', 'Save to this path');
     error.hidden = true;
     extra.replaceChildren(...(request.extra ? [request.extra] : []));
     let selected = null;
@@ -4363,19 +4521,28 @@
         return;
       }
       const root = rootAt();
-      const segments = docTypedSegments(pathInput.value);
-      if (!root || !segments) {
-        error.textContent = 'Enter a path such as folder/name.';
+      const typed = docTypedSegments(pathInput.value);
+      const refuse = (message) => {
+        error.textContent = message;
         error.hidden = false;
         pathInput.focus();
+      };
+      if (!root || !typed) {
+        refuse('Enter a path such as folder/name.');
         return;
       }
-      const typedMark = root.marks.includes(segments[segments.length - 1])
-        && segments.length > 1;
-      const mark = markField.hidden
-        ? (typedMark ? segments.pop() : root.marks[0])
-        : markSelect.value;
-      if (typedMark && !markField.hidden) segments.pop();
+      const segments = typed.parts;
+      const typedMark = segments.length > 1
+        ? docTypedMark(root, segments[segments.length - 1]) : undefined;
+      if (typed.suffix && !typedMark) {
+        const suffixes = [...new Set([root.ext, ...root.marks])]
+          .filter(Boolean).map((suffix) => `.${suffix}`);
+        refuse(`This location saves ${suffixes.join(', ')} files.`);
+        return;
+      }
+      if (typedMark) segments.pop();
+      const mark = typedMark
+        || (markField.hidden ? root.marks[0] : markSelect.value);
       finish([...root.scope, ...segments, mark]);
     };
     docDialog = {finish, accept};

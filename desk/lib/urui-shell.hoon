@@ -92,6 +92,7 @@
           =role              "separator"
           =aria-orientation  "vertical"
           =aria-label        "Resize explorer"
+          =title             "Drag to resize the explorer"
           ;span.sr-only: Resize explorer
         ==
         ;section#workspace.workspace(data-layout (trip layout.config))
@@ -381,6 +382,7 @@
   ;button#result-collapse.icon-button.result-collapse
     =type           "button"
     =aria-label     "Collapse {(trip label)}"
+    =title          "Collapse {(trip label)}"
     =aria-expanded  "true"
     ;+  ;/  ?:(=(%rows layout) "⌄" "›")
   ==
@@ -481,6 +483,7 @@
       ;button#explorer-collapse.icon-button.explorer-collapse
         =type           "button"
         =aria-label     "Collapse explorer"
+        =title          "Collapse explorer"
         =aria-expanded  "true"
         ‹
       ==
@@ -512,6 +515,7 @@
         =data-explorer-view  (trip view)
         =aria-selected       "true"
         =aria-controls       (trip panel-id)
+        =title               (trip label)
         {(trip label)}
       ==
     ;button.explorer-tab
@@ -522,6 +526,7 @@
       =aria-selected       "false"
       =aria-controls       (trip panel-id)
       =tabindex            "-1"
+      =title               (trip label)
       {(trip label)}
     ==
   :-  ;div(class wrap-class, role "presentation")
@@ -592,7 +597,8 @@
 ++  store-actions
   ::  A store's file actions, `{store}-{action}`, and its source/preview
   ::  toggle, `{store}-display`.  The toggle starts hidden: the runtime
-  ::  shows it for a tab whose mark has a previewer.
+  ::  shows it for a tab whose mark has a previewer.  Copy is always the
+  ::  copy icon; every action is titled by ++action-tip.
   |=  =store:urui
   ^-  marl
   =/  name=tape  (trip name.store)
@@ -600,10 +606,21 @@
     %+  turn  actions.store
     |=  =action:urui
     ^-  manx
+    =/  tip=tape  (action-tip action noun.store)
+    ?:  =(%copy action)
+      ;button.store-action.icon-button
+        =type         "button"
+        =id           "{name}-copy"
+        =data-action  "copy"
+        =title        tip
+        =aria-label   tip
+        ;span.copy-icon(aria-hidden "true");
+      ==
     ;button.store-action
       =type         "button"
       =id           "{name}-{(trip action)}"
       =data-action  (trip action)
+      =title        tip
       ;+  ;/  (trip (action-label action))
     ==
   ?~  preview.store  buttons
@@ -614,15 +631,19 @@
       =aria-label  "{(trip noun.store)} view"
       =hidden      ""
       ;button
+        =id            "{name}-display-source"
         =type          "button"
         =data-display  "source"
         =aria-pressed  "true"
+        =title         "Show the source"
         Source
       ==
       ;button
+        =id            "{name}-display-preview"
         =type          "button"
         =data-display  "preview"
         =aria-pressed  "false"
+        =title         "Show the preview"
         Preview
       ==
     ==
@@ -638,6 +659,21 @@
     %copy     'Copy'
     %ref      'Add Ref'
     %browse   'Browse'
+  ==
+::
+++  action-tip
+  ::  A store action's default tooltip; `tips` replaces it by the
+  ::  action's id, `{store}-{action}`.
+  |=  [=action:urui noun=@t]
+  ^-  tape
+  =/  thing=tape  (trip noun)
+  ?-  action
+    %open     "Open a saved {thing}"
+    %save     "Save this {thing}"
+    %save-as  "Save this {thing} as a new file"
+    %copy     "Copy this {thing}"
+    %ref      "Add this {thing} to the references"
+    %browse   "Show the {thing} files"
   ==
 ::
 ++  store-hosts
@@ -708,8 +744,16 @@
       ;div#urui-file-dialog-extra;
       ;p#urui-file-dialog-error.file-dialog-error(role "alert", hidden "");
       ;div.dialog-actions
-        ;button#urui-file-dialog-cancel(type "button"): Cancel
-        ;button#urui-file-dialog-confirm.primary(type "button"): Open
+        ;button#urui-file-dialog-cancel
+          =type   "button"
+          =title  "Close without opening or saving"
+          Cancel
+        ==
+        ;button#urui-file-dialog-confirm.primary
+          =type   "button"
+          =title  "Open the selected file"
+          Open
+        ==
       ==
     ==
   ==
@@ -724,8 +768,8 @@
     ;div.help-card.confirm-card
       ;p#urui-confirm-message;
       ;div.dialog-actions
-        ;button#urui-confirm-cancel(type "button"): Cancel
-        ;button#urui-confirm-ok.primary(type "button"): OK
+        ;button#urui-confirm-cancel(type "button", title "Cancel"): Cancel
+        ;button#urui-confirm-ok.primary(type "button", title "Confirm"): OK
       ==
     ==
   ==
@@ -739,6 +783,7 @@
     ;button#urui-toast-close.icon-button
       =type        "button"
       =aria-label  "Dismiss"
+      =title       "Dismiss"
       ;span.close-icon(aria-hidden "true");
     ==
   ==
@@ -773,6 +818,29 @@
     =aria-haspopup  "dialog"
     =title          "Settings"
     ;span: Settings
+  ==
+::
+++  fullscreen-toggle
+  ::  A button expanding the element whose id is `target` to fullscreen
+  ::  and back.  The consumer places it, inside the target to keep it in
+  ::  reach while expanded; the runtime binds every one at boot.
+  ::  `label` names what expands in the default tooltips, which `tips`
+  ::  replaces by `id` and `{id}-exit`.
+  ::
+  ::  Example, among a %heading band's actions:
+  ::    (fullscreen-toggle:shell 'output-fullscreen' 'output-pane' 'results')
+  |=  [id=@t target=@t label=@t]
+  ^-  manx
+  =/  tip=tape  "Expand {(trip label)} to fullscreen"
+  ;button.icon-button.fullscreen-toggle
+    =id                      (trip id)
+    =type                    "button"
+    =title                   tip
+    =aria-label              tip
+    =aria-pressed            "false"
+    =data-fullscreen-target  (trip target)
+    =data-fullscreen-label   (trip label)
+    ;span.fullscreen-icon(aria-hidden "true");
   ==
 ::
 ++  layout-glyph
@@ -882,10 +950,16 @@
   ::  One menu for the whole page, at ids the runtime's file tree binds.
   ^-  manx
   ;div#file-context-menu.file-context-menu(hidden "", role "menu")
-    ;button#file-context-open(type "button", role "menuitem"): Open
+    ;button#file-context-open
+      =type   "button"
+      =role   "menuitem"
+      =title  "Open this file"
+      Open
+    ==
     ;button#file-context-delete.danger-button
-      =type  "button"
-      =role  "menuitem"
+      =type   "button"
+      =role   "menuitem"
+      =title  "Delete this file"
       Delete
     ==
   ==

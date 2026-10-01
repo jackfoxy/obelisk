@@ -166,6 +166,7 @@
       layout=%rows
       collapse=&
       files=`files
+      tips=~
   ==
 ::
 ++  slots
@@ -336,6 +337,9 @@
         =aria-label  "Copy results"
         ;span.copy-icon(aria-hidden "true");
       ==
+      ::  the whole pane expands: command tabs, pagers, Save, and Copy
+      ::  stay in reach
+      (fullscreen-toggle:shell 'output-fullscreen' 'output-pane' 'results')
   ==
 ::
 ++  brand
@@ -358,9 +362,13 @@
           ;span: Run
           ;kbd: F5
         ==
-        ;button#parse-btn(type "button"): Parse
+        ;button#parse-btn(type "button", title "Parse without running")
+          Parse
+        ==
         ;+  settings-button:shell
-        ;button#help(type "button", aria-expanded "false"): Help
+        ;button#help(type "button", title "Help", aria-expanded "false")
+          Help
+        ==
       ==
   ==
 ::
@@ -688,7 +696,7 @@
 
   .editor-mode { margin-right: auto; }
 
-  #copy-output-btn, #save-output-btn, #result-collapse {
+  #copy-output-btn, #save-output-btn, #output-fullscreen, #result-collapse {
     height: 2rem;
     padding: 0;
     width: 2rem;
@@ -720,8 +728,6 @@
     bottom: 0.07rem;
     height: 0.24rem;
   }
-
-  .copy-icon::after { background: var(--surface); }
 
   /* urui's host keeps a 12rem floor; the rows layout's editor may be
      shorter, as it was before urui mounted it */
@@ -1502,6 +1508,7 @@
       actions.type = 'button';
       actions.className = 'relation-actions';
       actions.setAttribute('aria-label', `Actions for ${relation.name}`);
+      actions.title = 'Relation actions';
       actions.setAttribute('aria-haspopup', 'menu');
       actions.setAttribute('aria-expanded', 'false');
       actions.textContent = '…';
@@ -1851,6 +1858,7 @@
         const previous = document.createElement('button');
         previous.type = 'button';
         previous.textContent = 'Previous';
+        previous.title = 'Previous page of rows';
         previous.addEventListener('click', () => {
           page = Math.max(0, page - 1);
           renderPage();
@@ -1858,6 +1866,7 @@
         const next = document.createElement('button');
         next.type = 'button';
         next.textContent = 'Next';
+        next.title = 'Next page of rows';
         next.addEventListener('click', () => {
           page = Math.min(pageCount - 1, page + 1);
           renderPage();
@@ -1934,12 +1943,14 @@
       resultsTab.type = 'button';
       resultsTab.className = 'result-tab';
       resultsTab.textContent = 'Results';
+      resultsTab.title = 'Result sets; drag to the explorer to keep them';
       resultsTab.setAttribute('role', 'tab');
       resultsTab.setAttribute('aria-selected', 'true');
       const messagesTab = document.createElement('button');
       messagesTab.type = 'button';
       messagesTab.className = 'result-tab';
       messagesTab.textContent = 'Messages';
+      messagesTab.title = 'Messages and metadata';
       messagesTab.setAttribute('role', 'tab');
       messagesTab.setAttribute('aria-selected', 'false');
       const resultPanel = document.createElement('div');

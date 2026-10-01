@@ -1150,7 +1150,8 @@
 ::
 ++  controls
   ::  Base button, select, and input dimensions, the theme control, icon
-  ::  buttons, preferences, and the css-drawn copy and close icons.
+  ::  buttons, preferences, the css-drawn copy, close, and fullscreen
+  ::  icons, and the fullscreen state ++fullscreen-toggle:urui-shell sets.
   ^-  @t
   '''
   button, select, input, .preference {
@@ -1236,7 +1237,7 @@
   .copy-icon::before { left: 0; top: 0; }
 
   .copy-icon::after {
-    background: var(--floating-control);
+    background: var(--surface);
     bottom: 0;
     right: 0;
   }
@@ -1262,6 +1263,68 @@
   .close-icon::before { transform: rotate(45deg); }
 
   .close-icon::after { transform: rotate(-45deg); }
+
+  /*  an icon action among a heading's text actions takes their height */
+  .store-action.icon-button {
+    align-self: stretch;
+    height: auto;
+    width: 2.25rem;
+  }
+
+  .fullscreen-icon {
+    height: 0.85rem;
+    position: relative;
+    width: 0.85rem;
+  }
+
+  .fullscreen-icon::before, .fullscreen-icon::after {
+    content: '';
+    height: 0.32rem;
+    position: absolute;
+    width: 0.32rem;
+  }
+
+  .fullscreen-icon::before {
+    border-left: 1.5px solid currentcolor;
+    border-top: 1.5px solid currentcolor;
+    left: 0;
+    top: 0;
+  }
+
+  .fullscreen-icon::after {
+    border-bottom: 1.5px solid currentcolor;
+    border-right: 1.5px solid currentcolor;
+    bottom: 0;
+    right: 0;
+  }
+
+  /*  expanded, the corners turn inward */
+  [aria-pressed='true'] > .fullscreen-icon::before {
+    border: 0;
+    border-bottom: 1.5px solid currentcolor;
+    border-right: 1.5px solid currentcolor;
+  }
+
+  [aria-pressed='true'] > .fullscreen-icon::after {
+    border: 0;
+    border-left: 1.5px solid currentcolor;
+    border-top: 1.5px solid currentcolor;
+  }
+
+  /*  the browser sizes a fullscreen element; urui gives it a ground,
+      a scroll, and its fullscreen-only controls, and takes away the
+      pane collapse it cannot use there */
+  .is-fullscreen {
+    background: var(--surface);
+    overflow: auto;
+  }
+
+  .fullscreen-only:not(.is-fullscreen *) { display: none; }
+
+  .is-fullscreen .result-collapse { display: none; }
+
+  /*  a collapsed pane has nothing to expand */
+  .collapsed .fullscreen-toggle { display: none; }
   '''
 ::
 ++  responsive

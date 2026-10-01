@@ -858,4 +858,36 @@
     (expect !>(!(has-node-id full-doc "note-open")))
     (expect !>(!(has-node-id full-doc "note-preview")))
   ==
+::
+++  test-store-copy-is-the-copy-icon
+  =/  copy  (need (node-by-id store-doc "note-copy"))
+  =/  icons  (elements copy %span)
+  ;:  weld
+    (expect-eq !>("store-action icon-button") !>((attribute copy %class)))
+    (expect-eq !>("Copy this Note") !>((attribute copy %title)))
+    (expect-eq !>("Copy this Note") !>((attribute copy %aria-label)))
+    (expect-eq !>(1) !>((lent icons)))
+    (expect-eq !>("copy-icon") !>((attribute (head icons) %class)))
+  ==
+::
+++  test-store-actions-carry-default-tooltips
+  =/  ids=(list tape)  ~["note-open" "note-save" "note-display-preview"]
+  %+  expect-eq
+    !>(~["Open a saved Note" "Save this Note" "Show the preview"])
+  !>  %+  turn  ids
+      |=(id=tape (attribute (need (node-by-id store-doc id)) %title))
+::
+++  test-fullscreen-toggle-names-its-target
+  =/  toggle  (fullscreen-toggle:shell 'probe-full' 'probe-result' 'results')
+  =/  icons  (elements toggle %span)
+  ;:  weld
+    (expect-eq !>("probe-full") !>((attribute toggle %id)))
+    %+  expect-eq  !>("probe-result")
+    !>((attribute toggle %data-fullscreen-target))
+    (expect-eq !>("results") !>((attribute toggle %data-fullscreen-label)))
+    %+  expect-eq  !>("Expand results to fullscreen")
+    !>((attribute toggle %title))
+    (expect-eq !>("false") !>((attribute toggle %aria-pressed)))
+    (expect-eq !>("fullscreen-icon") !>((attribute (head icons) %class)))
+  ==
 --

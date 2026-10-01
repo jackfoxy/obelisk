@@ -1908,6 +1908,9 @@
     (expect !>(?=(^ (find "Roadmap" html))))
     (expect !>(?=(^ (find "id=\"script-copy\"" html))))
     (expect !>(?=(^ (find "Copy results" html))))
+    (expect !>(?=(^ (find "id=\"output-fullscreen\"" html))))
+    %-  expect
+    !>(?=(^ (find "data-fullscreen-target=\"output-pane\"" html)))
     (expect !>(?=(^ (find "Default DB" html))))
     (expect !>(?=(^ (find "For Developers" html))))
     (expect !>(?=(~ (find "header-file-menu" html))))

@@ -235,6 +235,10 @@
   ::  `files` turns on urui's document and file module; ~ leaves it off.
   ::  A %documents tab level's `kind` names one of its stores.
   ::
+  ::  `tips` replaces the default tooltip of a urui control, by key: the
+  ::  control's id, or a name for a control urui draws many of.  The
+  ::  keys are listed in the urui-protocol contracts.
+  ::
   $:  =app-id
       =limits
       slots=(list slot)
@@ -245,6 +249,7 @@
       layout=screen-format
       collapse=$~(| ?)
       files=(unit files)
+      tips=(list [key=@t text=@t])
   ==
 ::
 +$  shell-spec
