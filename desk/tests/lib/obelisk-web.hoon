@@ -1,7 +1,7 @@
 ::  Tests for %obelisk-web shared types and state lifecycle.
 ::
 /-  ast=obelisk-ast, web=obelisk-web
-/+  file-lib=obelisk-web-file, json-lib=obelisk-web-json
+/+  json-lib=obelisk-web-json, ufiles=urui-files
 /+  result-lib=obelisk-web-result
 /+  schema-lib=obelisk-web-schema
 /+  state=obelisk-web, *test
@@ -39,8 +39,7 @@
       queue=~[queued-fixture]
       active=`active-fixture
       readiness=~
-      file-save=~
-      file-delete=~
+      files=~
       result-cache=~
   ==
 ::
@@ -65,7 +64,7 @@
 ::
 ++  test-state-construction-01
   %+  expect-eq
-    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~ ~]])
+    !>(`live-state:web`[%0 ~ [%unbound 0 ~ ~ ~ ~ ~]])
   !>(empty-live-state:state)
 ::
 ++  test-save-load-roundtrip-02
@@ -605,14 +604,48 @@
 ::
 ++  test-web-page-root-09
   =/  out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  body  (trip (response-body -.out))
   ;:  weld
     (expect-eq !>(200) !>((response-status -.out)))
     %+  expect-eq
       !>(~[['content-type' 'text/html; charset=utf-8']])
     !>((response-headers -.out))
-    %-  expect
-    !>(?=(^ (find "Obelisk" (trip (response-body -.out)))))
+    (expect !>(?=(^ (find "Obelisk" body))))
+    (expect !>(?=(^ (find "href=\"/apps/obelisk/favicon.ico\"" body))))
   ==
+::
+++  test-web-page-shell-09-a
+  ::  The page is urui's frame around obelisk's panes, starting in rows.
+  =/  out  (poke-http (request %'GET' '/apps/obelisk'))
+  =/  body  (trip (response-body -.out))
+  =/  needles=(list tape)
+    :~  "class=\"workspace\" data-layout=\"rows\""
+        "id=\"settings\""
+        "id=\"schemas-tree\""
+        "id=\"files-tree\""
+        "id=\"explorer-pane-ship\""
+        "~zod"
+        "id=\"editor-pane-script-tabs\""
+        "id=\"query-editor\""
+        "id=\"query-editor-load-error\""
+        "id=\"script-preview\""
+        "id=\"script-save\""
+        "id=\"output-pane-command-tabs\""
+        "id=\"result-collapse\""
+        "id=\"results\""
+        "id=\"run-btn\""
+        "id=\"help\""
+        "id=\"urui-file-dialog\""
+        "id=\"urui-confirm\""
+        "id=\"urui-toast\""
+        "id=\"file-context-menu\""
+        "href=\"/apps/obelisk/app.css\""
+        "src=\"/apps/obelisk/ace/obelisk-config.js\""
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect-eq !>([needle &]) !>([needle ?=(^ (find needle body))]))
 ::
 ++  test-web-page-trailing-slash-10
   =/  out  (poke-http (request %'GET' '/apps/obelisk/'))
@@ -634,6 +667,50 @@
     %+  expect-eq
       !>(~[['content-type' 'text/css; charset=utf-8']])
     !>((response-headers -.out))
+  ==
+::
+++  test-web-ace-assets-12-a
+  ::  Every vendored Ace file, the emitted Ace config, and the license.
+  =/  js  'text/javascript; charset=utf-8'
+  =/  routes=(list [url=@t type=@t])
+    :~  ['/apps/obelisk/ace/ace.js' js]
+        ['/apps/obelisk/ace/obelisk-config.js' js]
+        ['/apps/obelisk/ace/theme-github.js' js]
+        ['/apps/obelisk/ace/theme-monokai.js' js]
+        ['/apps/obelisk/ace/ext-beautify.js' js]
+        ['/apps/obelisk/ace/ext-prompt.js' js]
+        ['/apps/obelisk/ace/ext-searchbox.js' js]
+        ['/apps/obelisk/ace/ext-settings_menu.js' js]
+        ['/apps/obelisk/ace/keybinding-vim.js' js]
+        ['/apps/obelisk/ace/license.txt' 'text/plain; charset=utf-8']
+    ==
+  %-  zing
+  %+  turn  routes
+  |=  [url=@t type=@t]
+  =/  out  (poke-http (request %'GET' url))
+  %+  weld
+    (expect-eq !>([url 200]) !>([url (response-status -.out)]))
+  %+  expect-eq
+    !>(~[['content-type' type]])
+  !>((response-headers -.out))
+::
+++  test-web-ace-config-names-text-mode-12-b
+  =/  out
+    (poke-http (request %'GET' '/apps/obelisk/ace/obelisk-config.js'))
+  =/  body  (trip (response-body -.out))
+  ;:  weld
+    (expect !>(?=(^ (find "obeliskAceAssets" body))))
+    (expect !>(?=(^ (find "ace/mode/text" body))))
+  ==
+::
+++  test-web-doc-toc-12-c
+  =/  out  (poke-http (request %'GET' '/apps/obelisk/doc.toc'))
+  ;:  weld
+    (expect-eq !>(200) !>((response-status -.out)))
+    %+  expect-eq
+      !>(~[['content-type' 'text/plain; charset=utf-8']])
+    !>((response-headers -.out))
+    (expect !>(?=(^ (find "/users-guide/md" (trip (response-body -.out))))))
   ==
 ::
 ++  test-web-method-not-allowed-13
@@ -780,11 +857,7 @@
             ~[%results %result-1 %md]
             %.n
         ==
-        [%file-browse ~]
-        [%file-browse ~[%scripts %nested]]
-        [%file-load ~[%scripts %query-1]]
-        [%file-delete ~[%scripts %query-1]]
-        [%file-save ~[%results %result-1] hostile-text %.y]
+        [%result-text-save ~[%results %result-1 %txt] hostile-text %.y]
     ==
   %-  zing
   %+  turn  fixtures
@@ -841,10 +914,6 @@
     :~  [%run 7 ~[[0 results]] %.y]
         [%parse ~[hostile-text ''] hostile-text]
         [%schema schema]
-        [%file-list ~[[~[%scripts %query-1] %file]]]
-        [%file ~[%scripts %query-1] hostile-text]
-        [%saved ~[%scripts %query-1]]
-        [%deleted ~[%scripts %query-1]]
         [%error error]
     ==
   =/  checks=tang
@@ -1770,184 +1839,43 @@
   =/  table=result-set-dto:web  value.result
   (expect-eq !>(800) !>((lent rows.table)))
 ::
-++  test-file-path-validation-60
+++  test-file-route-refusals-60
+  ::  Files are urui's wire: urui-files validates them, and its own
+  ::  tests cover the policy.  These pin obelisk's route and policy.
+  =/  body=@t
+    '{"op":"load","path":["scripts","..","query","txt"]}'
+  =/  bad-path
+    (api-request '/apps/obelisk/files' %.y `body `'application/json')
+  =/  guest  (api-request '/apps/obelisk/files' %.n `body `'application/json')
+  =/  results=@t
+    '{"op":"save","path":["results","r1","csv"],"text":"a"}'
+  =/  into-results
+    (api-request '/apps/obelisk/files' %.y `results `'application/json')
+  =/  getting  (request %'GET' '/apps/obelisk/files')
+  =/  bad-path-out  (poke-http bad-path)
+  =/  guest-out  (poke-http guest)
+  =/  results-out  (poke-http into-results)
+  =/  getting-out  (poke-http getting)
   ;:  weld
-    (expect !>((valid-browse-path:file-lib ~)))
-    (expect !>((valid-browse-path:file-lib ~[%scripts %nested])))
-    (expect !>((valid-file-path:file-lib ~[%scripts %nested %query-1])))
-    (expect !>((valid-file-path:file-lib ~[%results %results-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts])))
-    (expect !>(!(valid-file-path:file-lib ~[%other %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '.' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '..' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts '' %query-1])))
-    (expect !>(!(valid-file-path:file-lib ~[%scripts 'bad path'])))
-    (expect !>((valid-storage-mark:file-lib %txt)))
-    (expect !>((valid-storage-mark:file-lib %csv)))
-    (expect !>((valid-storage-mark:file-lib %tab)))
-    (expect !>((valid-storage-mark:file-lib %md)))
-    (expect !>((valid-storage-mark:file-lib %html)))
-    (expect !>((valid-storage-mark:file-lib %json)))
-    (expect !>((valid-storage-mark:file-lib %noun)))
-    (expect !>(!(valid-storage-mark:file-lib %hoon)))
-    %+  expect-eq
-      !>(/data/obelisk/scripts/nested/query-1/txt)
-    !>((storage-path:file-lib ~[%scripts %nested %query-1]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-1/csv)
-    !>((storage-path:file-lib ~[%results %results-1 %csv]))
-    %+  expect-eq
-      !>(/data/obelisk/results/results-2/txt)
-    !>((storage-path:file-lib ~[%results %results-2 %txt]))
-    %+  expect-eq
-      !>(`~[%results %results-1 %csv])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/results/results-1/csv
-    %+  expect-eq
-      !>(`~[%scripts %nested %query-1])
-    !>  %-  logical-path:file-lib
-        /data/obelisk/scripts/nested/query-1/txt
-    %+  expect-eq
-      !>(/~zod//~2026.8.1/tomb/~zod/obelisk/~2026.8.1/data/obelisk/txt)
-    !>  %:  tomb-beam:file-lib
-          %:  clay-beam:file-lib
-            ~zod  %obelisk  da+~2026.8.1  /data/obelisk/txt
-          ==
-        ==
+    (expect-eq !>(400) !>((response-status -.bad-path-out)))
+    (expect-eq !>('invalid-path') !>((response-error-code -.bad-path-out)))
+    (expect-eq !>(401) !>((response-status -.guest-out)))
+    (expect-eq !>(400) !>((response-status -.results-out)))
+    (expect-eq !>('invalid-path') !>((response-error-code -.results-out)))
+    (expect-eq !>(405) !>((response-status -.getting-out)))
   ==
 ::
-++  test-file-recursive-ordering-61
-  =/  physical=(list path)
-    :~  /data/obelisk/scripts/zeta/txt
-        /data/obelisk/scripts/nested/beta/txt
-        /data/obelisk/results/result-1/txt
-        /data/obelisk/scripts/nested/alpha/txt
-        /data/obelisk/scripts/ignored/hoon
-    ==
-  =/  expected=(list file-entry-dto:web)
-    :~  [~[%scripts %nested] %directory]
-        [~[%scripts %nested %alpha] %file]
-        [~[%scripts %nested %beta] %file]
-        [~[%scripts %zeta] %file]
-    ==
-  %+  expect-eq
-    !>(expected)
-  !>((entries-from-physical:file-lib ~[%scripts] physical))
-::
-++  test-file-text-and-conflicts-62
-  =/  text-cage-value=cage  (text-cage:file-lib hostile-text)
-  =/  trailing=@t  'first\0a\0a'
-  =/  trailing-cage=cage  (text-cage:file-lib trailing)
-  =/  md-cage=cage  [%md !>(hostile-text)]
-  =/  noun-cage=cage
-    [%noun !>((storage-wain:file-lib hostile-text))]
-  =/  encoded-md=(each cage tang)
-    (cage-from-text:file-lib %md hostile-text)
-  =/  encoded-noun=(each cage tang)
-    (cage-from-text:file-lib %noun hostile-text)
-  =/  invalid-json=(each cage tang)
-    (cage-from-text:file-lib %json '{]')
-  ?>  ?=(%.y -.encoded-md)
-  ?>  ?=(%.y -.encoded-noun)
+++  test-file-policy-61
+  =/  policy  file-policy:state
   ;:  weld
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib text-cage-value))
-    (expect-eq !>(`trailing) !>((text-from-cage:file-lib trailing-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib md-cage)))
-    (expect-eq !>(`hostile-text) !>((text-from-cage:file-lib noun-cage)))
-    (expect !>(=(%md p.p.encoded-md)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-md))
-    (expect !>(=(%noun p.p.encoded-noun)))
-    %+  expect-eq
-      !>(`hostile-text)
-    !>((text-from-cage:file-lib p.encoded-noun))
-    (expect !>(?=(%.n -.invalid-json)))
-    (expect !>((save-conflict:file-lib %.y %.n)))
-    (expect !>(!(save-conflict:file-lib %.y %.y)))
-    (expect !>(!(save-conflict:file-lib %.n %.n)))
-  ==
-::
-++  test-file-invalid-http-paths-63
-  =/  save-body
-    (request-text [%file-save ~[%scripts '..' %query] 'x' %.n])
-  =/  save-req
-    %:  api-request
-      '/apps/obelisk/api/files/save'
-      %.y
-      `save-body
-      `'application/json'
-    ==
-  =/  load-body  (request-text [%file-load ~[%outside %query]])
-  =/  load-req
-    %:  api-request
-      '/apps/obelisk/api/files/load'
-      %.y
-      `load-body
-      `'application/json'
-    ==
-  =/  delete-body  (request-text [%file-delete ~[%outside %query]])
-  =/  delete-req
-    %:  api-request
-      '/apps/obelisk/api/files/delete'
-      %.y
-      `delete-body
-      `'application/json'
-    ==
-  =/  save-out  (poke-http save-req)
-  =/  load-out  (poke-http load-req)
-  =/  delete-out  (poke-http delete-req)
-  ;:  weld
-    (expect-eq !>(400) !>((response-status -.save-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.save-out)))
-    (expect-eq !>(400) !>((response-status -.load-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.load-out)))
-    (expect-eq !>(400) !>((response-status -.delete-out)))
-    (expect-eq !>('bad-request') !>((response-error-code -.delete-out)))
-  ==
-::
-++  test-file-save-persistence-64
-  =/  relative=relative-path:web  ~[%scripts %step-10-persist]
-  =/  content=@t  hostile-text
-  =/  json-content=@t  '{"value":"safe"}\0a'
-  =/  clay-path=path  (storage-path:file-lib relative)
-  =/  riot=riot:clay
-    `[[%x ud+1 %obelisk] clay-path (text-cage:file-lib content)]
-  =/  csv-path=path  /data/obelisk/results/results-1/csv
-  =/  csv-cage=cage  [%csv !>((storage-wain:file-lib content))]
-  =/  csv-riot=riot:clay  `[[%x ud+1 %obelisk] csv-path csv-cage]
-  =/  html-path=path  /data/obelisk/results/results-1/html
-  =/  html-cage=cage  [%html !>(content)]
-  =/  html-riot=riot:clay  `[[%x ud+1 %obelisk] html-path html-cage]
-  =/  md-path=path  /data/obelisk/results/results-1/md
-  =/  md-cage=cage  [%md !>(content)]
-  =/  md-riot=riot:clay  `[[%x ud+1 %obelisk] md-path md-cage]
-  =/  json-path=path  /data/obelisk/results/results-1/json
-  =/  json-cage=cage  [%json !>((need (de:json:html json-content)))]
-  =/  json-riot=riot:clay  `[[%x ud+1 %obelisk] json-path json-cage]
-  =/  tab-path=path  /data/obelisk/results/results-1/tab
-  =/  tab-cage=cage  [%tab !>((storage-wain:file-lib content))]
-  =/  tab-riot=riot:clay  `[[%x ud+1 %obelisk] tab-path tab-cage]
-  ;:  weld
-    %+  expect-eq
-      !>(/data/obelisk/scripts/step-10-persist/txt)
-    !>(clay-path)
-    (expect !>((save-verifies:file-lib content riot)))
-    (expect !>((save-verifies:file-lib content csv-riot)))
-    (expect !>((save-verifies:file-lib content html-riot)))
-    (expect !>((save-verifies:file-lib content md-riot)))
-    (expect !>((save-verifies:file-lib json-content json-riot)))
-    (expect !>((save-verifies:file-lib content tab-riot)))
-  ==
-::
-++  test-file-save-clay-failure-65
-  =/  malformed=riot:clay
-    `[[%x ud+1 %obelisk] /data/obelisk/results/bad [%noun !>('x')]]
-  ;:  weld
-    (expect !>(!(save-verifies:file-lib 'x' ~)))
-    (expect !>(!(save-verifies:file-lib 'x' malformed)))
+    (expect-eq !>(`path`/data/obelisk) !>(root.policy))
+    (expect !>(strict.policy))
+    (expect !>(verify.policy))
+    (expect !>(=(`%wain (file-codec:ufiles policy /scripts/q1/txt &))))
+    (expect !>(=(`%wain (file-codec:ufiles policy /results/r1/noun |))))
+    (expect !>(=(`%json (file-codec:ufiles policy /results/r1/json |))))
+    (expect !>(=(~ (file-codec:ufiles policy /results/r1/csv &))))
+    (expect !>(=(~ (file-codec:ufiles policy /scripts/q1/csv |))))
   ==
 ::
 ++  test-sail-shell-landmarks-and-controls-66
@@ -1957,30 +1885,32 @@
   =/  ship=tape  (trip (scot %p our.local))
   ;:  weld
     (expect !>(?=(^ (find "app-header" html))))
-    (expect !>(?=(^ (find "/apps/obelisk/favicon.ico" html))))
-    (expect !>(?=(^ (find "schema-pane" html))))
+    (expect !>(?=(^ (find "explorer-pane" html))))
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
     (expect !>(?=(^ (find "Run" html))))
     (expect !>(?=(^ (find "F5" html))))
     (expect !>(?=(^ (find "Parse" html))))
-    (expect !>(?=(^ (find "Save script" html))))
+    (expect !>(?=(^ (find "id=\"script-save-as\"" html))))
     (expect !>(?=(^ (find "Save result" html))))
-    (expect !>(?=(^ (find "help-btn" html))))
+    (expect !>(?=(^ (find "id=\"help\"" html))))
     (expect !>(?=(^ (find "help-panel" html))))
     (expect !>(?=(^ (find "close-help" html))))
     (expect !>(?=(^ (find "close-icon" html))))
     (expect !>(?=(^ (find "fallback-help-content" html))))
     (expect !>(?=(^ (find "docs-help-content" html))))
-    (expect !>(?=(^ (find "docs-help-tree" html))))
+    (expect !>(?=(^ (find "docs-help-nav" html))))
     (expect !>(?=(^ (find "explorer-tabs" html))))
     (expect !>(?=(^ (find "explorer-tab-control" html))))
     (expect !>(?=(^ (find "docs-llm-button" html))))
     (expect !>(?=(^ (find "Reference" html))))
     (expect !>(?=(^ (find "Users Guide" html))))
     (expect !>(?=(^ (find "Roadmap" html))))
-    (expect !>(?=(^ (find "Copy script" html))))
+    (expect !>(?=(^ (find "id=\"script-copy\"" html))))
     (expect !>(?=(^ (find "Copy results" html))))
+    (expect !>(?=(^ (find "id=\"output-fullscreen\"" html))))
+    %-  expect
+    !>(?=(^ (find "data-fullscreen-target=\"output-pane\"" html)))
     (expect !>(?=(^ (find "Default DB" html))))
     (expect !>(?=(^ (find "For Developers" html))))
     (expect !>(?=(~ (find "header-file-menu" html))))
@@ -2002,89 +1932,90 @@
   ;:  weld
     (expect !>(?=(^ (find "/apps/obelisk/app.css" html))))
     (expect !>(?=(^ (find "/apps/obelisk/app.js" html))))
-    (expect !>(?=(^ (find "prefers-color-scheme: dark" style))))
+    (expect !>(?=(^ (find "data-effective-theme='dark'" style))))
     (expect !>(?=(^ (find "max-width: 760px" style))))
     (expect !>(?=(^ (find ".workbench" style))))
-    (expect !>(?=(^ (find ".schema-pane" style))))
-    (expect !>(?=(^ (find ".output-pane" style))))
+    (expect !>(?=(^ (find ".explorer-pane" style))))
+    (expect !>(?=(^ (find "#output-pane" style))))
     (expect !>(?=(^ (find ".splitter.inactive" style))))
-    (expect !>(?=(^ (find ".docs-help-tree" style))))
+    (expect !>(?=(^ (find ".docs-help-nav" style))))
     (expect !>(?=(^ (find ".close-icon::before" style))))
-    (expect !>(?=(^ (find ".docs-help-static" style))))
+    (expect !>(?=(^ (find ".docs-help-link" style))))
     (expect !>(?=(^ (find ".docs-tab-close" style))))
     (expect !>(?=(^ (find ".explorer-tab" style))))
     (expect !>(?=(^ (find "height: 2rem;" style))))
-    (expect !>(?=(^ (find ".explorer-tab-control .explorer-tab" style))))
-    (expect !>(?=(^ (find "padding-block: 0;" style))))
-    (expect !>(?=(~ (find ".explorer-tab-control.active" style))))
-    (expect !>(?=(^ (find ".docs-tab-control .explorer-tab" style))))
+    (expect !>(?=(^ (find ".explorer-tab-control" style))))
+    (expect !>(?=(^ (find ".docs-tab-control" style))))
     (expect !>(?=(~ (find ".docs-tab-control.active .explorer-tab" style))))
     (expect !>(?=(^ (find "border-left: 0;" style))))
-    (expect !>(?=(^ (find ".editor-tab-control" style))))
-    (expect !>(?=(^ (find ".editor-tab-close" style))))
-    (expect !>(?=(^ (find ".docs-frame" style))))
+    (expect !>(?=(^ (find ".document-tab-control" style))))
+    (expect !>(?=(^ (find ".document-tab-close" style))))
+    (expect !>(?=(^ (find ".docs-explorer-frame" style))))
+    (expect !>(?=(^ (find ".result-collapsed" style))))
     (expect !>(?=(~ (find "hawk" lower))))
     (expect !>(?=(~ (find "htmx" lower))))
     (expect !>(?=(~ (find "jquery" lower))))
   ==
 ::
 ++  test-browser-controller-and-pane-state-68
+  ::  Layout, help, docs tabs, and the explorer strip are urui's; obelisk
+  ::  drives urui's runtime and keeps its own workbench state.
   =/  out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
   =/  script=tape  (trip (response-body -.out))
+  ::  obelisk's own code alone: urui's runtime has an observer of its own
+  =/  own=tape  (trip app-js:state)
   ;:  weld
-    (expect !>(?=(^ (find "sessionStorage" script))))
-    (expect !>(?=(^ (find "aria-expanded" script))))
-    (expect !>(?=(^ (find "pointermove" script))))
-    (expect !>(?=(^ (find "classList.toggle('inactive'" script))))
-    (expect !>(?=(^ (find "schemaOpen" script))))
-    (expect !>(?=(^ (find "outputOpen" script))))
-    (expect !>(?=(^ (find "outputRatio: 1 / 3" script))))
-    (expect !>(?=(^ (find "scriptRatio = 1 - outputRatio" script))))
-    (expect !>(?=(^ (find "event.key === 'Escape'" script))))
+    (expect !>(?=(^ (find "window.URUI_CONFIG" script))))
+    (expect !>(?=(^ (find "\"layout\":\"rows\"" script))))
+    (expect !>(?=(^ (find "\"resultCollapse\":true" script))))
+    (expect !>(?=(^ (find "\"docsRoot\":\"/docs/d/obelisk/\"" script))))
+    (expect !>(?=(^ (find "window.urui.runtime(" script))))
+    (expect !>(?=(^ (find "\"global\":\"obeliskAceAssets\"" script))))
+    (expect !>(?=(^ (find "window.urui.boot(" script))))
+    (expect !>(?=(^ (find "runtime.start((saved) =>" script))))
+    (expect !>(?=(~ (find "runtime.wire();" script))))
+    (expect !>(?=(^ (find "openDocsTab: runtime.explorer.docs.open" script))))
+    (expect !>(?=(^ (find "closeDocsTab: runtime.explorer.docs.close" script))))
+    (expect !>(?=(^ (find "runtime.layout.setResultOpen(true)" script))))
+    (expect !>(?=(^ (find "runtime.explorer.view() === 'schemas'" script))))
+    (expect !>(?=(~ (find "new MutationObserver" own))))
+    (expect !>(?=(^ (find "runtime.explorer.onChange(" script))))
+    (expect !>(?=(~ (find "sessionStorage" script))))
+    (expect !>(?=(^ (find "\"key\":\"workbench\"" script))))
+    (expect !>(?=(^ (find "validWorkbench(raw)" script))))
     (expect !>(?=(^ (find "setBusy" script))))
-    (expect !>(?=(^ (find "setHelpOpen" script))))
-    (expect !>(?=(^ (find "refreshHelpVariant" script))))
-    (expect !>(?=(^ (find "renderDocsHelpTree" script))))
-    (expect !>(?=(^ (find "renderDocsHelpNode" script))))
-    (expect !>(?=(^ (find "renderDocsTabs" script))))
-    (expect !>(?=(^ (find "openDocsTab" script))))
-    (expect !>(?=(^ (find "closeDocsTab" script))))
-    (expect !>(?=(^ (find "state.docsTabs" script))))
-    (expect !>(?=(^ (find "nextDocs" script))))
-    (expect !>(?=(^ (find "document.createElement('iframe')" script))))
-    (expect !>(?=(^ (find "docsTabLabel" script))))
-    (expect !>(?=(^ (find "docsTabTrail" script))))
-    (expect !>(?=(^ (find "'User Docs'" script))))
-    (expect !>(?=(^ (find "slice(-2).join(' > ')" script))))
-    (expect !>(?=(^ (find "'Data Definition Language', 'DDL'" script))))
-    (expect !>(?=(^ (find "'Data Manipulation Language', 'DML'" script))))
-    (expect !>(?=(^ (find "frame.contentDocument.title" script))))
-    (expect !>(?=(^ (find "new MutationObserver" script))))
     (expect !>(?=(^ (find "event.preventDefault()" script))))
-    (expect !>(?=(~ (find "title: 'User Docs'" script))))
-    (expect !>(?=(^ (find "Data Definition Language" script))))
-    (expect !>(?=(^ (find "Data Manipulation Language" script))))
-    (expect !>(?=(^ (find "fetch('/docs'" script))))
-    (expect !>(?=(^ (find "pathname.startsWith('/docs')" script))))
-    (expect !>(?=(^ (find "/docs/d/obelisk/" script))))
-    (expect !>(?=(^ (find "docsAvailable" script))))
-    (expect !>(?=(^ (find "helpPanel.hidden" script))))
+    (expect !>(?=(~ (find "/apps/obelisk/favicon.ico" script))))
+    (expect !>(?=(^ (find "runtime.a11y.menu(relationMenu" script))))
+    (expect !>(?=(^ (find "runtime.a11y.tablist(tabList)" script))))
+    (expect !>(?=(~ (find "closest('.relation-actions')" script))))
+    (expect !>(?=(~ (find "'treeitem'" script))))
+    (expect !>(?=(~ (find "byId('help-panel')" script))))
+    (expect !>(?=(~ (find "outputRatio: 1 / 3" script))))
+    (expect !>(?=(~ (find "renderDocsHelpTree" script))))
+    (expect !>(?=(~ (find "state.docsTabs" script))))
+    (expect !>(?=(~ (find "function applyLayout" script))))
   ==
 ::
 ++  test-editor-and-query-interactions-69
+  ::  Query tabs are urui's `script` store; obelisk runs the selection
+  ::  and opens relation templates as new drafts.
   =/  out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
   =/  script=tape  (trip (response-body -.out))
+  =/  own=tape  (trip app-js:state)
   ;:  weld
-    (expect !>(?=(^ (find "nextDraftName" script))))
-    (expect !>(?=(^ (find "selectionStart" script))))
     (expect !>(?=(^ (find "execute('run')" script))))
     (expect !>(?=(^ (find "execute('parse')" script))))
-    (expect !>(?=(^ (find "event.key === 'F5'" script))))
-    (expect !>(?=(^ (find "navigator.clipboard" script))))
-    (expect !>(?=(^ (find "document.execCommand('copy')" script))))
-    (expect !>(?=(^ (find "function closeTab(id)" script))))
-    (expect !>(?=(^ (find "editor-tab-close" script))))
-    (expect !>(?=(^ (find "closeTab(tab.id)" script))))
+    (expect !>(?=(^ (find "\"binding\":\"F5\"" script))))
+    (expect !>(?=(^ (find "runtime.shortcuts.register('run'" script))))
+    (expect !>(?=(^ (find "editor = docs.editor('script')" script))))
+    (expect !>(?=(^ (find "editor.getSelection()" script))))
+    %-  expect
+    !>(?=(^ (find "docs.create('script', \{text, focus: true})" script)))
+    (expect !>(?=(^ (find "runtime.copy(outputCopyText())" script))))
+    (expect !>(?=(~ (find "function closeTab(id)" own))))
+    (expect !>(?=(~ (find "runtime.panes.set('editor-pane'" own))))
+    (expect !>(?=(~ (find "navigator.clipboard" own))))
   ==
 ::
 ++  test-web-eyre-bind-response-70
@@ -2110,54 +2041,39 @@
   ==
 ::
 ++  test-file-ui-contract-72
+  ::  Tabs, files, the tree, dialogs, and feedback are urui's; none of
+  ::  obelisk's own file code is left.
   =/  page-out  (poke-http (request %'GET' '/apps/obelisk'))
   =/  js-out  (poke-http (request %'GET' '/apps/obelisk/app.js'))
   =/  html=tape  (trip (response-body -.page-out))
   =/  script=tape  (trip (response-body -.js-out))
+  =/  own=tape  (trip app-js:state)
   ;:  weld
-    (expect !>(?=(^ (find "file-dialog" html))))
-    (expect !>(?=(^ (find "file-dialog-list" html))))
+    (expect !>(?=(^ (find "urui-file-dialog-list" html))))
     (expect !>(?=(^ (find "files-tab" html))))
     (expect !>(?=(^ (find "files-panel" html))))
     (expect !>(?=(^ (find "files-tree" html))))
-    (expect !>(?=(^ (find "file-path-input" html))))
-    (expect !>(?=(^ (find "files/browse" script))))
-    (expect !>(?=(^ (find "files/load" script))))
-    (expect !>(?=(^ (find "files/save" script))))
-    (expect !>(?=(^ (find "files/delete" script))))
     (expect !>(?=(^ (find "file-context-menu" html))))
-    (expect !>(?=(^ (find "file-context-open" html))))
-    (expect !>(?=(^ (find "file-context-delete" html))))
-    (expect !>(?=(^ (find "openFileContext" script))))
-    (expect !>(?=(^ (find "deleteContextFile" script))))
-    (expect !>(?=(^ (find "explorer-file-row" script))))
-    (expect !>(?=(^ (find "contextmenu" script))))
-    (expect !>(?=(^ (find "file-actions" script))))
-    (expect !>(?=(^ (find "This cannot be undone" script))))
-    (expect !>(?=(^ (find "scriptPathFromInput" script))))
-    (expect !>(?=(^ (find "openSelectedFile" script))))
-    (expect !>(?=(^ (find "loadFilePath" script))))
-    (expect !>(?=(^ (find "refreshFiles" script))))
-    (expect !>(?=(^ (find "explorerFileParent" script))))
-    (expect !>(?=(^ (find "explorerFileLabel" script))))
-    (expect !>(?=(^ (find "savedFileTabName" script))))
-    (expect !>(?=(^ (find "uniqueTabName(savedFileTabName(path))" script))))
-    (expect !>(?=(^ (find "savedFileTabName(body.path)" script))))
-    (expect !>(?=(^ (find "resultStorageMarks" script))))
-    (expect !>(?=(^ (find "updateDisplayedResultMark" script))))
+    (expect !>(?=(^ (find "id=\"script-open\"" html))))
+    (expect !>(?=(^ (find "id=\"script-display\"" html))))
+    (expect !>(?=(^ (find "results-format-field" html))))
+    (expect !>(?=(~ (find "id=\"file-dialog\"" html))))
+    (expect !>(?=(~ (find "app-status" html))))
+    (expect !>(?=(~ (find "save-context-menu" html))))
+    (expect !>(?=(^ (find "\"url\":\"/apps/obelisk/files\"" script))))
+    (expect !>(?=(^ (find "\"storageVersion\":2" script))))
+    (expect !>(?=(^ (find "\"key\":\"scriptTabs\"" script))))
+    (expect !>(?=(^ (find "\"key\":\"fileTrees\"" script))))
+    (expect !>(?=(^ (find "results/save-text" script))))
     (expect !>(?=(^ (find "activeTabIsResult" script))))
     (expect !>(?=(^ (find "updateExecutionControls" script))))
-    (expect !>(?=(^ (find "saveQueryButton.disabled = busy ||" script))))
     (expect !>(?=(^ (find "if (!runButton.disabled) execute('run')" script))))
-    (expect !>(?=(^ (find "path: []" script))))
-    (expect !>(?=(^ (find "filesCollapsed" script))))
-    (expect !>(?=(^ (find "explorerView" script))))
-    (expect !>(?=(^ (find "setExplorerView" script))))
-    (expect !>(?=(^ (find "error.status === 409" script))))
-    (expect !>(?=(^ (find "savedText" script))))
-    (expect !>(?=(^ (find "existing.text = text" script))))
-    (expect !>(?=(^ (find "existing.savedText = text" script))))
-    (expect !>(?=(^ (find "existing ? 'reloaded' : 'opened'" script))))
+    (expect !>(?=(~ (find "openFileContext" own))))
+    (expect !>(?=(~ (find "state.tabs" own))))
+    (expect !>(?=(~ (find "api('file-" own))))
+    (expect !>(?=(~ (find "renderMarkdown" own))))
+    (expect !>(?=(~ (find "app-status" own))))
+    (expect !>(?=(~ (find "window.confirm" own))))
   ==
 ::
 ++  test-schema-ui-contract-73
@@ -2168,7 +2084,7 @@
   ;:  weld
     (expect !>(?=(^ (find "relation-menu" html))))
     (expect !>(?=(^ (find "schemas-tab" html))))
-    (expect !>(?=(^ (find "schema-panel" html))))
+    (expect !>(?=(^ (find "schemas-panel" html))))
     (expect !>(?=(^ (find "relation-select" html))))
     (expect !>(?=(^ (find "relation-insert" html))))
     (expect !>(?=(^ (find "relation-create" html))))
@@ -2202,16 +2118,10 @@
   =/  html=tape  (trip (response-body -.page-out))
   =/  style=tape  (trip (response-body -.css-out))
   =/  script=tape  (trip (response-body -.js-out))
+  =/  mark-swap=tape  "[...picked.slice(0, -1), resultFormatMarks[format]]"
   ;:  weld
-    (expect !>(?=(^ (find "save-query-btn" html))))
     (expect !>(?=(^ (find "save-output-btn" html))))
     (expect !>(?=(^ (find "Save results" html))))
-    (expect !>(?=(^ (find "save-context-menu" html))))
-    (expect !>(?=(^ (find "markdown-view-toggle" html))))
-    (expect !>(?=(^ (find "markdown-source-btn" html))))
-    (expect !>(?=(^ (find "markdown-preview-btn" html))))
-    (expect !>(?=(^ (find "html-preview" html))))
-    (expect !>(?=(^ (find "sandbox" html))))
     (expect !>(?=(~ (find "save-results-btn" html))))
     (expect !>(?=(^ (find "results-format-select" html))))
     (expect !>(?=(^ (find "value=\"%csv\"" html))))
@@ -2228,12 +2138,12 @@
     (expect !>(?=(^ (find "result-table-wrap" style))))
     (expect !>(?=(^ (find "white-space: nowrap" style))))
     (expect !>(?=(^ (find "height: 2.3rem" style))))
-    (expect !>(?=(^ (find ".editor-tabs .new-tab" style))))
+    (expect !>(?=(^ (find ".document-tab-add" style))))
     (expect !>(?=(^ (find ".copy-icon" style))))
     (expect !>(?=(^ (find ".save-icon" style))))
     (expect !>(?=(^ (find ".help-panel" style))))
-    (expect !>(?=(^ (find ".markdown-preview" style))))
-    (expect !>(?=(^ (find ".html-preview" style))))
+    (expect !>(?=(^ (find ".markdown-view" style))))
+    (expect !>(?=(^ (find ".store-preview" style))))
     (expect !>(?=(^ (find "showRunOutput" script))))
     (expect !>(?=(^ (find "showParseOutput" script))))
     (expect !>(?=(^ (find "showErrorOutput" script))))
@@ -2246,12 +2156,13 @@
     (expect !>(?=(^ (find "results/save" script))))
     (expect !>(?=(^ (find "outputState.resultId" script))))
     (expect !>(?=(^ (find "setPointerCapture" script))))
-    (expect !>(?=(^ (find "lostpointercapture" script))))
+    %-  expect
+    !>(?=(^ (find "runtime.panes.set('output-pane', 'command'" script)))
     (expect !>(?=(^ (find "renderResultSet" script))))
     (expect !>(?=(^ (find "outputCopyAvailable" script))))
     (expect !>(?=(^ (find "outputCopyText" script))))
-    (expect !>(?=(^ (find ".command-tabs" style))))
-    (expect !>(?=(^ (find ".command-tab" style))))
+    (expect !>(?=(~ (find ".command-tabs" style))))
+    (expect !>(?=(^ (find ".command-tab-panel" style))))
     (expect !>(?=(^ (find "resultPageSize = 500" script))))
     (expect !>(?=(^ (find "resultPagingThreshold = 800" script))))
     (expect !>(?=(^ (find "makePager('top')" script))))
@@ -2262,21 +2173,19 @@
     (expect !>(?=(^ (find "security-time:" script))))
     (expect !>(?=(^ (find "showSaveResultsDialog" script))))
     (expect !>(?=(^ (find "'click', showSaveResultsDialog" script))))
-    (expect !>(?=(^ (find "openSaveContext" script))))
-    (expect !>(?=(^ (find "directSaveAvailable" script))))
     (expect !>(?=(^ (find "event.clientX" script))))
     (expect !>(?=(^ (find "window.innerWidth" script))))
     (expect !>(?=(^ (find "outputState.path" script))))
-    (expect !>(?=(^ (find "previewResultMark" script))))
-    (expect !>(?=(^ (find "setResultView" script))))
-    (expect !>(?=(^ (find "renderMarkdown" script))))
-    (expect !>(?=(^ (find "safeMarkdownHref" script))))
-    (expect !>(?=(^ (find "htmlPreview.srcdoc" script))))
+    (expect !>(?=(^ (find "docs.pickPath(\{" script))))
+    (expect !>(?=(^ (find "extra: resultsFormatField" script))))
     (expect !>(?=(^ (find "resultFormatMarks" script))))
-    (expect !>(?=(^ (find "path[path.length - 1] === mark" script))))
+    (expect !>(?=(^ (find mark-swap script))))
     (expect !>(?=(^ (find "nextResultName" script))))
-    (expect !>(?=(^ (find "path: ['results']" script))))
-    (expect !>(?=(^ (find "error.status === 409" script))))
+    (expect !>(?=(^ (find "scope: ['results']" script))))
+    %-  expect
+    !>(?=(^ (find "['exists', 'changed'].includes(error.code)" script)))
+    (expect !>(?=(^ (find "runtime.confirm(error.code" script))))
+    (expect !>(?=(^ (find "docs.trees.refresh()" script))))
   ==
 ::
 ++  test-packaging-lifecycle-75

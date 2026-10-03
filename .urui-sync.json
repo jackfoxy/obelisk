@@ -1,0 +1,31 @@
+{
+  "files": {
+    "desk/lib/urui-ace.hoon": "cccc2a156342eb4beeb276169230baa80f9c681db917e16f2d97840682166ce0",
+    "desk/lib/urui-config.hoon": "be617e8545a6311f806f2fa610a802ad99ecb0499cf3b675ba2ee39a8745f9b8",
+    "desk/lib/urui-css.hoon": "065c90db7b5d6f8c8d2d3e746b1309c5dd7be51bf68e405425eaa96d27c557da",
+    "desk/lib/urui-files.hoon": "e9053b1934afd94268b401e17e15085d101a5ceb60a53d27efdc304ddb2488db",
+    "desk/lib/urui-http.hoon": "cf0852088a7ebd97b53f7861a55a3fcf824fbe98a43b3816d20951b83b29c9e4",
+    "desk/lib/urui-js.hoon": "d08b2c2d4f14fab2d16c47388f7d6158e08e603b1edaf4878e546012372aeda7",
+    "desk/lib/urui-shell.hoon": "2ff56c014b32ffe6f61c695b1c2b4a3a0bd30f594369ba57106ef03d3bc82b29",
+    "desk/sur/urui.hoon": "cbcb28ebeec26cd6910ffb5fe52421864839b80dbb91a0ebae6ad60830469fdd",
+    "desk/web/ace/README.md": "cfbc3925f83237a2f0455194efe2090c667601dd11c42eb7fe911c8b61214af6",
+    "desk/web/ace/ace.js": "d084df9052068e8b2d67ec692628005720370b43c26be7a81d86d4e92ce17297",
+    "desk/web/ace/ext-beautify.js": "5a6edf6f236f0b633b600ecafefc7ed9374945c6165beb6f8ff4703e2cf32371",
+    "desk/web/ace/ext-prompt.js": "62da2b859e0820645aac0151684de396373646b3087454e2782523658f176dd2",
+    "desk/web/ace/ext-searchbox.js": "468f2641eaa626d2fd556d622f76a66db61e87f6594d67fc45c26abfde014413",
+    "desk/web/ace/ext-settings-menu.js": "802b083bf50010f2fb48dfe5ca618e00e9f1b6c6b7c5641707fce9e7330dd422",
+    "desk/web/ace/keybinding-vim.js": "17c172460c9a3bf1db2b9ea8c6d0e2ce28676e54edb37f4bfe595198e97042f6",
+    "desk/web/ace/license.txt": "a8b0af9a37e6f9a558daf7eb0ef74e73204b94260e7e750736683d7cf80fab2d",
+    "desk/web/ace/theme-github.js": "1d90a51f71dadc7b1ae9d30aa8653f30e663b0e6c496e096313b2c980ed6bd13",
+    "desk/web/ace/theme-monokai.js": "1344ec08c6f1c15f92e12e82182ce33a43f3f2c98d874b377a94617f5090100f",
+    "tests/browser/ace-win-linux-shortcuts.json": "e981fd0a609f9964988355b7091f324fe0e184aa9c6a634345f708960e7e26f2",
+    "tests/browser/doubles/README.md": "1557293200c7d9ed76e81dbc8838162a88a5556bb4d803156f7fa00aea922829",
+    "tests/browser/doubles/ace.js": "1b135b90a615aff4c7b7749d499fea180633b8954e5f23fecd9e155605dd8bc5",
+    "tests/browser/doubles/dom.js": "d204947748f59b3e4bd102a7dae2c333b48488d097600dea397e1600a966ebef",
+    "tests/browser/doubles/fetch.js": "ae77ad5cb3f76a8136f75f5ca8fd085ea6ccaf55ff6723ecc4d1685787ba1116",
+    "tests/browser/doubles/index.js": "bd68a9f8acca9816ee3552a364d58917f9b9d49c33579782cbc2e09155af51e8",
+    "tests/browser/doubles/media.js": "0972bfcf52458071d28f630f6d8242723c25fa24329888da6372b1757d0561a2",
+    "tests/browser/doubles/storage.js": "75cbb1d543f17b8ac3754be1d12d0300faa3a06ec2dcde472c134c6f27e52b2b"
+  },
+  "revision": "c40c15cf56ff1f7b4e3d6c4f2227602e774e3077-dirty"
+}

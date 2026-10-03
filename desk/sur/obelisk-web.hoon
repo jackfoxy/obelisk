@@ -1,6 +1,7 @@
 ::  Shared state and boundary types for %obelisk-web.
 ::
 /-  ast=obelisk-ast
+/+  ufiles=urui-files
 |%
 ::
 ::  +|  Saved and Live State
@@ -28,8 +29,7 @@
       queue=(list queued-request)
       active=(unit active-obelisk)
       readiness=(unit pending-readiness)
-      file-save=(unit pending-file-save)
-      file-delete=(unit pending-file-delete)
+      files=(unit pending:ufiles)
       result-cache=(unit result-cache)
   ==
 ::
@@ -46,10 +46,7 @@
       %parse
       %schema
       %result-save
-      %file-browse
-      %file-load
-      %file-save
-      %file-delete
+      %result-text-save
   ==
 ::
 +$  relative-path  (list @ta)
@@ -58,9 +55,6 @@
   $%  [%run default-database=@tas script=@t]
       [%parse default-database=@tas script=@t]
       [%schema default-database=(unit @tas)]
-      [%file-browse path=relative-path]
-      [%file-load path=relative-path]
-      [%file-delete path=relative-path]
       $:  %result-save
           result-id=request-id
           command-index=@ud
@@ -68,9 +62,9 @@
           path=relative-path
           overwrite=?
       ==
-      $:  %file-save
+      $:  %result-text-save
           path=relative-path
-          content=@t
+          text=@t
           overwrite=?
       ==
   ==
@@ -80,23 +74,6 @@
       eyre-id=@ta
       received-at=@da
       request=web-request
-  ==
-::
-+$  pending-file-save
-  $:  eyre-id=@ta
-      path=relative-path
-      content=@t
-      verify-wire=wire
-      timeout-wire=wire
-      desk=desk
-  ==
-::
-+$  pending-file-delete
-  $:  eyre-id=@ta
-      path=relative-path
-      verify-wire=wire
-      timeout-wire=wire
-      desk=desk
   ==
 ::
 +$  pending-readiness
@@ -257,15 +234,6 @@
       results=(list result-dto)
   ==
 ::
-::  +|  File DTOs
-::
-+$  file-kind  ?(%directory %file)
-::
-+$  file-entry-dto
-  $:  path=relative-path
-      kind=file-kind
-  ==
-::
 ::  +|  API Responses
 ::
 +$  web-response
@@ -276,10 +244,6 @@
       ==
       [%parse commands=(list @t) text=@t]
       [%schema value=schema-dto]
-      [%file-list entries=(list file-entry-dto)]
-      [%file path=relative-path content=@t]
-      [%saved path=relative-path]
-      [%deleted path=relative-path]
       [%error value=web-error]
   ==
 --
