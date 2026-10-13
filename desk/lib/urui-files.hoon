@@ -5,21 +5,35 @@
 ::  with `verify` it is answered only after clay confirms the change.
 ::
 ::  Authentication is the agent's, and comes before +handle.  Only
-::  +handle, +write, +save, and +remove scry; every decision is made
-::  by a pure arm they feed, so the tests need no ship.
+::  +handle, +write, +save, and +remove scry, and the planners only for
+::  a `locate` gate or a %mime codec; every other decision is made by a
+::  pure arm, so the tests need no ship.
 ::
 /-  urui
 /+  uhttp=urui-http
 |%
 ::  +|  Types
 ::
-+$  codec  ?(%wain %cord %json)
++$  codec
+  ::  How a mark's stored noun reads as text.
+  ::
+  ::  %mime goes through the mark's own mime conversion on the file's
+  ::  desk; %view is read-only, its text from the policy's `view` gate.
+  ?(%wain %cord %json %mime %view)
+::
++$  location
+  ::  Where a wire path lives in clay, and whether it may be written.
+  [=beak rel=path write=?]
 ::
 +$  policy
   ::  Where an app's files live and what may be done with them.
   ::
   ::  `strict` limits path segments to @tas.  `max-bytes` bounds the
-  ::  request body.
+  ::  request body.  `fallback` is the codec for a mark not in `codecs`.
+  ::  `locate` maps a wire path to its clay location; ~ puts it under
+  ::  `root` on our desk at now.  It must map a path's children to its
+  ::  location's children.  `view` reads a %view file, and any file
+  ::  whose stored noun its codec cannot read, as read-only text.
   $:  root=path
       roots=(list root:urui)
       codecs=(list [mark=@tas =codec])
@@ -27,6 +41,9 @@
       verify=?
       timeout=@dr
       max-bytes=@ud
+      fallback=(unit codec)
+      locate=(unit $-([bowl:gall path] (each location failure)))
+      view=(unit $-([@tas *] @t))
   ==
 ::
 +$  pending
@@ -63,11 +80,14 @@
 ::  +|  Constants
 ::
 ++  stock-codecs
+  ::  md is a wain on %base but a cord where %docs serves it, so it
+  ::  converts through the mark on the file's own desk.
+  ::
   ^-  (list [mark=@tas =codec])
   :~  [%txt %wain]
       [%csv %wain]
       [%tab %wain]
-      [%md %cord]
+      [%md %mime]
       [%html %cord]
       [%svg %cord]
       [%json %json]
@@ -89,6 +109,10 @@
   ^-  failure
   [%not-found 404 'file not found' | ~]
 ::
+++  read-only
+  ^-  failure
+  [%read-only 403 'file is read-only' | ~]
+::
 ::  +|  Public API
 ::
 ++  make-policy
@@ -107,7 +131,9 @@
     =/  fresh=(list root:urui)
       (skip roots.store |=(item=root:urui ?=(^ (find ~[item] kept))))
     (weld kept fresh)
-  [root roots stock-codecs strict & default-timeout default-max-bytes]
+  :*  root  roots  stock-codecs  strict  &  default-timeout
+      default-max-bytes  ~  ~  ~
+  ==
 ::
 ++  handle
   ::  One request on the file route: the cards answering it, and the
@@ -127,17 +153,21 @@
   =/  op=file-op  p.parsed
   ?-  -.op
       %browse
+    =/  where=(each location failure)  (resolve policy bowl scope.op)
+    ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
     =/  found=(each (list path) tang)
-      (mule |.((browse-paths policy bowl scope.op)))
+      (mule |.((browse-paths p.where)))
     :_  current
     ?:  ?=(%| -.found)
       %+  refuse  eyre-id
       (fail-with %internal 500 'clay browse failed' p.found)
+    =/  under=(list path)
+      (turn p.found |=(sub=path (weld scope.op sub)))
     %+  reply  eyre-id
     %-  ok-json
     :~  :-  'entries'
         :-  %a
-        %+  turn  (browse-entries policy scope.op p.found)
+        %+  turn  (browse-entries policy scope.op under)
         |=  =entry
         %-  pairs:enjs:format
         :~  ['path' a+(turn rel.entry |=(seg=@ta s+seg))]
@@ -146,14 +176,21 @@
     ==
   ::
       %load
-    =/  held=(each (unit @t) tang)  (stored policy bowl rel.op codec.op)
+    =/  where=(each location failure)  (resolve policy bowl rel.op)
+    ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
+    =/  held=(each (unit [text=@t readonly=?]) tang)
+      (stored policy bowl p.where codec.op)
     :_  current
     ?:  ?=(%| -.held)
       %+  refuse  eyre-id
       (fail-with %internal 500 'clay load failed' p.held)
     ?~  p.held  (refuse eyre-id missing)
+    =/  text=@t  text.u.p.held
     %+  reply  eyre-id
-    (ok-json ~[['text' s+u.p.held] ['hash' s+(text-hash u.p.held)]])
+    =/  fields=(list [@t json])
+      ~[['text' s+text] ['hash' s+(text-hash text)]]
+    =?  fields  readonly.u.p.held  (snoc fields ['readonly' b+&])
+    (ok-json fields)
   ::
       %save
     %:  save
@@ -187,6 +224,7 @@
     (file-codec policy rel |)
   ?~  found
     [(refuse eyre-id (fail %invalid-path 400 'invalid file path')) current]
+  ?:  ?=(%view u.found)  [(refuse eyre-id read-only) current]
   (save policy bowl eyre-id rel u.found text ~ overwrite current)
 ::
 ++  take
@@ -211,10 +249,12 @@
   ?~  job  `[~ current]
   ?.  =(i.t.wire id.u.job)  `[~ current]
   =/  [verify=^wire write=^wire timeout=^wire]  (wires id.u.job)
+  =/  where=(each location failure)  (resolve policy bowl rel.u.job)
+  =/  =desk  ?:(?=(%& -.where) q.beak.p.where q.byk.bowl)
   ?:  =(%timeout i.t.t.wire)
     ?.  ?=([%behn %wake *] sign-arvo)  `[~ current]
     =/  cancel=card:agent:gall
-      [%pass verify %arvo %c %warp our.bowl q.byk.bowl ~]
+      [%pass verify %arvo %c %warp our.bowl desk ~]
     =/  late=failure  [%timeout 504 'clay did not confirm the change' & ~]
     `[[cancel (refuse eyre-id.u.job late)] ~]
   ?.  =(%verify i.t.t.wire)  `[~ current]
@@ -235,7 +275,11 @@
       ?~  riot  ~
       =/  found=(unit codec)  (file-codec policy rel.u.job |)
       ?~  found  ~
-      (from-stored u.found q.q.r.u.riot)
+      ?.  ?=(%mime u.found)  (from-stored u.found q.q.r.u.riot)
+      =/  mark=@tas  (rear rel.u.job)
+      =/  back=(each @t tang)
+        (mule |.((mime-text bowl desk mark q.r.u.riot)))
+      ?:(?=(%| -.back) ~ `p.back)
     ?:  &(?=(^ read) =(read expect.u.job))
       (reply eyre-id.u.job (ok-json ~[['hash' s+(text-hash u.read)]]))
     %+  refuse  eyre-id.u.job
@@ -258,12 +302,18 @@
       ==
   ^-  outcome
   ?^  current  [(refuse eyre-id busy) current]
-  =/  held=(each (unit @t) tang)  (stored policy bowl rel codec)
+  =/  where=(each location failure)  (resolve policy bowl rel)
+  ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
+  =/  held=(each (unit [text=@t readonly=?]) tang)
+    (stored policy bowl p.where codec)
   ?:  ?=(%| -.held)
     :_  current
     %+  refuse  eyre-id
     (fail-with %internal 500 'clay save check failed' p.held)
-  (plan-save policy bowl eyre-id rel codec text base overwrite p.held)
+  ?:  &(?=(^ p.held) readonly.u.p.held)
+    [(refuse eyre-id read-only) current]
+  =/  last=(unit @t)  ?~(p.held ~ `text.u.p.held)
+  (plan-save policy bowl eyre-id rel codec text base overwrite last)
 ::
 ++  remove
   ::  A delete at `rel`, after reading what clay holds there.
@@ -277,12 +327,16 @@
       ==
   ^-  outcome
   ?^  current  [(refuse eyre-id busy) current]
-  =/  held=(each (unit @t) tang)  (stored policy bowl rel codec)
+  =/  where=(each location failure)  (resolve policy bowl rel)
+  ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
+  =/  held=(each (unit [text=@t readonly=?]) tang)
+    (stored policy bowl p.where codec)
   ?:  ?=(%| -.held)
     :_  current
     %+  refuse  eyre-id
     (fail-with %internal 500 'clay delete check failed' p.held)
-  (plan-delete policy bowl eyre-id rel base p.held)
+  =/  last=(unit @t)  ?~(p.held ~ `text.u.p.held)
+  (plan-delete policy bowl eyre-id rel base last)
 ::
 ++  plan-save
   ::  A save of `text` at `rel`, given what clay holds there now.
@@ -302,7 +356,11 @@
           held=(unit @t)
       ==
   ^-  outcome
-  =/  encoded=(each cage tang)  (to-cage (@tas (rear rel)) codec text)
+  =/  where=(each location failure)  (resolve policy bowl rel)
+  ?:  ?=(%| -.where)  [(refuse eyre-id p.where) ~]
+  ?.  write.p.where  [(refuse eyre-id read-only) ~]
+  =/  encoded=(each [=cage expect=@t] tang)
+    (encode bowl p.where codec text)
   ?:  ?=(%| -.encoded)
     :_  ~
     %+  refuse  eyre-id
@@ -312,9 +370,7 @@
       'file content does not match its format'
       p.encoded
     ==
-  =/  expect=@t
-    ~|  "round trip failed for {(spud rel)}"
-        (need (from-stored codec q.q.p.encoded))
+  =/  expect=@t  expect.p.encoded
   =/  conflict=(unit failure)
     ?~  held  ~
     ?:  overwrite  ~
@@ -328,7 +384,7 @@
   =/  id=@ta  (scot %da now.bowl)
   =/  until=@da  (add now.bowl timeout.policy)
   =/  cards=(list card:agent:gall)
-    (change-cards policy bowl id until rel [%ins p.encoded])
+    (change-cards policy bowl id until p.where [%ins cage.p.encoded])
   ?.  verify.policy  [(weld cards done) ~]
   [cards `[eyre-id id %save rel `expect until]]
 ::
@@ -342,13 +398,16 @@
           held=(unit @t)
       ==
   ^-  outcome
+  =/  where=(each location failure)  (resolve policy bowl rel)
+  ?:  ?=(%| -.where)  [(refuse eyre-id p.where) ~]
+  ?.  write.p.where  [(refuse eyre-id read-only) ~]
   ?~  held  [(refuse eyre-id missing) ~]
   ?:  &(?=(^ base) !=(u.base (text-hash u.held)))
     [(refuse eyre-id changed) ~]
   =/  id=@ta  (scot %da now.bowl)
   =/  until=@da  (add now.bowl timeout.policy)
   =/  cards=(list card:agent:gall)
-    (change-cards policy bowl id until rel [%del ~])
+    (change-cards policy bowl id until p.where [%del ~])
   ?.  verify.policy  [(weld cards (reply eyre-id (ok-json ~))) ~]
   [cards `[eyre-id id %delete rel ~ until]]
 ::
@@ -356,15 +415,15 @@
   ::  The %info for a change and, when verifying, the %warp that
   ::  watches for it and the %wait that bounds it.  The %warp goes
   ::  first, so it is in place before the change lands.
-  |=  [=policy =bowl:gall id=@ta until=@da rel=path =miso:clay]
+  |=  [=policy =bowl:gall id=@ta until=@da =location =miso:clay]
   ^-  (list card:agent:gall)
-  =/  clay-path=path  (weld root.policy rel)
+  =/  =desk  q.beak.location
   =/  [verify=wire write=wire timeout=wire]  (wires id)
   =/  info=card:agent:gall
-    [%pass write %arvo %c %info q.byk.bowl %& ~[[clay-path miso]]]
+    [%pass write %arvo %c %info desk %& ~[[rel.location miso]]]
   ?.  verify.policy  ~[info]
-  :~  :*  %pass  verify  %arvo  %c  %warp  our.bowl  q.byk.bowl
-          ~  %next  %x  da+now.bowl  clay-path
+  :~  :*  %pass  verify  %arvo  %c  %warp  p.beak.location  desk
+          ~  %next  %x  da+now.bowl  rel.location
       ==
       info
       [%pass timeout %arvo %b %wait until]
@@ -432,6 +491,7 @@
     ?~  u.rel  [%| invalid]
     =/  found=(unit codec)  (file-codec policy u.u.rel &)
     ?~  found  [%| invalid]
+    ?:  ?=(%view u.found)  [%| read-only]
     [%& %save u.u.rel u.found u.text u.base u.overwrite]
   ::
       [~ %delete]
@@ -507,7 +567,8 @@
   ::
   ::  A path lies in a root when the root's scope prefixes it, at least
   ::  one name segment follows, and its last segment is one of the
-  ::  root's marks.  `saving` asks for a root with `save=&`.
+  ::  root's marks, or any mark when the root lists none.  `saving` asks
+  ::  for a root with `save=&`.  A mark not in `codecs` takes `fallback`.
   |=  [=policy rel=path saving=?]
   ^-  (unit codec)
   ::  =(~ rel), not ?~: ?~ would narrow `rel` to a non-empty list, and
@@ -518,13 +579,21 @@
       |=  item=root:urui
       ?&  (gth (lent rel) +((lent scope.item)))
           =(scope.item (scag (lent scope.item) rel))
-          ?=(^ (find ~[mark] marks.item))
+          |(=(~ marks.item) ?=(^ (find ~[mark] marks.item)))
           |(!saving save.item)
       ==
     ~
   =/  found=(list [mark=@tas =codec])
     (skim codecs.policy |=([name=@tas =codec] =(name mark)))
-  ?~(found ~ `codec.i.found)
+  ?~(found fallback.policy `codec.i.found)
+::
+++  resolve
+  ::  Where the wire path `rel` lives in clay: the policy's `locate`, or
+  ::  under `root` on our desk at now.
+  |=  [=policy =bowl:gall rel=path]
+  ^-  (each location failure)
+  ?^  locate.policy  (u.locate.policy bowl rel)
+  [%& [[our.bowl q.byk.bowl da+now.bowl] (weld root.policy rel) &]]
 ::
 ++  browse-entries
   ::  The admitted files under `scope`, with each directory between
@@ -563,6 +632,8 @@
 ::
 ++  to-cage
   ::  `text` as the noun `mark` stores, or why it will not convert.
+  ::
+  ::  A %mime cage is clay's to convert; +encode converts it first.
   |=  [mark=@tas =codec text=@t]
   ^-  (each cage tang)
   %-  mule  |.
@@ -571,12 +642,17 @@
     %wain  [mark !>((storage-wain text))]
     %cord  [mark !>(text)]
     %json  [mark !>((need (de:json:html text)))]
+    %mime  [%mime !>(`mime`[/text/plain (as-octs:mimes:html text)])]
+    %view  ~|(%view-is-read-only !!)
   ==
 ::
 ++  from-stored
   ::  The text a stored noun reads as under `codec`; ~ if it does not.
+  ::
+  ::  %mime and %view need the file's desk, so they read as ~ here.
   |=  [=codec stored=*]
   ^-  (unit @t)
+  ?:  ?=(?(%mime %view) codec)  ~
   =/  decoded=(each @t tang)
     %-  mule  |.
     ?-  codec
@@ -585,6 +661,30 @@
       %json  (en:json:html ;;(json stored))
     ==
   ?:(?=(%| -.decoded) ~ `p.decoded)
+::
+++  encode
+  ::  `text` as the cage clay will store at `location`, and the text it
+  ::  will read back as; a tang when the mark refuses it.
+  ::
+  ::  Only %mime scries: it converts through the mark on the file's own
+  ::  desk, so what it expects back is that mark's canonical text.
+  |=  [=bowl:gall =location =codec text=@t]
+  ^-  (each [=cage expect=@t] tang)
+  =/  mark=@tas  (rear rel.location)
+  ?.  ?=(%mime codec)
+    =/  encoded=(each cage tang)  (to-cage mark codec text)
+    ?:  ?=(%| -.encoded)  [%| p.encoded]
+    =/  back=(unit @t)  (from-stored codec q.q.p.encoded)
+    ?~  back  [%| ~[leaf+"round trip failed for {(spud rel.location)}"]]
+    [%& p.encoded u.back]
+  %-  mule  |.
+  ^-  [cage @t]
+  =/  =desk  q.beak.location
+  ?.  (has-mark bowl desk mark)
+    ~|("no %{(trip mark)} mark on %{(trip desk)}" !!)
+  =/  into=tube:clay  .^(tube:clay %cc (tube-path bowl desk %mime mark))
+  =/  =vase  (into !>(`mime`[/text/plain (as-octs:mimes:html text)]))
+  [[mark vase] (mime-text bowl desk mark vase)]
 ::
 ++  storage-wain
   ::  Lines for a wain mark.  +to-wain drops the empty line after a
@@ -665,43 +765,80 @@
 ::
 ::  +|  Clay
 ::
-++  clay-beam
-  ::  The clay beam of `rel` under the policy root, at now.
-  |=  [=policy =bowl:gall rel=path]
-  ^-  path
-  [(scot %p our.bowl) q.byk.bowl (scot %da now.bowl) (weld root.policy rel)]
-::
 ++  stored
-  ::  What clay holds at `rel` now: ~ for nothing, or the text it reads
-  ::  as under `codec`.  A failed scry or an unreadable file is a tang.
+  ::  What clay holds at `location`: ~ for nothing, or its text and
+  ::  whether that text is read-only.  A failed scry, or a file neither
+  ::  its codec nor the `view` gate can read, is a tang.
   ::
   ::  Existence is asked of the tomb endpoint, so a deleted file whose
   ::  history remains reads as absent.
-  |=  [=policy =bowl:gall rel=path =codec]
-  ^-  (each (unit @t) tang)
+  |=  [=policy =bowl:gall =location =codec]
+  ^-  (each (unit [text=@t readonly=?]) tang)
   %-  mule  |.
-  ^-  (unit @t)
-  =/  beam=path  (clay-beam policy bowl rel)
+  ^-  (unit [text=@t readonly=?])
+  =/  beam=path  (en-beam beak.location rel.location)
   =/  tomb=path  ~[(snag 0 beam) %$ (snag 2 beam) %tomb]
   ?.  .^(? %cx (weld tomb beam))  ~
-  ~|  "unreadable stored file {(spud rel)}"
-      `(need (from-stored codec .^(* %cq beam)))
+  =/  mark=@tas  (rear rel.location)
+  =/  read=(unit @t)
+    ?+  codec  (from-stored codec .^(* %cq beam))
+      %view  ~
+      %mime  (mime-read bowl location)
+    ==
+  ?^  read  `[u.read !write.location]
+  ?~  view.policy
+    ~|("unreadable stored file {(spud rel.location)}" !!)
+  `[(u.view.policy mark .^(* %cq beam)) &]
+::
+++  mime-read
+  ::  A %mime file's text, through its mark's mime conversion on its
+  ::  own desk; ~ when that desk has no such mark.
+  |=  [=bowl:gall =location]
+  ^-  (unit @t)
+  =/  mark=@tas  (rear rel.location)
+  =/  =desk  q.beak.location
+  ?.  (has-mark bowl desk mark)  ~
+  =/  =vase  .^(vase %cr (en-beam beak.location rel.location))
+  `(mime-text bowl desk mark vase)
+::
+++  mime-text
+  ::  A stored `mark` vase as text, through the mark's mime conversion
+  ::  on `desk` at now.  Old revisions convert with the current mark.
+  |=  [=bowl:gall =desk mark=@tas =vase]
+  ^-  @t
+  =/  out=tube:clay  .^(tube:clay %cc (tube-path bowl desk mark %mime))
+  (@t q.q:!<(mime (out vase)))
+::
+++  has-mark
+  ::  Does `desk` carry the source of `mark` now?  Building a mark it
+  ::  lacks crashes clay's scry beyond +mule, so this is asked first.
+  |=  [=bowl:gall =desk mark=@tas]
+  ^-  ?
+  =/  here=path  /(scot %p our.bowl)/[desk]/(scot %da now.bowl)
+  .^(? %cu (weld here /mar/[mark]/hoon))
+::
+++  tube-path
+  ::  The scry path of the `from` to `to` conversion on `desk` at now.
+  |=  [=bowl:gall =desk from=@tas to=@tas]
+  ^-  path
+  /(scot %p our.bowl)/[desk]/(scot %da now.bowl)/[from]/[to]
 ::
 ++  browse-paths
-  ::  Every stored file at or under `rel`, relative to the policy root.
+  ::  Every stored file at or under `location`, relative to it.
   ::
   ::  Recursive results are bound to typed faces before +weld: weld is
   ::  wet, and mulling a trap's own product through it loops.
-  |=  [=policy =bowl:gall rel=path]
+  |=  =location
   ^-  (list path)
+  =/  sub=path  ~
   |-  ^-  (list path)
-  =/  =arch  .^(arch %cy (clay-beam policy bowl rel))
-  =/  here=(list path)  ?~(fil.arch ~ ~[rel])
+  =/  =arch  .^(arch %cy (en-beam beak.location (weld rel.location sub)))
+  =/  here=(list path)  ?~(fil.arch ~ ~[sub])
   =/  names=(list @ta)  (sort ~(tap in ~(key by dir.arch)) aor)
   =/  children=(list path)
     |-  ^-  (list path)
     ?~  names  ~
-    =/  head=(list path)  ^$(rel (snoc rel i.names))
+    =/  head=(list path)  ^$(sub (snoc sub i.names))
     =/  rest=(list path)  $(names t.names)
     (weld head rest)
   (weld here children)

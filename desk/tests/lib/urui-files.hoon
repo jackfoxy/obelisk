@@ -46,6 +46,40 @@
   =/  base=policy:ufiles  policy
   base(strict |, verify |)
 ::
+++  clay-store
+  ::  Any file on any desk, as [desk case ...path].
+  ^-  store:urui
+  :*  name=%clay
+      noun='File'
+      untitled='file'
+      starter=''
+      roots=~[[~ ~ ~ &]]
+      preview=~
+      actions=~[%save]
+      refs=|
+      share=~
+  ==
+::
+++  locate-desk
+  ::  `now` is writable, a revision is not, and %gone is no desk.
+  |=  [=bowl:gall rel=path]
+  ^-  (each location:ufiles failure:ufiles)
+  ?.  ?=([@ @ *] rel)  [%| [%invalid-path 400 'no desk' | ~]]
+  ?:  =(%gone i.rel)  [%| [%not-found 404 'no such desk' | ~]]
+  ?:  =(%now i.t.rel)  [%& [our.bowl i.rel da+now.bowl] t.t.rel &]
+  [%& [our.bowl i.rel ud+(slav %ud i.t.rel)] t.t.rel |]
+::
+++  located
+  ::  Files located by +locate-desk; a mark with no codec is read-only.
+  ^-  policy:ufiles
+  =/  base=policy:ufiles
+    (make-policy:ufiles ['/apps/probe/files' ~[clay-store] ~] ~ |)
+  %=  base
+    fallback  `%view
+    locate    `locate-desk
+    view      `|=([@tas *] 'viewed')
+  ==
+::
 ++  bowl
   ^-  bowl:gall
   %*  .  *bowl:gall
@@ -195,7 +229,7 @@
     (expect !>(=(`%wain (file-codec:ufiles policy /scripts/a/b/txt |))))
     (expect !>(=(`%wain (file-codec:ufiles policy /results/r1/csv |))))
     (expect !>(=(`%json (file-codec:ufiles policy /results/r1/json |))))
-    (expect !>(=(`%cord (file-codec:ufiles policy /results/r1/md |))))
+    (expect !>(=(`%mime (file-codec:ufiles policy /results/r1/md |))))
     (expect !>(=(`%wain (file-codec:ufiles policy /results/r1/noun |))))
     (expect !>(=(~ (file-codec:ufiles plain /results/r1/noun |))))
     (expect !>(=(~ (file-codec:ufiles policy /results/r1/csv &))))
@@ -237,6 +271,39 @@
     !>((browse-entries:ufiles policy /results found))
   ==
 ::
+++  test-any-mark-roots-and-fallback
+  ::  A root listing no marks admits any; a mark with no codec takes
+  ::  the fallback, or nothing without one.
+  =/  base=policy:ufiles  located
+  =/  bare=policy:ufiles  base(fallback ~)
+  ;:  weld
+    (expect !>(=(`%wain (file-codec:ufiles located /base/now/a/txt |))))
+    (expect !>(=(`%view (file-codec:ufiles located /base/now/a/png |))))
+    (expect !>(=(`%view (file-codec:ufiles located /base/now/a/png &))))
+    (expect !>(=(~ (file-codec:ufiles bare /base/now/a/png |))))
+  ==
+::
+++  test-resolve
+  ::  Under `root` on our desk at now, or wherever `locate` says.
+  =/  old=path  ~[%base ~.5 %a %txt]
+  =/  gone=(each location:ufiles failure:ufiles)
+    (resolve:ufiles located bowl /gone/now/a/txt)
+  ;:  weld
+    %+  expect-eq
+      !>  ^-  (each location:ufiles failure:ufiles)
+      [%& [~zod %probe da+~2026.9.27] /data/probe/scripts/q1/txt &]
+    !>((resolve:ufiles policy bowl /scripts/q1/txt))
+    %+  expect-eq
+      !>  ^-  (each location:ufiles failure:ufiles)
+      [%& [~zod %base da+~2026.9.27] /a/txt &]
+    !>((resolve:ufiles located bowl /base/now/a/txt))
+    %+  expect-eq
+      !>  ^-  (each location:ufiles failure:ufiles)
+      [%& [~zod %base ud+5] /a/txt |]
+    !>((resolve:ufiles located bowl old))
+    (expect !>(?=(%| -.gone)))
+  ==
+::
 ::  +|  Codecs
 ::
 ++  test-codecs-round-trip
@@ -265,6 +332,20 @@
     !>((from-stored:ufiles %json q.q.p.as-json))
     (expect !>(?=(%| -.broken)))
     (expect !>(=(~ (from-stored:ufiles %cord [1 2]))))
+  ==
+::
+++  test-mime-and-view-codecs
+  ::  A %mime cage is clay's to convert; neither reads without a desk.
+  =/  text=@t  ':~  %hood  =='
+  =/  as-mime  (to-cage:ufiles %bill %mime text)
+  =/  as-view  (to-cage:ufiles %png %view text)
+  ?>  ?=(%& -.as-mime)
+  ;:  weld
+    (expect !>(=(%mime p.p.as-mime)))
+    (expect-eq !>(`mime`[/text/plain (as-octs:mimes:html text)]) q.p.as-mime)
+    (expect !>(?=(%| -.as-view)))
+    (expect !>(=(~ (from-stored:ufiles %mime text))))
+    (expect !>(=(~ (from-stored:ufiles %view text))))
   ==
 ::
 ++  test-text-hash
@@ -373,6 +454,14 @@
     %+  expect-eq
       !>(`file-op:ufiles`[%delete /results/r1/csv %wain `'0vab'])
     !>((accepted '{"op":"delete","path":["results","r1","csv"],"base":"0vab"}'))
+  ==
+::
+++  test-parse-refuses-saving-a-view-file
+  =/  body=@t  '{"op":"save","path":["base","now","a","png"],"text":"x"}'
+  =/  got=failure:ufiles  (refused located (post body))
+  ;:  weld
+    (expect-eq !>(403) !>(status.got))
+    (expect !>(=(%read-only code.got)))
   ==
 ::
 ++  test-parse-admits-knots-when-loose
@@ -534,6 +623,41 @@
     (expect-eq !>('invalid-path') !>((error-code cards.out)))
   ==
 ::
+++  test-save-follows-the-location
+  =/  out=outcome:ufiles
+    %:  plan-save:ufiles
+      located  bowl  ~.req  /other/now/notes/q1/txt  %wain
+      'select 1'  ~  |  ~
+    ==
+  =/  cards=(list card:agent:gall)  cards.out
+  =/  job=pending:ufiles
+    [~.req id %save /other/now/notes/q1/txt `'select 1' until]
+  ?>  ?=([[%pass *] [%pass *] [%pass *] ~] cards)
+  ;:  weld
+    %-  expect
+    !>(?=([%pass * %arvo %c %warp %~zod %other ~ %next %x * %notes *] i.cards))
+    %-  expect
+    !>(?=([%pass * %arvo %c %info %other %& [[%notes *] %ins *] ~] i.t.cards))
+    (expect-eq !>(`job) !>(next.out))
+  ==
+::
+++  test-changes-refuse-read-only-locations
+  =/  old=path  ~[%base ~.5 %notes %q1 %txt]
+  =/  saved=outcome:ufiles
+    (plan-save:ufiles located bowl ~.req old %wain 'x' ~ | ~)
+  =/  removed=outcome:ufiles
+    (plan-delete:ufiles located bowl ~.req old ~ `'x')
+  =/  lost=outcome:ufiles
+    (plan-save:ufiles located bowl ~.req /gone/now/q1/txt %wain 'x' ~ | ~)
+  ;:  weld
+    (expect-eq !>(403) !>((reply-status cards.saved)))
+    (expect-eq !>('read-only') !>((error-code cards.saved)))
+    (expect !>(=(~ next.saved)))
+    (expect-eq !>(403) !>((reply-status cards.removed)))
+    (expect-eq !>(404) !>((reply-status cards.lost)))
+    (expect-eq !>('not-found') !>((error-code cards.lost)))
+  ==
+::
 ::  +|  Deletes
 ::
 ++  test-delete-plans
@@ -639,4 +763,11 @@
     (expect !>(=(~ next.good)))
     (expect-eq !>(500) !>((reply-status cards.bad)))
   ==
+::
+++  test-take-times-out-on-the-located-desk
+  =/  [verify=wire write=wire timeout=wire]  (wires:ufiles id)
+  =/  job=pending:ufiles  [~.req id %save /other/now/q1/txt `'x' until]
+  =/  out=outcome:ufiles  (need (take:ufiles located bowl timeout wake `job))
+  ?>  ?=([[%pass *] *] cards.out)
+  (expect !>(?=([%pass * %arvo %c %warp %~zod %other ~] i.cards.out)))
 --

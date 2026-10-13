@@ -1198,6 +1198,23 @@
     modal.returnFocus = null;
   }
 
+  //  `runtime.dialogs.modal(element, {close, fallback})` puts an
+  //  application's own dialog on this controller, ranked above settings
+  //  and below the file and confirm dialogs.  `close` runs on Escape
+  //  (default: hide it); `fallback()` names what takes focus when what
+  //  held it before is gone.
+  function appModal(element, choices = {}) {
+    const control = {};
+    const modal = defineModal(2.5, () => element, () => {
+      if (choices.close) choices.close();
+      else control.close();
+    }, () => choices.fallback?.());
+    control.open = (focus) => showModal(modal, focus);
+    control.close = (restoreFocus = true) => hideModal(modal, restoreFocus);
+    control.isOpen = () => modalIsOpen(modal);
+    return control;
+  }
+
   // ---- tooltips -----------------------------------------------------
   //
   // Every button carries a tooltip.  urui's own come through
@@ -2118,24 +2135,73 @@
   // ---- the file context menu ---------------------------------------
   //
   // One menu for every file tree: right-click (or a row's own button)
-  // opens it.  `contextTarget` is the file it acts on.
+  // opens it.  `contextTarget` is what it acts on: `{kind, path,
+  // source}`, `kind` naming the store, plus any `detail` the opener
+  // passed to `explorer.context.open(store, path, source, event,
+  // detail)`.  An application drawing its own tree opens it that way.
+  //
+  // `options.contextMenu` configures it:
+  //
+  //   items: [{id, label, title, danger}]  the application's own items,
+  //                                         between Open and Delete
+  //   state(target)       {[id]: {hidden, disabled}} for any item, the
+  //                       built-in `open` and `delete` included, read
+  //                       on every open
+  //   select(id, target)  runs one of the application's items
+  //
+  // Delete stays disabled in a read-only pane whatever `state` says.
   const fileMenu = createMenu(elements.contextMenu, {
     onClose: () => { contextTarget = {}; }
   });
+  const contextItems = new Map();
+
+  (options.contextMenu?.items || []).forEach((item) => {
+    if (!elements.contextMenu || !item?.id || contextItems.has(item.id)) {
+      return;
+    }
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = `file-context-${item.id}`;
+    button.setAttribute('role', 'menuitem');
+    button.textContent = String(item.label || item.id);
+    if (item.title) button.title = String(item.title);
+    if (item.danger) button.className = 'danger-button';
+    button.addEventListener('click', () => {
+      const target = contextTarget;
+      closeFileContext();
+      options.contextMenu?.select?.(item.id, target);
+    });
+    elements.contextMenu.append(button);
+    contextItems.set(item.id, button);
+  });
+  //  Delete stays last, after the application's items.
+  if (contextItems.size && elements.contextDelete) {
+    elements.contextMenu?.append(elements.contextDelete);
+  }
 
   function closeFileContext(restoreFocus = false) {
     fileMenu.close(restoreFocus);
     contextTarget = {};
   }
 
-  function openFileContext(name, path, source, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (elements.contextDelete) {
-      elements.contextDelete.disabled = docPaneReadOnly(name);
+  function openFileContext(name, path, source, event, detail = {}) {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    const target = {...detail, kind: name, path, source};
+    const state = options.contextMenu?.state?.(target) || {};
+    const buttons = [
+      ['open', elements.contextOpen],
+      ['delete', elements.contextDelete],
+      ...contextItems
+    ];
+    for (const [id, button] of buttons) {
+      if (!button) continue;
+      button.hidden = Boolean(state[id]?.hidden);
+      button.disabled = Boolean(state[id]?.disabled)
+        || (id === 'delete' && docPaneReadOnly(name));
     }
     fileMenu.open(source, event);
-    contextTarget = {kind: name, path, source};
+    contextTarget = target;
   }
 
   // ---- persistence --------------------------------------------------
@@ -2847,7 +2913,8 @@
       helpIsOpen,
       setHelpOpen,
       setSettingsOpen,
-      setLayout
+      setLayout,
+      modal: appModal
     },
     documents: documentApi,
     a11y: {menu: createMenu, tablist: createTablist},
@@ -2963,6 +3030,10 @@
   //   afterActivate(tab, choices)       the same, after render and save
   //   loaded(tab), saved(tab)           keep app data in step
   //
+  // A tab whose `load` answered `readonly` is read-only like a tab from
+  // a `save=|` root, and stays so across sessions.  A root listing no
+  // marks admits any mark.
+  //
   // `options.onFile({store, op, phase, path, error})` reports each file
   // operation; `options.transport` replaces the json wire, for tests.
   // `runtime.documents.previews.register(mark, factory)` adds a preview.
@@ -3023,7 +3094,7 @@
     return (docStores.get(name)?.roots || []).find((root) => {
       return path.length > root.scope.length + 1
         && samePath(root.scope, path.slice(0, root.scope.length))
-        && root.marks.includes(path[path.length - 1]);
+        && (!root.marks.length || root.marks.includes(path[path.length - 1]));
     });
   }
 
@@ -3098,6 +3169,11 @@
     return !path || Boolean(docRootOf(name, path)?.save);
   }
 
+  //  A tab the server loaded as `readonly` saves nowhere either.
+  function docTabCanSave(name, tab) {
+    return !tab?.readonly && docCanSave(name, tab?.path);
+  }
+
   function docDirty(name, id) {
     const tab = docGet(name, id);
     return Boolean(tab) && tab.text !== tab.clean;
@@ -3140,6 +3216,7 @@
       hash: init.hash ?? null,
       selection: init.selection || {start: 0, end: 0},
       display: init.display || docDefaultDisplay(name),
+      ...(init.readonly ? {readonly: true} : {}),
       ...(docHooks(name).fields?.defaults?.(init) || {}),
       ...(init.fields || {})
     };
@@ -3397,7 +3474,7 @@
   function docApplyActions(name) {
     const tab = docActive(name);
     const locked = docPaneReadOnly(name);
-    const written = Boolean(tab?.path) && !docCanSave(name, tab.path);
+    const written = Boolean(tab?.path) && !docTabCanSave(name, tab);
     for (const action of ['save', 'save-as']) {
       const control = document.querySelector(`#${name}-${action}`);
       if (!control) continue;
@@ -3503,7 +3580,7 @@
       editor.setSource(tab.text, {
         history: 'reset', notify: false, selection: tab.selection
       });
-      editor.setReadOnly?.(!docCanSave(name, tab.path));
+      editor.setReadOnly?.(!docTabCanSave(name, tab));
     }
     docApplyDisplay(name);
   }
@@ -3952,7 +4029,11 @@
       },
       load: async (path) => {
         const reply = await post({op: 'load', path});
-        return {text: String(reply.text ?? ''), hash: reply.hash ?? null};
+        return {
+          text: String(reply.text ?? ''),
+          hash: reply.hash ?? null,
+          readonly: reply.readonly === true
+        };
       },
       save: async (path, text, choices = {}) => {
         const reply = await post({
@@ -4039,12 +4120,14 @@
         hash: loaded.hash,
         selection: {start: 0, end: 0}
       });
+      if (loaded.readonly) tab.readonly = true;
+      else delete tab.readonly;
       docSelect(name, tab.id, {focus: true, reactivate: true});
       docSyncRef(name, tab);
     } else {
       tab = docCreate(name, {
         path, text: loaded.text, clean: loaded.text, hash: loaded.hash,
-        focus: true
+        readonly: loaded.readonly, focus: true
       });
     }
     docHooks(name).loaded?.(tab);
@@ -4062,7 +4145,7 @@
       return undefined;
     }
     //  a tab from an app-written root saves nowhere, by any route
-    if (tab.path && !docCanSave(name, tab.path)) return undefined;
+    if (tab.path && !docTabCanSave(name, tab)) return undefined;
     let path = tab.path;
     if (choices.as || !path) {
       path = await docFileDialog({mode: 'save', store: name, tab});
@@ -4134,6 +4217,7 @@
       tab.draft = tab.label;
       tab.clean = '';
       tab.hash = null;
+      delete tab.readonly;
     }
     docRelabel(name);
     docShow(name);
@@ -4392,9 +4476,10 @@
   }
 
   //  The mark a typed segment names under `root`: one of its marks, or
-  //  its label extension, which stands for its first mark.
+  //  its label extension, which stands for its first mark.  A root that
+  //  lists no marks takes any.
   function docTypedMark(root, segment) {
-    if (root.marks.includes(segment)) return segment;
+    if (!root.marks.length || root.marks.includes(segment)) return segment;
     return root.ext && segment === root.ext ? root.marks[0] : undefined;
   }
 
@@ -4532,8 +4617,13 @@
         return;
       }
       const segments = typed.parts;
-      const typedMark = segments.length > 1
+      const anyMark = !root.marks.length;
+      const typedMark = segments.length > 1 && (typed.suffix || !anyMark)
         ? docTypedMark(root, segments[segments.length - 1]) : undefined;
+      if (anyMark && !typedMark) {
+        refuse('Enter a path such as folder/name.txt.');
+        return;
+      }
       if (typed.suffix && !typedMark) {
         const suffixes = [...new Set([root.ext, ...root.marks])]
           .filter(Boolean).map((suffix) => `.${suffix}`);
@@ -4646,7 +4736,8 @@
         end: Math.max(0, Math.trunc(Number(candidate.selection?.end)) || 0)
       },
       display: ['source', 'preview'].includes(candidate.display)
-        ? candidate.display : docDefaultDisplay(name)
+        ? candidate.display : docDefaultDisplay(name),
+      ...(path && candidate.readonly === true ? {readonly: true} : {})
     };
     const extra = docHooks(name).fields?.validate?.(candidate, base, seen);
     if (extra === false) return undefined;
@@ -4767,7 +4858,10 @@
     addRef: docAddRef,
     editor: (name) => docEditorsByStore.get(name),
     pickPath: (request = {}) => docFileDialog({...request, mode: 'pick'}),
-    previews: {register: docRegisterPreviewer},
+    previews: {
+      register: docRegisterPreviewer,
+      get: (mark) => docPreviewers.get(String(mark))
+    },
     trees: {
       refresh: (view) => view
         ? docRefreshTree(docTrees.find((tree) => tree.view === view))
