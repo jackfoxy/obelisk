@@ -258,16 +258,18 @@
   ==
 ::
 ++  editor-pane
-  ::  Tabs first, then the heading: the language on the left, urui's
-  ::  file actions and source/preview toggle on the right.  The panel is
-  ::  urui's editor host, load-error notice, and preview host.
+  ::  The heading sits above the tabs: the language is on the left,
+  ::  urui's file actions and source/preview toggle are on the right.
+  ::  The panel is urui's editor host, load-error notice, and preview host.
   ^-  pane:urui
   :*  role=%editor
       id='editor-pane'
       label='Query editor'
       mode=%read-write
       kind=~
-      :~  %+  pinned  %tabs
+      :~  %+  pinned  %head
+          [%heading ~ ~ ~[;span#editor-language.editor-mode:"urQL"]]
+          %+  pinned  %tabs
           :-  %tabs
           :~  :*  name=%script
                   label='Query tabs'
@@ -279,8 +281,6 @@
                   reorder=&
               ==
           ==
-          %+  pinned  %head
-          [%heading ~ ~ ~[;span#editor-language.editor-mode:"urQL"]]
           %+  pinned  %body
           [%panel 'editor-body' `['query-editor' 'urQL query' ''] ~]
       ==
@@ -611,8 +611,12 @@
   /* ---- explorer trees ---------------------------------------------- */
 
   #explorer-pane-ship {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
     font-family: ui-monospace, monospace;
     font-size: 0.78rem;
+    height: var(--editor-header-height, 3rem);
   }
 
   .results {
@@ -2239,6 +2243,22 @@
     runtime.start((saved) => {
       if (saved?.workbench) state = saved.workbench;
     });
+    //  Keep the explorer divider level with the editor action header,
+    //  including when file actions wrap onto another line.
+    const editorHeader = byId('editor-pane-head');
+    const alignHeaders = () => {
+      workbench.style.setProperty('--editor-header-height',
+        `${editorHeader.getBoundingClientRect().height}px`);
+    };
+    alignHeaders();
+    new ResizeObserver(alignHeaders).observe(editorHeader,
+      {box: 'border-box'});
+    //  Help follows Settings without changing the other button sizes.
+    const settingsButton = byId('settings');
+    new ResizeObserver(() => {
+      byId('help').style.height =
+        `${settingsButton.getBoundingClientRect().height}px`;
+    }).observe(settingsButton, {box: 'border-box'});
     editor = docs.editor('script');
     updateOutputControls();
     //  show the saved default before the schema arrives with the rest
