@@ -1264,6 +1264,13 @@
 
   .close-icon::after { transform: rotate(-45deg); }
 
+  .pane-actions {
+    align-items: stretch;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
   /*  an icon action among a heading's text actions takes their height */
   .store-action.icon-button {
     align-self: stretch;
