@@ -7,6 +7,7 @@
 // `installBackend(page, options)`:
 //   * schema: the value `api/schema` answers (default `sampleSchema`)
 //   * run(body): the `commands` `api/run` answers; its resultId is '7'
+//   * parse(body): the text `api/parse` answers; may return a promise
 //   * files: a Map of joined Clay path (`scripts/q1/txt`) to text; browse
 //     lists it by scope, load reads it, save and a result export write it
 //   * exportText(body): the text a result export stores
@@ -59,6 +60,7 @@ async function installBackend(page, options = {}) {
   const {
     schema = sampleSchema,
     run = () => [],
+    parse = () => 'parsed script',
     files = new Map(),
     exportText = () => '',
     calls = []
@@ -81,6 +83,9 @@ async function installBackend(page, options = {}) {
       return route.fulfill(json(200, {
         type: 'run', resultId: '7', commands: run(body), schemaChanged: false
       }));
+    }
+    if (op === 'parse') {
+      return route.fulfill(json(200, {type: 'parse', text: await parse(body)}));
     }
     if (op === 'results/save' || op === 'results/save-text') {
       const joined = body.path.join('/');

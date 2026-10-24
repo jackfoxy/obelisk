@@ -108,7 +108,7 @@
                   [/results ~[%csv %tab %txt %md %html %json %noun] ~ |]
               ==
               preview=`%source
-              actions=~[%open %save %save-as %copy]
+              actions=~[%open %save %save-as %copy %ref]
               refs=&
               share=~
       ==  ==
@@ -159,14 +159,18 @@
           max-source=262.144
       ==
       slots
-      ~[['F5' 'run' %always]]
+      :~  ['F1' 'help' %always]
+          ['F2' 'settings' %always]
+          ['F3' 'parse' %always]
+          ['F5' 'run' %always]
+      ==
       ~[[%ready 'Ready']]
       docs-root=`'/docs/d/obelisk/'
       ace-spec
       layout=%rows
       collapse=&
       files=`files
-      tips=~
+      tips=~[['settings' 'Settings (F2)']]
   ==
 ::
 ++  slots
@@ -333,8 +337,8 @@
       ==
       ;button#copy-output-btn.icon-button
         =type        "button"
-        =title       "Copy results"
-        =aria-label  "Copy results"
+        =title       "Copy results to clipboard"
+        =aria-label  "Copy results to clipboard"
         ;span.copy-icon(aria-hidden "true");
       ==
       ::  the whole pane expands: command tabs, pagers, Save, and Copy
@@ -362,12 +366,22 @@
           ;span: Run
           ;kbd: F5
         ==
-        ;button#parse-btn(type "button", title "Parse without running")
-          Parse
+        ;button#parse-btn
+          =type                "button"
+          =title               "Parse without running (F3)"
+          =aria-keyshortcuts   "F3"
+          ;span: Parse
+          ;kbd: F3
         ==
-        ;+  settings-button:shell
-        ;button#help(type "button", title "Help", aria-expanded "false")
-          Help
+        ;+  =/  button=manx  settings-button:shell
+            button(c (snoc c.button ;kbd:"F2"))
+        ;button#help
+          =type                "button"
+          =title               "Help (F1)"
+          =aria-expanded       "false"
+          =aria-keyshortcuts   "F1"
+          ;span: Help
+          ;kbd: F1
         ==
       ==
   ==
@@ -700,7 +714,8 @@
 
   .editor-mode { margin-right: auto; }
 
-  #copy-output-btn, #save-output-btn, #output-fullscreen, #result-collapse {
+  #script-save, #copy-output-btn, #save-output-btn,
+  #output-fullscreen, #result-collapse {
     height: 2rem;
     padding: 0;
     width: 2rem;
@@ -1115,7 +1130,7 @@
       updateExecutionControls();
       runButton.firstElementChild.textContent = value && label === 'run' ?
         'Running…' : 'Run';
-      parseButton.textContent = value && label === 'parse' ?
+      parseButton.firstElementChild.textContent = value && label === 'parse' ?
         'Parsing…' : 'Parse';
       updateOutputControls();
     }
@@ -2236,6 +2251,9 @@
       persist();
       ensureSchemaLoaded({force: true});
     });
+    runtime.shortcuts.register('help', () => byId('help').click());
+    runtime.shortcuts.register('settings', () => byId('settings').click());
+    runtime.shortcuts.register('parse', () => parseButton.click());
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
     });
@@ -2243,6 +2261,18 @@
     runtime.start((saved) => {
       if (saved?.workbench) state = saved.workbench;
     });
+    const copyScriptButton = byId('script-copy');
+    copyScriptButton.title = 'Copy script to clipboard';
+    copyScriptButton.setAttribute('aria-label', copyScriptButton.title);
+    const saveScriptButton = byId('script-save');
+    saveScriptButton.title = 'Save script';
+    saveScriptButton.setAttribute('aria-label', saveScriptButton.title);
+    saveScriptButton.classList.add('icon-button');
+    saveScriptButton.replaceChildren(
+      saveOutputButton.firstElementChild.cloneNode(true));
+    //  Keep Add Ref last, after the optional Source/Preview toggle.
+    const addRefButton = byId('script-ref');
+    addRefButton.parentElement.append(addRefButton);
     //  Keep the explorer divider level with the editor action header,
     //  including when file actions wrap onto another line.
     const editorHeader = byId('editor-pane-head');
@@ -2255,6 +2285,7 @@
       {box: 'border-box'});
     //  Help follows Settings without changing the other button sizes.
     const settingsButton = byId('settings');
+    settingsButton.setAttribute('aria-keyshortcuts', 'F2');
     new ResizeObserver(() => {
       byId('help').style.height =
         `${settingsButton.getBoundingClientRect().height}px`;
