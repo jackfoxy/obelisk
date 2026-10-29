@@ -40,11 +40,20 @@ test('Add Ref mirrors the current script and shares drag-and-drop references',
     await expect(refs).toHaveCount(1);
     await expect(content).toBeVisible();
 
-    // Dragging the same editor tab must reuse the button-created reference.
-    await page.locator('#editor-pane-script-tabs [draggable="true"]')
-      .dragTo(page.locator('#explorer-pane'));
-    await expect(refs).toHaveCount(1);
-    await expect(content).toHaveText(edited);
+    // Every region of the reference pane accepts a document-tab drop.
+    const sourceTab = page.locator(
+      '#editor-pane-script-tabs [draggable="true"]'
+    );
+    for (const target of [
+      '#explorer-pane-ship', '#explorer-pane-view-tabs', '#files-panel'
+    ]) {
+      await sourceTab.dragTo(page.locator(target));
+      await expect(refs).toHaveCount(1);
+      await expect(content).toHaveText(edited);
+      await page.locator('.ref-tab-close').click();
+      await expect(refs).toHaveCount(0);
+      await page.locator('[data-explorer-view="files"]').click();
+    }
     expect(await editorSource(page)).toBe(edited);
   });
 

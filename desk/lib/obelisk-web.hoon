@@ -567,6 +567,10 @@
     opacity: 0.8;
   }
 
+  #settings-modal .settings-card > .settings-field {
+    margin-top: 1rem;
+  }
+
   .default-database {
     align-items: center;
     display: flex;

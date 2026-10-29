@@ -75,6 +75,18 @@ for (const target of ['editor', 'toolbar']) {
   });
 }
 
+test('Settings topics use consistent vertical spacing', async ({page}) => {
+  await installBackend(page);
+  await openReady(page);
+  await page.locator('#settings').click();
+  const margins = await page.locator(
+    '#settings-modal .settings-card > .settings-field'
+  ).evaluateAll(fields => fields.map(
+    field => getComputedStyle(field).marginTop
+  ));
+  expect(margins).toEqual(['16px', '16px', '16px']);
+});
+
 test('F3 parses only the selected text', async ({page}) => {
   const calls = [];
   await installBackend(page, {calls});
