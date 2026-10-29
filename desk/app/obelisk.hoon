@@ -205,10 +205,15 @@
   ==
 ++  on-watch
   ::  /obelisk paths resolve one query, give its result, and kick;
-  ::  the query runs through +process-cmds security in /lib/main
+  ::  the query runs through +process-cmds security in /lib/main.
+  ::  Every other path is for agents on this ship only: /server carries
+  ::  the result of every command, so a foreign ship is refused.
   |=  =path
   ^-  (quip card _this)
-  ?.  ?=([%obelisk ^] path)  `this
+  ?.  ?=([%obelisk ^] path)
+    ?.  =(our.bowl src.bowl)
+      ~|("foreign subscription refused {<path>}" !!)
+    `this
   =/  res=(unit (unit cage))
     (~(peek scry [server bowl]) t.path)
   ?~  res
