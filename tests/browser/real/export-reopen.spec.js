@@ -65,5 +65,8 @@ test('an exported result reopens from the Files view, read-only',
       .getByRole('tab', {name: 'results-1.csv', exact: true}))
       .toHaveAttribute('aria-selected', 'true');
     await expect.poll(() => editorSource(page)).toBe('id\n1\n2\n');
-    await expect(page.locator('#script-save')).toBeHidden();
+    // App-written result files disable saving; the pane remains writable
+    // so switching back to a script restores its Save actions.
+    await expect(page.locator('#script-save')).toBeDisabled();
+    await expect(page.locator('#script-save-as')).toBeDisabled();
   });

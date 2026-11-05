@@ -883,7 +883,20 @@
                   ==
           t.dbs
 ::
+::  /server carries every command's result, so only this ship may watch
+++  test-watch-server-local
+  =|  run=@ud
+  =^  mov  agent  (~(on-watch agent (bowl [run ~2000.1.1])) /server)
+  (expect-eq !>(`(list card:agent:gall)`~) !>(mov))
+::
+++  test-watch-server-foreign
+  =|  run=@ud
+  =/  bol  (bowl [run ~2000.1.1])
+  %-  expect-fail
+  |.  (~(on-watch agent bol(src ~nec)) /server)
+::
 ::  Create namespace
+::
 ++  test-tape-create-ns
   =|  run=@ud
   =^  mov1  agent

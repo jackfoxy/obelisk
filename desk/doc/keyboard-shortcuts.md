@@ -1,6 +1,20 @@
 # Keyboard shortcuts
 
-Default Ace editor keybindings for urQL Editor pane.
+## Workbench
+
+These shortcuts work inside and outside the editor. An open dialog suppresses
+workbench shortcuts; Escape closes the dialog. Parse and Run remain disabled
+while a request is running or a saved result is selected.
+
+| Key | Action |
+|:----|:-------|
+| F1 | Open Help |
+| F2 | Open Settings |
+| F3 | Parse the selection, or the full script if nothing is selected |
+| F5 | Run the selection, or the full script if nothing is selected |
+
+F1 and F2 override Ace's command palette and fold-widget bindings.
+The remaining default Ace keybindings apply in the urQL Editor pane.
 
 ## Line Operations
 
@@ -99,7 +113,6 @@ Default Ace editor keybindings for urQL Editor pane.
 
 | Windows/Linux                  | Mac                            | Action                         |
 |:-------------------------------|:-------------------------------|:-------------------------------|
-| F2                             | F2                             | Toggle fold widget              |
 | Alt-F2                         | Alt-F2                         | Toggle parent fold widget        |
 | Alt-L, Ctrl-F1                 | Command-Option-L, Command-F1   | Fold selection                  |
 | Alt-Shift-L, Ctrl-Shift-F1     | Command-Option-Shift-L, Command-Shift-F1 | Unfold                |
@@ -111,7 +124,6 @@ Default Ace editor keybindings for urQL Editor pane.
 
 | Windows/Linux                  | Mac                            | Action                         |
 |:-------------------------------|:-------------------------------|:-------------------------------|
-| F1                             | F1                              | Open command palette            |
 | Tab                            | Tab                             | Indent                          |
 | Ctrl-]                         | Ctrl-]                          | Block indent                    |
 | Shift-Tab                      | Shift-Tab                       | Outdent                         |
