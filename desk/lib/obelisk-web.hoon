@@ -1154,41 +1154,12 @@
       });
     }
 
-    function errorMessage(body, fallback) {
-      if (!body || !body.error) return fallback;
-      const details = Array.isArray(body.error.details) ?
-        body.error.details.join('\n') : '';
-      return details ? `${body.error.message}\n${details}` :
-        body.error.message;
-    }
-
-    //  Obelisk's api answers `{type: 'error'}` on failure; urui's file
-    //  wire answers `{ok: false}`.  Both carry the same `error` record.
-    async function post(url, payload) {
-      const response = await fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      let body = null;
-      try {
-        body = await response.json();
-      } catch (_) {
-        throw new Error(`Server returned invalid JSON (${response.status}).`);
-      }
-      if (!response.ok || body.type === 'error' || body.ok === false) {
-        const fallback = `Request failed (${response.status}).`;
-        const error = new Error(errorMessage(body, fallback));
-        error.status = response.status;
-        error.code = body && body.error ? body.error.code : null;
-        error.retryable = Boolean(body && body.error &&
-          body.error.retryable);
-        error.details = body && body.error ? body.error.details : [];
-        throw error;
-      }
-      return body;
-    }
+    //  Obelisk's api answers `{type: 'error'}` on failure where urui's
+    //  file wire answers `{ok: false}`; both carry the same `error`
+    //  record, so only the failure test is obelisk's.
+    const post = (url, payload) => runtime.request(url, payload, {
+      failed: (body) => body?.type === 'error' || body?.ok === false
+    });
 
     async function api(operation, payload) {
       const route = {

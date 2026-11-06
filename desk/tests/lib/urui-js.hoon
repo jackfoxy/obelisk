@@ -516,4 +516,66 @@
   %+  turn  needles
   |=  needle=tape
   (expect !>((has needle source)))
+::
+++  test-urui-owned-commands
+  ::  urui draws both dialogs and every store action, so it registers
+  ::  their commands: an app gets F1, F2 and a store's four chords by
+  ::  declaring rows, with no javascript of its own.
+  =/  runtime  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
+  =/  needles=(list [source=tape needle=tape])
+    :~  [runtime "registerShortcut('settings'"]
+        [runtime "registerShortcut('help'"]
+        [documents "registerShortcut(`open:$\{name}`"]
+        [documents "registerShortcut(`save:$\{name}`"]
+        [documents "registerShortcut(`save-as:$\{name}`"]
+        [documents "registerShortcut(`copy:$\{name}`"]
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  [source=tape needle=tape]
+  (expect !>((has needle source)))
+::
+++  test-json-wire-contract
+  ::  One POST and one envelope decode for every consumer route, with
+  ::  the error carrying what the toast and the retry paths read.
+  ::  Two consumers each had their own copy of this.
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "async function request(url, body, options = \{})"
+        "function requestError(body, status)"
+        "credentials: 'same-origin'"
+        "'content-type': 'application/json'"
+        "Server returned invalid JSON"
+        "raised.retryable = Boolean(error.retryable)"
+        "raised.code = error.code ?? null"
+        "options.failed"
+        "parsed?.ok === false"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
+::
+++  test-key-badge-contract
+  ::  A declared chord puts its binding on its control -- in
+  ::  `aria-keyshortcuts`, in the tooltip, and as a <kbd> badge -- so a
+  ::  rebind cannot leave a stale badge behind.  urui's own two
+  ::  dialogs and `{store}-{action}` are found by convention; a
+  ::  consumer's own control opts in with `data-chord`.
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "function applyKeyBadges()"
+        "function chordControl(command)"
+        "\{help: 'help', settings: 'settings'}"
+        "`$\{store}-$\{action}`"
+        "[data-chord="
+        "setAttribute('aria-keyshortcuts', chord.binding)"
+        "Object.hasOwn(tips, control.id)"
+        "applyKeyBadges();"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
 --

@@ -1216,6 +1216,53 @@
     return control;
   }
 
+  // ---- the json wire ------------------------------------------------
+  //
+  // One POST, one envelope.  urui-files answers
+  // `{ok: false, error: {code, message, retryable, details}}`, and a
+  // consumer's own routes answer the same shape, so the decode and the
+  // error it raises belong here rather than in each app.
+  //
+  // A failure throws an Error carrying `status`, `code`, `retryable`
+  // and `details`, which is what the toast and the retry paths read.
+  // An app whose route reports failure differently passes `failed`.
+  function requestError(body, status) {
+    const error = body?.error || {};
+    const details = Array.isArray(error.details) ? error.details : [];
+    const message = error.message
+      ? (details.length ? `${error.message}\n${details.join('\n')}`
+        : error.message)
+      : `Request failed (${status}).`;
+    const raised = new Error(message);
+    raised.status = status;
+    raised.code = error.code ?? null;
+    raised.retryable = Boolean(error.retryable);
+    raised.details = details;
+    return raised;
+  }
+
+  async function request(url, body, options = {}) {
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    let parsed = null;
+    try {
+      parsed = await response.json();
+    } catch (_) {
+      throw new Error(`Server returned invalid JSON (${response.status}).`);
+    }
+    const failed = options.failed
+      ? options.failed(parsed)
+      : parsed?.ok === false;
+    if (!response.ok || failed) {
+      throw requestError(parsed, response.status);
+    }
+    return parsed;
+  }
+
   // ---- tooltips -----------------------------------------------------
   //
   // Every button carries a tooltip.  urui's own come through
@@ -2880,6 +2927,7 @@
     elements,
     clamp,
     refreshEditors,
+    request,
     shortcuts: {register: registerShortcut, dispatch: dispatchShortcut},
     panes: {
       list: () => panes,
