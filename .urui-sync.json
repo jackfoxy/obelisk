@@ -21,11 +21,11 @@
     "tests/browser/ace-win-linux-shortcuts.json": "e981fd0a609f9964988355b7091f324fe0e184aa9c6a634345f708960e7e26f2",
     "tests/browser/doubles/README.md": "1557293200c7d9ed76e81dbc8838162a88a5556bb4d803156f7fa00aea922829",
     "tests/browser/doubles/ace.js": "1b135b90a615aff4c7b7749d499fea180633b8954e5f23fecd9e155605dd8bc5",
-    "tests/browser/doubles/dom.js": "d204947748f59b3e4bd102a7dae2c333b48488d097600dea397e1600a966ebef",
+    "tests/browser/doubles/dom.js": "341bd1fb800f12c939906a003c1ab05f0a91fd75c80292e1367df76f3504e1cc",
     "tests/browser/doubles/fetch.js": "ae77ad5cb3f76a8136f75f5ca8fd085ea6ccaf55ff6723ecc4d1685787ba1116",
     "tests/browser/doubles/index.js": "bd68a9f8acca9816ee3552a364d58917f9b9d49c33579782cbc2e09155af51e8",
     "tests/browser/doubles/media.js": "0972bfcf52458071d28f630f6d8242723c25fa24329888da6372b1757d0561a2",
     "tests/browser/doubles/storage.js": "75cbb1d543f17b8ac3754be1d12d0300faa3a06ec2dcde472c134c6f27e52b2b"
   },
-  "revision": "b82afe358e30d5aeda6180c89bc3ca4b812806a3"
+  "revision": "9fbe2934166e1a00683d7cfd3aea2837f44acf34"
 }

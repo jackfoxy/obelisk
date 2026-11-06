@@ -78,7 +78,8 @@ const selectors = [
   '#urui-toast-close',
   //  graph-viz on urui's store module: `dot` and `svg`
   '#dot-load-error', '#svg-source-load-error', '#svg-preview', '#svg-display',
-  '#dot-open', '#dot-save', '#dot-save-as', '#dot-ref', '#dot-browse',
+  '#dot-open', '#dot-save', '#dot-save-as', '#dot-copy', '#dot-ref',
+  '#dot-browse',
   '#svg-open', '#svg-save', '#svg-save-as', '#svg-copy', '#svg-ref',
   '#svg-browse'
 ];
