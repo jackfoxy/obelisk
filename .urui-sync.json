@@ -26,13 +26,16 @@
     "desk/web/ace/theme-github.js": "1d90a51f71dadc7b1ae9d30aa8653f30e663b0e6c496e096313b2c980ed6bd13",
     "desk/web/ace/theme-monokai.js": "1344ec08c6f1c15f92e12e82182ce33a43f3f2c98d874b377a94617f5090100f",
     "tests/browser/ace-win-linux-shortcuts.json": "e981fd0a609f9964988355b7091f324fe0e184aa9c6a634345f708960e7e26f2",
+    "tests/browser/chords.js": "f86c6c11649a291d8acaa1f4648d52b55495d9684d35a78cb037c60449191f05",
     "tests/browser/doubles/README.md": "1557293200c7d9ed76e81dbc8838162a88a5556bb4d803156f7fa00aea922829",
     "tests/browser/doubles/ace.js": "1b135b90a615aff4c7b7749d499fea180633b8954e5f23fecd9e155605dd8bc5",
     "tests/browser/doubles/dom.js": "341bd1fb800f12c939906a003c1ab05f0a91fd75c80292e1367df76f3504e1cc",
     "tests/browser/doubles/fetch.js": "ae77ad5cb3f76a8136f75f5ca8fd085ea6ccaf55ff6723ecc4d1685787ba1116",
     "tests/browser/doubles/index.js": "bd68a9f8acca9816ee3552a364d58917f9b9d49c33579782cbc2e09155af51e8",
     "tests/browser/doubles/media.js": "0972bfcf52458071d28f630f6d8242723c25fa24329888da6372b1757d0561a2",
-    "tests/browser/doubles/storage.js": "75cbb1d543f17b8ac3754be1d12d0300faa3a06ec2dcde472c134c6f27e52b2b"
+    "tests/browser/doubles/storage.js": "75cbb1d543f17b8ac3754be1d12d0300faa3a06ec2dcde472c134c6f27e52b2b",
+    "tests/browser/shortcut-conflicts.test.js": "87451edfa58590d40565c10b984a8a2f5def34a30c638efe5d8e42a4c1787cb3",
+    "tests/browser/vim-chords.json": "c652ae579296039bba73ea4702fb0ea3a4895ed38de7edfcc92b6d4a4fb5ba3a"
   },
-  "revision": "c7ce8d44355058a10a384bf23723c7a5261b19f1-dirty"
+  "revision": "18b6c704db451e8558ec8782dbc7c31007f27c33"
 }

@@ -1,0 +1,20 @@
+{
+  "note": "Deliberate conflicts for Obelisk's chord table. The conflict gate requires an entry here for every %override row and every browser-reserved binding; an entry is the evidence that the collision was a decision rather than an oversight.",
+  "overrides": [
+    {
+      "binding": "F1",
+      "command": "help",
+      "displaces": "Ace: Open command palette",
+      "alternative": "Ctrl-, opens Ace's own settings menu, which lists its commands",
+      "reason": "F1 is Help in every app on this shell; the palette is a developer affordance, not a user one."
+    },
+    {
+      "binding": "F2",
+      "command": "settings",
+      "displaces": "Ace: Toggle fold widget",
+      "alternative": "Alt-F2 toggles the parent fold widget; Alt-L and Alt-0 fold and unfold",
+      "reason": "F2 is Settings in every app on this shell, and folding keeps four other bindings."
+    }
+  ],
+  "reserved": []
+}
