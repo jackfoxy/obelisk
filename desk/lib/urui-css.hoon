@@ -459,6 +459,8 @@
 
   .store-preview[hidden] { display: none; }
 
+  .is-ref-drop-target iframe { pointer-events: none; }
+
   .store-preview iframe, .ref-explorer-panel iframe {
     background: #fff;
     border: 0;

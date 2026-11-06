@@ -258,7 +258,9 @@
   ::  `brand`, `toolbar`, `help`, and `dialogs` are consumer marl slots;
   ::  `scripts` and `styles` are emitted in the order given.  `head` is
   ::  consumer marl appended to <head>, after the styles: a favicon,
-  ::  meta tags.
+  ::  meta tags.  `settings` is consumer marl appended inside the
+  ::  Settings dialog, after urui's own preferences; the consumer binds
+  ::  and persists its controls.
   ::
   ::  Without a %views level on the reference pane the frame is compact
   ::  and presentation only: `files` must be ~, or ++build crashes.
@@ -271,5 +273,6 @@
       styles=(list @t)
       scripts=(list @t)
       head=marl
+      settings=marl
   ==
 --

@@ -220,6 +220,7 @@
           '/apps/obelisk/app.js'
       ==
       head=~[favicon]
+      settings=~
   ==
 ::
 ++  favicon
