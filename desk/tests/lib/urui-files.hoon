@@ -676,9 +676,24 @@
 ::
 ::  +|  Stored reads
 ::
+++  clay-case
+  ::  lull's $case, spelled out.
+  ::
+  ::  Not the bare name: `/+ *test` exposes the consuming desk's own
+  ::  lib/test.hoon, whose context can wildcard-import a /sur that
+  ::  defines `case` too, and the nearer binding wins.  This file is
+  ::  synced into every consumer, so it cannot rely on which /sur any
+  ::  of them happens to pull in.
+  $~  [%da *@da]
+  $%  [%da p=@da]
+      [%tas p=@tas]
+      [%ud p=@ud]
+      [%uv p=@uv]
+  ==
+::
 ++  stored-result
   ::  Only the outer tomb endpoint is at now; the beam retains its case.
-  |=  [cas=case live=? cod=codec:ufiles]
+  |=  [cas=clay-case live=? cod=codec:ufiles]
   ^-  tone
   =/  test-bowl=bowl:gall  bowl
   =/  pol=policy:ufiles  located
