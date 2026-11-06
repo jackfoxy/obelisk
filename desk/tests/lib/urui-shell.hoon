@@ -719,6 +719,43 @@
     (expect-eq !>("probe-settings") !>((attribute (rear c.card) %id)))
   ==
 ::
+++  test-help-button-matches-the-settings-button
+  ::  Both are frame furniture at the id the runtime binds, and neither
+  ::  carries a key badge: the runtime adds those from the chord table,
+  ::  so the markup does not have to know the binding.
+  ^-  tang
+  =/  help=manx  help-button:shell
+  =/  settings=manx  settings-button:shell
+  ;:  weld
+    (expect-eq !>("help") !>((attribute help %id)))
+    (expect-eq !>("settings") !>((attribute settings %id)))
+    (expect-eq !>("Help") !>((attribute help %title)))
+    (expect-eq !>("dialog") !>((attribute help %aria-haspopup)))
+    (expect-eq !>("false") !>((attribute help %aria-expanded)))
+    (expect !>(!(has-attribute help %aria-keyshortcuts)))
+    (expect !>(!(has-attribute settings %aria-keyshortcuts)))
+    (expect !>(?=(~ (find ~[%kbd] (turn c.help |=(k=manx n.g.k))))))
+  ==
+::
+++  test-shortcut-list-renders-labelled-chords-only
+  ::  The help table comes from the same chord list the dispatcher
+  ::  reads, so the two cannot disagree.  A chord with no label would
+  ::  show a bare command name, so it is skipped.
+  ^-  tang
+  =/  chords=(list shortcut:urui)
+    :~  ['F1' 'help' %always %override `'Help']
+        ['Ctrl-S' 'save:text' %always %free `'Save']
+        ['Ctrl-Q' 'quit' %always %free ~]
+    ==
+  =/  rendered=manx  (shortcut-list:shell chords)
+  =/  rows=(list manx)  c.rendered
+  ;:  weld
+    (expect-eq !>(%ul) !>(n.g.rendered))
+    (expect-eq !>("shortcut-list") !>((attribute rendered %class)))
+    (expect-eq !>(2) !>((lent rows)))
+    (expect-eq !>(%kbd) !>(n.g:(snag 0 c:(snag 0 rows))))
+  ==
+::
 ++  test-full-shell-emits-help-and-dialogs
   =/  dialogs
     %+  skim  (elements full-doc %aside)
