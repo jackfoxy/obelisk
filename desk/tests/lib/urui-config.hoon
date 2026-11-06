@@ -152,6 +152,7 @@
       styles=~
       scripts=~
       head=~
+      settings=~
   ==
 ::
 ++  source  (trip (emit:config spec))

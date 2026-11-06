@@ -2,6 +2,7 @@
   "name": "obelisk-browser-tests",
   "private": true,
   "scripts": {
+    "test:sync": "bin/verify-sync.sh --strict --quiet",
     "test:browser:real": "playwright test --config tests/browser/real/playwright.config.js",
     "test:assets": "node --test tests/ace-assets-routed.test.js"
   },

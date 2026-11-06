@@ -1,7 +1,7 @@
 ::  Tests for /lib/urui-files.
 ::
-::  Every arm tested here is pure, or refuses before it scries.  The
-::  clay reads that feed the planners are exercised by the consumers.
+::  Planners are tested directly; stored reads use a virtual Clay scry
+::  that enforces the global tomb endpoint's current-time contract.
 ::
 /-  urui
 /+  *test, ufiles=urui-files
@@ -658,6 +658,66 @@
     (expect-eq !>('not-found') !>((error-code cards.lost)))
   ==
 ::
+++  test-editing-snapshots-does-not-authorize-old-writes
+  =/  defaults=policy:ufiles  policy
+  =/  pol=policy:ufiles  located
+  =.  edit-snapshots.pol  &
+  =/  old=path  ~[%base ~.5 %notes %q1 %txt]
+  =/  saved=outcome:ufiles
+    (plan-save:ufiles pol bowl ~.req old %wain 'x' ~ & ~)
+  =/  removed=outcome:ufiles
+    (plan-delete:ufiles pol bowl ~.req old ~ `'x')
+  ;:  weld
+    (expect !>(!edit-snapshots.defaults))
+    (expect-eq !>(403) !>((reply-status cards.saved)))
+    (expect-eq !>(403) !>((reply-status cards.removed)))
+    (expect !>(=(~ next.saved)))
+  ==
+::
+::  +|  Stored reads
+::
+++  stored-result
+  ::  Only the outer tomb endpoint is at now; the beam retains its case.
+  |=  [cas=case live=? cod=codec:ufiles]
+  ^-  tone
+  =/  test-bowl=bowl:gall  bowl
+  =/  pol=policy:ufiles  located
+  =/  where=location:ufiles
+    [[our.test-bowl %base cas] /notes/q1/hoon &]
+  =/  beam=path  (en-beam beak.where rel.where)
+  =/  tomb=path
+    %-  weld
+    :_  beam
+    ~[(scot %p our.test-bowl) %$ (scot %da now.test-bowl) %tomb]
+  =/  read  |.((stored:ufiles pol test-bowl where cod))
+  %+  mink  [read %9 2 %0 1]
+  |=  [ref=* request=*]
+  ^-  (unit (unit))
+  ?:  =(request [%cx tomb])  ``live
+  ?:  &(live =(request [%cq beam]))  ``'historical text'
+  `~
+::
+++  test-stored-current-file
+  =/  test-bowl=bowl:gall  bowl
+  %-  expect-eq
+  :_  !>((stored-result da+now.test-bowl & %cord))
+  !>([%0 %& ~ ['historical text' |]])
+::
+++  test-stored-historical-file
+  %-  expect-eq
+  :_  !>((stored-result ud+5 & %cord))
+  !>([%0 %& ~ ['historical text' |]])
+::
+++  test-stored-historical-tombstone
+  %-  expect-eq
+  :_  !>((stored-result ud+5 | %cord))
+  !>([%0 %& ~])
+::
+++  test-stored-historical-inspection-is-read-only
+  %-  expect-eq
+  :_  !>((stored-result ud+5 & %view))
+  !>([%0 %& ~ ['viewed' &]])
+::
 ::  +|  Deletes
 ::
 ++  test-delete-plans
@@ -762,6 +822,18 @@
     (expect-eq !>(expected) !>((reply-json cards.good)))
     (expect !>(=(~ next.good)))
     (expect-eq !>(500) !>((reply-status cards.bad)))
+  ==
+::
+++  test-delete-timeout-clears-pending-without-claiming-success
+  =/  [verify=wire write=wire timeout=wire]  (wires:ufiles id)
+  =/  out=outcome:ufiles
+    (need (take:ufiles policy bowl timeout wake `deleting))
+  ?>  ?=(^ cards.out)
+  ;:  weld
+    (expect-eq !>(504) !>((reply-status cards.out)))
+    (expect-eq !>('timeout') !>((error-code cards.out)))
+    (expect !>(=(~ next.out)))
+    (expect !>(?=([%pass * %arvo %c %warp %~zod %probe ~] i.cards.out)))
   ==
 ::
 ++  test-take-times-out-on-the-located-desk

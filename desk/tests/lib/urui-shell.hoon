@@ -146,6 +146,7 @@
       styles=~['/probe/app.css']
       scripts=~['/probe/app.js' '/probe/extra.js']
       head=~[;meta(name "probe-head", content "yes");]
+      settings=~[;div#probe-settings.settings-field;]
   ==
 ::
 ++  doc  (build:shell spec)
@@ -218,6 +219,7 @@
       styles=~['body { color: black; }']
       scripts=~['/probe/app.js']
       head=~[;meta(name "probe-head", content "yes");]
+      settings=~[;div#probe-settings.settings-field;]
   ==
 ::
 ++  full-doc  (build:shell full-spec)
@@ -701,6 +703,20 @@
     %-  expect-eq
     :-  !>("probe-reference-view-tabs")
     !>((attribute (head explorer) %id))
+  ==
+::
+++  test-shell-splices-consumer-settings-into-the-modal
+  ::  Both frames append the consumer's marl to the Settings card, after
+  ::  urui's own preferences.
+  ^-  tang
+  =/  compact-modal  (need (node-by-id doc "settings-modal"))
+  =/  full-modal  (need (node-by-id full-doc "settings-modal"))
+  =/  card=manx  (snag 0 c.full-modal)
+  ;:  weld
+    (expect !>((has-node-id compact-modal "probe-settings")))
+    (expect !>((has-node-id full-modal "probe-settings")))
+    (expect !>((has-node-id full-modal "theme")))
+    (expect-eq !>("probe-settings") !>((attribute (rear c.card) %id)))
   ==
 ::
 ++  test-full-shell-emits-help-and-dialogs
