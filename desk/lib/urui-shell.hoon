@@ -811,6 +811,10 @@
   ::  Frame furniture, emitted before the consumer's toolbar marl so it
   ::  sits left of whatever the consumer puts there.  A consumer may
   ::  instead splice `settings-button` into its own toolbar.
+  ::
+  ::  No key badge here: the runtime adds one at boot for whatever
+  ::  chord the app declared for `settings`, so this markup does not
+  ::  have to know the binding.
   ^-  manx
   ;button#settings.settings-button
     =type           "button"
@@ -818,6 +822,42 @@
     =aria-haspopup  "dialog"
     =title          "Settings"
     ;span: Settings
+  ==
+::
+++  help-button
+  ::  The Help control, at the id the runtime binds.  Every consumer
+  ::  had written this markup itself, identically; the badge and the
+  ::  binding in the tooltip are the runtime's, as for Settings.
+  ^-  manx
+  ;button#help.help-button
+    =type           "button"
+    =aria-expanded  "false"
+    =aria-haspopup  "dialog"
+    =title          "Help"
+    ;span: Help
+  ==
+::
+++  shortcut-list
+  ::  An app's chords as a definition list, for its Help panel.
+  ::
+  ::  A consumer splices this into its `help` marl with its own chord
+  ::  table, so the panel and the dispatcher cannot disagree:
+  ::    ;+  (shortcut-list:shell shortcuts)
+  ::
+  ::  `label` names the action; a chord with none is skipped rather
+  ::  than shown as a bare command name.
+  |=  chords=(list shortcut:urui)
+  ^-  manx
+  ;ul.shortcut-list
+    ;*  %+  murn  chords
+        |=  =shortcut:urui
+        ^-  (unit manx)
+        ?~  label.shortcut  ~
+        :-  ~
+        ;li
+          ;kbd: {(trip binding.shortcut)}
+          ;span: {(trip u.label.shortcut)}
+        ==
   ==
 ::
 ++  fullscreen-toggle

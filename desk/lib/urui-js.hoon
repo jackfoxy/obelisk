@@ -1237,6 +1237,49 @@
     }
   }
 
+  //  The control a chord acts on, by convention rather than by
+  //  configuration: urui's own two dialogs, a store action at
+  //  `{store}-{action}`, and anything a consumer marks with
+  //  `data-chord="<command>"` for a control only it knows about.
+  function chordControl(command) {
+    const known = {help: 'help', settings: 'settings'};
+    if (Object.hasOwn(known, command)) {
+      return document.getElementById?.(known[command]) || null;
+    }
+    const [action, store] = String(command).split(':');
+    if (store) {
+      return document.getElementById?.(`${store}-${action}`) || null;
+    }
+    //  `globalThis.CSS` rather than `CSS`: an undeclared identifier
+    //  throws even behind optional chaining, and the offline doubles
+    //  declare no CSS object.
+    const escape = globalThis.CSS?.escape;
+    const selector = escape ? escape(command) : command;
+    return document.querySelector?.(`[data-chord="${selector}"]`) || null;
+  }
+
+  //  A declared chord puts its binding on its control: in
+  //  `aria-keyshortcuts`, in the tooltip, and as a <kbd> badge where
+  //  the control has a text label to sit beside.  Consumers used to
+  //  write all three by hand, which is how a rebind could leave a
+  //  stale badge behind.
+  function applyKeyBadges() {
+    for (const chord of config.shortcuts || []) {
+      const control = chordControl(chord.command);
+      if (!control) continue;
+      control.setAttribute('aria-keyshortcuts', chord.binding);
+      //  an explicit `tips` entry is the consumer's last word
+      if (!Object.hasOwn(tips, control.id) && control.title) {
+        control.title = `${control.title} (${chord.binding})`;
+      }
+      if (control.querySelector?.('kbd')) continue;
+      if (!control.querySelector?.('span')) continue;
+      const badge = document.createElement('kbd');
+      badge.textContent = chord.binding;
+      control.append(badge);
+    }
+  }
+
   //  Only a changed name is written: an attribute write is a mutation
   //  even when the value is the same, and the observer would loop.
   function autoTitle(button) {
@@ -2659,6 +2702,7 @@
   function wire() {
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
     applyTips();
+    applyKeyBadges();
     wireFullscreen();
     elements.contextOpen?.addEventListener('click', () => {
       const {kind, path} = contextTarget;
@@ -2732,6 +2776,22 @@
     });
     elements.settingsToggle?.addEventListener('click', () => {
       setSettingsOpen(true);
+    });
+    //  urui draws both dialogs, so it registers both commands: an app
+    //  gets F1 and F2 by declaring two chords and no javascript.  A
+    //  consumer that registers either name itself still wins, because
+    //  its boot runs after this.
+    //
+    //  These toggle, but only the opening half is reachable today:
+    //  +dispatchShortcut swallows a bound chord while a modal is open
+    //  rather than running it, so pressing F2 again does nothing.
+    //  Escape closes.  Making the chord that opened a dialog close it
+    //  is a change to the dispatcher, not to these handlers.
+    registerShortcut('settings', () => {
+      setSettingsOpen(!settingsIsOpen(), settingsIsOpen());
+    });
+    registerShortcut('help', () => {
+      setHelpOpen(!helpIsOpen(), helpIsOpen());
     });
     elements.closeSettings?.addEventListener('click', () => {
       setSettingsOpen(false, true);
@@ -4891,6 +4951,9 @@
       registerShortcut(`open:${name}`, () => docOpen(name));
       registerShortcut(`save:${name}`, () => docSave(name));
       registerShortcut(`save-as:${name}`, () => docSave(name, {as: true}));
+      //  Copy was the one store action with a button and no command,
+      //  which is why no app could bind it.
+      registerShortcut(`copy:${name}`, () => run.copy(name));
     }
     docElement('urui-confirm-ok')?.addEventListener('click', () => {
       docConfirm?.finish(true);

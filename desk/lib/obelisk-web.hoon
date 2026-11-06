@@ -159,11 +159,7 @@
           max-source=262.144
       ==
       slots
-      :~  ['F1' 'help' %always]
-          ['F2' 'settings' %always]
-          ['F3' 'parse' %always]
-          ['F5' 'run' %always]
-      ==
+      shortcuts
       ~[[%ready 'Ready']]
       docs-root=`'/docs/d/obelisk/'
       ace-spec
@@ -363,28 +359,37 @@
             ;option(value "sys"): sys
           ==
         ==
-        ;button#run-btn.primary(type "button", title "Run (F5)")
+        ::  the binding, its badge and its aria-keyshortcuts come from
+        ::  the chord table, so a rebind cannot strand a stale label
+        ;button#run-btn.primary
+          =type         "button"
+          =title        "Run"
+          =data-chord   "run"
           ;span: Run
-          ;kbd: F5
         ==
         ;button#parse-btn
-          =type                "button"
-          =title               "Parse without running (F3)"
-          =aria-keyshortcuts   "F3"
+          =type         "button"
+          =title        "Parse without running"
+          =data-chord   "parse"
           ;span: Parse
-          ;kbd: F3
         ==
-        ;+  =/  button=manx  settings-button:shell
-            button(c (snoc c.button ;kbd:"F2"))
-        ;button#help
-          =type                "button"
-          =title               "Help (F1)"
-          =aria-expanded       "false"
-          =aria-keyshortcuts   "F1"
-          ;span: Help
-          ;kbd: F1
-        ==
+        ;+  settings-button:shell
+        ;+  help-button:shell
       ==
+  ==
+::
+++  shortcuts
+  ::  The same four chords as before, now carrying what they cost.
+  ::  F1 and F2 displace Ace's command palette and fold widget; the
+  ::  palette stays reachable at Ctrl-, and folds at Alt-F2.
+  ::
+  ::  Obelisk still has no Save chord.  Adding one belongs to the
+  ::  binding pass, after the conflict gate is green on this table.
+  ^-  (list shortcut:urui)
+  :~  ['F1' 'help' %always %override `'Help']
+      ['F2' 'settings' %always %override `'Settings']
+      ['F3' 'parse' %always %free `'Parse without running']
+      ['F5' 'run' %always %free `'Run']
   ==
 ::
 ++  help
@@ -2256,8 +2261,7 @@
       persist();
       ensureSchemaLoaded({force: true});
     });
-    runtime.shortcuts.register('help', () => byId('help').click());
-    runtime.shortcuts.register('settings', () => byId('settings').click());
+    //  urui registers `help` and `settings`; it draws both dialogs
     runtime.shortcuts.register('parse', () => parseButton.click());
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
@@ -2290,7 +2294,6 @@
       {box: 'border-box'});
     //  Help follows Settings without changing the other button sizes.
     const settingsButton = byId('settings');
-    settingsButton.setAttribute('aria-keyshortcuts', 'F2');
     new ResizeObserver(() => {
       byId('help').style.height =
         `${settingsButton.getBoundingClientRect().height}px`;

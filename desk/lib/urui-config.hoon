@@ -243,12 +243,16 @@
   ==
 ::
 ++  shortcut-json
+  ::  `policy` and `label` are emitted for the key badges and the
+  ::  conflict gate; the dispatcher reads only `binding` and `when`.
   |=  shortcut=shortcut:urui
   ^-  json
   %-  pairs:enjs:format
   :~  ['binding' s+binding.shortcut]
       ['command' s+command.shortcut]
       ['when' s+`@t`when.shortcut]
+      ['policy' s+`@t`policy.shortcut]
+      ['label' ?~(label.shortcut ~ s+u.label.shortcut)]
   ==
 ::
 ++  status-json

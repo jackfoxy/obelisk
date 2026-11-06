@@ -143,16 +143,36 @@
       kind=(unit @tas)
   ==
 ::
++$  key-policy
+  ::  What a chord costs, against the pinned Ace and Vim keymaps.
+  ::
+  ::  %free      in neither keymap, so nothing is displaced
+  ::  %override  a deliberate conflict; the shadowed command must stay
+  ::             reachable another way, and the reason recorded
+  ::  %gated     an editing chord, admitted only outside the editor
+  ::
+  ::  `when` says where a chord fires; this says what that costs.  A
+  ::  %gated chord with `when=%always` is a contradiction, and the
+  ::  cross-app conflict gate rejects it.
+  ?(%free %override %gated)
+::
 +$  shortcut
   ::  An application chord urui dispatches on the app's behalf.
   ::
   ::  %editor/%no-editor test Ace focus; %preview uses the consumer
   ::  runtime option `shortcuts.preview`, even while Ace has focus.
-  ::  Register command handlers through `runtime.shortcuts.register`.
+  ::  Register command handlers through `runtime.shortcuts.register`;
+  ::  urui registers `help`, `settings`, and a store's `open:`, `save:`,
+  ::  `save-as:` and `copy:` itself.
+  ::
+  ::  `label` names the action for the key badge urui draws on a
+  ::  control and for the help table; ~ falls back to `command`.
   ::
   $:  binding=@t
       command=@t
       when=?(%always %preview %editor %no-editor)
+      policy=key-policy
+      label=(unit @t)
   ==
 ::
 +$  limits
