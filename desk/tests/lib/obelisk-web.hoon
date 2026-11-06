@@ -1889,8 +1889,18 @@
     (expect !>(?=(^ (find "query-editor" html))))
     (expect !>(?=(^ (find "output-pane" html))))
     (expect !>(?=(^ (find "Run" html))))
-    (expect !>(?=(^ (find "F5" html))))
     (expect !>(?=(^ (find "Parse" html))))
+    ::  A chord's binding, its badge and its aria-keyshortcuts are put
+    ::  on the control by urui at boot, from the one chord table.  The
+    ::  page names the command and not the key, so a rebind cannot
+    ::  strand a stale label here; `"binding":"F5"` is asserted against
+    ::  the script asset in +test-editor-and-query-interactions-69.
+    (expect !>(?=(^ (find "data-chord=\"run\"" html))))
+    (expect !>(?=(^ (find "data-chord=\"parse\"" html))))
+    ::  no binding is written into the markup any more
+    (expect !>(?=(~ (find "Run (F5)" html))))
+    (expect !>(?=(~ (find "Help (F1)" html))))
+    (expect !>(?=(~ (find "aria-keyshortcuts" html))))
     (expect !>(?=(^ (find "id=\"script-save-as\"" html))))
     (expect !>(?=(^ (find "Save result" html))))
     (expect !>(?=(^ (find "id=\"help\"" html))))
@@ -2007,7 +2017,14 @@
     (expect !>(?=(^ (find "execute('run')" script))))
     (expect !>(?=(^ (find "execute('parse')" script))))
     (expect !>(?=(^ (find "\"binding\":\"F5\"" script))))
+    (expect !>(?=(^ (find "\"label\":\"Run\"" script))))
+    (expect !>(?=(^ (find "\"policy\":\"free\"" script))))
+    ::  F1 and F2 displace Ace on purpose, and say so in the table
+    (expect !>(?=(^ (find "\"policy\":\"override\"" script))))
     (expect !>(?=(^ (find "runtime.shortcuts.register('run'" script))))
+    ::  urui registers `help` and `settings`; it draws both dialogs
+    (expect !>(?=(~ (find "shortcuts.register('help'" script))))
+    (expect !>(?=(~ (find "shortcuts.register('settings'" script))))
     (expect !>(?=(^ (find "editor = docs.editor('script')" script))))
     (expect !>(?=(^ (find "editor.getSelection()" script))))
     %-  expect
