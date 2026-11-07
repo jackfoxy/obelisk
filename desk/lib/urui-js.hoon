@@ -4463,6 +4463,25 @@
       openFileContext(name, path, source, event);
     };
     row.addEventListener('contextmenu', (event) => openMenu(file, event));
+    //  Row keys belong to the row, not to the chord table: they mean
+    //  something only while a row has focus, and the dispatcher gates
+    //  on editor focus rather than on which control is focused.  This
+    //  is how Shift-F10 already works -- the browser raises
+    //  `contextmenu` on the focused element and the listener above
+    //  answers it -- so Alt-Enter joins it here rather than becoming a
+    //  global chord that would have to be gated against everything.
+    file.addEventListener('keydown', (event) => {
+      if (event.altKey && event.key === 'Enter') {
+        event.preventDefault();
+        openMenu(file, event);
+        return;
+      }
+      if (event.key === 'Delete' && !docPaneReadOnly(name)) {
+        event.preventDefault();
+        closeFileContext();
+        docRemove(name, path);
+      }
+    });
     const actions = document.createElement('button');
     actions.type = 'button';
     actions.className = 'file-tree-actions';
@@ -5002,7 +5021,18 @@
       //  Copy was the one store action with a button and no command,
       //  which is why no app could bind it.
       registerShortcut(`copy:${name}`, () => run.copy(name));
+      //  Only where the store asked for a preview; a store without one
+      //  has no toggle to work, and a chord naming it would be inert.
+      if (storeConfig.preview) {
+        registerShortcut(`display:${name}`, () => {
+          const tab = docGet(name, documentActiveId(name));
+          docSetDisplay(name, tab?.display === 'preview' ? 'source' : 'preview');
+        });
+      }
     }
+    //  One command for every tree an app draws, so a refresh chord does
+    //  not have to name them.
+    registerShortcut('refresh-tree', () => docRefreshTrees());
     docElement('urui-confirm-ok')?.addEventListener('click', () => {
       docConfirm?.finish(true);
     });

@@ -379,17 +379,26 @@
   ==
 ::
 ++  shortcuts
-  ::  The same four chords as before, now carrying what they cost.
   ::  F1 and F2 displace Ace's command palette and fold widget; the
   ::  palette stays reachable at Ctrl-, and folds at Alt-F2.
   ::
-  ::  Obelisk still has no Save chord.  Adding one belongs to the
-  ::  binding pass, after the conflict gate is green on this table.
+  ::  The file chords are urui's, registered from the store's name.
+  ::  Alt-O rather than Ctrl-O for Open: Ctrl-O is free in Ace's
+  ::  Windows/Linux table but taken by Vim in both insert and normal
+  ::  mode, and every app here can switch its editor to Vim.  Alt-C
+  ::  rather than Ctrl-Shift-C for Copy, which Chromium keeps for its
+  ::  element inspector.  Both are %no-editor: inside the editor
+  ::  Ctrl-C and the rest keep their ordinary meaning.
   ^-  (list shortcut:urui)
   :~  ['F1' 'help' %always %override `'Help']
       ['F2' 'settings' %always %override `'Settings']
       ['F3' 'parse' %always %free `'Parse without running']
       ['F5' 'run' %always %free `'Run']
+      ['Ctrl-S' 'save:script' %always %free `'Save the script']
+      ['Ctrl-Shift-S' 'save-as:script' %always %free `'Save the script as']
+      ['Alt-O' 'open:script' %no-editor %free `'Open a saved script']
+      ['Alt-C' 'copy:script' %no-editor %free `'Copy the script']
+      ['Ctrl-Alt-V' 'display:script' %no-editor %free `'Source or preview']
   ==
 ::
 ++  help

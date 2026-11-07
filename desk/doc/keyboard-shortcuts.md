@@ -12,9 +12,33 @@ while a request is running or a saved result is selected.
 | F2 | Open Settings |
 | F3 | Parse the selection, or the full script if nothing is selected |
 | F5 | Run the selection, or the full script if nothing is selected |
+| Ctrl-S | Save the script |
+| Ctrl-Shift-S | Save the script as a new file |
+| Alt-O | Open a saved script |
+| Alt-C | Copy the script |
+| Ctrl-Alt-V | Switch the script between source and preview |
 
-F1 and F2 override Ace's command palette and fold-widget bindings.
-The remaining default Ace keybindings apply in the urQL Editor pane.
+F1 and F2 override Ace's command palette and fold-widget bindings. The
+palette's commands remain reachable through **Ctrl-,**, Ace's own settings
+menu; folding keeps `Alt-F2`, `Alt-L`, `Alt-Shift-L`, `Alt-0` and
+`Alt-Shift-0`. The remaining default Ace keybindings apply in the urQL
+Editor pane.
+
+Alt-O and Alt-C, rather than Ctrl-O and Ctrl-Shift-C: **Ctrl-O** is free in
+Ace's own keymap but is a Vim binding in both insert and normal mode, and
+the editor can be switched to Vim in Settings; **Ctrl-Shift-C** is
+Chromium's element inspector. The last three apply outside the editor only,
+so Ctrl-C and its neighbours keep their ordinary meaning while editing.
+
+## File rows
+
+In the explorer, with a file row focused:
+
+| Key | Action |
+|:----|:-------|
+| Enter or Space | Open the file |
+| Delete | Delete the file, after confirming |
+| Alt-Enter, Shift-F10, or the context-menu key | Open the row's actions |
 
 ## Line Operations
 

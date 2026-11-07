@@ -126,8 +126,13 @@ test(`${label}: every command has somewhere to come from`, () => {
   //  neither is a chord that silently does nothing on a ship.
   const source = fs.readFileSync(file, 'utf8');
   const stores = [...source.matchAll(/name=%([a-z-]+)/g)].map((m) => m[1]);
-  const uruiOwned = new Set(['help', 'settings']);
-  const storeActions = new Set(['open', 'save', 'save-as', 'copy']);
+  const uruiOwned = new Set(['help', 'settings', 'refresh-tree']);
+  //  `display` only where the store asked for a preview, so a chord
+  //  naming a store without one is inert and worth failing on.
+  const storeActions = new Set(['open', 'save', 'save-as', 'copy', 'display']);
+  const previewed = [...source.matchAll(
+    /name=%([a-z-]+)[\s\S]*?preview=(~|`%\w+)/g
+  )].filter((match) => match[2] !== '~').map((match) => match[1]);
   for (const chord of chords) {
     if (uruiOwned.has(chord.command)) continue;
     const [action, store] = chord.command.split(':');
@@ -136,6 +141,11 @@ test(`${label}: every command has somewhere to come from`, () => {
         `${chord.command}: urui registers no ${action} for a store`);
       assert.ok(stores.includes(store),
         `${chord.command}: no store named ${store} is declared`);
+      if (action === 'display') {
+        assert.ok(previewed.includes(store),
+          `${chord.command}: the ${store} store declares no preview, `
+          + 'so urui registers no display toggle for it');
+      }
       continue;
     }
     //  Either named at the call -- `register('parse', …)` -- or a key

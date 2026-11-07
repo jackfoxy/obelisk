@@ -557,6 +557,30 @@
   |=  needle=tape
   (expect !>((has needle source)))
 ::
+++  test-row-keys-and-tree-commands
+  ::  Delete and Alt-Enter belong to the focused row, not to the chord
+  ::  table: they mean something only there, and the dispatcher gates
+  ::  on editor focus rather than on which control is focused.  This is
+  ::  how Shift-F10 already works, through the browser's own
+  ::  `contextmenu` on the focused element.
+  ::
+  ::  `display:{store}` and `refresh-tree` are commands, because a
+  ::  chord for either is an app-wide one.
+  =/  source  (trip documents:ujs)
+  =/  needles=(list tape)
+    :~  "file.addEventListener('keydown'"
+        "event.altKey && event.key === 'Enter'"
+        "event.key === 'Delete' && !docPaneReadOnly(name)"
+        "docRemove(name, path)"
+        "registerShortcut(`display:$\{name}`"
+        "registerShortcut('refresh-tree'"
+        "storeConfig.preview"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
+::
 ++  test-key-badge-contract
   ::  A declared chord puts its binding on its control -- in
   ::  `aria-keyshortcuts`, in the tooltip, and as a <kbd> badge -- so a
