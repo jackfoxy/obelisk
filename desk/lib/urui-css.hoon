@@ -134,6 +134,19 @@
   /* Placed by the consumer inside its toolbar, it is one more button. */
   .toolbar .settings-button:not(:first-child) { margin-left: 0; }
 
+  /* The key badge the runtime appends to a header control, from the
+     chord table.  Styled here because urui is what draws it: two
+     consumers had written this rule themselves, back when each wrote
+     the <kbd> into its own markup, and the third had never needed one
+     -- so when the badge became urui's, that app got an unstyled one
+     hard against the label. */
+  .app-header kbd {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    margin-left: 0.35rem;
+    opacity: 0.8;
+  }
+
   .workbench {
     display: grid;
     grid-template-columns: var(--explorer-width, 18rem) 0.6rem

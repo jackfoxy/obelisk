@@ -30,6 +30,11 @@
         [%tabs '.document-tab-control {']
         [%dialogs '.help-panel {']
         [%controls '.icon-button {']
+        ::  urui appends the key badge, so urui spaces it: two
+        ::  consumers had styled it themselves and a third never had
+        ::  one, so its badge rendered hard against the label
+        [%shell '.app-header kbd {']
+        [%shell 'margin-left: 0.35rem;']
     ==
   %-  zing
   %+  turn  cases
