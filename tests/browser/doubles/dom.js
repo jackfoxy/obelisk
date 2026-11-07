@@ -26,7 +26,7 @@ const selectors = [
   '#add-dot-ref', '#browse-dot', '#load-dot', '#save-dot',
   '#add-svg-ref', '#browse-svg', '#load-svg', '#save-svg', '#fit',
   '#auto-render', '#theme', '#help',
-  '#help-panel', '#editor-help-card', '#close-help',
+  '#help-panel', '#editor-help-card', '#close-help', '#settings-card',
   '#settings', '#settings-modal', '#close-settings',
   '#fallback-help-content', '#docs-help-content', '#docs-help-nav',
   '#workbench', '#explorer', '#explorer-pane', '#editor-pane',

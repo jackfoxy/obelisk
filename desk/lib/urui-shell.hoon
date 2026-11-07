@@ -905,7 +905,9 @@
     =class         "layout-choice"
     =id            "layout-{name}"
     =data-layout   name
-    =aria-pressed  "false"
+    =role          "radio"
+    =aria-checked  "false"
+    =tabindex      "-1"
     =title         label
     =aria-label    label
     ;+  (layout-glyph name)
@@ -925,7 +927,8 @@
     =role             "dialog"
     =aria-modal       "true"
     =aria-labelledby  "settings-title"
-    ;div.help-card.settings-card
+    ;div#settings-card.help-card.settings-card
+      =tabindex  "-1"
       ;div.pane-header
         ;h2#settings-title: Settings
         ;button#close-settings.icon-button.help-close
@@ -956,8 +959,12 @@
       ==
       ;div.settings-field
         ;span#screen-format-label.settings-label: Screen format
+        ::  A radiogroup, not a group of pressable buttons: Theme is a
+        ::  select and Keybindings are radios, both of which arrow
+        ::  natively, and this was the one control in the modal that
+        ::  did not.  The runtime holds one tabindex=0 among them.
         ;div.layout-choices
-          =role             "group"
+          =role             "radiogroup"
           =aria-labelledby  "screen-format-label"
           ;+  %+  layout-choice  "columns"
               "Reference, editor and render side by side"
@@ -978,6 +985,7 @@
     =aria-modal      "true"
     =aria-labelledby  "help-title"
     ;div#editor-help-card.help-card.editor-help-card
+      =tabindex  "-1"
       ;div.pane-header
         ;h2#help-title: Help
         ;button#close-help.icon-button.help-close

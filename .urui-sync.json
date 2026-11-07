@@ -2,11 +2,11 @@
   "files": {
     "desk/lib/urui-ace.hoon": "cccc2a156342eb4beeb276169230baa80f9c681db917e16f2d97840682166ce0",
     "desk/lib/urui-config.hoon": "df23221758f1a70ad72f2c502c2c15869c10858bcfe5c2c06747602f029a5e17",
-    "desk/lib/urui-css.hoon": "84a1c38e9d244c87235973a11ab0847f1ca8145a050701fd0894a295678edeb9",
+    "desk/lib/urui-css.hoon": "b44508fbfa3a28ec9a7225ee8c15eec5dc5f0c97657cd0755d9c19ebde38a607",
     "desk/lib/urui-files.hoon": "3861f2cbf5757838af431e91a4a1504bd7e33711d4af2e0e811fffb3557e8ace",
     "desk/lib/urui-http.hoon": "cf0852088a7ebd97b53f7861a55a3fcf824fbe98a43b3816d20951b83b29c9e4",
-    "desk/lib/urui-js.hoon": "3098c6cc22d73e5571f8d95df9626924ce7da6a9e89a7698fc2f0ea5e0ca6749",
-    "desk/lib/urui-shell.hoon": "211a3fc4b78b95759785d569596e8af3edc84e217a22bbb602a678ca4d65ec62",
+    "desk/lib/urui-js.hoon": "054a2d25a456443ab31ddf80c4d0d3258dbd3b911829acc10917517b024304a4",
+    "desk/lib/urui-shell.hoon": "2491ffd2f4f367d32a91652a33eff56118aa3cf179c70234560c1d0adf1fcf22",
     "desk/sur/urui.hoon": "712c396ff8e96a8ecccc06aa9feb7e5e1d9f648a38daa2c4565bcf7f26f688d8",
     "desk/tests/lib/urui-ace.hoon": "5e51998d174f649354b0bb40e9ea45bddfb43a78319e622a4d922713dcae63db",
     "desk/tests/lib/urui-config.hoon": "aa3dc077961c7b433fe596e7666d237d43a607a12676e6c9737b249bc23faa4c",
@@ -29,7 +29,7 @@
     "tests/browser/chords.js": "f86c6c11649a291d8acaa1f4648d52b55495d9684d35a78cb037c60449191f05",
     "tests/browser/doubles/README.md": "1557293200c7d9ed76e81dbc8838162a88a5556bb4d803156f7fa00aea922829",
     "tests/browser/doubles/ace.js": "1b135b90a615aff4c7b7749d499fea180633b8954e5f23fecd9e155605dd8bc5",
-    "tests/browser/doubles/dom.js": "341bd1fb800f12c939906a003c1ab05f0a91fd75c80292e1367df76f3504e1cc",
+    "tests/browser/doubles/dom.js": "a0672c39def2ea7afd587ea21348c74bd708b4e2b132a63ad2bdda6cdcfbdec2",
     "tests/browser/doubles/fetch.js": "ae77ad5cb3f76a8136f75f5ca8fd085ea6ccaf55ff6723ecc4d1685787ba1116",
     "tests/browser/doubles/index.js": "bd68a9f8acca9816ee3552a364d58917f9b9d49c33579782cbc2e09155af51e8",
     "tests/browser/doubles/media.js": "0972bfcf52458071d28f630f6d8242723c25fa24329888da6372b1757d0561a2",
@@ -37,5 +37,5 @@
     "tests/browser/shortcut-conflicts.test.js": "9f90f384a5bd4dcb94ee1512592ac81ea648255815bfe5ae709f32ca08155178",
     "tests/browser/vim-chords.json": "c652ae579296039bba73ea4702fb0ea3a4895ed38de7edfcc92b6d4a4fb5ba3a"
   },
-  "revision": "0d4affdb2004f3f5cc43ca1134c16a4bdb950390-dirty"
+  "revision": "5c2aa9295d0b5cdaed8de051f162d56d355e2927"
 }

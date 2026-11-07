@@ -13,8 +13,10 @@ async function focus(page, target) {
 
 for (const target of ['editor', 'toolbar']) {
   for (const [key, button, panel, close, otherPanel] of [
-    ['F1', 'help', 'help-panel', 'close-help', 'settings-modal'],
-    ['F2', 'settings', 'settings-modal', 'close-settings', 'help-panel']
+    //  the card takes focus, not the close button: it is the scroll
+    //  container, so PageUp and PageDown page the dialog
+    ['F1', 'help', 'help-panel', 'editor-help-card', 'settings-modal'],
+    ['F2', 'settings', 'settings-modal', 'settings-card', 'help-panel']
   ]) {
     test(`${key} opens ${button} from ${target} and respects modal focus`,
       async ({page}) => {
@@ -38,11 +40,22 @@ for (const target of ['editor', 'toolbar']) {
         await expect(page.locator(`#${button}`))
           .toHaveAttribute('aria-expanded', 'true');
 
-        // Bound keys behind a modal must not open another dialog or execute.
+        // Bound keys behind a modal must not open another dialog or
+        // execute -- except this dialog's own chord, which closes it,
+        // so the loop leaves that one out.
         for (const chord of ['F1', 'F2', 'F3', 'F5']) {
+          if (chord === key) continue;
           await page.keyboard.press(chord);
         }
         await expect(page.locator(`#${otherPanel}`)).toBeHidden();
+        await expect(page.locator(`#${panel}`)).toBeVisible();
+
+        // And the chord that opened it closes it again.
+        await page.keyboard.press(key);
+        await expect(page.locator(`#${panel}`)).toBeHidden();
+        await page.keyboard.press(key);
+        await expect(page.locator(`#${panel}`)).toBeVisible();
+
         await page.keyboard.press('Escape');
         await expect(page.locator(`#${panel}`)).toBeHidden();
         await expect(page.locator(target === 'editor'

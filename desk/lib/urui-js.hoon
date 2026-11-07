@@ -216,6 +216,8 @@
       document.querySelectorAll?.('input[name="keybindings"]') ?? [],
     helpToggle: document.querySelector('#help'),
     helpPanel: document.querySelector('#help-panel'),
+    helpCard: document.querySelector('#editor-help-card'),
+    settingsCard: document.querySelector('#settings-card'),
     closeHelp: document.querySelector('#close-help'),
     contextMenu: document.querySelector('#file-context-menu'),
     contextOpen: document.querySelector('#file-context-open'),
@@ -968,11 +970,12 @@
       'aria-orientation',
       layout === 'rows' ? 'horizontal' : 'vertical'
     );
+    //  A radiogroup holds exactly one tabindex=0, so Tab reaches the
+    //  group once and the arrows move within it.
     for (const choice of elements.layoutChoices || []) {
-      choice.setAttribute(
-        'aria-pressed',
-        String(choice.dataset?.layout === layout)
-      );
+      const chosen = choice.dataset?.layout === layout;
+      choice.setAttribute('aria-checked', String(chosen));
+      choice.tabIndex = chosen ? 0 : -1;
     }
     applyResultLayout();
     if (persist) changed();
@@ -1102,8 +1105,12 @@
   const modals = [];
   const modalInert = new Set();
 
-  function defineModal(rank, element, close, fallback) {
-    const modal = {rank, element, close, fallback, returnFocus: null};
+  //  `command` names the chord that owns this dialog, so pressing that
+  //  chord again closes it rather than being swallowed.  Without it a
+  //  modal has no owning chord and every bound chord is swallowed, as
+  //  before.
+  function defineModal(rank, element, close, fallback, command) {
+    const modal = {rank, element, close, fallback, command, returnFocus: null};
     modals.push(modal);
     modals.sort((left, right) => right.rank - left.rank);
     return modal;
@@ -1124,8 +1131,12 @@
       for (const child of Array.from(node?.children || [])) {
         if (child.hidden) continue;
         const name = String(child.localName || '').toLowerCase();
+        //  `tabindex=-1` is reachable only by script, so it cannot be
+        //  the wrap point: a roving radiogroup keeps all but one of
+        //  its radios out of the tab order, and counting those let
+        //  focus walk straight out of the dialog.
         if (['button', 'input', 'select', 'textarea'].includes(name)
-          && !child.disabled) {
+          && !child.disabled && (child.tabIndex ?? 0) >= 0) {
           found.push(child);
         }
         walk(child);
@@ -1194,7 +1205,14 @@
     element.hidden = true;
     syncModalInert();
     if (wasOpen && restoreFocus) {
-      (modal.returnFocus ?? modal.fallback?.())?.focus?.();
+      //  A dialog opened by its chord had no opener focused, so what
+      //  held focus was the body.  Focusing that strands the keyboard
+      //  at the top of the document; the fallback is the control the
+      //  dialog belongs to, which is where the user would look.
+      const held = modal.returnFocus;
+      const opener = held && held !== document.body
+        ? held : modal.fallback?.();
+      opener?.focus?.();
     }
     modal.returnFocus = null;
   }
@@ -1434,10 +1452,10 @@
   // Both are modals.  `options.onHelpOpen` runs before help takes focus.
   const helpModal = defineModal(1, () => elements.helpPanel, () => {
     setHelpOpen(false, true);
-  }, () => elements.helpToggle);
+  }, () => elements.helpToggle, 'help');
   const settingsModal = defineModal(2, () => elements.settingsModal, () => {
     setSettingsOpen(false, true);
-  }, () => elements.settingsToggle);
+  }, () => elements.settingsToggle, 'settings');
 
   function helpIsOpen() {
     return modalIsOpen(helpModal);
@@ -1453,7 +1471,10 @@
     setHelpVariant(docsAvailable === true);
     refreshHelpVariant();
     options.onHelpOpen?.();
-    elements.closeHelp.focus();
+    //  The card, not the close button: it is the scroll container, so
+    //  PageUp, PageDown, Home and End page the help.  Tab from here
+    //  reaches the close button, the first control inside.
+    (elements.helpCard || elements.closeHelp)?.focus?.();
   }
 
   function settingsIsOpen() {
@@ -1463,7 +1484,10 @@
   function setSettingsOpen(open, restoreFocus = false) {
     if (!elements.settingsModal) return;
     elements.settingsToggle?.setAttribute('aria-expanded', String(open));
-    if (open) showModal(settingsModal, elements.closeSettings);
+    //  the card for the same reason as Help's
+    if (open) {
+      showModal(settingsModal, elements.settingsCard || elements.closeSettings);
+    }
     else hideModal(settingsModal, restoreFocus);
   }
 
@@ -2829,11 +2853,10 @@
     //  consumer that registers either name itself still wins, because
     //  its boot runs after this.
     //
-    //  These toggle, but only the opening half is reachable today:
-    //  +dispatchShortcut swallows a bound chord while a modal is open
-    //  rather than running it, so pressing F2 again does nothing.
-    //  Escape closes.  Making the chord that opened a dialog close it
-    //  is a change to the dispatcher, not to these handlers.
+    //  Both toggle: +dispatchShortcut runs a bound chord behind an
+    //  open modal only when it is the chord that owns that modal, so
+    //  pressing F2 again closes Settings while every other chord stays
+    //  swallowed.  Escape closes either way.
     registerShortcut('settings', () => {
       setSettingsOpen(!settingsIsOpen(), settingsIsOpen());
     });
@@ -2846,9 +2869,25 @@
     elements.settingsModal?.addEventListener('click', (event) => {
       if (event.target === elements.settingsModal) setSettingsOpen(false, true);
     });
-    for (const choice of elements.layoutChoices || []) {
+    const layoutChoices = Array.from(elements.layoutChoices || []);
+    for (const choice of layoutChoices) {
       choice.addEventListener('click', () => {
         setLayout(choice.dataset?.layout);
+      });
+      //  Arrows move *and* select, which is a radiogroup's own
+      //  behaviour: there is nothing to confirm afterwards.  Both axes,
+      //  because the choices read as a row but mean a layout.
+      choice.addEventListener('keydown', (event) => {
+        const index = layoutChoices.indexOf(choice);
+        const next = stepIndex(
+          event.key, index, layoutChoices.length, 'ArrowLeft', 'ArrowRight'
+        ) ?? stepIndex(
+          event.key, index, layoutChoices.length, 'ArrowUp', 'ArrowDown'
+        );
+        if (next === undefined) return;
+        event.preventDefault();
+        setLayout(layoutChoices[next].dataset?.layout);
+        layoutChoices[next].focus();
       });
     }
     for (const choice of elements.keyChoices || []) {
@@ -3092,10 +3131,19 @@
         modal.close();
       } else if (event.key === 'Tab') {
         if (modalTrapTab(event, modal.element())) consume();
-      } else if ((config.shortcuts || []).some((shortcut) => {
-        return shortcutMatches(shortcut, event);
-      })) {
-        consume();
+      } else {
+        const matched = (config.shortcuts || []).find((shortcut) => {
+          return shortcutMatches(shortcut, event);
+        });
+        //  The chord that opened this dialog closes it; every other
+        //  bound chord is swallowed, so a modal is never a way to
+        //  reach the application behind it.
+        if (matched && matched.command === modal.command) {
+          consume();
+          shortcutCommands.get(matched.command)?.(event);
+        } else if (matched) {
+          consume();
+        }
       }
       return;
     }
