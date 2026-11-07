@@ -537,28 +537,42 @@
   (expect !>((has needle source)))
 ::
 ++  test-dialog-drag-contract
-  ::  Settings and Help move by their header.  A transform, not a
-  ::  layout change, so the card's height bound, its scrolling and the
-  ::  focus trap are untouched; pointer capture, as the resizers use;
-  ::  and the header's buttons stay clickable.
-  =/  source  (trip runtime:ujs)
-  =/  needles=(list tape)
-    :~  "function enableDialogDrag(card)"
-        "card?.querySelector?.('.pane-header')"
-        "closest?.('button, a, input, select')"
-        "handle.setPointerCapture?.(event.pointerId)"
-        "card.style.transform = offset.x || offset.y"
-        "function holdDialogs()"
-        "function resetDialogDrag(card)"
-        "enableDialogDrag(elements.helpCard)"
-        "enableDialogDrag(elements.settingsCard)"
-        "resetDialogDrag(elements.helpCard)"
-        "resetDialogDrag(elements.settingsCard)"
-        "holdDialogs();"
+  ::  Every dialog moves by its header, or by its card where it has no
+  ::  header -- Settings, Help, the file dialog that Open and Save As
+  ::  share, the confirmation, and a consumer's own.  Each covers the
+  ::  thing it asks about, which is what the user may need to see.
+  ::
+  ::  A transform, not a layout change, so the card's height bound, its
+  ::  scrolling and the focus trap are untouched; pointer capture, as
+  ::  the resizers use; the header's controls stay clickable; and
+  ::  closing any of them returns it to the middle.
+  =/  runtime  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
+  =/  needles=(list [source=tape needle=tape])
+    :~  [runtime "function enableDialogDrag(card)"]
+        [runtime "card.querySelector?.('.pane-header') || card"]
+        [runtime "closest?.('button, a, input, select')"]
+        [runtime "handle.setPointerCapture?.(event.pointerId)"]
+        [runtime "card.style.transform = offset.x || offset.y"]
+        [runtime "function holdDialogs()"]
+        [runtime "function resetDialogDrag(root)"]
+        [runtime "function dialogCard(element)"]
+        ::  closing any dialog recentres it, in one place
+        [runtime "if (wasOpen) resetDialogDrag(element)"]
+        [runtime "enableDialogDrag(elements.helpCard)"]
+        [runtime "enableDialogDrag(elements.settingsCard)"]
+        ::  a consumer's dialog unless it opts out
+        [runtime "choices.drag !== false"]
+        [runtime "holdDialogs();"]
+        ::  Open, Save As and the confirmations
+        [documents "function enableDocumentDrags()"]
+        [documents "dialogCard(docElement('urui-file-dialog'))"]
+        [documents "dialogCard(docElement('urui-confirm'))"]
+        [documents "enableDocumentDrags();"]
     ==
   %-  zing
   %+  turn  needles
-  |=  needle=tape
+  |=  [source=tape needle=tape]
   (expect !>((has needle source)))
 ::
 ++  test-json-wire-contract

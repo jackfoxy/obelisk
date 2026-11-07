@@ -1204,6 +1204,7 @@
     const wasOpen = !element.hidden;
     element.hidden = true;
     syncModalInert();
+    if (wasOpen) resetDialogDrag(element);
     if (wasOpen && restoreFocus) {
       //  A dialog opened by its chord had no opener focused, so what
       //  held focus was the body.  Focusing that strands the keyboard
@@ -1234,8 +1235,12 @@
   const dialogDrags = new Map();
 
   function enableDialogDrag(card) {
-    const handle = card?.querySelector?.('.pane-header');
-    if (!handle || dialogDrags.has(card)) return;
+    if (!card || dialogDrags.has(card)) return;
+    //  The header where there is one.  A dialog without one -- the
+    //  confirmation is a message and two buttons -- is held by the
+    //  card itself, which works because the guard below never starts a
+    //  drag from a control.
+    const handle = card.querySelector?.('.pane-header') || card;
     const offset = {x: 0, y: 0};
     let origin = null;
 
@@ -1312,6 +1317,7 @@
       reset();
     });
     card.classList.add('is-draggable');
+    if (handle === card) card.classList.add('is-draggable-body');
     dialogDrags.set(card, {reset, hold: settle});
   }
 
@@ -1320,8 +1326,24 @@
     for (const drag of dialogDrags.values()) drag.hold();
   }
 
-  function resetDialogDrag(card) {
-    dialogDrags.get(card)?.reset();
+  //  Closing a dialog returns it to the middle.  Done here rather than
+  //  at each call site so every modal behaves the same, a consumer's
+  //  own included.
+  function resetDialogDrag(root) {
+    if (!root) return;
+    for (const [card, drag] of dialogDrags) {
+      if (card === root || root.contains?.(card)) drag.reset();
+    }
+  }
+
+  //  The draggable card inside a dialog element.
+  //
+  //  Its `.help-card` and nothing else: the element itself is the
+  //  backdrop, which covers the viewport, and transforming that would
+  //  drag the dimming with it.  A consumer whose dialog has no card
+  //  simply does not move, which is the safe way to be wrong.
+  function dialogCard(element) {
+    return element?.querySelector?.('.help-card') || null;
   }
 
   //  `runtime.dialogs.modal(element, {close, fallback})` puts an
@@ -1335,6 +1357,7 @@
       if (choices.close) choices.close();
       else control.close();
     }, () => choices.fallback?.());
+    if (choices.drag !== false) enableDialogDrag(dialogCard(element));
     control.open = (focus) => showModal(modal, focus);
     control.close = (restoreFocus = true) => hideModal(modal, restoreFocus);
     control.isOpen = () => modalIsOpen(modal);
@@ -1595,7 +1618,6 @@
     elements.helpToggle?.setAttribute('aria-expanded', String(open));
     if (!open) {
       hideModal(helpModal, restoreFocus);
-      resetDialogDrag(elements.helpCard);
       return;
     }
     showModal(helpModal);
@@ -1618,10 +1640,7 @@
     //  the card for the same reason as Help's
     if (open) {
       showModal(settingsModal, elements.settingsCard || elements.closeSettings);
-    } else {
-      hideModal(settingsModal, restoreFocus);
-      resetDialogDrag(elements.settingsCard);
-    }
+    } else hideModal(settingsModal, restoreFocus);
   }
 
 
@@ -4769,6 +4788,16 @@
     4, () => docElement('urui-confirm'), () => docConfirm?.finish(false)
   );
 
+  //  Open, Save As and the confirmations move like the other dialogs:
+  //  each covers the thing it is asking about -- a file list, a tree,
+  //  the row being deleted -- which is exactly what the user may need
+  //  to see while answering.  The file dialog has a header to hold;
+  //  the confirmation is held by its card.
+  function enableDocumentDrags() {
+    enableDialogDrag(dialogCard(docElement('urui-file-dialog')));
+    enableDialogDrag(dialogCard(docElement('urui-confirm')));
+  }
+
   function confirmMessage(kind, detail = {}) {
     switch (kind) {
       case 'discard': return `Discard unsaved changes in ${detail.label}?`;
@@ -5217,6 +5246,7 @@
     //  One command for every tree an app draws, so a refresh chord does
     //  not have to name them.
     registerShortcut('refresh-tree', () => docRefreshTrees());
+    enableDocumentDrags();
     docElement('urui-confirm-ok')?.addEventListener('click', () => {
       docConfirm?.finish(true);
     });

@@ -994,6 +994,24 @@
 
   .help-card.is-draggable > .pane-header button { cursor: pointer; }
 
+  /* A dialog with no header -- the confirmation is a message and two
+     buttons -- is held by the card itself. */
+  .help-card.is-draggable-body {
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .help-card.is-draggable-body button,
+  .help-card.is-draggable-body a,
+  .help-card.is-draggable-body input,
+  .help-card.is-draggable-body select {
+    cursor: auto;
+    user-select: auto;
+  }
+
+  .help-card.is-draggable-body button { cursor: pointer; }
+
   /* No transition on the transform: it follows the pointer. */
   .help-card.is-dragging { transition: none; }
 

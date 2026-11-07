@@ -2,13 +2,13 @@
   "files": {
     "desk/doc/ace-keys.md": "e760748253776de58f313a3747dc1863f271c9baf097c5eaf49ca09717e880d8",
     "desk/doc/key-policy.md": "00ff5925eaeb182b5c846c2c97993543a25d0dcb6fe0e151835e6f3d95e7c1bf",
-    "desk/doc/modal-keys.md": "74bf93ea8ca4d7bebd04a325e47a8c324faa03e58753322e07801fed3985ae61",
+    "desk/doc/modal-keys.md": "0c6db4cabc8b7ed96e433faf8aed929a5ad3addd428362cf1bbf8cde2713e526",
     "desk/lib/urui-ace.hoon": "cccc2a156342eb4beeb276169230baa80f9c681db917e16f2d97840682166ce0",
     "desk/lib/urui-config.hoon": "df23221758f1a70ad72f2c502c2c15869c10858bcfe5c2c06747602f029a5e17",
-    "desk/lib/urui-css.hoon": "dfe74462a54ca52b711ac4b42dc52cad4002dd6013137e2fbf1958b2f4c91e5c",
+    "desk/lib/urui-css.hoon": "051d35a15652349dd59f6427f3fac432745045c369123460f497fa23179a63e3",
     "desk/lib/urui-files.hoon": "3861f2cbf5757838af431e91a4a1504bd7e33711d4af2e0e811fffb3557e8ace",
     "desk/lib/urui-http.hoon": "cf0852088a7ebd97b53f7861a55a3fcf824fbe98a43b3816d20951b83b29c9e4",
-    "desk/lib/urui-js.hoon": "841105f0a055b1f729adb6f6dc180346011ac3f07308c41b35871dbbcd518cfb",
+    "desk/lib/urui-js.hoon": "881120b9d227b37a4d2fe1fa8656617932cd03c762d6481189286aa96e00f802",
     "desk/lib/urui-shell.hoon": "2491ffd2f4f367d32a91652a33eff56118aa3cf179c70234560c1d0adf1fcf22",
     "desk/sur/urui.hoon": "712c396ff8e96a8ecccc06aa9feb7e5e1d9f648a38daa2c4565bcf7f26f688d8",
     "desk/tests/lib/urui-ace.hoon": "5e51998d174f649354b0bb40e9ea45bddfb43a78319e622a4d922713dcae63db",
@@ -16,7 +16,7 @@
     "desk/tests/lib/urui-css.hoon": "4c68bde3235f5f7a1df3620b6f7bc5c54755b07a60942ad73823914bb3f3d5cc",
     "desk/tests/lib/urui-files.hoon": "66da5e8a297e02f2bd09dfc48df1b119fded5b2247b4bc2b5411518672ded6fd",
     "desk/tests/lib/urui-http.hoon": "1e0f03bf472402773ac3ca580ab787af724eae63230e71e84f0dc4ae54b5c4fb",
-    "desk/tests/lib/urui-js.hoon": "5a897774884461c243e07084341a5574403d022072d77ff1f21c99b000fa0965",
+    "desk/tests/lib/urui-js.hoon": "791a4ef10b2ef204f61403825331142f83b8edc36537ecf6e34e9e75f295b4b3",
     "desk/tests/lib/urui-shell.hoon": "f316bfd8c9a45a2c161d9639dbf3718399cba94b7f7cfcb6535c5f048ba0f66a",
     "desk/web/ace/README.md": "cfbc3925f83237a2f0455194efe2090c667601dd11c42eb7fe911c8b61214af6",
     "desk/web/ace/ace.js": "d084df9052068e8b2d67ec692628005720370b43c26be7a81d86d4e92ce17297",
@@ -40,5 +40,5 @@
     "tests/browser/shortcut-conflicts.test.js": "9f90f384a5bd4dcb94ee1512592ac81ea648255815bfe5ae709f32ca08155178",
     "tests/browser/vim-chords.json": "c652ae579296039bba73ea4702fb0ea3a4895ed38de7edfcc92b6d4a4fb5ba3a"
   },
-  "revision": "3c85489513d9f0c5bf3ced2c4889e63ce01d1153"
+  "revision": "778eba8d5ad2d510efa723c8534b8cb2c2f0ee64"
 }

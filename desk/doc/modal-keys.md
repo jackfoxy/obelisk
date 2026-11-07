@@ -48,13 +48,22 @@ document body.
 
 ## Moving a dialog
 
-Settings and Help can be dragged by their header, so a dialog can be
-moved off whatever it is covering. The buttons in the header are not
-handles and keep working; double-clicking the header returns the dialog
-to the middle, and so does closing it — a remembered position can end up
-off-screen after a window resize, and a dialog that opens where it
-cannot be seen is worse than one that always opens centred. A dialog
-cannot be dragged out of reach: it is held against the viewport as it
+**Every dialog can be dragged** — Settings, Help, the file dialog that
+Open and Save As share, the confirmations, and a consumer's own. Each of
+them covers the thing it is about: a file list, a tree, the row being
+deleted, the editor behind it. That is exactly what a user may need to
+see while answering.
+
+A dialog with a header is dragged by it. One without — the confirmation
+is a message and two buttons — is dragged by its card. Either way the
+controls inside are never handles, so a click on Close, Cancel or OK is
+never swallowed by the drag.
+
+Double-clicking the handle returns the dialog to the middle, and so does
+closing it: a remembered position can end up off-screen after a window
+resize, and a dialog that opens where it cannot be seen is worse than one
+that always opens centred, so no position is persisted. A dialog cannot
+be dragged out of reach either — it is held against the viewport as it
 moves, and again if the window is resized.
 
 The card moves by a transform rather than by a change of layout, so
@@ -75,6 +84,6 @@ below the file and confirm dialogs. `close` runs on Escape, `fallback()`
 names what takes focus when what held it is gone, and `command` names
 the chord that owns it, if it has one.
 
-Dragging is not applied to a consumer's dialog automatically: Settings
-and Help are urui's own, and a consumer's dialog may have no header to
-take hold of.
+A consumer's dialog is draggable too, by its header if it has one and by
+its card otherwise. Pass `drag: false` for one that should not move — a
+dialog pinned to something behind it, say.
