@@ -594,8 +594,15 @@
         "\{help: 'help', settings: 'settings'}"
         "`$\{store}-$\{action}`"
         "[data-chord="
-        "setAttribute('aria-keyshortcuts', chord.binding)"
-        "Object.hasOwn(tips, control.id)"
+        "setAttribute('aria-keyshortcuts', bindings.join(' '))"
+        ::  a tip sets the wording; urui still supplies the key
+        "!control.title.includes(bindings[0])"
+        ::  one control may carry several bindings; the badge shows the
+        ::  first and the tooltip lists them
+        "bindings.join(' or ')"
+        "badge.textContent = bindings[0]"
+        ::  the visible badge is the header toolbar's alone
+        "control.closest?.('.app-header')"
         "applyKeyBadges();"
     ==
   %-  zing

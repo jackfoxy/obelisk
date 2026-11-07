@@ -172,8 +172,16 @@ function createDom() {
       });
     }
     closest(selector) {
-      if (selector === '.node, .edge'
-        && (this.classes.has('node') || this.classes.has('edge'))) return this;
+      //  Class and id selectors, comma-separated, which is as much as
+      //  the application asks of it.  `.node, .edge` was the only case
+      //  once; the key-badge pass asks for `.app-header` too.
+      const matched = selector.split(',').some((name) => {
+        const one = name.trim();
+        if (one.startsWith('.')) return this.classes.has(one.slice(1));
+        if (one.startsWith('#')) return this.id === one.slice(1);
+        return one.toLowerCase() === String(this.localName).toLowerCase();
+      });
+      if (matched) return this;
       return this.parent?.closest?.(selector);
     }
     matches(selector) {

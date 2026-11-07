@@ -166,7 +166,9 @@
       layout=%rows
       collapse=&
       files=`files
-      tips=~[['settings' 'Settings (F2)']]
+      ::  no tip for Settings: urui titles it and appends the
+      ::  binding from the chord table
+      tips=~
   ==
 ::
 ++  slots
