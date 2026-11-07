@@ -967,6 +967,23 @@
      container; it is not a control and shows no ring. */
   .help-card:focus { outline: none; }
 
+  /* Settings and Help can be dragged by their header, so a dialog can
+     be moved off whatever it is covering.  `touch-action: none` hands
+     the gesture to the pointer handler rather than to scrolling, and
+     the cursor is the affordance.  Double-click the header to recentre.
+     The buttons in the header keep the default cursor, because they are
+     not handles. */
+  .help-card.is-draggable > .pane-header {
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .help-card.is-draggable > .pane-header button { cursor: pointer; }
+
+  /* No transition on the transform: it follows the pointer. */
+  .help-card.is-dragging { transition: none; }
+
   .help-close {
     height: 2rem;
     padding: 0;

@@ -1217,6 +1217,113 @@
     modal.returnFocus = null;
   }
 
+  //  ---- dragging a dialog ---------------------------------------------
+  //
+  //  A dialog is centred by its backdrop's grid, so it is moved with a
+  //  transform rather than by changing its layout: nothing else about
+  //  the card -- its height bound, its scrolling, the focus trap --
+  //  has to know.
+  //
+  //  The header is the handle, minus its buttons, so dragging never
+  //  swallows a click on Close.  Pointer capture follows the pointer
+  //  outside the handle, as the explorer and splitter resizers do.
+  //  Double-clicking the header returns the dialog to the middle, and
+  //  so does closing it: a remembered position can end up off-screen
+  //  after a window resize, and a dialog that opens where it cannot be
+  //  seen is worse than one that always opens centred.
+  const dialogDrags = new Map();
+
+  function enableDialogDrag(card) {
+    const handle = card?.querySelector?.('.pane-header');
+    if (!handle || dialogDrags.has(card)) return;
+    const offset = {x: 0, y: 0};
+    let origin = null;
+
+    const apply = () => {
+      card.style.transform = offset.x || offset.y
+        ? `translate(${offset.x}px, ${offset.y}px)`
+        : '';
+    };
+
+    //  Keep the card reachable: an axis larger than the viewport is
+    //  only held at its leading edge, or the two clamps would fight.
+    //
+    //  The measurement has to follow the transform it is correcting --
+    //  reading the rect first clamps against where the card *was*, so
+    //  it trails the pointer by one move and a large jump escapes
+    //  entirely.
+    const hold = () => {
+      const margin = 8;
+      const rect = card.getBoundingClientRect();
+      const room = {x: window.innerWidth, y: window.innerHeight};
+      if (rect.width + margin * 2 <= room.x) {
+        if (rect.left < margin) offset.x += margin - rect.left;
+        else if (rect.right > room.x - margin) {
+          offset.x += room.x - margin - rect.right;
+        }
+      } else if (rect.left > margin) offset.x += margin - rect.left;
+      if (rect.height + margin * 2 <= room.y) {
+        if (rect.top < margin) offset.y += margin - rect.top;
+        else if (rect.bottom > room.y - margin) {
+          offset.y += room.y - margin - rect.bottom;
+        }
+      } else if (rect.top > margin) offset.y += margin - rect.top;
+    };
+
+    const reset = () => {
+      offset.x = 0;
+      offset.y = 0;
+      apply();
+    };
+
+    handle.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      //  Close, and any other control a consumer puts in the header,
+      //  stays clickable.
+      if (event.target?.closest?.('button, a, input, select')) return;
+      origin = {x: event.clientX - offset.x, y: event.clientY - offset.y};
+      handle.setPointerCapture?.(event.pointerId);
+      card.classList.add('is-dragging');
+      //  so the drag does not take focus off the card, which is the
+      //  dialog's scroll container
+      event.preventDefault();
+    });
+    const settle = () => {
+      apply();
+      hold();
+      apply();
+    };
+    handle.addEventListener('pointermove', (event) => {
+      if (!origin) return;
+      offset.x = event.clientX - origin.x;
+      offset.y = event.clientY - origin.y;
+      settle();
+    });
+    const release = (event) => {
+      if (!origin) return;
+      origin = null;
+      card.classList.remove('is-dragging');
+      handle.releasePointerCapture?.(event.pointerId);
+    };
+    handle.addEventListener('pointerup', release);
+    handle.addEventListener('pointercancel', release);
+    handle.addEventListener('dblclick', (event) => {
+      if (event.target?.closest?.('button, a, input, select')) return;
+      reset();
+    });
+    card.classList.add('is-draggable');
+    dialogDrags.set(card, {reset, hold: settle});
+  }
+
+  //  A window resize can leave a moved dialog off-screen.
+  function holdDialogs() {
+    for (const drag of dialogDrags.values()) drag.hold();
+  }
+
+  function resetDialogDrag(card) {
+    dialogDrags.get(card)?.reset();
+  }
+
   //  `runtime.dialogs.modal(element, {close, fallback})` puts an
   //  application's own dialog on this controller, ranked above settings
   //  and below the file and confirm dialogs.  `close` runs on Escape
@@ -1488,6 +1595,7 @@
     elements.helpToggle?.setAttribute('aria-expanded', String(open));
     if (!open) {
       hideModal(helpModal, restoreFocus);
+      resetDialogDrag(elements.helpCard);
       return;
     }
     showModal(helpModal);
@@ -1510,8 +1618,10 @@
     //  the card for the same reason as Help's
     if (open) {
       showModal(settingsModal, elements.settingsCard || elements.closeSettings);
+    } else {
+      hideModal(settingsModal, restoreFocus);
+      resetDialogDrag(elements.settingsCard);
     }
-    else hideModal(settingsModal, restoreFocus);
   }
 
 
@@ -2797,6 +2907,8 @@
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
     applyTips();
     applyKeyBadges();
+    enableDialogDrag(elements.helpCard);
+    enableDialogDrag(elements.settingsCard);
     wireFullscreen();
     elements.contextOpen?.addEventListener('click', () => {
       const {kind, path} = contextTarget;
@@ -2972,6 +3084,7 @@
     }, true);
     window.addEventListener('beforeunload', saveSession);
     window.addEventListener('resize', () => {
+      holdDialogs();
       for (const menu of menus) menu.close();
       options.onResize?.();
       refreshEditors();

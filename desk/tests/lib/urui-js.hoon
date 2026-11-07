@@ -536,6 +536,31 @@
   |=  [source=tape needle=tape]
   (expect !>((has needle source)))
 ::
+++  test-dialog-drag-contract
+  ::  Settings and Help move by their header.  A transform, not a
+  ::  layout change, so the card's height bound, its scrolling and the
+  ::  focus trap are untouched; pointer capture, as the resizers use;
+  ::  and the header's buttons stay clickable.
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "function enableDialogDrag(card)"
+        "card?.querySelector?.('.pane-header')"
+        "closest?.('button, a, input, select')"
+        "handle.setPointerCapture?.(event.pointerId)"
+        "card.style.transform = offset.x || offset.y"
+        "function holdDialogs()"
+        "function resetDialogDrag(card)"
+        "enableDialogDrag(elements.helpCard)"
+        "enableDialogDrag(elements.settingsCard)"
+        "resetDialogDrag(elements.helpCard)"
+        "resetDialogDrag(elements.settingsCard)"
+        "holdDialogs();"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
+::
 ++  test-json-wire-contract
   ::  One POST and one envelope decode for every consumer route, with
   ::  the error carrying what the toast and the retry paths read.
