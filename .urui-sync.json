@@ -1,5 +1,8 @@
 {
   "files": {
+    "desk/doc/ace-keys.md": "e760748253776de58f313a3747dc1863f271c9baf097c5eaf49ca09717e880d8",
+    "desk/doc/key-policy.md": "00ff5925eaeb182b5c846c2c97993543a25d0dcb6fe0e151835e6f3d95e7c1bf",
+    "desk/doc/modal-keys.md": "f0c5a7da75c531f228c52cb75435c4feffea27a6b4ce64deaf4a5f93dce81890",
     "desk/lib/urui-ace.hoon": "cccc2a156342eb4beeb276169230baa80f9c681db917e16f2d97840682166ce0",
     "desk/lib/urui-config.hoon": "df23221758f1a70ad72f2c502c2c15869c10858bcfe5c2c06747602f029a5e17",
     "desk/lib/urui-css.hoon": "b44508fbfa3a28ec9a7225ee8c15eec5dc5f0c97657cd0755d9c19ebde38a607",
@@ -37,5 +40,5 @@
     "tests/browser/shortcut-conflicts.test.js": "9f90f384a5bd4dcb94ee1512592ac81ea648255815bfe5ae709f32ca08155178",
     "tests/browser/vim-chords.json": "c652ae579296039bba73ea4702fb0ea3a4895ed38de7edfcc92b6d4a4fb5ba3a"
   },
-  "revision": "5c2aa9295d0b5cdaed8de051f162d56d355e2927"
+  "revision": "5c2aa9295d0b5cdaed8de051f162d56d355e2927-dirty"
 }
