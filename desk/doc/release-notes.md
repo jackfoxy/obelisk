@@ -1,5 +1,8 @@
 # Releases
 
+## v0.9.4-beta
+* standardize UI on urui v2.0
+
 ## v0.9.3-beta
 * Optional Vim key bindings
 * Alternate screen formats
