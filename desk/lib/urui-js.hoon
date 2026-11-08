@@ -216,6 +216,8 @@
       document.querySelectorAll?.('input[name="keybindings"]') ?? [],
     helpToggle: document.querySelector('#help'),
     helpPanel: document.querySelector('#help-panel'),
+    helpCard: document.querySelector('#editor-help-card'),
+    settingsCard: document.querySelector('#settings-card'),
     closeHelp: document.querySelector('#close-help'),
     contextMenu: document.querySelector('#file-context-menu'),
     contextOpen: document.querySelector('#file-context-open'),
@@ -968,11 +970,12 @@
       'aria-orientation',
       layout === 'rows' ? 'horizontal' : 'vertical'
     );
+    //  A radiogroup holds exactly one tabindex=0, so Tab reaches the
+    //  group once and the arrows move within it.
     for (const choice of elements.layoutChoices || []) {
-      choice.setAttribute(
-        'aria-pressed',
-        String(choice.dataset?.layout === layout)
-      );
+      const chosen = choice.dataset?.layout === layout;
+      choice.setAttribute('aria-checked', String(chosen));
+      choice.tabIndex = chosen ? 0 : -1;
     }
     applyResultLayout();
     if (persist) changed();
@@ -1102,8 +1105,12 @@
   const modals = [];
   const modalInert = new Set();
 
-  function defineModal(rank, element, close, fallback) {
-    const modal = {rank, element, close, fallback, returnFocus: null};
+  //  `command` names the chord that owns this dialog, so pressing that
+  //  chord again closes it rather than being swallowed.  Without it a
+  //  modal has no owning chord and every bound chord is swallowed, as
+  //  before.
+  function defineModal(rank, element, close, fallback, command) {
+    const modal = {rank, element, close, fallback, command, returnFocus: null};
     modals.push(modal);
     modals.sort((left, right) => right.rank - left.rank);
     return modal;
@@ -1124,8 +1131,12 @@
       for (const child of Array.from(node?.children || [])) {
         if (child.hidden) continue;
         const name = String(child.localName || '').toLowerCase();
+        //  `tabindex=-1` is reachable only by script, so it cannot be
+        //  the wrap point: a roving radiogroup keeps all but one of
+        //  its radios out of the tab order, and counting those let
+        //  focus walk straight out of the dialog.
         if (['button', 'input', 'select', 'textarea'].includes(name)
-          && !child.disabled) {
+          && !child.disabled && (child.tabIndex ?? 0) >= 0) {
           found.push(child);
         }
         walk(child);
@@ -1153,14 +1164,15 @@
   }
 
   //  Everything beside the top modal goes inert; nodes the page had
-  //  already made inert are left alone.
+  //  already made inert are left alone, and so is the wrapper of a
+  //  consumer dialog (`div.app-dialogs`).
   function syncModalInert() {
     for (const node of modalInert) node.inert = false;
     modalInert.clear();
     const top = topModal()?.element();
     if (!top) return;
     for (const node of Array.from(document.body?.children || [])) {
-      if (node === top || node.inert
+      if (node === top || node.contains?.(top) || node.inert
         || node.getAttribute?.('aria-live')) {
         continue;
       }
@@ -1192,10 +1204,146 @@
     const wasOpen = !element.hidden;
     element.hidden = true;
     syncModalInert();
+    if (wasOpen) resetDialogDrag(element);
     if (wasOpen && restoreFocus) {
-      (modal.returnFocus ?? modal.fallback?.())?.focus?.();
+      //  A dialog opened by its chord had no opener focused, so what
+      //  held focus was the body.  Focusing that strands the keyboard
+      //  at the top of the document; the fallback is the control the
+      //  dialog belongs to, which is where the user would look.
+      const held = modal.returnFocus;
+      const opener = held && held !== document.body
+        ? held : modal.fallback?.();
+      opener?.focus?.();
     }
     modal.returnFocus = null;
+  }
+
+  //  ---- dragging a dialog ---------------------------------------------
+  //
+  //  A dialog is centred by its backdrop's grid, so it is moved with a
+  //  transform rather than by changing its layout: nothing else about
+  //  the card -- its height bound, its scrolling, the focus trap --
+  //  has to know.
+  //
+  //  The header is the handle, minus its buttons, so dragging never
+  //  swallows a click on Close.  Pointer capture follows the pointer
+  //  outside the handle, as the explorer and splitter resizers do.
+  //  Double-clicking the header returns the dialog to the middle, and
+  //  so does closing it: a remembered position can end up off-screen
+  //  after a window resize, and a dialog that opens where it cannot be
+  //  seen is worse than one that always opens centred.
+  const dialogDrags = new Map();
+
+  function enableDialogDrag(card) {
+    if (!card || dialogDrags.has(card)) return;
+    //  The header where there is one.  A dialog without one -- the
+    //  confirmation is a message and two buttons -- is held by the
+    //  card itself, which works because the guard below never starts a
+    //  drag from a control.
+    const handle = card.querySelector?.('.pane-header') || card;
+    const offset = {x: 0, y: 0};
+    let origin = null;
+
+    const apply = () => {
+      card.style.transform = offset.x || offset.y
+        ? `translate(${offset.x}px, ${offset.y}px)`
+        : '';
+    };
+
+    //  Keep the card reachable: an axis larger than the viewport is
+    //  only held at its leading edge, or the two clamps would fight.
+    //
+    //  The measurement has to follow the transform it is correcting --
+    //  reading the rect first clamps against where the card *was*, so
+    //  it trails the pointer by one move and a large jump escapes
+    //  entirely.
+    const hold = () => {
+      const margin = 8;
+      const rect = card.getBoundingClientRect();
+      const room = {x: window.innerWidth, y: window.innerHeight};
+      if (rect.width + margin * 2 <= room.x) {
+        if (rect.left < margin) offset.x += margin - rect.left;
+        else if (rect.right > room.x - margin) {
+          offset.x += room.x - margin - rect.right;
+        }
+      } else if (rect.left > margin) offset.x += margin - rect.left;
+      if (rect.height + margin * 2 <= room.y) {
+        if (rect.top < margin) offset.y += margin - rect.top;
+        else if (rect.bottom > room.y - margin) {
+          offset.y += room.y - margin - rect.bottom;
+        }
+      } else if (rect.top > margin) offset.y += margin - rect.top;
+    };
+
+    const reset = () => {
+      offset.x = 0;
+      offset.y = 0;
+      apply();
+    };
+
+    handle.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      //  Close, and any other control a consumer puts in the header,
+      //  stays clickable.
+      if (event.target?.closest?.('button, a, input, select')) return;
+      origin = {x: event.clientX - offset.x, y: event.clientY - offset.y};
+      handle.setPointerCapture?.(event.pointerId);
+      card.classList.add('is-dragging');
+      //  so the drag does not take focus off the card, which is the
+      //  dialog's scroll container
+      event.preventDefault();
+    });
+    const settle = () => {
+      apply();
+      hold();
+      apply();
+    };
+    handle.addEventListener('pointermove', (event) => {
+      if (!origin) return;
+      offset.x = event.clientX - origin.x;
+      offset.y = event.clientY - origin.y;
+      settle();
+    });
+    const release = (event) => {
+      if (!origin) return;
+      origin = null;
+      card.classList.remove('is-dragging');
+      handle.releasePointerCapture?.(event.pointerId);
+    };
+    handle.addEventListener('pointerup', release);
+    handle.addEventListener('pointercancel', release);
+    handle.addEventListener('dblclick', (event) => {
+      if (event.target?.closest?.('button, a, input, select')) return;
+      reset();
+    });
+    card.classList.add('is-draggable');
+    if (handle === card) card.classList.add('is-draggable-body');
+    dialogDrags.set(card, {reset, hold: settle});
+  }
+
+  //  A window resize can leave a moved dialog off-screen.
+  function holdDialogs() {
+    for (const drag of dialogDrags.values()) drag.hold();
+  }
+
+  //  Closing a dialog returns it to the middle.  Done here rather than
+  //  at each call site so every modal behaves the same, a consumer's
+  //  own included.
+  function resetDialogDrag(root) {
+    if (!root) return;
+    for (const [card, drag] of dialogDrags) {
+      if (card === root || root.contains?.(card)) drag.reset();
+    }
+  }
+
+  //  The draggable card inside a dialog element.
+  //
+  //  Its `.help-card` and nothing else: the element itself is the
+  //  backdrop, which covers the viewport, and transforming that would
+  //  drag the dimming with it.  A consumer whose dialog has no card
+  //  simply does not move, which is the safe way to be wrong.
+  function dialogCard(element) {
+    return element?.querySelector?.('.help-card') || null;
   }
 
   //  `runtime.dialogs.modal(element, {close, fallback})` puts an
@@ -1209,10 +1357,58 @@
       if (choices.close) choices.close();
       else control.close();
     }, () => choices.fallback?.());
+    if (choices.drag !== false) enableDialogDrag(dialogCard(element));
     control.open = (focus) => showModal(modal, focus);
     control.close = (restoreFocus = true) => hideModal(modal, restoreFocus);
     control.isOpen = () => modalIsOpen(modal);
     return control;
+  }
+
+  // ---- the json wire ------------------------------------------------
+  //
+  // One POST, one envelope.  urui-files answers
+  // `{ok: false, error: {code, message, retryable, details}}`, and a
+  // consumer's own routes answer the same shape, so the decode and the
+  // error it raises belong here rather than in each app.
+  //
+  // A failure throws an Error carrying `status`, `code`, `retryable`
+  // and `details`, which is what the toast and the retry paths read.
+  // An app whose route reports failure differently passes `failed`.
+  function requestError(body, status) {
+    const error = body?.error || {};
+    const details = Array.isArray(error.details) ? error.details : [];
+    const message = error.message
+      ? (details.length ? `${error.message}\n${details.join('\n')}`
+        : error.message)
+      : `Request failed (${status}).`;
+    const raised = new Error(message);
+    raised.status = status;
+    raised.code = error.code ?? null;
+    raised.retryable = Boolean(error.retryable);
+    raised.details = details;
+    return raised;
+  }
+
+  async function request(url, body, options = {}) {
+    const response = await fetch(url, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {'content-type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    let parsed = null;
+    try {
+      parsed = await response.json();
+    } catch (_) {
+      throw new Error(`Server returned invalid JSON (${response.status}).`);
+    }
+    const failed = options.failed
+      ? options.failed(parsed)
+      : parsed?.ok === false;
+    if (!response.ok || failed) {
+      throw requestError(parsed, response.status);
+    }
+    return parsed;
   }
 
   // ---- tooltips -----------------------------------------------------
@@ -1233,6 +1429,72 @@
     for (const [key, text] of Object.entries(tips)) {
       const node = document.getElementById?.(key);
       if (node) node.title = String(text);
+    }
+  }
+
+  //  The control a chord acts on, by convention rather than by
+  //  configuration: urui's own two dialogs, a store action at
+  //  `{store}-{action}`, and anything a consumer marks with
+  //  `data-chord="<command>"` for a control only it knows about.
+  function chordControl(command) {
+    const known = {help: 'help', settings: 'settings'};
+    if (Object.hasOwn(known, command)) {
+      return document.getElementById?.(known[command]) || null;
+    }
+    const [action, store] = String(command).split(':');
+    if (store) {
+      return document.getElementById?.(`${store}-${action}`) || null;
+    }
+    //  `globalThis.CSS` rather than `CSS`: an undeclared identifier
+    //  throws even behind optional chaining, and the offline doubles
+    //  declare no CSS object.
+    const escape = globalThis.CSS?.escape;
+    const selector = escape ? escape(command) : command;
+    return document.querySelector?.(`[data-chord="${selector}"]`) || null;
+  }
+
+  //  A declared chord puts its binding on its control: in
+  //  `aria-keyshortcuts`, in the tooltip, and as a <kbd> badge where
+  //  the control has a text label to sit beside.  Consumers used to
+  //  write all three by hand, which is how a rebind could leave a
+  //  stale badge behind.
+  function applyKeyBadges() {
+    //  By control, not by chord: a command may have more than one
+    //  binding -- an alias for an engine that keeps the first -- and
+    //  appending each in turn produced `Reset view (Ctrl-1)
+    //  (Ctrl-Shift-0)` and an aria-keyshortcuts holding only the last.
+    const byControl = new Map();
+    for (const chord of config.shortcuts || []) {
+      const control = chordControl(chord.command);
+      if (!control) continue;
+      if (!byControl.has(control)) byControl.set(control, []);
+      byControl.get(control).push(chord.binding);
+    }
+    for (const [control, bindings] of byControl) {
+      //  space-separated is what aria-keyshortcuts means by several
+      control.setAttribute('aria-keyshortcuts', bindings.join(' '));
+      //  A `tips` entry sets the wording and urui still supplies the
+      //  key: the consumer names the action, the chord table names the
+      //  binding, and neither has to repeat the other.  Suppressing the
+      //  suffix for a tipped control only invited the binding to be
+      //  written out by hand, which is what goes stale.
+      if (control.title && !control.title.includes(bindings[0])) {
+        control.title = `${control.title} (${bindings.join(' or ')})`;
+      }
+      //  The visible badge is for the header toolbar only.  A pane's
+      //  file and preview controls sit in tight rows, several to a
+      //  line, and a <kbd> after the label widens them unevenly --
+      //  which is a worse trade than leaving the binding to the
+      //  tooltip and aria-keyshortcuts set above, as both are on every
+      //  control either way.
+      if (!control.closest?.('.app-header')) continue;
+      if (control.querySelector?.('kbd')) continue;
+      if (!control.querySelector?.('span')) continue;
+      //  the first binding only: the badge is a reminder, and a
+      //  toolbar button has room for one key, not a list
+      const badge = document.createElement('kbd');
+      badge.textContent = bindings[0];
+      control.append(badge);
     }
   }
 
@@ -1343,10 +1605,10 @@
   // Both are modals.  `options.onHelpOpen` runs before help takes focus.
   const helpModal = defineModal(1, () => elements.helpPanel, () => {
     setHelpOpen(false, true);
-  }, () => elements.helpToggle);
+  }, () => elements.helpToggle, 'help');
   const settingsModal = defineModal(2, () => elements.settingsModal, () => {
     setSettingsOpen(false, true);
-  }, () => elements.settingsToggle);
+  }, () => elements.settingsToggle, 'settings');
 
   function helpIsOpen() {
     return modalIsOpen(helpModal);
@@ -1362,7 +1624,10 @@
     setHelpVariant(docsAvailable === true);
     refreshHelpVariant();
     options.onHelpOpen?.();
-    elements.closeHelp.focus();
+    //  The card, not the close button: it is the scroll container, so
+    //  PageUp, PageDown, Home and End page the help.  Tab from here
+    //  reaches the close button, the first control inside.
+    (elements.helpCard || elements.closeHelp)?.focus?.();
   }
 
   function settingsIsOpen() {
@@ -1372,8 +1637,10 @@
   function setSettingsOpen(open, restoreFocus = false) {
     if (!elements.settingsModal) return;
     elements.settingsToggle?.setAttribute('aria-expanded', String(open));
-    if (open) showModal(settingsModal, elements.closeSettings);
-    else hideModal(settingsModal, restoreFocus);
+    //  the card for the same reason as Help's
+    if (open) {
+      showModal(settingsModal, elements.settingsCard || elements.closeSettings);
+    } else hideModal(settingsModal, restoreFocus);
   }
 
 
@@ -1387,6 +1654,7 @@
   //
   //   create(payload)     `{label, data}` for a new reference, or nothing
   //   render(panel, ref)  fill the reference panel from `ref.data`
+  //   dispose(ref)        release resources when a reference closes
   //   validate(data)      repaired data from a saved record, or undefined
   //   persist             false keeps the kind out of the session record
   let draggedTab;
@@ -1846,6 +2114,8 @@
   }
 
   function closeRefTab(id) {
+    const tab = refTabById(id);
+    if (tab) refHooks(tab.kind)?.dispose?.(tab);
     if (closeExplorerTab(id, 'ref')) changed();
   }
 
@@ -2655,6 +2925,9 @@
   function wire() {
     document.addEventListener('keydown', dispatchShortcut, {capture: true});
     applyTips();
+    applyKeyBadges();
+    enableDialogDrag(elements.helpCard);
+    enableDialogDrag(elements.settingsCard);
     wireFullscreen();
     elements.contextOpen?.addEventListener('click', () => {
       const {kind, path} = contextTarget;
@@ -2729,15 +3002,46 @@
     elements.settingsToggle?.addEventListener('click', () => {
       setSettingsOpen(true);
     });
+    //  urui draws both dialogs, so it registers both commands: an app
+    //  gets F1 and F2 by declaring two chords and no javascript.  A
+    //  consumer that registers either name itself still wins, because
+    //  its boot runs after this.
+    //
+    //  Both toggle: +dispatchShortcut runs a bound chord behind an
+    //  open modal only when it is the chord that owns that modal, so
+    //  pressing F2 again closes Settings while every other chord stays
+    //  swallowed.  Escape closes either way.
+    registerShortcut('settings', () => {
+      setSettingsOpen(!settingsIsOpen(), settingsIsOpen());
+    });
+    registerShortcut('help', () => {
+      setHelpOpen(!helpIsOpen(), helpIsOpen());
+    });
     elements.closeSettings?.addEventListener('click', () => {
       setSettingsOpen(false, true);
     });
     elements.settingsModal?.addEventListener('click', (event) => {
       if (event.target === elements.settingsModal) setSettingsOpen(false, true);
     });
-    for (const choice of elements.layoutChoices || []) {
+    const layoutChoices = Array.from(elements.layoutChoices || []);
+    for (const choice of layoutChoices) {
       choice.addEventListener('click', () => {
         setLayout(choice.dataset?.layout);
+      });
+      //  Arrows move *and* select, which is a radiogroup's own
+      //  behaviour: there is nothing to confirm afterwards.  Both axes,
+      //  because the choices read as a row but mean a layout.
+      choice.addEventListener('keydown', (event) => {
+        const index = layoutChoices.indexOf(choice);
+        const next = stepIndex(
+          event.key, index, layoutChoices.length, 'ArrowLeft', 'ArrowRight'
+        ) ?? stepIndex(
+          event.key, index, layoutChoices.length, 'ArrowUp', 'ArrowDown'
+        );
+        if (next === undefined) return;
+        event.preventDefault();
+        setLayout(layoutChoices[next].dataset?.layout);
+        layoutChoices[next].focus();
       });
     }
     for (const choice of elements.keyChoices || []) {
@@ -2774,11 +3078,21 @@
     const droppableRef = () => {
       return Boolean(draggedTab?.ref) && Boolean(refHooks(draggedTab.ref.kind));
     };
+    // Iframes otherwise consume native drag events before the pane sees them.
+    const clearRefDrag = () => {
+      elements.explorerPane?.classList.remove('is-ref-drop-target');
+    };
+    document.addEventListener('dragstart', () => {
+      elements.explorerPane?.classList.toggle('is-ref-drop-target',
+        droppableRef());
+    });
+    document.addEventListener('dragend', clearRefDrag);
+    document.addEventListener('drop', clearRefDrag, true);
     elements.explorerPane?.addEventListener('dragover', (event) => {
       if (!droppableRef()) return;
       event.preventDefault();
       if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
-    });
+    }, true);
     elements.explorerPane?.addEventListener('drop', (event) => {
       if (!droppableRef()) return;
       event.preventDefault();
@@ -2786,9 +3100,10 @@
       const payload = draggedTab.ref;
       draggedTab = undefined;
       openAppRef(payload);
-    });
+    }, true);
     window.addEventListener('beforeunload', saveSession);
     window.addEventListener('resize', () => {
+      holdDialogs();
       for (const menu of menus) menu.close();
       options.onResize?.();
       refreshEditors();
@@ -2806,6 +3121,7 @@
     elements,
     clamp,
     refreshEditors,
+    request,
     shortcuts: {register: registerShortcut, dispatch: dispatchShortcut},
     panes: {
       list: () => panes,
@@ -2970,10 +3286,19 @@
         modal.close();
       } else if (event.key === 'Tab') {
         if (modalTrapTab(event, modal.element())) consume();
-      } else if ((config.shortcuts || []).some((shortcut) => {
-        return shortcutMatches(shortcut, event);
-      })) {
-        consume();
+      } else {
+        const matched = (config.shortcuts || []).find((shortcut) => {
+          return shortcutMatches(shortcut, event);
+        });
+        //  The chord that opened this dialog closes it; every other
+        //  bound chord is swallowed, so a modal is never a way to
+        //  reach the application behind it.
+        if (matched && matched.command === modal.command) {
+          consume();
+          shortcutCommands.get(matched.command)?.(event);
+        } else if (matched) {
+          consume();
+        }
       }
       return;
     }
@@ -3028,6 +3353,10 @@
   //   fields.validate(saved, tab, ids)  app fields restored from a record
   //   activate(tab, choices)            domain reaction to a switch
   //   afterActivate(tab, choices)       the same, after render and save
+  //   label(tab)                        optional exact tab label
+  //   saveDialog(tab)                   extra options for the save dialog
+  //   beforeSave(tab, {path})           false cancels; {path, base} redirects
+  //   deleteMessage(path)               replaces the delete confirmation
   //   loaded(tab), saved(tab)           keep app data in step
   //
   // A tab whose `load` answered `readonly` is read-only like a tab from
@@ -3112,6 +3441,10 @@
   //  each is unique or runs out of directories.
   function docLabels(name) {
     const tabs = docState.get(name).tabs;
+    const custom = docHooks(name).label;
+    if (custom) {
+      return new Map(tabs.map((tab) => [tab.id, String(custom(tab))]));
+    }
     const labels = new Map();
     const depth = new Map(tabs.map((tab) => [tab.id, 0]));
     const labelOf = (tab) => {
@@ -4140,7 +4473,9 @@
     if (docPaneReadOnly(name)) return undefined;
     const tab = docCapture(name);
     if (!tab) return undefined;
-    if (!tab.path && !tab.text) {
+    //  a store that redirects its own saves owns the empty-draft case:
+    //  creating an empty file is a legitimate save there
+    if (!tab.path && !tab.text && !docHooks(name).beforeSave) {
       notify(`Nothing to save in ${tab.label}.`);
       return undefined;
     }
@@ -4148,11 +4483,23 @@
     if (tab.path && !docTabCanSave(name, tab)) return undefined;
     let path = tab.path;
     if (choices.as || !path) {
-      path = await docFileDialog({mode: 'save', store: name, tab});
+      path = await docFileDialog({
+        ...docHooks(name).saveDialog?.(tab), mode: 'save', store: name, tab
+      });
       if (!path) return undefined;
     }
+    let prepared;
+    try {
+      prepared = await docHooks(name).beforeSave?.(tab, {path});
+    } catch (cause) {
+      docFailed(name, 'save', path, cause);
+      return undefined;
+    }
+    if (prepared === false || !docGet(name, tab.id)) return undefined;
+    if (prepared?.path) path = prepared.path;
     const text = tab.text;
-    let base = samePath(path, tab.path) ? tab.hash : null;
+    let base = prepared && Object.hasOwn(prepared, 'base')
+      ? prepared.base : samePath(path, tab.path) ? tab.hash : null;
     let overwrite = false;
     let saved;
     docEvent(name, 'save', 'start', path);
@@ -4198,21 +4545,43 @@
   }
 
   //  Tabs open on a deleted path keep their text as unsaved drafts.
-  async function docRemove(name, path) {
+  //  Confirmed batches can skip per-file prompts; quiet batches aggregate
+  //  errors and refresh trees themselves, but still update successful tabs.
+  //
+  //  `deleteMessage` lets a store whose deletes mean something other than
+  //  "gone for good" say so; without it the generic warning stands.
+  async function docRemove(name, path, choices = {}) {
     if (!Array.isArray(path) || docPaneReadOnly(name)) return false;
-    if (!await confirmDialog('delete', {path: pathText(path)})) return false;
-    docEvent(name, 'delete', 'start', path);
+    if (!choices.confirmed) {
+      const custom = docHooks(name).deleteMessage?.(path);
+      const asked = custom
+        ? await confirmDialog('delete-file', {message: custom})
+        : await confirmDialog('delete', {path: pathText(path)});
+      if (!asked) return false;
+    }
+    if (!choices.quiet) docEvent(name, 'delete', 'start', path);
     try {
       await docTransport.remove(path, {});
     } catch (cause) {
+      if (choices.quiet) throw cause;
       docFailed(name, 'delete', path, cause);
       return false;
     }
-    docEvent(name, 'delete', 'done', path);
+    if (!choices.quiet) docEvent(name, 'delete', 'done', path);
     const label = docBaseLabel(name, path);
+    docDeleted(name, [path]);
+    if (!choices.quiet) {
+      notify(`Deleted ${label}.`);
+      docRefreshTrees(name);
+    }
+    return true;
+  }
+
+  //  Apply confirmed server deletions locally, without another transport call.
+  function docDeleted(name, paths) {
+    docCapture(name);
     for (const tab of docTabs(name)) {
-      if (!samePath(tab.path, path)) continue;
-      if (tab.id === documentActiveId(name)) docCapture(name);
+      if (!paths.some(path => samePath(tab.path, path))) continue;
       tab.path = null;
       tab.draft = tab.label;
       tab.clean = '';
@@ -4223,9 +4592,6 @@
     docShow(name);
     docRender(name);
     changed();
-    notify(`Deleted ${label}.`);
-    docRefreshTrees(name);
-    return true;
   }
 
   //  ---- the tree
@@ -4300,6 +4666,25 @@
       openFileContext(name, path, source, event);
     };
     row.addEventListener('contextmenu', (event) => openMenu(file, event));
+    //  Row keys belong to the row, not to the chord table: they mean
+    //  something only while a row has focus, and the dispatcher gates
+    //  on editor focus rather than on which control is focused.  This
+    //  is how Shift-F10 already works -- the browser raises
+    //  `contextmenu` on the focused element and the listener above
+    //  answers it -- so Alt-Enter joins it here rather than becoming a
+    //  global chord that would have to be gated against everything.
+    file.addEventListener('keydown', (event) => {
+      if (event.altKey && event.key === 'Enter') {
+        event.preventDefault();
+        openMenu(file, event);
+        return;
+      }
+      if (event.key === 'Delete' && !docPaneReadOnly(name)) {
+        event.preventDefault();
+        closeFileContext();
+        docRemove(name, path);
+      }
+    });
     const actions = document.createElement('button');
     actions.type = 'button';
     actions.className = 'file-tree-actions';
@@ -4402,6 +4787,16 @@
   const docConfirmModal = defineModal(
     4, () => docElement('urui-confirm'), () => docConfirm?.finish(false)
   );
+
+  //  Open, Save As and the confirmations move like the other dialogs:
+  //  each covers the thing it is asking about -- a file list, a tree,
+  //  the row being deleted -- which is exactly what the user may need
+  //  to see while answering.  The file dialog has a header to hold;
+  //  the confirmation is held by its card.
+  function enableDocumentDrags() {
+    enableDialogDrag(dialogCard(docElement('urui-file-dialog')));
+    enableDialogDrag(dialogCard(docElement('urui-confirm')));
+  }
 
   function confirmMessage(kind, detail = {}) {
     switch (kind) {
@@ -4648,7 +5043,14 @@
       accept();
     };
     showModal(docFileModal, opening ? cancel : pathInput);
-    fillList();
+    //  a store may replace the flat list with its own destination picker
+    if (request.browse && !opening) {
+      list.hidden = true;
+      extra.append(request.browse((value) => {
+        pathInput.value = value;
+        error.hidden = true;
+      }));
+    } else fillList();
     return done;
   }
 
@@ -4829,7 +5231,22 @@
       registerShortcut(`open:${name}`, () => docOpen(name));
       registerShortcut(`save:${name}`, () => docSave(name));
       registerShortcut(`save-as:${name}`, () => docSave(name, {as: true}));
+      //  Copy was the one store action with a button and no command,
+      //  which is why no app could bind it.
+      registerShortcut(`copy:${name}`, () => run.copy(name));
+      //  Only where the store asked for a preview; a store without one
+      //  has no toggle to work, and a chord naming it would be inert.
+      if (storeConfig.preview) {
+        registerShortcut(`display:${name}`, () => {
+          const tab = docGet(name, documentActiveId(name));
+          docSetDisplay(name, tab?.display === 'preview' ? 'source' : 'preview');
+        });
+      }
     }
+    //  One command for every tree an app draws, so a refresh chord does
+    //  not have to name them.
+    registerShortcut('refresh-tree', () => docRefreshTrees());
+    enableDocumentDrags();
     docElement('urui-confirm-ok')?.addEventListener('click', () => {
       docConfirm?.finish(true);
     });
@@ -4854,6 +5271,7 @@
     open: docOpen,
     save: docSave,
     remove: docRemove,
+    deleted: docDeleted,
     dirty: docDirty,
     addRef: docAddRef,
     editor: (name) => docEditorsByStore.get(name),

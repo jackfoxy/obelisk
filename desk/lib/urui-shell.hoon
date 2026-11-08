@@ -107,7 +107,7 @@
           ;+  (pane result.panes.spec config)
         ==
       ==
-      ;+  settings-modal
+      ;+  (settings-modal settings.spec)
       ;+  (help-panel spec)
       ;+  context-menu
       ;*  (document-dialogs config)
@@ -151,7 +151,7 @@
         ;+  (pane editor.panes.spec config)
         ;+  (pane result.panes.spec config)
       ==
-      ;+  settings-modal
+      ;+  (settings-modal settings.spec)
       ;div.app-dialogs
         ;*  dialogs.spec
       ==
@@ -811,6 +811,10 @@
   ::  Frame furniture, emitted before the consumer's toolbar marl so it
   ::  sits left of whatever the consumer puts there.  A consumer may
   ::  instead splice `settings-button` into its own toolbar.
+  ::
+  ::  No key badge here: the runtime adds one at boot for whatever
+  ::  chord the app declared for `settings`, so this markup does not
+  ::  have to know the binding.
   ^-  manx
   ;button#settings.settings-button
     =type           "button"
@@ -818,6 +822,42 @@
     =aria-haspopup  "dialog"
     =title          "Settings"
     ;span: Settings
+  ==
+::
+++  help-button
+  ::  The Help control, at the id the runtime binds.  Every consumer
+  ::  had written this markup itself, identically; the badge and the
+  ::  binding in the tooltip are the runtime's, as for Settings.
+  ^-  manx
+  ;button#help.help-button
+    =type           "button"
+    =aria-expanded  "false"
+    =aria-haspopup  "dialog"
+    =title          "Help"
+    ;span: Help
+  ==
+::
+++  shortcut-list
+  ::  An app's chords as a definition list, for its Help panel.
+  ::
+  ::  A consumer splices this into its `help` marl with its own chord
+  ::  table, so the panel and the dispatcher cannot disagree:
+  ::    ;+  (shortcut-list:shell shortcuts)
+  ::
+  ::  `label` names the action; a chord with none is skipped rather
+  ::  than shown as a bare command name.
+  |=  chords=(list shortcut:urui)
+  ^-  manx
+  ;ul.shortcut-list
+    ;*  %+  murn  chords
+        |=  =shortcut:urui
+        ^-  (unit manx)
+        ?~  label.shortcut  ~
+        :-  ~
+        ;li
+          ;kbd: {(trip binding.shortcut)}
+          ;span: {(trip u.label.shortcut)}
+        ==
   ==
 ::
 ++  fullscreen-toggle
@@ -865,7 +905,9 @@
     =class         "layout-choice"
     =id            "layout-{name}"
     =data-layout   name
-    =aria-pressed  "false"
+    =role          "radio"
+    =aria-checked  "false"
+    =tabindex      "-1"
     =title         label
     =aria-label    label
     ;+  (layout-glyph name)
@@ -875,13 +917,18 @@
   ::  urui-owned preferences. The theme control lives here, at the same
   ::  `#theme` id the runtime has always bound, so moving it out of a
   ::  consumer toolbar changes markup and nothing else.
+  ::
+  ::  `extra` is the consumer's `settings` marl, spliced after urui's
+  ::  fields inside the same card.  urui neither binds nor persists it.
+  |=  extra=marl
   ^-  manx
   ;aside#settings-modal.help-panel
     =hidden           ""
     =role             "dialog"
     =aria-modal       "true"
     =aria-labelledby  "settings-title"
-    ;div.help-card.settings-card
+    ;div#settings-card.help-card.settings-card
+      =tabindex  "-1"
       ;div.pane-header
         ;h2#settings-title: Settings
         ;button#close-settings.icon-button.help-close
@@ -912,8 +959,12 @@
       ==
       ;div.settings-field
         ;span#screen-format-label.settings-label: Screen format
+        ::  A radiogroup, not a group of pressable buttons: Theme is a
+        ::  select and Keybindings are radios, both of which arrow
+        ::  natively, and this was the one control in the modal that
+        ::  did not.  The runtime holds one tabindex=0 among them.
         ;div.layout-choices
-          =role             "group"
+          =role             "radiogroup"
           =aria-labelledby  "screen-format-label"
           ;+  %+  layout-choice  "columns"
               "Reference, editor and render side by side"
@@ -921,6 +972,7 @@
               "Reference beside editor stacked over render"
         ==
       ==
+      ;*  extra
     ==
   ==
 ::
@@ -933,6 +985,7 @@
     =aria-modal      "true"
     =aria-labelledby  "help-title"
     ;div#editor-help-card.help-card.editor-help-card
+      =tabindex  "-1"
       ;div.pane-header
         ;h2#help-title: Help
         ;button#close-help.icon-button.help-close

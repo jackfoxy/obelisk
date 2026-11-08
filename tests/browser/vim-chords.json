@@ -1,0 +1,1058 @@
+{
+  "source": {
+    "file": "desk/web/ace/keybinding-vim.js",
+    "bytes": 268744,
+    "note": "the pinned vendored bundle, not upstream Ace"
+  },
+  "scope": {
+    "keymap": "vim",
+    "acePlatform": "win",
+    "hostPlatform": "linux",
+    "keyboardLayout": "en-US"
+  },
+  "coverage": {
+    "contexts": [
+      "insert",
+      "normal",
+      "visual"
+    ],
+    "chords": 129,
+    "exact": 110,
+    "prefix": 19,
+    "dropped": "<character> placeholders"
+  },
+  "rows": [
+    {
+      "binding": "_",
+      "keys": "_",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "-",
+      "keys": "-",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": ",",
+      "keys": ",",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": ";",
+      "keys": ";",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": ":",
+      "keys": ":",
+      "context": "normal",
+      "match": "exact",
+      "type": "ex",
+      "action": "ex"
+    },
+    {
+      "binding": "?",
+      "keys": "?",
+      "context": "normal",
+      "match": "exact",
+      "type": "search",
+      "action": "search"
+    },
+    {
+      "binding": ".",
+      "keys": ".",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "repeatLastEdit"
+    },
+    {
+      "binding": "\"",
+      "keys": "\"<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "setRegister"
+    },
+    {
+      "binding": "(",
+      "keys": "(",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": ")",
+      "keys": ")",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "[",
+      "keys": "[`",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "]",
+      "keys": "]`",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "{",
+      "keys": "{",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "}",
+      "keys": "}",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "@",
+      "keys": "@<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "replayMacro"
+    },
+    {
+      "binding": "*",
+      "keys": "*",
+      "context": "normal",
+      "match": "exact",
+      "type": "search",
+      "action": "search"
+    },
+    {
+      "binding": "/",
+      "keys": "/",
+      "context": "normal",
+      "match": "exact",
+      "type": "search",
+      "action": "search"
+    },
+    {
+      "binding": "\\",
+      "keys": "\\",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "#",
+      "keys": "#",
+      "context": "normal",
+      "match": "exact",
+      "type": "search",
+      "action": "search"
+    },
+    {
+      "binding": "%",
+      "keys": "%",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "`",
+      "keys": "`<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "^",
+      "keys": "^",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "+",
+      "keys": "+",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "<",
+      "keys": "<C-[>",
+      "context": "insert",
+      "match": "prefix",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "<",
+      "keys": "<C-[>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "<",
+      "keys": "<",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "=",
+      "keys": "=",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": ">",
+      "keys": ">",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "|",
+      "keys": "|",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "~",
+      "keys": "~",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "~",
+      "keys": "~",
+      "context": "visual",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "$",
+      "keys": "$",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "0",
+      "keys": "0",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "a",
+      "keys": "a",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "enterInsertMode"
+    },
+    {
+      "binding": "a",
+      "keys": "a<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "A",
+      "keys": "A",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "enterInsertMode"
+    },
+    {
+      "binding": "b",
+      "keys": "b",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "B",
+      "keys": "B",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Backspace",
+      "keys": "<BS>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to h"
+    },
+    {
+      "binding": "c",
+      "keys": "c",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "C",
+      "keys": "C",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "Ctrl-A",
+      "keys": "<C-a>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "incrementNumberToken"
+    },
+    {
+      "binding": "Ctrl-B",
+      "keys": "<C-b>",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Ctrl-Backspace",
+      "keys": "<C-BS>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to B"
+    },
+    {
+      "binding": "Ctrl-C",
+      "keys": "<C-c>",
+      "context": "insert",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "Ctrl-C",
+      "keys": "<C-c>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "Ctrl-D",
+      "keys": "<C-d>",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Ctrl-E",
+      "keys": "<C-e>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "scroll"
+    },
+    {
+      "binding": "Ctrl-Escape",
+      "keys": "<C-Esc>",
+      "context": "insert",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "Ctrl-Escape",
+      "keys": "<C-Esc>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <Esc>"
+    },
+    {
+      "binding": "Ctrl-F",
+      "keys": "<C-f>",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Ctrl-I",
+      "keys": "<C-i>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "jumpListWalk"
+    },
+    {
+      "binding": "Ctrl-N",
+      "keys": "<C-n>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to j"
+    },
+    {
+      "binding": "Ctrl-O",
+      "keys": "<C-o>",
+      "context": "insert",
+      "match": "exact",
+      "type": "action",
+      "action": "oneNormalCommand"
+    },
+    {
+      "binding": "Ctrl-O",
+      "keys": "<C-o>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "jumpListWalk"
+    },
+    {
+      "binding": "Ctrl-P",
+      "keys": "<C-p>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to k"
+    },
+    {
+      "binding": "Ctrl-Q",
+      "keys": "<C-q>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "toggleVisualMode"
+    },
+    {
+      "binding": "Ctrl-R",
+      "keys": "<C-r><register>",
+      "context": "insert",
+      "match": "prefix",
+      "type": "action",
+      "action": "insertRegister"
+    },
+    {
+      "binding": "Ctrl-R",
+      "keys": "<C-r>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "redo"
+    },
+    {
+      "binding": "Ctrl-Space",
+      "keys": "<C-Space>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to W"
+    },
+    {
+      "binding": "Ctrl-T",
+      "keys": "<C-t>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "indent"
+    },
+    {
+      "binding": "Ctrl-U",
+      "keys": "<C-u>",
+      "context": "insert",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "Ctrl-U",
+      "keys": "<C-u>",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Ctrl-V",
+      "keys": "<C-v>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "toggleVisualMode"
+    },
+    {
+      "binding": "Ctrl-W",
+      "keys": "<C-w>",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "Ctrl-X",
+      "keys": "<C-x>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "incrementNumberToken"
+    },
+    {
+      "binding": "Ctrl-Y",
+      "keys": "<C-y>",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "scroll"
+    },
+    {
+      "binding": "d",
+      "keys": "d",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "D",
+      "keys": "D",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "Delete",
+      "keys": "<Del>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to x"
+    },
+    {
+      "binding": "Down",
+      "keys": "<Down>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to j"
+    },
+    {
+      "binding": "e",
+      "keys": "e",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "E",
+      "keys": "E",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "End",
+      "keys": "<End>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to $"
+    },
+    {
+      "binding": "Enter",
+      "keys": "<CR>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to j^"
+    },
+    {
+      "binding": "f",
+      "keys": "f<character>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "F",
+      "keys": "F<character>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "g",
+      "keys": "g<Up>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "keyToKey",
+      "action": "maps to gk"
+    },
+    {
+      "binding": "G",
+      "keys": "G",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "h",
+      "keys": "h",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "H",
+      "keys": "H",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Home",
+      "keys": "<Home>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to 0"
+    },
+    {
+      "binding": "i",
+      "keys": "i",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "enterInsertMode"
+    },
+    {
+      "binding": "i",
+      "keys": "i<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "I",
+      "keys": "I",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "enterInsertMode"
+    },
+    {
+      "binding": "Insert",
+      "keys": "<Ins>",
+      "context": "insert",
+      "match": "exact",
+      "type": "action",
+      "action": "toggleOverwrite"
+    },
+    {
+      "binding": "Insert",
+      "keys": "<Ins>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to i"
+    },
+    {
+      "binding": "j",
+      "keys": "j",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "J",
+      "keys": "J",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "joinLines"
+    },
+    {
+      "binding": "k",
+      "keys": "k",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "l",
+      "keys": "l",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "L",
+      "keys": "L",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "Left",
+      "keys": "<Left>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to h"
+    },
+    {
+      "binding": "m",
+      "keys": "m<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "setMark"
+    },
+    {
+      "binding": "M",
+      "keys": "M",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "n",
+      "keys": "n",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "N",
+      "keys": "N",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "o",
+      "keys": "o",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "newLineAndEnterInsertMode"
+    },
+    {
+      "binding": "o",
+      "keys": "o",
+      "context": "visual",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "O",
+      "keys": "O",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "p",
+      "keys": "p",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "paste"
+    },
+    {
+      "binding": "P",
+      "keys": "P",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "paste"
+    },
+    {
+      "binding": "PageDown",
+      "keys": "<PageDown>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <C-f>"
+    },
+    {
+      "binding": "PageUp",
+      "keys": "<PageUp>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to <C-b>"
+    },
+    {
+      "binding": "q",
+      "keys": "q<register>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "enterMacroRecordMode"
+    },
+    {
+      "binding": "r",
+      "keys": "r<character>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "replace"
+    },
+    {
+      "binding": "R",
+      "keys": "R",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "enterInsertMode"
+    },
+    {
+      "binding": "Right",
+      "keys": "<Right>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to l"
+    },
+    {
+      "binding": "s",
+      "keys": "s",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to cl"
+    },
+    {
+      "binding": "s",
+      "keys": "s",
+      "context": "visual",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to c"
+    },
+    {
+      "binding": "S",
+      "keys": "S",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to cc"
+    },
+    {
+      "binding": "S",
+      "keys": "S",
+      "context": "visual",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to VdO"
+    },
+    {
+      "binding": "Shift-Backspace",
+      "keys": "<S-BS>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to b"
+    },
+    {
+      "binding": "Shift-Space",
+      "keys": "<S-Space>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to w"
+    },
+    {
+      "binding": "Space",
+      "keys": "<Space>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to l"
+    },
+    {
+      "binding": "t",
+      "keys": "t<character>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "T",
+      "keys": "T<character>",
+      "context": "normal",
+      "match": "prefix",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "u",
+      "keys": "u",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "undo"
+    },
+    {
+      "binding": "U",
+      "keys": "U",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "Up",
+      "keys": "<Up>",
+      "context": "normal",
+      "match": "exact",
+      "type": "keyToKey",
+      "action": "maps to k"
+    },
+    {
+      "binding": "v",
+      "keys": "v",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "toggleVisualMode"
+    },
+    {
+      "binding": "V",
+      "keys": "V",
+      "context": "normal",
+      "match": "exact",
+      "type": "action",
+      "action": "toggleVisualMode"
+    },
+    {
+      "binding": "w",
+      "keys": "w",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "W",
+      "keys": "W",
+      "context": "normal",
+      "match": "exact",
+      "type": "motion",
+      "action": "motion"
+    },
+    {
+      "binding": "x",
+      "keys": "x",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "X",
+      "keys": "X",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "y",
+      "keys": "y",
+      "context": "normal",
+      "match": "exact",
+      "type": "operator",
+      "action": "operator"
+    },
+    {
+      "binding": "Y",
+      "keys": "Y",
+      "context": "normal",
+      "match": "exact",
+      "type": "operatorMotion",
+      "action": "operatorMotion"
+    },
+    {
+      "binding": "z",
+      "keys": "zz",
+      "context": "normal",
+      "match": "prefix",
+      "type": "action",
+      "action": "scrollToCursor"
+    }
+  ]
+}

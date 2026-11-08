@@ -134,6 +134,19 @@
   /* Placed by the consumer inside its toolbar, it is one more button. */
   .toolbar .settings-button:not(:first-child) { margin-left: 0; }
 
+  /* The key badge the runtime appends to a header control, from the
+     chord table.  Styled here because urui is what draws it: two
+     consumers had written this rule themselves, back when each wrote
+     the <kbd> into its own markup, and the third had never needed one
+     -- so when the badge became urui's, that app got an unstyled one
+     hard against the label. */
+  .app-header kbd {
+    font-family: ui-monospace, monospace;
+    font-size: 0.72rem;
+    margin-left: 0.35rem;
+    opacity: 0.8;
+  }
+
   .workbench {
     display: grid;
     grid-template-columns: var(--explorer-width, 18rem) 0.6rem
@@ -458,6 +471,8 @@
   }
 
   .store-preview[hidden] { display: none; }
+
+  .is-ref-drop-target iframe { pointer-events: none; }
 
   .store-preview iframe, .ref-explorer-panel iframe {
     background: #fff;
@@ -946,15 +961,59 @@
 
   .help-panel[hidden] { display: none; }
 
+  /* The card is the scroll container, so PageUp, PageDown, Home and
+     End have something to scroll once it has focus.  Without a height
+     bound a long panel simply overflowed the viewport. */
   .help-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.2);
+    max-height: 100%;
     max-width: 32rem;
+    overflow-y: auto;
     padding: 0 1rem 1rem;
     width: 100%;
   }
+
+  /* Focused only programmatically, to put the keyboard on the scroll
+     container; it is not a control and shows no ring. */
+  .help-card:focus { outline: none; }
+
+  /* Settings and Help can be dragged by their header, so a dialog can
+     be moved off whatever it is covering.  `touch-action: none` hands
+     the gesture to the pointer handler rather than to scrolling, and
+     the cursor is the affordance.  Double-click the header to recentre.
+     The buttons in the header keep the default cursor, because they are
+     not handles. */
+  .help-card.is-draggable > .pane-header {
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .help-card.is-draggable > .pane-header button { cursor: pointer; }
+
+  /* A dialog with no header -- the confirmation is a message and two
+     buttons -- is held by the card itself. */
+  .help-card.is-draggable-body {
+    cursor: move;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .help-card.is-draggable-body button,
+  .help-card.is-draggable-body a,
+  .help-card.is-draggable-body input,
+  .help-card.is-draggable-body select {
+    cursor: auto;
+    user-select: auto;
+  }
+
+  .help-card.is-draggable-body button { cursor: pointer; }
+
+  /* No transition on the transform: it follows the pointer. */
+  .help-card.is-dragging { transition: none; }
 
   .help-close {
     height: 2rem;

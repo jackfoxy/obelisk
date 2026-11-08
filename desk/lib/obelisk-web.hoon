@@ -159,18 +159,16 @@
           max-source=262.144
       ==
       slots
-      :~  ['F1' 'help' %always]
-          ['F2' 'settings' %always]
-          ['F3' 'parse' %always]
-          ['F5' 'run' %always]
-      ==
+      shortcuts
       ~[[%ready 'Ready']]
       docs-root=`'/docs/d/obelisk/'
       ace-spec
       layout=%rows
       collapse=&
       files=`files
-      tips=~[['settings' 'Settings (F2)']]
+      ::  no tip for Settings: urui titles it and appends the
+      ::  binding from the chord table
+      tips=~
   ==
 ::
 ++  slots
@@ -220,6 +218,7 @@
           '/apps/obelisk/app.js'
       ==
       head=~[favicon]
+      settings=~
   ==
 ::
 ++  favicon
@@ -362,28 +361,46 @@
             ;option(value "sys"): sys
           ==
         ==
-        ;button#run-btn.primary(type "button", title "Run (F5)")
+        ::  the binding, its badge and its aria-keyshortcuts come from
+        ::  the chord table, so a rebind cannot strand a stale label
+        ;button#run-btn.primary
+          =type         "button"
+          =title        "Run"
+          =data-chord   "run"
           ;span: Run
-          ;kbd: F5
         ==
         ;button#parse-btn
-          =type                "button"
-          =title               "Parse without running (F3)"
-          =aria-keyshortcuts   "F3"
+          =type         "button"
+          =title        "Parse without running"
+          =data-chord   "parse"
           ;span: Parse
-          ;kbd: F3
         ==
-        ;+  =/  button=manx  settings-button:shell
-            button(c (snoc c.button ;kbd:"F2"))
-        ;button#help
-          =type                "button"
-          =title               "Help (F1)"
-          =aria-expanded       "false"
-          =aria-keyshortcuts   "F1"
-          ;span: Help
-          ;kbd: F1
-        ==
+        ;+  settings-button:shell
+        ;+  help-button:shell
       ==
+  ==
+::
+++  shortcuts
+  ::  F1 and F2 displace Ace's command palette and fold widget; the
+  ::  palette stays reachable at Ctrl-, and folds at Alt-F2.
+  ::
+  ::  The file chords are urui's, registered from the store's name.
+  ::  Alt-O rather than Ctrl-O for Open: Ctrl-O is free in Ace's
+  ::  Windows/Linux table but taken by Vim in both insert and normal
+  ::  mode, and every app here can switch its editor to Vim.  Alt-C
+  ::  rather than Ctrl-Shift-C for Copy, which Chromium keeps for its
+  ::  element inspector.  Both are %no-editor: inside the editor
+  ::  Ctrl-C and the rest keep their ordinary meaning.
+  ^-  (list shortcut:urui)
+  :~  ['F1' 'help' %always %override `'Help']
+      ['F2' 'settings' %always %override `'Settings']
+      ['F3' 'parse' %always %free `'Parse without running']
+      ['F5' 'run' %always %free `'Run']
+      ['Ctrl-S' 'save:script' %always %free `'Save the script']
+      ['Ctrl-Shift-S' 'save-as:script' %always %free `'Save the script as']
+      ['Alt-O' 'open:script' %no-editor %free `'Open a saved script']
+      ['Alt-C' 'copy:script' %no-editor %free `'Copy the script']
+      ['Ctrl-Alt-V' 'display:script' %no-editor %free `'Source or preview']
   ==
 ::
 ++  help
@@ -559,13 +576,6 @@
   }
 
   .toolbar { align-items: center; }
-
-  .toolbar kbd {
-    font-family: ui-monospace, monospace;
-    font-size: 0.72rem;
-    margin-left: 0.35rem;
-    opacity: 0.8;
-  }
 
   #settings-modal .settings-card > .settings-field {
     margin-top: 1rem;
@@ -1148,41 +1158,12 @@
       });
     }
 
-    function errorMessage(body, fallback) {
-      if (!body || !body.error) return fallback;
-      const details = Array.isArray(body.error.details) ?
-        body.error.details.join('\n') : '';
-      return details ? `${body.error.message}\n${details}` :
-        body.error.message;
-    }
-
-    //  Obelisk's api answers `{type: 'error'}` on failure; urui's file
-    //  wire answers `{ok: false}`.  Both carry the same `error` record.
-    async function post(url, payload) {
-      const response = await fetch(url, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify(payload)
-      });
-      let body = null;
-      try {
-        body = await response.json();
-      } catch (_) {
-        throw new Error(`Server returned invalid JSON (${response.status}).`);
-      }
-      if (!response.ok || body.type === 'error' || body.ok === false) {
-        const fallback = `Request failed (${response.status}).`;
-        const error = new Error(errorMessage(body, fallback));
-        error.status = response.status;
-        error.code = body && body.error ? body.error.code : null;
-        error.retryable = Boolean(body && body.error &&
-          body.error.retryable);
-        error.details = body && body.error ? body.error.details : [];
-        throw error;
-      }
-      return body;
-    }
+    //  Obelisk's api answers `{type: 'error'}` on failure where urui's
+    //  file wire answers `{ok: false}`; both carry the same `error`
+    //  record, so only the failure test is obelisk's.
+    const post = (url, payload) => runtime.request(url, payload, {
+      failed: (body) => body?.type === 'error' || body?.ok === false
+    });
 
     async function api(operation, payload) {
       const route = {
@@ -2255,8 +2236,7 @@
       persist();
       ensureSchemaLoaded({force: true});
     });
-    runtime.shortcuts.register('help', () => byId('help').click());
-    runtime.shortcuts.register('settings', () => byId('settings').click());
+    //  urui registers `help` and `settings`; it draws both dialogs
     runtime.shortcuts.register('parse', () => parseButton.click());
     runtime.shortcuts.register('run', () => {
       if (!runButton.disabled) execute('run');
@@ -2289,7 +2269,6 @@
       {box: 'border-box'});
     //  Help follows Settings without changing the other button sizes.
     const settingsButton = byId('settings');
-    settingsButton.setAttribute('aria-keyshortcuts', 'F2');
     new ResizeObserver(() => {
       byId('help').style.height =
         `${settingsButton.getBoundingClientRect().height}px`;

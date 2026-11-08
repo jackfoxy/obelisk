@@ -34,6 +34,8 @@
   ::  `root` on our desk at now.  It must map a path's children to its
   ::  location's children.  `view` reads a %view file, and any file
   ::  whose stored noun its codec cannot read, as read-only text.
+  ::  `edit-snapshots` permits editing loaded copies of old text files;
+  ::  save and delete still enforce the location's write permission.
   $:  root=path
       roots=(list root:urui)
       codecs=(list [mark=@tas =codec])
@@ -44,6 +46,7 @@
       fallback=(unit codec)
       locate=(unit $-([bowl:gall path] (each location failure)))
       view=(unit $-([@tas *] @t))
+      edit-snapshots=?
   ==
 ::
 +$  pending
@@ -132,7 +135,7 @@
       (skip roots.store |=(item=root:urui ?=(^ (find ~[item] kept))))
     (weld kept fresh)
   :*  root  roots  stock-codecs  strict  &  default-timeout
-      default-max-bytes  ~  ~  ~
+      default-max-bytes  ~  ~  ~  |
   ==
 ::
 ++  handle
@@ -178,8 +181,11 @@
       %load
     =/  where=(each location failure)  (resolve policy bowl rel.op)
     ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
+    ::  Editing a loaded copy does not grant writes to its old location.
+    =/  source=location  p.where
+    =?  source  edit-snapshots.policy  source(write &)
     =/  held=(each (unit [text=@t readonly=?]) tang)
-      (stored policy bowl p.where codec.op)
+      (stored policy bowl source codec.op)
     :_  current
     ?:  ?=(%| -.held)
       %+  refuse  eyre-id
@@ -317,6 +323,8 @@
 ::
 ++  remove
   ::  A delete at `rel`, after reading what clay holds there.
+  ::  Without a base hash, existence is enough: deleting must not need
+  ::  to decode content or compile the file's mark.
   |=  $:  =policy
           =bowl:gall
           eyre-id=@ta
@@ -329,6 +337,16 @@
   ?^  current  [(refuse eyre-id busy) current]
   =/  where=(each location failure)  (resolve policy bowl rel)
   ?:  ?=(%| -.where)  [(refuse eyre-id p.where) current]
+  ?.  write.p.where  [(refuse eyre-id read-only) current]
+  ?~  base
+    =/  found=(each arch tang)
+      %-  mule  |.
+      .^(arch %cy (en-beam beak.p.where rel.p.where))
+    ?:  ?=(%| -.found)
+      :_  current
+      %+  refuse  eyre-id
+      (fail-with %internal 500 'clay delete check failed' p.found)
+    (plan-delete policy bowl eyre-id rel ~ ?~(fil.p.found ~ `''))
   =/  held=(each (unit [text=@t readonly=?]) tang)
     (stored policy bowl p.where codec)
   ?:  ?=(%| -.held)
@@ -770,14 +788,15 @@
   ::  whether that text is read-only.  A failed scry, or a file neither
   ::  its codec nor the `view` gate can read, is a tang.
   ::
-  ::  Existence is asked of the tomb endpoint, so a deleted file whose
-  ::  history remains reads as absent.
+  ::  The global tomb endpoint must be queried at now, even when the
+  ::  beam it checks names an old revision.  Absent or tombstoned files
+  ::  return ~ without reading their data.
   |=  [=policy =bowl:gall =location =codec]
   ^-  (each (unit [text=@t readonly=?]) tang)
   %-  mule  |.
   ^-  (unit [text=@t readonly=?])
   =/  beam=path  (en-beam beak.location rel.location)
-  =/  tomb=path  ~[(snag 0 beam) %$ (snag 2 beam) %tomb]
+  =/  tomb=path  ~[(scot %p our.bowl) %$ (scot %da now.bowl) %tomb]
   ?.  .^(? %cx (weld tomb beam))  ~
   =/  mark=@tas  (rear rel.location)
   =/  read=(unit @t)

@@ -26,7 +26,7 @@ const selectors = [
   '#add-dot-ref', '#browse-dot', '#load-dot', '#save-dot',
   '#add-svg-ref', '#browse-svg', '#load-svg', '#save-svg', '#fit',
   '#auto-render', '#theme', '#help',
-  '#help-panel', '#editor-help-card', '#close-help',
+  '#help-panel', '#editor-help-card', '#close-help', '#settings-card',
   '#settings', '#settings-modal', '#close-settings',
   '#fallback-help-content', '#docs-help-content', '#docs-help-nav',
   '#workbench', '#explorer', '#explorer-pane', '#editor-pane',
@@ -78,7 +78,8 @@ const selectors = [
   '#urui-toast-close',
   //  graph-viz on urui's store module: `dot` and `svg`
   '#dot-load-error', '#svg-source-load-error', '#svg-preview', '#svg-display',
-  '#dot-open', '#dot-save', '#dot-save-as', '#dot-ref', '#dot-browse',
+  '#dot-open', '#dot-save', '#dot-save-as', '#dot-copy', '#dot-ref',
+  '#dot-browse',
   '#svg-open', '#svg-save', '#svg-save-as', '#svg-copy', '#svg-ref',
   '#svg-browse'
 ];
@@ -171,8 +172,16 @@ function createDom() {
       });
     }
     closest(selector) {
-      if (selector === '.node, .edge'
-        && (this.classes.has('node') || this.classes.has('edge'))) return this;
+      //  Class and id selectors, comma-separated, which is as much as
+      //  the application asks of it.  `.node, .edge` was the only case
+      //  once; the key-badge pass asks for `.app-header` too.
+      const matched = selector.split(',').some((name) => {
+        const one = name.trim();
+        if (one.startsWith('.')) return this.classes.has(one.slice(1));
+        if (one.startsWith('#')) return this.id === one.slice(1);
+        return one.toLowerCase() === String(this.localName).toLowerCase();
+      });
+      if (matched) return this;
       return this.parent?.closest?.(selector);
     }
     matches(selector) {

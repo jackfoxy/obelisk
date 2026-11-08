@@ -516,4 +516,136 @@
   %+  turn  needles
   |=  needle=tape
   (expect !>((has needle source)))
+::
+++  test-urui-owned-commands
+  ::  urui draws both dialogs and every store action, so it registers
+  ::  their commands: an app gets F1, F2 and a store's four chords by
+  ::  declaring rows, with no javascript of its own.
+  =/  runtime  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
+  =/  needles=(list [source=tape needle=tape])
+    :~  [runtime "registerShortcut('settings'"]
+        [runtime "registerShortcut('help'"]
+        [documents "registerShortcut(`open:$\{name}`"]
+        [documents "registerShortcut(`save:$\{name}`"]
+        [documents "registerShortcut(`save-as:$\{name}`"]
+        [documents "registerShortcut(`copy:$\{name}`"]
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  [source=tape needle=tape]
+  (expect !>((has needle source)))
+::
+++  test-dialog-drag-contract
+  ::  Every dialog moves by its header, or by its card where it has no
+  ::  header -- Settings, Help, the file dialog that Open and Save As
+  ::  share, the confirmation, and a consumer's own.  Each covers the
+  ::  thing it asks about, which is what the user may need to see.
+  ::
+  ::  A transform, not a layout change, so the card's height bound, its
+  ::  scrolling and the focus trap are untouched; pointer capture, as
+  ::  the resizers use; the header's controls stay clickable; and
+  ::  closing any of them returns it to the middle.
+  =/  runtime  (trip runtime:ujs)
+  =/  documents  (trip documents:ujs)
+  =/  needles=(list [source=tape needle=tape])
+    :~  [runtime "function enableDialogDrag(card)"]
+        [runtime "card.querySelector?.('.pane-header') || card"]
+        [runtime "closest?.('button, a, input, select')"]
+        [runtime "handle.setPointerCapture?.(event.pointerId)"]
+        [runtime "card.style.transform = offset.x || offset.y"]
+        [runtime "function holdDialogs()"]
+        [runtime "function resetDialogDrag(root)"]
+        [runtime "function dialogCard(element)"]
+        ::  closing any dialog recentres it, in one place
+        [runtime "if (wasOpen) resetDialogDrag(element)"]
+        [runtime "enableDialogDrag(elements.helpCard)"]
+        [runtime "enableDialogDrag(elements.settingsCard)"]
+        ::  a consumer's dialog unless it opts out
+        [runtime "choices.drag !== false"]
+        [runtime "holdDialogs();"]
+        ::  Open, Save As and the confirmations
+        [documents "function enableDocumentDrags()"]
+        [documents "dialogCard(docElement('urui-file-dialog'))"]
+        [documents "dialogCard(docElement('urui-confirm'))"]
+        [documents "enableDocumentDrags();"]
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  [source=tape needle=tape]
+  (expect !>((has needle source)))
+::
+++  test-json-wire-contract
+  ::  One POST and one envelope decode for every consumer route, with
+  ::  the error carrying what the toast and the retry paths read.
+  ::  Two consumers each had their own copy of this.
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "async function request(url, body, options = \{})"
+        "function requestError(body, status)"
+        "credentials: 'same-origin'"
+        "'content-type': 'application/json'"
+        "Server returned invalid JSON"
+        "raised.retryable = Boolean(error.retryable)"
+        "raised.code = error.code ?? null"
+        "options.failed"
+        "parsed?.ok === false"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
+::
+++  test-row-keys-and-tree-commands
+  ::  Delete and Alt-Enter belong to the focused row, not to the chord
+  ::  table: they mean something only there, and the dispatcher gates
+  ::  on editor focus rather than on which control is focused.  This is
+  ::  how Shift-F10 already works, through the browser's own
+  ::  `contextmenu` on the focused element.
+  ::
+  ::  `display:{store}` and `refresh-tree` are commands, because a
+  ::  chord for either is an app-wide one.
+  =/  source  (trip documents:ujs)
+  =/  needles=(list tape)
+    :~  "file.addEventListener('keydown'"
+        "event.altKey && event.key === 'Enter'"
+        "event.key === 'Delete' && !docPaneReadOnly(name)"
+        "docRemove(name, path)"
+        "registerShortcut(`display:$\{name}`"
+        "registerShortcut('refresh-tree'"
+        "storeConfig.preview"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
+::
+++  test-key-badge-contract
+  ::  A declared chord puts its binding on its control -- in
+  ::  `aria-keyshortcuts`, in the tooltip, and as a <kbd> badge -- so a
+  ::  rebind cannot leave a stale badge behind.  urui's own two
+  ::  dialogs and `{store}-{action}` are found by convention; a
+  ::  consumer's own control opts in with `data-chord`.
+  =/  source  (trip runtime:ujs)
+  =/  needles=(list tape)
+    :~  "function applyKeyBadges()"
+        "function chordControl(command)"
+        "\{help: 'help', settings: 'settings'}"
+        "`$\{store}-$\{action}`"
+        "[data-chord="
+        "setAttribute('aria-keyshortcuts', bindings.join(' '))"
+        ::  a tip sets the wording; urui still supplies the key
+        "!control.title.includes(bindings[0])"
+        ::  one control may carry several bindings; the badge shows the
+        ::  first and the tooltip lists them
+        "bindings.join(' or ')"
+        "badge.textContent = bindings[0]"
+        ::  the visible badge is the header toolbar's alone
+        "control.closest?.('.app-header')"
+        "applyKeyBadges();"
+    ==
+  %-  zing
+  %+  turn  needles
+  |=  needle=tape
+  (expect !>((has needle source)))
 --

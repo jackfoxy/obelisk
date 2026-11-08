@@ -21,7 +21,7 @@
           max-source=262.144
       ==
       ~[['textTabs' %urui %tabs `%text]]
-      ~[['Ctrl-S' 'save' %editor]]
+      ~[['Ctrl-S' 'save' %editor %free `'Save']]
       ~[[%ready 'Ready']]
       docs-root=`'/docs/probe/'
       :*  base='/apps/probe/ace'
@@ -152,6 +152,7 @@
       styles=~
       scripts=~
       head=~
+      settings=~
   ==
 ::
 ++  source  (trip (emit:config spec))
@@ -205,6 +206,8 @@
     (expect !>((has "\"binding\":\"Ctrl-S\"")))
     (expect !>((has "\"command\":\"save\"")))
     (expect !>((has "\"when\":\"editor\"")))
+    (expect !>((has "\"policy\":\"free\"")))
+    (expect !>((has "\"label\":\"Save\"")))
     (expect !>((has (trip '\22statuses\22:[{'))))
   ==
 ::
