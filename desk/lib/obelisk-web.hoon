@@ -413,7 +413,7 @@
               "desk/doc/usr/reference/"
             =target  "_blank"
             =rel     "noopener noreferrer"
-            Reference
+            urQL Reference
           ==
           ;a
             =href
@@ -422,14 +422,6 @@
             =target  "_blank"
             =rel     "noopener noreferrer"
             Users Guide
-          ==
-          ;a
-            =href
-              "https://github.com/jackfoxy/obelisk/blob/master/".
-              "roadmap.md"
-            =target  "_blank"
-            =rel     "noopener noreferrer"
-            Roadmap
           ==
         ==
         ;section.help-section
@@ -544,6 +536,12 @@
   ::  selector outranks this one.
   ^-  @t
   '''
+  /* Keep these pages indexed by %docs; link to them from About. */
+  #docs-help-nav [data-doc-path="release-notes"],
+  #docs-help-nav [data-doc-path="roadmap"] {
+    display: none;
+  }
+
   :root {
     --background: #f7f7f4;
     --surface-alt: #f0f0eb;
@@ -1047,6 +1045,24 @@
     });
     const docs = runtime.documents;
     const notify = runtime.notify;
+
+    //  Promote User Docs in Help while preserving /usr document URLs.
+    const docsHelpNav = byId('docs-help-nav');
+    if (docsHelpNav) {
+      const flattenUserDocs = () => {
+        const group = docsHelpNav.querySelector(
+          '[data-doc-path="usr/users-guide"]'
+        )?.closest('details');
+        if (!group || group.parentElement !== docsHelpNav) return;
+        const children = group.querySelector(':scope > .docs-help-subnav');
+        if (!children) return;
+        group.replaceWith(...children.childNodes);
+        observer.disconnect();
+      };
+      const observer = new MutationObserver(flattenUserDocs);
+      observer.observe(docsHelpNav, {childList: true});
+      flattenUserDocs();
+    }
 
     let lastOutputText = '';
     let outputState = {

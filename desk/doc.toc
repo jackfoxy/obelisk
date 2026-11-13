@@ -5,7 +5,7 @@
   /key-policy/md            Key Policy
 /usr                        User Docs
   /users-guide/md             Users Guide
-  /reference                  Reference
+  /reference                  urQL Reference
     /preliminaries/md           Preliminaries
     /ddl                        Data Definition Language
       /database/md                Database
@@ -17,7 +17,7 @@
       /update/md                  Update
       /upsert/md                  Upsert
       /delete/md                  Delete
-      /truncate-table/md          Truncate Table DML
+      /truncate-table/md          Truncate Table
     /select/md                  Select
     /scry/md                    Scries and Subscriptions
     /scalars/md                 Scalars

@@ -1915,7 +1915,7 @@
     (expect !>(?=(^ (find "docs-llm-button" html))))
     (expect !>(?=(^ (find "Reference" html))))
     (expect !>(?=(^ (find "Users Guide" html))))
-    (expect !>(?=(^ (find "Roadmap" html))))
+    (expect !>(?=(~ (find "Roadmap" html))))
     (expect !>(?=(^ (find "id=\"script-copy\"" html))))
     (expect !>(?=(^ (find "Copy results" html))))
     (expect !>(?=(^ (find "id=\"output-fullscreen\"" html))))
