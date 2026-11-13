@@ -1,7 +1,7 @@
 ::  inline scalars: scalar functions invoked in place in SELECT, WHERE,
 ::  UPDATE SET and DELETE, outside the SCALARS clause
 ::
-/+  *test-helpers
+/+  *test-helpers, scalars
 ::
 |%
 ::
@@ -4306,6 +4306,84 @@
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 1]
+              ==
+      ==
+::
+::  VERSION: the desk.docket-0 version, so the expected value is read from
+::  the same import rather than pinned
+::
+++  version-dime  [~.t obelisk-version:scalars]
+::
+++  test-version-format
+  ::  <major>.<minor>.<patch>
+  =/  parts=(list tape)
+    (split-all:scalars (trip obelisk-version:scalars) ".")
+  %+  expect-eq
+    !>  3
+    !>  (lent parts)
+::
+++  test-inline-select-version
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SELECT VERSION(), VERSION() AS v"]
+      ::
+      :-  %results
+          :*  [%action 'SELECT']
+              :-  %result-set
+                  ~[[%vector ~[[%scalar-0 version-dime] [%v version-dime]]]]
+              (no-from-meta 1)
+              ==
+      ==
+::
+++  test-scalars-version
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SCALARS v VERSION() SELECT v"]
+      ::
+      :-  %results
+          :*  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%v version-dime]]]]]
+              (no-from-meta 1)
+              ==
+      ==
+::
+++  test-inline-select-nested-version
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SELECT CONCAT('v', VERSION())"]
+      ::
+      :-  %results
+          :*  [%action 'SELECT']
+              :-  %result-set
+                  =/  v  (cat 3 'v' obelisk-version:scalars)
+                  ~[[%vector ~[[%scalar-0 [~.t v]]]]]
+              (no-from-meta 1)
+              ==
+      ==
+::
+++  test-inline-where-version
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 init-inl]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM inl WHERE LEN(VERSION()) > 4 AND id = 2 SELECT id"
+      ::
+      :-  %results
+          :*  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%id [~.ud 2]]]]]]
+              (inl-meta 1)
               ==
       ==
 --

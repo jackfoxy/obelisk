@@ -1,7 +1,18 @@
 :: this file  will contain code that handles scalars in the engine
 /-  ast=obelisk-ast, *obelisk
 /+  *predicate, *utils, mip, math
+/*  desk-docket  %docket-0  /desk/docket-0
 |%
+::
+++  obelisk-version
+  ::  version from desk.docket-0, fixed when this desk is built
+  ::
+  ::  coerce to the leading fields of $docket:docket through version, so
+  ::  this core needs no sur import
+  ^-  @t
+  =/  d  ;;([@ @t @t @ux * * v=[major=@ud minor=@ud patch=@ud] *] desk-docket)
+  %-  crip
+  "{(a-co:co major.v.d)}.{(a-co:co minor.v.d)}.{(a-co:co patch.v.d)}"
 :: inventory:
 :: - we know the qualified table (or tables in case of a join) we're acting on;
 ::   they are the keys in map-meta
@@ -164,6 +175,11 @@
   ::
     %getutcdate
       [seed [~.da now.bowl]]
+  ::
+  ::  system functions
+  ::
+    %version
+      [seed [~.t obelisk-version]]
   ::
     %year
       =/  ps  %:  evaluate-datum  date:;;(year:ast scalar)
@@ -2914,6 +2930,7 @@
           ?=([%phi ~] datum)
           ?=([%pi ~] datum)
           ?=([%tau ~] datum)
+          ?=([%version ~] datum)
           ==
     %:  prepare-scalar  ;;(scalar-function:ast datum)
                         named-ctes

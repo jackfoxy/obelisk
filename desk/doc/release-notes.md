@@ -1,5 +1,9 @@
 # Releases
 
+## next-release
+* inline scalars directly without SCALARS clause entry
+* VERSION() scalar added, returns %obelisk version
+
 ## v0.9.4-beta
 * standardize UI on urui v2.0
 

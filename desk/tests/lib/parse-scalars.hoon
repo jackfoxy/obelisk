@@ -6254,4 +6254,37 @@
     !>  (mk-inl-where scalars pred ~[u-id])
     !>  %-  parse:parse(default-database default-db)
             "FROM inl WHERE (nud + 1) * 2 = 20 SELECT id"
+::
+::  VERSION
+::
+++  test-inline-select-version
+  =/  scalars  ~[[%scalar (inline-name 0) [%version ~]]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT version()"
+::
+++  test-scalars-version
+  =/  scalars  ~[[%scalar 'v' [%version ~]]]
+  =/  columns  ~[[%selected-scalar 'v' ~]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars columns)
+    !>  %-  parse:parse(default-database default-db)
+            "SCALARS v VERSION() SELECT v"
+::
+++  test-inline-where-version
+  =/  f  [%concat ~[[~.t 'v'] [%version ~]]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'v1'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE CONCAT('v', VERSION()) = 'v1' SELECT id"
+::
+::  VERSION takes no arguments
+++  test-fail-version-argument
+  %+  expect-fail-message
+    'PARSER: '
+    |.  %-  parse:parse(default-database default-db)
+            "SELECT VERSION(1)"
 --

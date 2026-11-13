@@ -5127,6 +5127,9 @@
   ?:  =(%getutcdate fn-name)
     ^-  getutcdate:ast
       [%getutcdate ~]
+  ?:  =(%version fn-name)
+    ^-  version:ast
+      [%version ~]
   ::  unary builtin functions
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
@@ -5326,6 +5329,7 @@
   ;~  pose
     (cold %subtract-time (jester 'subtract-time'))
     (cold %getutcdate (jester %getutcdate))
+    (cold %version (jester %version))
     (cold %add-time (jester 'add-time'))
     (cold %degrees (jester %degrees))
     (cold %ceiling (jester %ceiling))
@@ -5441,6 +5445,7 @@
   ?+  fn-name
     (fail tub)
     %getutcdate  ((stag %no-params (parse-no-params ~)) tub)
+    %version     ((stag %no-params (parse-no-params ~)) tub)
     %e           ((stag %no-params (parse-no-params ~)) tub)
     %phi         ((stag %no-params (parse-no-params ~)) tub)
     %pi          ((stag %no-params (parse-no-params ~)) tub)

@@ -15,11 +15,11 @@
 
 * __ORDER BY ...__ -- order result set
 
+* __SELECT TOP n ...__ -- dependent on total ordering
+
 * __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
-
-* __SELECT TOP n ...__ -- dependent on total ordering
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
 
@@ -27,7 +27,6 @@
 
 * __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
 
-* __version__ -- Query server version.
 
 ## other planned functionality
 

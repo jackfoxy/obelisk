@@ -76,6 +76,10 @@ COALESCE ( <scalar-node> [ ,...n ] )
 - `t` is `@da` or `@dr`. For a `@dr`, the component functions return whole units (`HOUR(~d1h3)` → 27). `YEAR`/`MONTH` apply to `@da`.
 - `ADD-TIME`/`SUBTRACT-TIME` take a date-or-duration plus a `@dr`; result type matches the first arg.
 
+## System
+
+`VERSION()` — Obelisk version from `desk.docket-0` as `@t` `'<major>.<minor>.<patch>'`, fixed at desk build time.
+
 ## Mathematical
 
 `ABS` · `LOG` (natural; crashes ≤0) · `FLOOR` · `CEILING` · `ROUND(value, length)` · `SIGN` · `SQRT` (crashes <0) · `MAX(a,b)` · `MIN(a,b)` · `RAND(low,high)` · `DEGREES` · `SIN` · `COS` · `TAN` · `ASIN` · `ACOS` · `ATAN` · `ATAN2(y,x)`

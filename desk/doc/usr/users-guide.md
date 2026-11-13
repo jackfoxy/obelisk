@@ -659,6 +659,9 @@ Scalar function categories:
   - `QUOTESTRING(<string-expression> [ , <string-expression>, <string-expression> ])`
   - `STUFF(<string-expression>, <numeric-expression>, <numeric-expression>, <string-expression>)`
 
+- **System**
+  - `VERSION()` — the Obelisk version from `desk.docket-0`, e.g. `'0.9.4'`
+
 A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full documentation.
 
 ### Inline scalar functions

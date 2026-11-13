@@ -22,6 +22,7 @@ Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definit
   | <datetime-function>
   | <mathematical-function>
   | <string-function>
+  | <system-function>
 ```
 
 ```
@@ -980,3 +981,22 @@ STUFF('hello', 2, 3, 'ELL')
 ```
 
 ---
+
+## System Functions
+
+```
+<system-function> ::=
+  VERSION ( )
+```
+
+---
+
+**VERSION()** returns the Obelisk version, the `version` of the desk's `desk.docket-0`, as `<major>.<minor>.<patch>`. It is fixed when the desk is built.
+
+Returns: `@t`
+
+Example:
+```
+SELECT VERSION()
+:: returns '0.9.4'
+```

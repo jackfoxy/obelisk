@@ -700,6 +700,8 @@
     substring
     trim
     upper
+    ::  system functions
+    version
     ==
 ::
 +$  scalar-name
@@ -950,6 +952,14 @@
 +$  tau
   $+  tau
   $:  %tau
+    ~
+  ==
+::
+::  system functions
+::
++$  version
+  $+  version
+  $:  %version
     ~
   ==
 ::
