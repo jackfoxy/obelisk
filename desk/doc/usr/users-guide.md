@@ -661,11 +661,23 @@ Scalar function categories:
 
 A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full documentation.
 
+### Inline scalar functions
+
+Any scalar function can also be written in place, without a `SCALARS` definition, in `SELECT`, in `WHERE` predicates of queries, `UPDATE`, and `DELETE`, and in `UPDATE` `SET` values.
+
+```
+FROM adoptions
+WHERE YEAR(adoption-date) = 2024
+SELECT name, UPPER(species) AS species, adoption-fee * 2;
+```
+
+Inline arithmetic takes no `END`. An inline scalar function in `SELECT` without `AS` is named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list, so `adoption-fee * 2` above is the column `scalar-2`. Each inline invocation is evaluated on its own: two `RAND(1, 10)` calls produce independent values, while `GETUTCDATE()` is always the query time. Define a scalar in `SCALARS` when the same expression is used more than once. Scalar functions are not valid in `JOIN ... ON` predicates.
+
 ## WHERE clause
 
 As with SQL, you can filter query results with a `WHERE` clause. In a query with a `FROM` clause, column references in the predicate must use unqualified column names or the table alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates — always assign and use an alias when disambiguation is needed.
 
-`SCALARS` defined in the same query and CTE columns are also valid in predicates.
+`SCALARS` defined in the same query, inline scalar functions, and CTE columns are also valid in predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'Thursday'

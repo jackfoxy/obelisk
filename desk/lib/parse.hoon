@@ -1809,6 +1809,7 @@
         ;~  pfix
             whitespace
             ;~  pose  (cold %default (jester 'default'))
+                      parse-inline-scalar
                       parse-qualified-column
                       parse-value-literal
                       ==
@@ -2036,9 +2037,16 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
-  =/  scalar-map=(map @tas scalar-function:ast)
+  =/  user-map=(map @tas scalar-function:ast)
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
-  =.  a  [-.a +>.a]
+  =/  ex  (extract-inline +>.a ~ (lent scalars))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                scalars
+                                [~ user-map cte-map cte-col-map]
+  =.  scalars  -.inl
+  =/  scalar-map=(map @tas scalar-function:ast)  +.inl
+  =.  a  [-.a raw.ex]
   ?:  ?=([* %where * %end-command ~] a)
     %:  crud-txn:ast  %crud-txn
                       ctes
@@ -2435,17 +2443,31 @@
       scalars   produced-scalars
       scalar-map  (mk-scalar-map produced-scalars)
     ==
-  ?:  =(-<.a %where)        %=  $
-                              a          +.a
-                              predicate  %-  produce-predicate
-                                             (predicate-list ->.a)
-                            ==
+  ?:  =(-<.a %where)
+    =/  ex  (extract-inline ->.a ~ (lent scalars))
+    =/  inl
+      %^  produce-inline-scalars  found.ex
+                                  scalars
+                                  [alias-map scalar-map cte-map cte-col-map]
+    %=  $
+      a           +.a
+      scalars     -.inl
+      scalar-map  +.inl
+      predicate   (produce-predicate (predicate-list raw.ex))
+    ==
   ?:  =(-<.a %select)
     ~|  "make-query produce-select: {<->.a>}"
+    =/  ex  (extract-inline (alias-select-inline ->.a) ~ (lent scalars))
+    =/  inl
+      %^  produce-inline-scalars  found.ex
+                                  scalars
+                                  [alias-map scalar-map cte-map cte-col-map]
     %=  $
-      a  +.a
+      a           +.a
+      scalars     -.inl
+      scalar-map  +.inl
       select
-        `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map)
+        `(produce-select raw.ex from alias-map +.inl cte-map cte-col-map)
     ==
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
@@ -2835,6 +2857,8 @@
     (cook-and-finalize-builtin-scalar-fn raw-scalar-body aliases)
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
+  ::  inline scalars inside a definition's predicates are defined just
+  ::  before that definition
   |=  $:  raw-scalars=*
           table-aliases=(map @t qualified-table:ast)
           cte-map=(map @tas @tas)
@@ -2842,33 +2866,93 @@
           ==
   ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
+  =/  out  *(list scalar:ast)
   =/  scalar-map  *(map @tas scalar-function:ast)
-  =/  finalized-scalars
-    ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
-    |-
-    ^-  (list scalar:ast)
-    ?~  scalars
-      ~
-    =/  parsed-scalar  -.scalars
-    =/  scalar-name=@tas
-          ?@  -.parsed-scalar
-            `@tas`-.parsed-scalar
-          ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
-    =/  fn-name  (@tas +<.parsed-scalar)
-    =/  raw-body  +>.parsed-scalar
-    ?:  (~(has by scalar-map) scalar-name)
-      ~|("there is already a scalar named {<scalar-name>}" !!)
-    =/  scalar-function
-      %^  produce-scalar-fn  fn-name
-                             raw-body
-                             [table-aliases scalar-map cte-map cte-col-map]
-    =/  scalar  [%scalar name=scalar-name scalar=scalar-function]
-      :-  scalar
-      %=  $
-        scalar-map  (~(put by scalar-map) scalar-name scalar-function)
-        scalars     +.scalars
-      ==
-  finalized-scalars
+  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
+  |-
+  ^-  (list scalar:ast)
+  ?~  scalars  out
+  =/  parsed-scalar  -.scalars
+  =/  scalar-name=@tas
+        ?@  -.parsed-scalar
+          `@tas`-.parsed-scalar
+        ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
+  ?:  (~(has by scalar-map) scalar-name)
+    ~|("there is already a scalar named {<scalar-name>}" !!)
+  =/  ex  (extract-inline +.parsed-scalar ~ (lent out))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                out
+                                [table-aliases scalar-map cte-map cte-col-map]
+  =/  body  ;;(raw-scalar-fn raw.ex)
+  =/  scalar-function
+    %^  produce-scalar-fn  -.body
+                           +.body
+                           [table-aliases +.inl cte-map cte-col-map]
+  %=  $
+    out         (snoc -.inl [%scalar name=scalar-name f=scalar-function])
+    scalar-map  (~(put by +.inl) scalar-name scalar-function)
+    scalars     +.scalars
+  ==
+::
+++  inline-scalar-name
+  ::  the dot keeps generated names out of the user identifier space
+  |=  i=@ud
+  ^-  @tas
+  (@tas (crip "inline.{<i>}"))
+::
+++  extract-inline
+  ::  replace each raw inline scalar in a raw parse noun with a reference to
+  ::  a generated scalar name, innermost first
+  ::
+  ::  found is newest first; its oldest entry is named base, so produced in
+  ::  order and appended to a scalar list of length base, each name is its
+  ::  index in that list
+  |=  [raw=* found=(list [@tas *]) base=@ud]
+  ^-  [raw=* found=(list [@tas *])]
+  ?@  raw  [raw found]
+  ?:  ?=([%'inline:scalar' *] raw)
+    =/  inner  $(raw +.raw)
+    =/  name  (inline-scalar-name (add base (lent found.inner)))
+    [[%unqualified-column name ~] [[name raw.inner] found.inner]]
+  =/  hed  $(raw -.raw)
+  =/  tal  $(raw +.raw, found found.hed)
+  [[raw.hed raw.tal] found.tal]
+::
+++  alias-select-inline
+  ::  name each unaliased inline scalar in a raw SELECT list by its
+  ::  position, as unaliased literals are named literal-<i>
+  |=  raw=*
+  ^-  *
+  ?:  ?=([%top @ *] raw)
+    [%top +<.raw $(raw +>.raw)]
+  =/  items  ;;((list *) raw)
+  =/  i  0
+  |-  ^-  (list *)
+  ?~  items  ~
+  :_  $(items t.items, i +(i))
+  ?.  ?=([%'inline:scalar' *] i.items)  i.items
+  [i.items %as (crip "scalar-{<i>}")]
+::
+++  produce-inline-scalars
+  ::  append scalars extracted from inline invocations, in definition order
+  |=  $:  found=(list [@tas *])
+          scalars=(list scalar:ast)
+          aliases=alias-maps
+          ==
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  =/  defs  (flop found)
+  |-
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  ?~  defs  [scalars scalar.aliases]
+  =/  raw-fn  ;;(raw-scalar-fn +.i.defs)
+  =/  f=scalar-function:ast  (produce-scalar-fn -.raw-fn +.raw-fn aliases)
+  %=  $
+    defs            t.defs
+    scalars         (snoc scalars [%scalar name=-.i.defs f=f])
+    scalar.aliases  (~(put by scalar.aliases) -.i.defs f)
+  ==
+::
 ++  finalize-predicate
   |=  $:  p=predicate:ast
           alias-map=(map @t qualified-table:ast)
@@ -3270,9 +3354,16 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
-  =/  scalar-map=(map @tas scalar-function:ast)
+  =/  user-map=(map @tas scalar-function:ast)
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
-  =/  b  +>.a
+  =/  ex  (extract-inline +>.a ~ (lent scalars))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                scalars
+                                [~ user-map cte-map cte-col-map]
+  =.  scalars  -.inl
+  =/  scalar-map=(map @tas scalar-function:ast)  +.inl
+  =/  b  raw.ex
   ?:  ?=([%set * ~] b)
     %:  crud-txn:ast  %crud-txn
                       ctes
@@ -4689,6 +4780,9 @@
             new-list
       a  +.a
     ==
+  ::  inline scalars are extracted before predicate-list wherever supported
+  ?:  ?=([%'inline:scalar' *] -.a)
+    ~|("scalar functions are not supported in this predicate" !!)
   ~|("problem with predicate noun:  {<a>}" !!)
 ++  predicate-stop  ~+
   ;~  pose
@@ -4697,7 +4791,8 @@
     ;~(plug whitespace (jester 'where') whitespace)
     ;~(plug whitespace (jester 'when') whitespace)
     ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'as') whitespace)
+    ::  AS must be a whole word, else ASIN(...) would end the predicate
+    ;~(plug whitespace (jester 'as') ;~(pose gah (just '\09') (just '\0d')))
     ;~(plug whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'left') whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'right') whitespace (jester 'join') whitespace)
@@ -4705,8 +4800,27 @@
     ;~(plug whitespace (jester 'then') whitespace)
     ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
   ==
+++  predicate-keyword  ~+
+  ::  keyword operators read as @uw literals by the numeric parser, so an
+  ::  inline scalar must not start with one: AND %x = y is not AND % x
+  ;~  plug
+    ;~  pose
+      (jester 'and')
+      (jester 'or')
+      (jester 'not')
+      (jester 'in')
+      (jester 'between')
+      (jester 'exists')
+      (jester 'any')
+      (jester 'all')
+      (jester 'equiv')
+    ==
+    ;~(pose gah (just '\09') (just '\0d') pal)
+  ==
 ++  predicate-part  ~+
+  ::  inline scalars precede aggregates, which accept any name before (
   ;~  pose
+    ;~(pfix whitespace ;~(less predicate-keyword parse-inline-scalar))
     parse-aggregate
     value-literal-list
     ;~(pose ;~(pfix whitespace parse-operator) parse-operator)
@@ -5264,12 +5378,15 @@
   |=  tub=nail
   ^-  (like *)
   =/  constant-follow
+    ::  end of input and ; allow a constant to end an inline expression
     ;~  pose
       gah
       (just '\09')
       (just '\0d')
       par
       com
+      mic
+      (cold ' ' (full (easy ~)))
     ==
   =/  parsed
     %+  cook
@@ -5900,6 +6017,99 @@
     parse-builtin-scalar-fn
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
+::
+::  inline scalars: scalar functions invoked in place, outside SCALARS
+::
+++  inline-arithmetic-op
+  ;~  pose
+    (cold %lus lus)
+    (cold %hep hep)
+    (cold %tar tar)
+    (cold %fas fas)
+    (cold %cen cen)
+    (cold %ket ket)
+  ==
+::
+++  inline-arithmetic-operand
+  ::  one operand as raw arithmetic tokens; a parenthesized operand nests
+  ::  a whole expression between %pal and %par
+  ::
+  ::  a gate so the recursive rule is built only when applied
+  |=  tub=nail
+  ^-  (like (list *))
+  %.  tub
+  ;~  pfix
+    whitespace
+    ;~  pose
+      %+  cook  |=(a=(list *) `(list *)`[%pal (snoc a %par)])
+      ;~  pfix  pal
+                ;~(sfix inline-arithmetic-tokens ;~(plug whitespace par))
+                ==
+      %+  cook  |=(a=* `(list *)`~[a])
+      ;~  pose
+        ;~(plug (cold %if (jester 'if')) parse-if)
+        ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+        ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
+        parse-coalesce
+        parse-builtin-scalar-fn
+        parse-builtin-scalar-constant
+        parse-scalar-param
+      ==
+    ==
+  ==
+::
+++  inline-arithmetic-tokens
+  ::  operand followed by any number of operator-operand pairs, flattened
+  %+  cook
+    |=  [first=(list *) rest=(list [@ (list *)])]
+    ^-  (list *)
+    =/  pairs=(list (list *))
+      (turn rest |=([op=@ b=(list *)] `(list *)`[op b]))
+    =/  tail=(list *)  (zing pairs)
+    (weld first tail)
+  ;~  plug
+    inline-arithmetic-operand
+    %-  star
+    ;~(plug ;~(pfix whitespace inline-arithmetic-op) inline-arithmetic-operand)
+  ==
+::
+++  parse-inline-arithmetic
+  ::  arithmetic without the END terminator; requires an operator
+  ::
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (inline-arithmetic-tokens tub)
+  ?~  q.parsed  parsed
+  ?.  (raw-arithmetic-has-operator p.u.q.parsed)  (fail tub)
+  [p.parsed `[[%arithmetic p.u.q.parsed] q.u.q.parsed]]
+::
+++  parse-inline-scalar
+  ::  produces [%'inline:scalar' raw-scalar-fn]; the colon keeps the tag out
+  ::  of the identifier space, so a raw-noun walk cannot mistake a column
+  ::
+  ::  arithmetic is tried first so a function or IF/CASE/COALESCE leading an
+  ::  arithmetic expression is not taken alone; bare constants (PI) are only
+  ::  operands, so a column named e or pi still parses as a column
+  ::
+  ::  a gate so the recursion through predicates is built only when applied
+  |=  tub=nail
+  ^-  (like *)
+  %.  tub
+  %+  stag  %'inline:scalar'
+  ;~  pose
+    parse-inline-arithmetic
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~  pfix
+      (jester 'case')
+      ;~  pose
+        (stag %simple-case parse-simple-case)
+        (stag %searched-case parse-searched-case)
+      ==
+    ==
+    parse-coalesce
+    parse-builtin-scalar-fn
+  ==
+::
 ++  parse-scalar
   ;~  plug
       ;~(pfix whitespace sym)   :: scalar name
@@ -5930,6 +6140,12 @@
       (cold %as (jester 'as'))
       ;~(pfix whitespace alias)
     ==
+    ;~  plug
+      ;~(sfix parse-inline-scalar whitespace)
+      (cold %as (jester 'as'))
+      ;~(pfix whitespace alias)
+    ==
+    parse-inline-scalar
     ;~  plug
       ;~(sfix parse-selected-aggregate whitespace)
       (cold %as (jester 'as'))

@@ -1,12 +1,12 @@
 # SCALAR FUNCTIONS
 
-Scalar functions are introduced by name (@tas) in the optional SCALARS clause following the FROM clause.
+Scalar functions are invoked inline, wherever a value is expected (see [Inline Scalar Functions](#inline-scalar-functions)), or introduced by name (@tas) in the optional SCALARS clause following the FROM clause.
 
 `[ SCALARS {<name> <scalar-function>} [ ...n ]]`
 
 Scalars operate on the current row's data, as well as selected Common Table Expression data elements (see below).
 
-Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definitions may reference prior scalars by name.
+Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definitions may reference prior scalars by name. Name a scalar in the SCALARS clause when the same expression is used more than once.
 
 ```
 <scalar-function> ::=
@@ -34,6 +34,42 @@ Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definit
 ```
 
 When referencing <cte-column> the Common Table Expression must have returned one and only one row, making the reference to a singleton datum.
+
+## Inline Scalar Functions
+
+Any `<scalar-function>` can be written in place, without a SCALARS definition, in:
+
+- the `SELECT` clause, with or without `AS <column-alias>`
+- `WHERE` predicates of queries, `UPDATE`, and `DELETE`
+- `UPDATE` `SET` values
+- the predicates of `IF` and searched `CASE`, including inside SCALARS definitions
+
+```
+SELECT GETUTCDATE()
+
+FROM adoptions
+WHERE YEAR(adoption-date) = 2024
+  AND LEN(name) > 3
+SELECT UPPER(name) AS name, species, adoption-fee * 2
+
+UPDATE adoptions
+SET adoption-fee = adoption-fee + 5
+WHERE LOWER(species) = 'cat'
+```
+
+An inline scalar function behaves exactly as if it were defined in the SCALARS clause and referenced by name. It may reference columns, CTE columns, scalars defined in the SCALARS clause, and nest other scalar functions, e.g. `LEN(TRIM(name))`.
+
+**Column names.** An inline scalar function in `SELECT` without `AS` is named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list, just as an unaliased literal is named `literal-<n>`. `SELECT 1, ABS(-1)` produces columns `literal-0` and `scalar-1`.
+
+**Arithmetic.** Inline arithmetic takes no `END` keyword; it ends at the first token that is not an arithmetic operator. Within the SCALARS clause arithmetic still terminates with `END`. A function, `IF`, `CASE`, or `COALESCE` followed by an operator is an operand of the arithmetic, e.g. `ABS(col1) + 1`.
+
+**Constants.** An inline constant standing alone must be written as a function: `PI()`, `TAU()`, `E()`, `PHI()`. The bare forms `PI`, `TAU`, `E`, and `PHI` are allowed only as arithmetic operands and function arguments (`2 * PI`, `SIN(PI)`), so a column named `e` or `pi` is still read as a column. In the SCALARS clause the bare forms may also stand alone.
+
+**Evaluation.** `GETUTCDATE()` returns the query time wherever it appears. Each `RAND` invocation is evaluated separately: `SELECT RAND(1, 10), RAND(1, 10)` produces two independent values.
+
+**MIN and MAX.** `MIN` and `MAX` with two arguments are scalar functions. With one argument, `MIN(col1)` and `MAX(col1)` are aggregates.
+
+**Not supported.** Scalar functions are not supported in `JOIN ... ON` predicates (the error is `scalar functions are not supported in this predicate`), in `INSERT` and `UPSERT` `VALUES`, in `MERGE`, or in `GROUP BY` and `ORDER BY`.
 
 ## Control Flow Functions
 
@@ -119,10 +155,10 @@ NOTE: until outer joins are implemented `COALESCE` is a useless function.
   <scalar-node> <arithmetic-op> <scalar-node>
   | ( <arithmetic> )
   | <arithmetic> <arithmetic-op> <arithmetic>
-  END
+  [ END ]
 ```
 
-Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules. Arithmetic scalars must terminate with the END keyword.
+Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules. Arithmetic defined in the SCALARS clause must terminate with the END keyword. Inline arithmetic takes no END (see [Inline Scalar Functions](#inline-scalar-functions)).
 
 `<scalar-node>` must evaluate to a `<numeric-expression>`, `@ud`, `@sd`, or `@rd`.
 
@@ -134,7 +170,7 @@ All arithmetic operators accept `@ud`, `@sd`, and `@rd`. Both scalar-nodes must 
 
 ### Important Syntax Requirements
 
-**Whitespace around operators:** Operators require whitespace before the next operand (scalar-node). For example, `1+1` is invalid, but `1+ 1` or `1 + 1` are valid.
+**Whitespace around operators:** An operator directly following a numeric literal requires whitespace before it, otherwise the operator is read as part of the literal. For example, `1+1` is invalid, but `1 +1` and `1 + 1` are valid. After a column name or a closing parenthesis no whitespace is needed (`col1*2`), except before `-`, which a column name absorbs (`col1-2` is the column `col1-2`).
 
 **Float literal notation:** Floating-point literals use Hoon double-precision (`@rd`) notation with a leading `~.` after the dot. For example, `0.1` must be written as `.~0.1`, and `3.14` as `.~3.14`.
 

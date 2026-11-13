@@ -111,6 +111,12 @@ SELECT A.name, A.adopter-email, A.adoption-fee, fee-tier;
 ```
 
 ```
+FROM adoptions A
+WHERE YEAR(A.adoption-date) = 2024
+SELECT UPPER(A.name) AS name, A.adoption-fee * 2 AS double-fee, GETUTCDATE();
+```
+
+```
 WITH (FROM persons P
       JOIN staff S
       SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff
@@ -149,7 +155,7 @@ Any valid `<relation>`.
 
 **`SCALARS { <name> <scalar-function> } [ ...n ]`**
 
-Defines named computed expressions evaluated per row. Scalar names may be used in `SELECT` and `WHERE`. Appears after `FROM` and before `WHERE`. See [SCALARS reference](scalars.md).
+Defines named computed expressions evaluated per row. Scalar names may be used in `SELECT` and `WHERE`. Appears after `FROM` and before `WHERE`. Scalar functions may also be invoked inline in `SELECT` and `WHERE` without a definition. See [SCALARS reference](scalars.md).
 
 **`{ <qualified-column> | <column-alias> | <column-ordinal> }`**
 
@@ -302,7 +308,9 @@ This operator performs a relational division on the left `<relation>` as the div
 
 The simplest possible query is `SELECT 0`.
 
-Column references in `WHERE` predicates must use unqualified column names or the alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates. CTE column references and `SCALARS` names are also valid in predicates.
+Column references in `WHERE` predicates must use unqualified column names or the alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates. CTE column references, `SCALARS` names, and inline scalar functions are also valid in predicates, e.g. `WHERE YEAR(adoption-date) = 2024`. Scalar functions are not valid in `JOIN ... ON` predicates.
+
+An inline scalar function in `SELECT` without `AS` produces a column named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list (an unaliased literal is likewise named `literal-<n>`).
 
 `<query>` does not change the Obelisk agent state, although it may create a cached view result, which is why the Obelisk agent requires a poke and not a scry.
 

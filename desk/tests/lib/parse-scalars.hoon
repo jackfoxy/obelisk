@@ -4851,4 +4851,1407 @@
         "        sc3 ADD-TIME(~2024.1.5..7.5.9,~d1) ".
         "        sc4 HOUR(~2024.1.5..7.5.9) ".
         "SELECT foo2,foo3"
+::
+::  ::::::::::::::::::::::::::::::::::::::::::::::::::
+::  ::::  inline scalars: functions outside SCALARS  ::::
+::  ::::::::::::::::::::::::::::::::::::::::::::::::::
+::
+::  each inline invocation becomes a generated scalar, appended to the
+::  query's scalars, named inline.<index in that list>; an unaliased
+::  SELECT item is named scalar-<position>
+::
+++  relation-inl
+  :*  %qualified-table
+      ship=~
+      database=%db1
+      namespace=%dbo
+      name=%inl
+      alias=~
+      ==
+++  u-id    [%unqualified-column name=%id alias=~]
+++  u-nud   [%unqualified-column name=%nud alias=~]
+++  u-nsd   [%unqualified-column name=%nsd alias=~]
+++  u-nrd   [%unqualified-column name=%nrd alias=~]
+++  u-nrd2  [%unqualified-column name=%nrd2 alias=~]
+++  u-nu    [%unqualified-column name=%nu alias=~]
+++  u-t     [%unqualified-column name=%t alias=~]
+++  u-tpad  [%unqualified-column name=%tpad alias=~]
+++  u-d     [%unqualified-column name=%d alias=~]
+++  u-dr    [%unqualified-column name=%dr alias=~]
+::
+++  inline-name
+  |=  i=@ud
+  ^-  @tas
+  (@tas (crip "inline.{<i>}"))
+::
+++  inline-ref
+  |=  i=@ud
+  ^-  scalar-name:ast
+  [%scalar-name (inline-name i)]
+::
+++  inline-col
+  ::  selected inline scalar i at SELECT position pos, unaliased
+  |=  [i=@ud pos=@ud]
+  ^-  selected-scalar:ast
+  [%selected-scalar (inline-name i) `(crip "scalar-{<pos>}")]
+::
+++  mk-inl-where
+  ::  FROM inl query with scalars, predicate and selected columns
+  |=  $:  scalars=(list scalar:ast)
+          =predicate:ast
+          columns=(list selected-column:ast)
+          ==
+  ^-  (list command:ast)
+  =/  from  [%from relation-id=relation-inl as-of=~ joins=~]
+  =/  query
+    :*  %query
+        from=[~ from]
+        scalars=scalars
+        predicate=predicate
+        group-by=~
+        having=~
+        select=[%select top=~ columns=columns]
+        ~
+        ==
+  ~[[%crud-txn ctes=~ body=[%query query]]]
+::
+++  inl-col
+  |=  name=@tas
+  ^-  qualified-column:ast
+  [%qualified-column relation-inl name ~]
+::
+++  nud-gt-6  [%gt [u-nud ~ ~] [[~.ud 6] ~ ~]]
+++  one-eq-2  [%eq [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
+::
+++  case-simple-lit
+  :*  %case
+      `[~.ud 2]
+      :~  [%case-when-then [~.ud 1] [~.t 'one']]
+          [%case-when-then [~.ud 2] [~.t 'two']]
+          ==
+      `[~.t 'other']
+      ==
+++  case-simple-col
+  :*  %case
+      `u-nud
+      ~[[%case-when-then [~.ud 5] [~.t 'five']]]
+      `[~.t 'other']
+      ==
+++  case-searched-lit
+  :*  %case
+      ~
+      :~  [%case-when-then one-eq-2 [~.t 'a']]
+          [%case-when-then simple-true-pred [~.t 'b']]
+          ==
+      ~
+      ==
+++  case-searched-col
+  :*  %case
+      ~
+      ~[[%case-when-then nud-gt-6 [~.t 'big']]]
+      `[~.t 'small']
+      ==
+::
+::  edge cases
+::
+::  AS alias on an inline scalar
+++  test-inline-select-alias
+  =/  scalars  ~[[%scalar (inline-name 0) [%abs [~.sd -1]]]]
+  =/  columns  ~[[%selected-scalar (inline-name 0) `'answer']]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars columns)
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ABS(-1) AS answer"
+::
+::  keywords and function names are case agnostic
+++  test-inline-select-lowercase
+  =/  scalars  ~[[%scalar (inline-name 0) [%abs [~.sd -1]]]]
+  =/  columns  ~[[%selected-scalar (inline-name 0) `'a']]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars columns)
+    !>  %-  parse:parse(default-database default-db)
+            "select abs(-1) as a"
+::
+::  unaliased inline scalars are named by SELECT position, as literals are
+++  test-inline-select-positions
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%abs [~.sd -1]]]
+        [%scalar (inline-name 1) [%pi ~]]
+        ==
+  =/  columns
+    :~  [%selected-value [~.ud 1] ~]
+        (inline-col 0 1)
+        [%selected-value [~.t 'x'] `'t']
+        (inline-col 1 3)
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars columns)
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT 1, ABS(-1), 'x' AS t, PI()"
+::
+::  inline scalars follow SCALARS definitions and may reference them
+++  test-inline-select-with-scalars
+  =/  scalars
+    :~  [%scalar 'sc1' [%abs [~.sd -5]]]
+        [%scalar (inline-name 1) [%abs [%scalar-name 'sc1']]]
+        ==
+  =/  columns
+    :~  [%selected-scalar 'sc1' ~]
+        (inline-col 1 1)
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars columns)
+    !>  %-  parse:parse(default-database default-db)
+            "SCALARS sc1 ABS(-5) SELECT sc1, ABS(sc1)"
+::
+::  nested functions are one inline scalar
+++  test-inline-select-nested
+  =/  scalars  ~[[%scalar (inline-name 0) [%len [%trim [~.t '  a  '] ~]]]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LEN(TRIM('  a  '))"
+::
+::  a function leading an arithmetic expression is an operand
+++  test-inline-select-fn-arithmetic
+  =/  f  [%arithmetic %lus [%abs [~.sd -5]] [~.sd --1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ABS(-5) + --1"
+::
+::  IF leading an arithmetic expression is an operand
+++  test-inline-select-if-arithmetic
+  =/  if  [%if-then-else simple-true-pred [~.ud 1] [~.ud 0]]
+  =/  scalars  ~[[%scalar (inline-name 0) [%arithmetic %lus if [~.ud 1]]]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT IF 1 = 1 THEN 1 ELSE 0 ENDIF + 1"
+::
+::  a bare constant is an arithmetic operand, also at end of input
+++  test-inline-select-bare-constant
+  =/  f  [%arithmetic %tar [~.rd .~2] [%pi ~]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT .~2 * PI"
+::
+::  arithmetic without whitespace around an operator after a column
+++  test-inline-where-no-whitespace
+  =/  scalars  ~[[%scalar (inline-name 0) [%arithmetic %tar u-nud [~.ud 2]]]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 10] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nud*2 = 10 SELECT id"
+::
+::  each RAND is a separate scalar, evaluated separately
+++  test-inline-select-rand-twice
+  =/  f  [%rand [~.ud 1] [~.ud 10]]
+  =/  scalars
+    :~  [%scalar (inline-name 0) f]
+        [%scalar (inline-name 1) f]
+        ==
+  %+  expect-eq
+    !>  %+  mk-crud-txn-no-from-columns
+          scalars
+        ~[(inline-col 0 0) (inline-col 1 1)]
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT RAND(1, 10), RAND(1, 10)"
+::
+++  test-inline-select-getutcdate-twice
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%getutcdate ~]]
+        [%scalar (inline-name 1) [%getutcdate ~]]
+        ==
+  %+  expect-eq
+    !>  %+  mk-crud-txn-no-from-columns
+          scalars
+        ~[(inline-col 0 0) (inline-col 1 1)]
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT GETUTCDATE(), GETUTCDATE()"
+::
+::  names that begin like functions or constants remain columns
+++  test-inline-columns-like-functions
+  =/  pred
+    :+  %and
+        :+  %and
+            [%eq [[%unqualified-column 'ifx' ~] ~ ~] [[~.ud 1] ~ ~]]
+            [%eq [[%unqualified-column 'casey' ~] ~ ~] [[~.ud 2] ~ ~]]
+        [%eq [[%unqualified-column 'abs' ~] ~ ~] [[~.ud 3] ~ ~]]
+  =/  columns
+    :~  [%unqualified-column 'e' ~]
+        [%unqualified-column 'pi' ~]
+        ==
+  %+  expect-eq
+    !>  (mk-inl-where ~ pred columns)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ifx = 1 AND casey = 2 AND abs = 3 SELECT e, pi"
+::
+::  keyword operators read as @uw literals; one followed by % must not
+::  start an arithmetic operand
+++  test-inline-where-keyword-before-term
+  =/  pred
+    :+  %or
+        :+  %and
+            [%eq [[%ta ~.a.b] ~ ~] [[%unqualified-column 'path' ~] ~ ~]]
+            [%eq [[%tas %x] ~ ~] [[%unqualified-column 'term' ~] ~ ~]]
+        [%eq [[%sd -1] ~ ~] [[%unqualified-column 'nsd' ~] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where ~ pred ~[[%all %all]])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ~.a.b=path AND %x=term OR -1 = nsd SELECT *"
+::
+::  a function starting with AS does not end the predicate
+++  test-inline-where-as-prefix
+  =/  scalars  ~[[%scalar (inline-name 0) [%asin u-nu]]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ASIN(nu) = .~0 SELECT id"
+::
+::  inline scalars on both sides of a predicate and in SELECT, numbered in
+::  order of appearance
+++  test-inline-where-both-sides
+  =/  scalars
+    :~  :+  %scalar
+            (inline-name 0)
+            [%arithmetic %lus [%len u-t] [~.ud 4]]
+        [%scalar (inline-name 1) [%len u-tpad]]
+        [%scalar (inline-name 2) [%upper u-t]]
+        ==
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [(inline-ref 1) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[(inline-col 2 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LEN(t) + 4 = LEN(tpad) SELECT UPPER(t)"
+::
+::  inline scalars inside parenthesized predicate groups
+++  test-inline-where-grouping
+  =/  scalars  ~[[%scalar (inline-name 0) [%len u-t]]]
+  =/  pred
+    :+  %and
+        :+  %or
+            [%eq [(inline-ref 0) ~ ~] [[~.ud 5] ~ ~]]
+            [%eq [u-nud ~ ~] [[~.ud 9] ~ ~]]
+        [%lt [u-id ~ ~] [[~.ud 2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE (LEN(t) = 5 OR nud = 9) AND id < 2 SELECT id"
+::
+++  test-inline-where-in
+  =/  scalars  ~[[%scalar (inline-name 0) [%len u-tpad]]]
+  =/  pred  [%in [(inline-ref 0) ~ ~] [[%value-literals %ud '7;3'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LEN(tpad) IN (3,7) SELECT id"
+::
+++  test-inline-where-between
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%len u-t]]
+        [%scalar (inline-name 1) [%len u-tpad]]
+        ==
+  =/  pred
+    :+  %between
+        [%gte [u-nud ~ ~] [(inline-ref 0) ~ ~]]
+        [%lte [u-nud ~ ~] [(inline-ref 1) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nud BETWEEN LEN(t) AND LEN(tpad) SELECT id"
+::
+++  test-inline-where-not
+  =/  scalars  ~[[%scalar (inline-name 0) [%upper u-t]]]
+  =/  pred  [%not [%eq [(inline-ref 0) ~ ~] [[~.t 'HELLO'] ~ ~]] ~]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE NOT UPPER(t) = 'HELLO' SELECT id"
+::
+::  an inline scalar in an inline IF predicate is defined first
+++  test-inline-where-nested-if
+  =/  if
+    :^  %if-then-else
+        [%gt [(inline-ref 0) ~ ~] [[~.ud 4] ~ ~]]
+        [~.ud 1]
+        [~.ud 0]
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%len u-tpad]]
+        [%scalar (inline-name 1) if]
+        ==
+  =/  pred  [%eq [(inline-ref 1) ~ ~] [[~.ud 1] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE IF LEN(tpad) > 4 THEN 1 ELSE 0 ENDIF = 1 ".
+            "SELECT id"
+::
+::  an inline scalar may reference a SCALARS definition
+++  test-inline-where-references-scalar
+  =/  scalars
+    :~  [%scalar 's1' [%arithmetic %lus u-nud [~.ud 1]]]
+        [%scalar (inline-name 1) [%abs [%scalar-name 's1']]]
+        ==
+  =/  pred  [%eq [(inline-ref 1) ~ ~] [[~.ud 6] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl SCALARS s1 nud + 1 END WHERE ABS(s1) = 6 SELECT id"
+::
+::  an inline scalar in a SCALARS IF predicate is defined before it
+++  test-inline-in-scalars-if
+  =/  if
+    :^  %if-then-else
+        [%gt [(inline-ref 0) ~ ~] [[~.ud 4] ~ ~]]
+        [~.t 'long']
+        [~.t 'short']
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%len u-tpad]]
+        [%scalar 's1' if]
+        ==
+  =/  columns  ~[u-id [%selected-scalar 's1' ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars ~ columns)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl SCALARS s1 IF LEN(tpad) > 4 THEN 'long' ELSE 'short' ".
+            "ENDIF SELECT id, s1"
+::
+::  an inline scalar in a SCALARS searched CASE predicate
+++  test-inline-in-scalars-case
+  =/  case
+    :*  %case
+        ~
+        :~  :+  %case-when-then
+                [%eq [(inline-ref 0) ~ ~] [[~.t 'HELLO'] ~ ~]]
+                [~.ud 1]
+            ==
+        `[~.ud 0]
+        ==
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%upper u-t]]
+        [%scalar 's1' case]
+        ==
+  =/  columns  ~[u-id [%selected-scalar 's1' ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars ~ columns)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl SCALARS s1 CASE WHEN UPPER(t) = 'HELLO' THEN 1 ".
+            "ELSE 0 END SELECT id, s1"
+::
+++  test-inline-select-top
+  =/  scalars  ~[[%scalar (inline-name 0) [%abs u-nsd]]]
+  =/  query
+    :*  %query
+        from=[~ [%from relation-id=relation-inl as-of=~ joins=~]]
+        scalars=scalars
+        predicate=~
+        group-by=~
+        having=~
+        select=[%select top=[~ 2] columns=~[(inline-col 0 0)]]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl SELECT TOP 2 ABS(nsd)"
+::
+::  UPDATE SET values and WHERE; SET lists are produced last to first
+++  test-inline-update
+  =/  scalars
+    :~  [%scalar (inline-name 0) [%arithmetic %lus u-nud [~.ud 1]]]
+        [%scalar (inline-name 1) [%upper u-t]]
+        [%scalar (inline-name 2) [%len u-tpad]]
+        ==
+  =/  pred  [%eq [(inline-ref 2) ~ ~] [[~.ud 9] ~ ~]]
+  =/  expected
+    :*  %crud-txn
+        ctes=~
+        :-  %update
+        :*  %update
+            scalars=scalars
+            table=relation-inl
+            as-of=~
+            :-  columns=~[(inl-col %t) (inl-col %nud)]
+                values=~[(inline-ref 1) (inline-ref 0)]
+            predicate=pred
+            ==
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database default-db)
+            "UPDATE inl SET nud = nud + 1, t = UPPER(t) WHERE LEN(tpad) = 9"
+::
+++  test-inline-delete
+  =/  scalars  ~[[%scalar (inline-name 0) [%abs u-nsd]]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.sd --1] ~ ~]]
+  =/  expected
+    :*  %crud-txn
+        ctes=~
+        [%delete [%delete scalars=scalars table=relation-inl ~ pred]]
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database default-db)
+            "DELETE FROM inl WHERE ABS(nsd) = --1"
+::
+::  an unaliased inline scalar is a CTE column named by position
+++  test-inline-cte
+  =/  cte-query
+    :*  %query
+        from=[~ [%from relation-id=relation-inl as-of=~ joins=~]]
+        scalars=~[[%scalar (inline-name 0) [%len u-tpad]]]
+        predicate=~
+        group-by=~
+        having=~
+        select=[%select top=~ columns=~[u-id (inline-col 0 1)]]
+        ~
+        ==
+  =/  outer-query
+    :*  %query
+        from=[~ [%from relation-id=[%cte-name 'c' ~] as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            columns=~[[%unqualified-column 'scalar-1' ~]]
+        ~
+        ==
+  =/  ctes  ~[[%cte name='c' body=[%query cte-query]]]
+  %+  expect-eq
+    !>  ~[[%crud-txn ctes=ctes body=[%query outer-query]]]
+    !>  %-  parse:parse(default-database default-db)
+            "WITH (FROM inl SELECT id, LEN(tpad)) AS c FROM c SELECT scalar-1"
+::
+::  JOIN ON predicates do not support scalar functions
+++  test-fail-inline-join-on
+  %+  expect-fail-message
+    'scalar functions are not supported in this predicate'
+    |.  %-  parse:parse(default-database default-db)
+            "FROM inl AS T1 JOIN inl AS T2 ON ABS(T1.nsd) = T2.nsd ".
+            "SELECT T1.id"
+::
+::  an operator needs a following operand
+++  test-fail-inline-arithmetic-incomplete
+  %+  expect-fail-message
+    'PARSER: '
+    |.  %-  parse:parse(default-database default-db)
+            "SELECT 1 +"
+::
+::  generated: each function in SELECT with literal arguments and in WHERE
+::  with column arguments
+::
+++  test-inline-select-abs
+  =/  f  [%abs [~.sd -1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ABS(-1)"
+::
+++  test-inline-where-abs
+  =/  f  [%abs u-nsd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.sd --1] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ABS(nsd) = --1 SELECT id"
+::
+++  test-inline-select-sign
+  =/  f  [%sign [~.sd -1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SIGN(-1)"
+::
+++  test-inline-where-sign
+  =/  f  [%sign u-nsd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.sd -1] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SIGN(nsd) = -1 SELECT id"
+::
+++  test-inline-select-sqrt
+  =/  f  [%sqrt [~.rd .~4]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SQRT(.~4)"
+::
+++  test-inline-where-sqrt
+  =/  f  [%sqrt u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SQRT(nrd) = .~2 SELECT id"
+::
+++  test-inline-select-floor
+  =/  f  [%floor [~.rd .~1.5]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT FLOOR(.~1.5)"
+::
+++  test-inline-where-floor
+  =/  f  [%floor u-nrd2]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~1] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE FLOOR(nrd2) = .~1 SELECT id"
+::
+++  test-inline-select-ceiling
+  =/  f  [%ceiling [~.rd .~1.5]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT CEILING(.~1.5)"
+::
+++  test-inline-where-ceiling
+  =/  f  [%ceiling u-nrd2]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE CEILING(nrd2) = .~2 SELECT id"
+::
+++  test-inline-select-round
+  =/  f  [%round [~.rd .~1.5] [~.ud 0]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ROUND(.~1.5, 0)"
+::
+++  test-inline-where-round
+  =/  f  [%round u-nrd2 [~.ud 0]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ROUND(nrd2, 0) = .~2 SELECT id"
+::
+++  test-inline-select-max
+  =/  f  [%max [~.rd .~1] [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT MAX(.~1, .~2)"
+::
+++  test-inline-where-max
+  =/  f  [%max u-nrd [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE MAX(nrd, .~2) = .~2 SELECT id"
+::
+++  test-inline-select-min
+  =/  f  [%min [~.rd .~1] [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT MIN(.~1, .~2)"
+::
+++  test-inline-where-min
+  =/  f  [%min u-nrd [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~1] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE MIN(nrd, .~2) = .~1 SELECT id"
+::
+++  test-inline-select-log
+  =/  f  [%log [~.rd .~1] ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LOG(.~1)"
+::
+++  test-inline-where-log
+  =/  f  [%log u-nrd ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LOG(nrd) = .~0 SELECT id"
+::
+++  test-inline-select-sin
+  =/  f  [%sin [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SIN(.~1)"
+::
+++  test-inline-where-sin
+  =/  f  [%sin u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0.84147098480789606] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SIN(nrd) = .~0.84147098480789606 SELECT id"
+::
+++  test-inline-select-cos
+  =/  f  [%cos [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT COS(.~1)"
+::
+++  test-inline-where-cos
+  =/  f  [%cos u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0.54030230586813921] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE COS(nrd) = .~0.54030230586813921 SELECT id"
+::
+++  test-inline-select-tan
+  =/  f  [%tan [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT TAN(.~1)"
+::
+++  test-inline-where-tan
+  =/  f  [%tan u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~1.5574077246549027] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE TAN(nrd) = .~1.5574077246549027 SELECT id"
+::
+++  test-inline-select-asin
+  =/  f  [%asin [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ASIN(.~1)"
+::
+++  test-inline-where-asin
+  =/  f  [%asin u-nu]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~1.5707963267948966] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ASIN(nu) = .~1.5707963267948966 SELECT id"
+::
+++  test-inline-select-acos
+  =/  f  [%acos [~.rd .~0]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ACOS(.~0)"
+::
+++  test-inline-where-acos
+  =/  f  [%acos u-nu]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ACOS(nu) = .~0 SELECT id"
+::
+++  test-inline-select-atan
+  =/  f  [%atan [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ATAN(.~1)"
+::
+++  test-inline-where-atan
+  =/  f  [%atan u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0.78539816339745139] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ATAN(nrd) = .~0.78539816339745139 SELECT id"
+::
+++  test-inline-select-atan2
+  =/  f  [%atan2 [~.rd .~1] [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ATAN2(.~1, .~2)"
+::
+++  test-inline-where-atan2
+  =/  f  [%atan2 u-nrd [~.rd .~2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~0.46364760900080748] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ATAN2(nrd, .~2) = .~0.46364760900080748 SELECT id"
+::
+++  test-inline-select-degrees
+  =/  f  [%degrees [~.rd .~1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT DEGREES(.~1)"
+::
+++  test-inline-where-degrees
+  =/  f  [%degrees u-nrd]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.rd .~57.29577951308232] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE DEGREES(nrd) = .~57.29577951308232 SELECT id"
+::
+++  test-inline-select-e
+  =/  f  [%e ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT E()"
+::
+++  test-inline-where-e
+  =/  f  [%e ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%lt [u-nrd ~ ~] [(inline-ref 0) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nrd < E() SELECT id"
+::
+++  test-inline-select-phi
+  =/  f  [%phi ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT PHI()"
+::
+++  test-inline-where-phi
+  =/  f  [%phi ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%lt [u-nrd ~ ~] [(inline-ref 0) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nrd < PHI() SELECT id"
+::
+++  test-inline-select-pi
+  =/  f  [%pi ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT PI()"
+::
+++  test-inline-where-pi
+  =/  f  [%pi ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%lt [u-nrd ~ ~] [(inline-ref 0) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nrd < PI() SELECT id"
+::
+++  test-inline-select-tau
+  =/  f  [%tau ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT TAU()"
+::
+++  test-inline-where-tau
+  =/  f  [%tau ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%lt [u-nrd ~ ~] [(inline-ref 0) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE nrd < TAU() SELECT id"
+::
+++  test-inline-select-getutcdate
+  =/  f  [%getutcdate ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT GETUTCDATE()"
+::
+++  test-inline-where-getutcdate
+  =/  f  [%getutcdate ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%gt [u-d ~ ~] [(inline-ref 0) ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE d > GETUTCDATE() SELECT id"
+::
+++  test-inline-select-year
+  =/  f  [%year [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT YEAR(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-year
+  =/  f  [%year u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 2.026] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE YEAR(d) = 2026 SELECT id"
+::
+++  test-inline-select-month
+  =/  f  [%month [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT MONTH(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-month
+  =/  f  [%month u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 3] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE MONTH(d) = 3 SELECT id"
+::
+++  test-inline-select-day
+  =/  f  [%day [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT DAY(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-day
+  =/  f  [%day u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 15] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE DAY(d) = 15 SELECT id"
+::
+++  test-inline-select-hour
+  =/  f  [%hour [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT HOUR(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-hour
+  =/  f  [%hour u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 10] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE HOUR(d) = 10 SELECT id"
+::
+++  test-inline-select-minute
+  =/  f  [%minute [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT MINUTE(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-minute
+  =/  f  [%minute u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 30] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE MINUTE(d) = 30 SELECT id"
+::
+++  test-inline-select-second
+  =/  f  [%second [~.da ~2026.3.15..10.30.45]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SECOND(~2026.3.15..10.30.45)"
+::
+++  test-inline-where-second
+  =/  f  [%second u-d]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 45] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SECOND(d) = 45 SELECT id"
+::
+++  test-inline-select-add-time
+  =/  f  [%add-time [~.da ~2026.3.15..10.30.45] [~.dr ~d1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT ADD-TIME(~2026.3.15..10.30.45, ~d1)"
+::
+++  test-inline-where-add-time
+  =/  f  [%add-time u-d u-dr]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.da ~2026.3.16..10.30.45] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE ADD-TIME(d, dr) = ~2026.3.16..10.30.45 SELECT id"
+::
+++  test-inline-select-subtract-time
+  =/  f  [%subtract-time [~.da ~2026.3.15..10.30.45] [~.dr ~d1]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SUBTRACT-TIME(~2026.3.15..10.30.45, ~d1)"
+::
+++  test-inline-where-subtract-time
+  =/  f  [%subtract-time u-d u-dr]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.da ~2026.3.14..10.30.45] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SUBTRACT-TIME(d, dr) = ~2026.3.14..10.30.45 ".
+            "SELECT id"
+::
+++  test-inline-select-concat
+  =/  f  [%concat ~[[~.t 'hello'] [~.t 'world']]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT CONCAT('hello', 'world')"
+::
+++  test-inline-where-concat
+  =/  f  [%concat ~[u-t [~.t 'world']]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'helloworld'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE CONCAT(t, 'world') = 'helloworld' SELECT id"
+::
+++  test-inline-select-left
+  =/  f  [%left [~.t 'hello'] [~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LEFT('hello', 3)"
+::
+++  test-inline-where-left
+  =/  f  [%left u-t [~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hel'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LEFT(t, 3) = 'hel' SELECT id"
+::
+++  test-inline-select-len
+  =/  f  [%len [~.t 'hello']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LEN('hello')"
+::
+++  test-inline-where-len
+  =/  f  [%len u-tpad]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 9] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LEN(tpad) = 9 SELECT id"
+::
+++  test-inline-select-lower
+  =/  f  [%lower [~.t 'HELLO']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LOWER('HELLO')"
+::
+++  test-inline-where-lower
+  =/  f  [%lower u-t]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'world'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LOWER(t) = 'world' SELECT id"
+::
+++  test-inline-select-ltrim
+  =/  f  [%ltrim [~.t '  hello  '] ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT LTRIM('  hello  ')"
+::
+++  test-inline-where-ltrim
+  =/  f  [%ltrim u-tpad ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hello  '] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE LTRIM(tpad) = 'hello  ' SELECT id"
+::
+++  test-inline-select-patindex
+  =/  f  [%patindex [~.t 'hello'] [~.t 'ell']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT PATINDEX('hello', 'ell')"
+::
+++  test-inline-where-patindex
+  =/  f  [%patindex u-t [~.t 'ell']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 2] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE PATINDEX(t, 'ell') = 2 SELECT id"
+::
+++  test-inline-select-quotestring
+  =/  f  [%quotestring [~.t 'hello'] ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT QUOTESTRING('hello')"
+::
+++  test-inline-where-quotestring
+  =/  f  [%quotestring u-t ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t '[hello]'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE QUOTESTRING(t) = '[hello]' SELECT id"
+::
+++  test-inline-select-replace
+  =/  f  [%replace [~.t 'hello world'] [~.t 'world'] [~.t 'there']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT REPLACE('hello world', 'world', 'there')"
+::
+++  test-inline-where-replace
+  =/  f  [%replace u-t [~.t 'ell'] [~.t 'ELL']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hELLo'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE REPLACE(t, 'ell', 'ELL') = 'hELLo' SELECT id"
+::
+++  test-inline-select-replicate
+  =/  f  [%replicate [~.t 'ha'] [~.ud 2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT REPLICATE('ha', 2)"
+::
+++  test-inline-where-replicate
+  =/  f  [%replicate u-t [~.ud 2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hellohello'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE REPLICATE(t, 2) = 'hellohello' SELECT id"
+::
+++  test-inline-select-reverse
+  =/  f  [%reverse [~.t 'hello']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT REVERSE('hello')"
+::
+++  test-inline-where-reverse
+  =/  f  [%reverse u-t]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'olleh'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE REVERSE(t) = 'olleh' SELECT id"
+::
+++  test-inline-select-right
+  =/  f  [%right [~.t 'hello'] [~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT RIGHT('hello', 3)"
+::
+++  test-inline-where-right
+  =/  f  [%right u-t [~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'llo'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE RIGHT(t, 3) = 'llo' SELECT id"
+::
+++  test-inline-select-rtrim
+  =/  f  [%rtrim [~.t '  hello  '] ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT RTRIM('  hello  ')"
+::
+++  test-inline-where-rtrim
+  =/  f  [%rtrim u-tpad ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t '  hello'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE RTRIM(tpad) = '  hello' SELECT id"
+::
+++  test-inline-select-string
+  =/  f  [%string [~.ud 42]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT STRING(42)"
+::
+++  test-inline-where-string
+  =/  f  [%string u-nud]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t '5'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE STRING(nud) = '5' SELECT id"
+::
+++  test-inline-select-string-concat
+  =/  f  [%string-concat ~[[~.t 'hello'] [~.t 'world']] [~.t ', ']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT STRING-CONCAT('hello', 'world', ', ')"
+::
+++  test-inline-where-string-concat
+  =/  f  [%string-concat ~[u-t [~.t 'world']] [~.t ', ']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hello, world'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE STRING-CONCAT(t, 'world', ', ') = 'hello, ".
+            "world' SELECT id"
+::
+++  test-inline-select-stuff
+  =/  f  [%stuff [~.t 'hello world'] [~.ud 7] [~.ud 5] [~.t 'there']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT STUFF('hello world', 7, 5, 'there')"
+::
+++  test-inline-where-stuff
+  =/  f  [%stuff u-t [~.ud 2] [~.ud 3] [~.t 'ELL']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hELLo'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE STUFF(t, 2, 3, 'ELL') = 'hELLo' SELECT id"
+::
+++  test-inline-select-substring
+  =/  f  [%substring [~.t 'hello'] [~.ud 2] `[~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT SUBSTRING('hello', 2, 3)"
+::
+++  test-inline-where-substring
+  =/  f  [%substring u-t [~.ud 2] `[~.ud 3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'ell'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE SUBSTRING(t, 2, 3) = 'ell' SELECT id"
+::
+++  test-inline-select-trim
+  =/  f  [%trim [~.t '  hello  '] ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT TRIM('  hello  ')"
+::
+++  test-inline-where-trim
+  =/  f  [%trim u-tpad ~]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'hello'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE TRIM(tpad) = 'hello' SELECT id"
+::
+++  test-inline-select-upper
+  =/  f  [%upper [~.t 'hello']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT UPPER('hello')"
+::
+++  test-inline-where-upper
+  =/  f  [%upper u-t]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'HELLO'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE UPPER(t) = 'HELLO' SELECT id"
+::
+++  test-inline-select-coalesce
+  =/  f  [%coalesce ~[[~.ud 1] [~.ud 2]]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT COALESCE(1, 2)"
+::
+++  test-inline-where-coalesce
+  =/  f  [%coalesce ~[u-nud [~.ud 1]]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 5] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE COALESCE(nud, 1) = 5 SELECT id"
+::
+++  test-inline-select-if
+  =/  f  [%if-then-else simple-true-pred [~.t 'yes'] [~.t 'no']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT IF 1 = 1 THEN 'yes' ELSE 'no' ENDIF"
+::
+++  test-inline-where-if
+  =/  f  [%if-then-else nud-gt-6 [~.t 'big'] [~.t 'small']]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'small'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE IF nud > 6 THEN 'big' ELSE 'small' ENDIF = ".
+            "'small' SELECT id"
+::
+++  test-inline-select-case-simple
+  =/  f  case-simple-lit
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT CASE 2 WHEN 1 THEN 'one' WHEN 2 THEN 'two' ELSE ".
+            "'other' END"
+::
+++  test-inline-where-case-simple
+  =/  f  case-simple-col
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'five'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE CASE nud WHEN 5 THEN 'five' ELSE 'other' END ".
+            "= 'five' SELECT id"
+::
+++  test-inline-select-case-searched
+  =/  f  case-searched-lit
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT CASE WHEN 1 = 2 THEN 'a' WHEN 1 = 1 THEN 'b' END"
+::
+++  test-inline-where-case-searched
+  =/  f  case-searched-col
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.t 'big'] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE CASE WHEN nud > 6 THEN 'big' ELSE 'small' END ".
+            "= 'big' SELECT id"
+::
+++  test-inline-select-arithmetic
+  =/  f  [%arithmetic %lus [~.ud 1] [%arithmetic %tar [~.ud 2] [~.ud 3]]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT 1 + 2 * 3"
+::
+++  test-inline-where-arithmetic
+  =/  f  [%arithmetic %tar [%arithmetic %lus u-nud [~.ud 1]] [~.ud 2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  =/  pred  [%eq [(inline-ref 0) ~ ~] [[~.ud 20] ~ ~]]
+  %+  expect-eq
+    !>  (mk-inl-where scalars pred ~[u-id])
+    !>  %-  parse:parse(default-database default-db)
+            "FROM inl WHERE (nud + 1) * 2 = 20 SELECT id"
 --

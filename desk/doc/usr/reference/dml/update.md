@@ -56,10 +56,10 @@ WHERE my-cte.col1 = my-cte.col3;
 The target of the `UPDATE` operation.
 
 **`<scalar-node>`**
-`<scalar-node>` is a valid expression within the statement context.
+`<scalar-node>` is a valid expression within the statement context, including a scalar function invoked inline, e.g. `SET col1 = col1 + 1, col2 = UPPER(col2)`. See [inline scalar functions](../scalars.md#inline-scalar-functions).
 
 **`<predicate>`**
-Any valid `<predicate>`, including predicates on CTEs and/or scalars.
+Any valid `<predicate>`, including predicates on CTEs, scalar names, and inline scalar functions.
 
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the UPDATE operation. The resulting content timestamp will be `NOW` (current server time).

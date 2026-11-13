@@ -10,6 +10,26 @@ SCALARS { <name> <scalar-function> } [ ...n ]
 
 A `<cte-column>` operand requires the CTE to have returned exactly one row.
 
+## Inline invocation
+
+Any scalar function may also be written in place, without a `SCALARS` definition: in `SELECT` (with or without `AS`), in `WHERE` predicates of queries, `UPDATE`, and `DELETE`, in `UPDATE` `SET` values, and in `IF`/searched-`CASE` predicates (also inside `SCALARS` definitions). It behaves exactly like a `SCALARS` definition referenced by name.
+
+```
+FROM adoptions
+WHERE YEAR(adoption-date) = 2024 AND LEN(name) > 3
+SELECT UPPER(name) AS name, species, adoption-fee * 2;
+
+UPDATE adoptions SET adoption-fee = adoption-fee + 5 WHERE LOWER(species) = 'cat';
+```
+
+- Inline arithmetic takes **no `END`**; it ends at the first non-operator token. `ABS(col1) + 1` is one arithmetic expression.
+- Unaliased inline `SELECT` items are named `scalar-<n>` (zero-based `SELECT` position), like `literal-<n>` for literals.
+- Standing alone, constants need parentheses inline: `PI()`, `E()`, `TAU()`, `PHI()`. Bare `PI` etc. only as arithmetic operands or function arguments.
+- `GETUTCDATE()` is the query time everywhere; each `RAND` call is evaluated separately.
+- Two-argument `MIN`/`MAX` are scalars; one-argument `MIN(col)`/`MAX(col)` are aggregates.
+- **Not allowed** in `JOIN ... ON` predicates (`scalar functions are not supported in this predicate`), `INSERT`/`UPSERT` `VALUES`, `MERGE`, `GROUP BY`, `ORDER BY`.
+- AST: each inline call becomes a generated scalar `inline.<i>` appended to the statement's `scalars` (after `SCALARS` definitions; `<i>` is its index in that list) and is referenced as `[%scalar-name 'inline.<i>']` / `[%selected-scalar 'inline.<i>' alias]`.
+
 ```
 FROM adoptions A
 SCALARS full-label CONCAT(name, ' (', species, ')')
@@ -37,7 +57,8 @@ COALESCE ( <scalar-node> [ ,...n ] )
 
 - Operands are `@ud`, `@sd`, or `@rd`; both sides same type, result same type. `%` (modulo) does **not** accept `@rd`.
 - `/` on `@ud`/`@sd` is **integer division** and truncates toward zero: `5 / 2 END` is `2`, not `.~2.5`. Use `@rd` operands for a fractional result.
-- An arithmetic scalar must **terminate with `END`**: `col1 + col2 * 3 END`.
+- An arithmetic scalar in the `SCALARS` clause must **terminate with `END`**: `col1 + col2 * 3 END`. Inline arithmetic has no `END`.
+- Put whitespace between a numeric literal and a following operator (`1+1` fails; `1 +1`, `1 + 1` work). After a column or `)` none is needed, except `-`, which a column name absorbs.
 - Whitespace required before each operand: `1+ 1` or `1 + 1`, never `1+1`.
 - Precedence: `^` (highest), then `*` `/` `%`, then `+` `-`. `^` is right-associative; the rest left-associative. Parentheses override.
 - Only mathematical functions and constants (below) may appear inside arithmetic — not string functions.

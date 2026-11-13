@@ -24,11 +24,11 @@ urQL is the scripting/query language of Obelisk, an Urbit-native RDBMS Gall agen
 
 ## Workflow
 
-**Writing / generating:** confirm clause order (`syntax.md` → Clause ordering), qualify objects (`<db>.<ns>.<obj>`, `dbo`/current-db defaults), use aura-correct literals, list columns explicitly (avoid `SELECT *` in saved scripts), end arithmetic scalars with `END`.
+**Writing / generating:** confirm clause order (`syntax.md` → Clause ordering), qualify objects (`<db>.<ns>.<obj>`, `dbo`/current-db defaults), use aura-correct literals, list columns explicitly (avoid `SELECT *` in saved scripts), end arithmetic scalars in the `SCALARS` clause with `END` (inline arithmetic in `SELECT`/`WHERE`/`SET` takes no `END`).
 
 **Reviewing:** check for SQL-isms that are invalid urQL — SELECT-first order, `--` comments, `INNER JOIN`, `DISTINCT`, nulls, `NULL`, inlined sub-selects, `DELETE` with no `WHERE`, qualified table names inside predicates (only unqualified names or aliases allowed), bare `3.14` where `@rd` is meant. Verify joins actually share a name+aura column (natural join crashes otherwise).
 
-**Debugging:** parser errors are terse — inspect the script structurally (clause order, parentheses, `END` on arithmetic, comma vs. no-comma in `VALUES` rows). Use the `%parse` action to inspect the AST without executing (`system-views-and-api.md`). Confirm a feature is actually executed and not parse-only (see status tables).
+**Debugging:** parser errors are terse — inspect the script structurally (clause order, parentheses, `END` on `SCALARS` arithmetic, whitespace between a numeric literal and an operator, comma vs. no-comma in `VALUES` rows). Use the `%parse` action to inspect the AST without executing (`system-views-and-api.md`). Confirm a feature is actually executed and not parse-only (see status tables).
 
 ## Reference map
 
