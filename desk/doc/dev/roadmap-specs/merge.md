@@ -218,7 +218,7 @@ Tables in the namespace *sys* cannot be merged into.
 
 At least one of the three `MATCHED` / `NOT MATCHED` clauses must be specified, but they can be specified in any order.
 
-`INSERT`, `UPDATE`, or `DELETE` actions specified on `<target-table>` are limited by any constraints defined on it (when it is a base `<table>`), including unique indices and any cascading referential integrity constraints. 
+`INSERT`, `UPDATE`, or `DELETE` actions specified on `<target-table>` are limited by any constraints defined on it (when it is a base `<table>`), including unique indices and any cascading relational integrity constraints. 
 
 It `<target-table>` is updated in place, or a `<new-table>` created, every `INSERT` clause must account for all columns in `<target-table>`. Inserting fewer columns results in a new row sub-type, which is allowed when creating a virtual `<relation>`.
 
@@ -234,7 +234,7 @@ Any `<binary-operator>` referencing a column each from `<target-table>` and `<so
 `<source-table>` does not exist
 `GRANT` permission on `<source-table>` violated
 `<new-table>` already exists
-referential integrity violation on the updated `<target-table>`
+relational integrity violation on the updated `<target-table>`
 unique key violation
   -- for updateable `<target-table>` unique key violation is a violation of the primary index or any other unique index defined on the table
   -- for producing new base `<table>` output, `<target-table>` primary index determines unique key violations

@@ -1046,24 +1046,6 @@
     const docs = runtime.documents;
     const notify = runtime.notify;
 
-    //  Promote User Docs in Help while preserving /usr document URLs.
-    const docsHelpNav = byId('docs-help-nav');
-    if (docsHelpNav) {
-      const flattenUserDocs = () => {
-        const group = docsHelpNav.querySelector(
-          '[data-doc-path="usr/users-guide"]'
-        )?.closest('details');
-        if (!group || group.parentElement !== docsHelpNav) return;
-        const children = group.querySelector(':scope > .docs-help-subnav');
-        if (!children) return;
-        group.replaceWith(...children.childNodes);
-        observer.disconnect();
-      };
-      const observer = new MutationObserver(flattenUserDocs);
-      observer.observe(docsHelpNav, {childList: true});
-      flattenUserDocs();
-    }
-
     let lastOutputText = '';
     let outputState = {
       kind: 'empty',

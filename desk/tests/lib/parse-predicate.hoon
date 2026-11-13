@@ -2558,4 +2558,96 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
+::
+::  @da predicate literals, leading zeros and no leading zeros
+::
+++  date-1        [[%da ~2024.1.5] ~ ~]
+++  date-2        [[%da ~2024.2.6] ~ ~]
+++  date-time-1   [[%da ~2024.1.5..7.5.9] ~ ~]
+++  from-foo-where
+  |=  pred=(tree predicate-component:ast)
+  :+  %crud-txn
+      ctes=~
+      :-  %query
+          :*  %query
+              from-foo
+              scalars=~
+              pred
+              group-by=~
+              having=~
+              select-all-columns
+              order-by=~
+              ==
+::
+::  <column> = <date>
+++  test-predicate-da-00
+  =/  expected  (from-foo-where [%eq foo date-1])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = ~2024.01.05 SELECT *; ".
+            "FROM foo WHERE foo = ~2024.1.5 SELECT *"
+::
+::  <date-time> < <column>
+++  test-predicate-da-01
+  =/  expected  (from-foo-where [%lt date-time-1 foo])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE ~2024.01.05..07.05.09 < foo SELECT *; ".
+            "FROM foo WHERE ~2024.1.5..7.5.9 < foo SELECT *"
+::
+::  <column> > <date-time>
+++  test-predicate-da-02
+  =/  expected  (from-foo-where [%gt foo date-time-1])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo > ~2024.01.05..07.05.09 SELECT *; ".
+            "FROM foo WHERE foo > ~2024.1.5..7.5.9 SELECT *"
+::
+::  <column> BETWEEN <date> AND <date>
+++  test-predicate-da-03
+  =/  expected
+    (from-foo-where [%between [%gte foo date-1] [%lte foo date-2]])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo BETWEEN ~2024.01.05 AND ~2024.02.06 ".
+            "SELECT *; ".
+            "FROM foo WHERE foo BETWEEN ~2024.1.5 AND ~2024.2.6 SELECT *"
+::
+::  <column> IN (<date>, <date>)
+++  test-predicate-da-04
+  =/  literals
+    %-  crip
+    (weld (weld (a-co:co ~2024.2.6) ";") (a-co:co ~2024.1.5))
+  =/  expected
+    (from-foo-where [%in foo [[%value-literals %da literals] ~ ~]])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo IN (~2024.01.05, ~2024.02.06) SELECT *; ".
+            "FROM foo WHERE foo IN (~2024.1.5, ~2024.2.6) SELECT *"
+::
+::  fail on invalid month and day forms
+++  test-fail-predicate-da-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.00.5 SELECT *"
+::
+++  test-fail-predicate-da-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.1.00 SELECT *"
+::
+++  test-fail-predicate-da-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.13.5 SELECT *"
+::
+++  test-fail-predicate-da-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.012.5 SELECT *"
 --

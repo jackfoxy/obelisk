@@ -2125,8 +2125,10 @@
   // application; the table of contents is then read from
   // `${config.appId.base}/doc.toc`, an indented `/slug title` list (two
   // spaces per level, one nesting deep), and rendered as the collapsible
-  // nav the help panel's docs tab shows.  Only the iframe a leaf opens
-  // uses `config.docsRoot`.
+  // nav the help panel's docs tab shows.  A folder written with a
+  // trailing slash, `/usr/`, has no group of its own: its entries are
+  // listed where it stands, and their paths keep its slug.  Only the
+  // iframe a leaf opens uses `config.docsRoot`.
 
   function parseDocsToc(source) {
     const root = [];
@@ -2148,6 +2150,7 @@
       const entry = {
         children: folder ? [] : undefined,
         folder,
+        inline: folder && match[2].endsWith('/'),
         slug: parts[0],
         title: match[3] || parts[0]
       };
@@ -2161,6 +2164,10 @@
   function appendDocsEntries(container, entries, parentPath = []) {
     for (const entry of entries) {
       const path = [...parentPath, entry.slug];
+      if (entry.inline) {
+        appendDocsEntries(container, entry.children, path);
+        continue;
+      }
       if (entry.folder) {
         const group = document.createElement('details');
         group.className = 'docs-help-group';

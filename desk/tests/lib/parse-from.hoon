@@ -3182,5 +3182,36 @@
              "left join bar                        on 1 = 1 ".
              "join      foo AS OF 2 minutes AGO    on 1 = 1 ".
              "SELECT *"
-
+::
+::  from foo as-of date, leading zeros and no leading zeros
+++  test-as-of-da-00
+  =/  exp  (expected [simple-from [%da ~2000.1.1]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of ~2000.01.01 SELECT TOP 10 *; ".
+              "FROM foo As Of ~2000.1.1 SELECT TOP 10 *"
+::
+::  from foo as-of date-time join bar as-of date-time,
+::  leading zeros and no leading zeros
+++  test-as-of-da-01
+  =/  exp  (expected [simple-from-join-bar [%da ~2000.1.1..1.2.3]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of ~2000.01.01..01.02.03 ".
+              "join bar As Of ~2000.01.01..01.02.03 on 1 = 1 ".
+              "SELECT TOP 10 *; ".
+              "FROM foo As Of ~2000.1.1..1.2.3 ".
+              "join bar As Of ~2000.1.1..1.2.3 on 1 = 1 ".
+              "SELECT TOP 10 *"
+::
+::  from foo as-of date without ~, leading zeros and no leading zeros
+++  test-as-of-da-02
+  =/  exp  (expected [simple-from [%da ~2000.1.1]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of 2000.01.01 SELECT TOP 10 *; ".
+              "FROM foo As Of 2000.1.1 SELECT TOP 10 *"
 --

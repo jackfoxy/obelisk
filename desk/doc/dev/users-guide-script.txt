@@ -73,7 +73,7 @@
 =uql "DROP TABLE FORCE my-table-2;"
 
 
-# Referential Integrity
+# Relational Integrity
 
 =uql "CREATE DATABASE ri-demo; ".
 "CREATE TABLE ri-demo..authors ".

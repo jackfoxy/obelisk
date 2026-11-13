@@ -828,4 +828,93 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "upsert into my-table (id, value) values (1, 2) (1, 3)"
+::
+:: @da as of and values, leading zeros and no leading zeros,
+:: with and without ~
+++  da-row
+  :~  [~.da ~2024.1.5]
+      [~.da ~2024.1.5]
+      [~.da ~2024.1.5..7.5.9]
+      [~.da ~2024.1.5..7.5.9]
+      [~.da ~2024.1.5]
+      [~.da ~2024.1.5]
+      ==
+++  da-values
+  "values (~2024.01.05, ~2024.1.5, ~2024.01.05..07.05.09, ".
+  "~2024.1.5..7.5.9, 2024.01.05, 2024.1.5)"
+::
+++  test-insert-da-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %insert
+            :*  %insert
+                :*  %qualified-table
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
+                as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+                columns=~
+                [%data ~[da-row]]
+                ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        %-  zing
+        :~  "insert into my-table as of ~2023.01.05..07.05.09..1ef5 "
+            da-values
+            "; insert into my-table as of ~2023.1.5..7.5.9..1ef5 "
+            da-values
+            ==
+::
+++  test-upsert-da-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %upsert
+            :*  %upsert
+                :*  %qualified-table
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
+                as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+                columns=~
+                [%data ~[da-row]]
+                ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        %-  zing
+        :~  "upsert into my-table as of ~2023.01.05..07.05.09..1ef5 "
+            da-values
+            "; upsert into my-table as of ~2023.1.5..7.5.9..1ef5 "
+            da-values
+            ==
+::
+:: fail on invalid month and day forms
+++  test-fail-insert-da-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "insert into my-table values (~2024.00.5)"
+::
+++  test-fail-insert-da-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "insert into my-table values (~2024.1.00)"
+::
+++  test-fail-insert-da-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "insert into my-table values (~2024.13.5)"
+::
+++  test-fail-insert-da-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "insert into my-table values (~2024.012.5)"
 --

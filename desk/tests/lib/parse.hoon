@@ -121,10 +121,69 @@
     !>  %-  parse:parse(default-database 'dummy')
         "create database my-db as of ~2026.12.04"
 ::
+:: as of date with single digit month and day
+++  test-create-database-da-00
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.7.4"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-database-da-01
+  =/  expected
+    [%create-database name='my-db' as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]]
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2023.01.05..07.05.09..1ef5; ".
+        "create database my-db as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database name is not a term
 ++  test-fail-create-database-01
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
+::
+:: fail when month is zero
+++  test-fail-create-database-da-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.00.4"
+::
+:: fail when day is zero
+++  test-fail-create-database-da-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.00"
+::
+:: fail when month is 13
+++  test-fail-create-database-da-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.13.4"
+::
+:: fail when month has two leading zeros
+++  test-fail-create-database-da-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.007.4"
+::
+:: fail when day has two leading zeros
+++  test-fail-create-database-da-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.004"
+::
+:: fail when zero-padded day has three digits
+++  test-fail-create-database-da-05
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.014"
+::
+:: fail when zero-padded month has three digits
+++  test-fail-create-database-da-06
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.012.4"
 ::
 :: create index
 ::
@@ -456,6 +515,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create namespace db2.ns1 as of 4 years ago"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-namespace-da-00
+  =/  expected
+    :*  %create-namespace  database-name='db1'
+        name='ns1'
+        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create namespace ns1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "create namespace ns1 as of ~2023.1.5..7.5.9..1ef5"
 ::
 :: fail when database qualifier is not a term
 ++  test-fail-create-namespace-20
@@ -1091,6 +1163,37 @@
         "references fk-table (col20) ".
         "on delete restrict on update restrict"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-table-da-00
+  =/  expected
+    :*  %create-table
+        :*  %qualified-table  ship=~
+            database='db1'  namespace='ns1'
+            name='my-table'  ~
+            ==
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
+            ==
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
+            ==
+        ~
+        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  =/  urql
+    "create table ns1.my-table ".
+    "(col1 @t,col2 @p,col3 @ud) ".
+    "primary key (col1,col2) ".
+    "as of ~2023.01.05..07.05.09..1ef5; ".
+    "create table ns1.my-table ".
+    "(col1 @t,col2 @p,col3 @ud) ".
+    "primary key (col1,col2) ".
+    "as of ~2023.1.5..7.5.9..1ef5"
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
 :: fail when no action keyword used (retired)
 ++  test-fail-create-table-18
   =/  urql
@@ -1484,6 +1587,28 @@
             "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
             "delete from foo where foo=bar"
 ::
+:: as of date-time and predicate date literal,
+:: leading zeros and no leading zeros
+++  test-delete-da-00
+  =/  pred  [%eq [column-foo ~ ~] [[%da ~2024.1.5] ~ ~]]
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+                        pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "delete from foo as of ~2023.01.05..07.05.09..1ef5 ".
+            "where foo = ~2024.01.05; ".
+            "delete from foo as of ~2023.1.5..7.5.9..1ef5 ".
+            "where foo = ~2024.1.5"
+::
 :: drop database
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, force db.name, name
@@ -1754,6 +1879,19 @@
         "drop namespace force db1.ns1 ".
         "as of 15 minutes ago"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-drop-namespace-da-00
+  =/  expected
+    :*  %drop-namespace  database-name='other-db'
+        name='ns1'  force=%.n
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'other-db')
+        "drop namespace ns1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "drop namespace ns1 as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database qualifier is not a term
 ++  test-fail-drop-namespace-15
   %-  expect-fail
@@ -1969,6 +2107,23 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'other-db')
         "drop table name as of 10 weeks ago"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-drop-table-da-00
+  =/  expected
+    :*  %drop-table
+        :*  %qualified-table  ship=~
+            database='db'  namespace='dbo'
+            name='name'  ~
+            ==
+        force=%.y
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'other-db')
+        "drop table force db..name as of ~2023.01.05..07.05.09..1ef5; ".
+        "drop table force db..name as of ~2023.1.5..7.5.9..1ef5"
 ::
 :: fail when database qualifier is not a term
 ++  test-fail-drop-table-13
@@ -2250,6 +2405,22 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "truncate table tbl1 as of 4 seconds ago"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-truncate-table-da-00
+  =/  expected
+    :*  %truncate-table
+        :*  %qualified-table  ship=~
+            database=%db1  namespace='dbo'
+            name='tbl1'  ~
+            ==
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "truncate table tbl1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "truncate table tbl1 as of ~2023.1.5..7.5.9..1ef5"
 ::
 :: fail when database qualifier is not a term
 ++  test-fail-truncate-table-01
@@ -3462,6 +3633,56 @@
             "with (select *) as t1 ".
             "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
             "update foo set col1='hello' where 1 = 1 and col2 = 4"
+::
+:: as of date-time, set date literals, and predicate date literal,
+:: leading zeros and no leading zeros
+++  test-update-da-00
+  =/  pred  [%eq [upd-col2 ~ ~] [[%da ~2024.1.5] ~ ~]]
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+                        :-  columns=~[upd-col2 upd-col1]
+                            :~  [value-type=%da value=~2024.1.5..7.5.9]
+                                [value-type=%da value=~2024.1.5]
+                                ==
+                        predicate=pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of ~2023.01.05..07.05.09..1ef5 ".
+            "set col1=~2024.01.05, col2=~2024.01.05..07.05.09 ".
+            "where col2 = ~2024.01.05; ".
+            "update foo as of ~2023.1.5..7.5.9..1ef5 ".
+            "set col1=~2024.1.5, col2=~2024.1.5..7.5.9 ".
+            "where col2 = ~2024.1.5"
+::
+:: selected date literals, leading zeros and no leading zeros
+++  test-select-da-00
+  =/  query
+    :*  %query  from=~  scalars=~
+        predicate=~  group-by=~  having=~
+        :+  %select
+            top=~
+            :~  [%selected-value value=[p=~.da q=~2024.1.5] alias=~]
+                :*  %selected-value
+                    value=[p=~.da q=~2024.1.5..7.5.9]
+                    alias=~
+                    ==
+                ==
+        order-by=~
+        ==
+  =/  expected  [%crud-txn ctes=~ body=[%query query]]
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "select ~2024.01.05, ~2024.01.05..07.05.09; ".
+            "select ~2024.1.5, ~2024.1.5..7.5.9"
 ::
 :: merge
 ::

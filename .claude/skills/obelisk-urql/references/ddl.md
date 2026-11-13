@@ -78,7 +78,7 @@ ALTER TABLE [ <db-qualifier> ] <table>
 - New `PRIMARY KEY` must reference existing columns, change the existing key, and be unique over existing data.
 - Duplicate names within any clause fail.
 
-## Foreign keys / referential integrity
+## Foreign keys / relational integrity
 
 Foreign keys are runtime-enforced on `INSERT`, `UPSERT`, `UPDATE`, `DELETE`, and `TRUNCATE TABLE`, at the mutation's effective content time (including under `AS OF`).
 

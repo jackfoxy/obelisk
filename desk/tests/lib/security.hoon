@@ -426,6 +426,33 @@
             "on SERVEr".
             " FoR ~d4.h2 ~2024.11.11"
 ::
+:: FOR @dr STARTING @da, FOR @dr @da, FOR @da TO @da,
+:: leading zeros and no leading zeros
+++  test-grant-da-00
+  =/  mk
+    |=  dur=sec-time:ast
+    %:  grant:ast  %grant
+                   %adminread
+                   ~[[[~.tas %parent] ~]]
+                   ~[[%database 'db']]
+                   `dur
+                   ==
+  =/  dr-da=sec-time:ast  [[%dr ~d4.h2] `[%da ~2024.1.5..7.5.9]]
+  =/  da-da=sec-time:ast  [[%da ~2024.1.5] `[%da ~2024.2.6]]
+  %+  expect-eq
+    !>  ~[(mk dr-da) (mk dr-da) (mk dr-da) (mk da-da) (mk da-da)]
+    !>  %-  parse:parse(default-database 'other-db')
+            "grant adminread to parent on database db ".
+            "for ~d4.h2 starting ~2024.01.05..07.05.09; ".
+            "grant adminread to parent on database db ".
+            "for ~d4.h2 starting ~2024.1.5..7.5.9; ".
+            "grant adminread to parent on database db ".
+            "for ~d4.h2 ~2024.01.05..07.05.09; ".
+            "grant adminread to parent on database db ".
+            "for ~2024.01.05 to ~2024.02.06; ".
+            "grant adminread to parent on database db ".
+            "for ~2024.1.5 to ~2024.2.6"
+::
 :: fail when database qualifier is not a term
 ++  test-fail-grant-01
   %-  expect-fail
@@ -871,6 +898,33 @@
             "parent /foo/parent, siblings /foo/siblings, moons /foo/moons ".
             "on table, database db1, namespace db2.ns, /db3/dbo/table1/column1".
             " FoR ~d4.h2 ~2024.11.11"
+::
+:: FOR @dr STARTING @da, FOR @dr @da, FOR @da TO @da,
+:: leading zeros and no leading zeros
+++  test-revoke-da-00
+  =/  mk
+    |=  dur=sec-time:ast
+    %:  revoke:ast  %revoke
+                    %adminread
+                    ~[[[~.tas %parent] ~]]
+                    ~[[%database 'db']]
+                    `dur
+                    ==
+  =/  dr-da=sec-time:ast  [[%dr ~d4.h2] `[%da ~2024.1.5..7.5.9]]
+  =/  da-da=sec-time:ast  [[%da ~2024.1.5] `[%da ~2024.2.6]]
+  %+  expect-eq
+    !>  ~[(mk dr-da) (mk dr-da) (mk dr-da) (mk da-da) (mk da-da)]
+    !>  %-  parse:parse(default-database 'other-db')
+            "revoke adminread from parent on database db ".
+            "for ~d4.h2 starting ~2024.01.05..07.05.09; ".
+            "revoke adminread from parent on database db ".
+            "for ~d4.h2 starting ~2024.1.5..7.5.9; ".
+            "revoke adminread from parent on database db ".
+            "for ~d4.h2 ~2024.01.05..07.05.09; ".
+            "revoke adminread from parent on database db ".
+            "for ~2024.01.05 to ~2024.02.06; ".
+            "revoke adminread from parent on database db ".
+            "for ~2024.1.5 to ~2024.2.6"
 ::
 :: fail when database qualifier is not a term
 ++  test-fail-revoke-01

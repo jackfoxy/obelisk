@@ -81,5 +81,5 @@ DELETE FROM my-table-2 WHERE col1 = 'tomorrow';
 TRUNCATE TABLE [ <ship-qualifier> ] <table> [ <as-of> ]
 ```
 
-- Clears the table directly. For referential integrity it behaves like `DELETE FROM <table>` with no `WHERE`: foreign-key `ON DELETE` actions still fire, so tables with related rows do work proportional to the affected FK relationships and rows.
+- Clears the table directly. For relational integrity it behaves like `DELETE FROM <table>` with no `WHERE`: foreign-key `ON DELETE` actions still fire, so tables with related rows do work proportional to the affected FK relationships and rows.
 - `sys`-namespace tables cannot be truncated.

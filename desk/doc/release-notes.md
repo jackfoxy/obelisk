@@ -35,7 +35,7 @@
 * ALTER NAMESPACE
 * ALTER TABLE
 * DROP NAMESPACE
-* Foreign Key Referential Integrity
+* Foreign Key Relational Integrity
 * sys.foreign-keys view
 * full @ta and @tas aura support
 * action %tape executes silently, %tape-print prints to dojo

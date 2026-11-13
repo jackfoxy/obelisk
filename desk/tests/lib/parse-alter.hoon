@@ -226,6 +226,24 @@
         "alter namespace ns transfer table table ".
         "as of ~s12"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-alter-namespace-da-00
+  =/  expected
+    :*  %alter-namespace
+        database-name='db'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='ns2' name='table' ~]
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ;;((list command:ast) ~[expected expected])
+    !>  %-  parse:parse(default-database 'db1')
+        "alter namespace db.ns transfer table ".
+        "db.ns2.table as of ~2023.01.05..07.05.09..1ef5; ".
+        "alter namespace db.ns transfer table ".
+        "db.ns2.table as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when namespace qualifier is not a term
 ++  test-fail-alter-namespace-12
   %-  expect-fail
@@ -1138,4 +1156,28 @@
     !>  ;;((list command:ast) ~[expected])
     !>  %-  parse:parse(default-database 'db1')
         "ALTER TABLE table ADD COLUMN (col1 @t) AS OF ~h5.m30.s12"
+::
+:: add column as of date-time, leading zeros and no leading zeros
+++  test-alter-table-da-00
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
+        ~  ~  ~
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
+            ==
+        ~  ~  ~  ~
+        ~
+        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ;;((list command:ast) ~[expected expected])
+    !>  %-  parse:parse(default-database 'db1')
+        "alter table db.ns.table add column ".
+        "(col1 @t, col2 @p, col3 @ud) ".
+        "as of ~2023.01.05..07.05.09..1ef5; ".
+        "alter table db.ns.table add column ".
+        "(col1 @t, col2 @p, col3 @ud) ".
+        "as of ~2023.1.5..7.5.9..1ef5"
 --

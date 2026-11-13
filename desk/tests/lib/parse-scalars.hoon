@@ -4811,4 +4811,44 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+:: @da literals in IF, CASE, and function arguments,
+:: leading zeros and no leading zeros
+++  test-scalars-da-00
+  =/  date-1       [p=~.da q=~2024.1.5]
+  =/  date-2       [p=~.da q=~2024.2.6]
+  =/  date-time-1  [p=~.da q=~2024.1.5..7.5.9]
+  =/  literal-d1   [p=~.dr q=~d1]
+  =/  if-scalar
+    [%if-then-else if=simple-true-pred then=date-1 else=date-2]
+  =/  case-scalar
+    :*  %case
+        (some unqualified-foo-3)
+        ~[[%case-when-then date-1 date-time-1]]
+        (some date-2)
+        ==
+  =/  scalars
+    :~  [%scalar 'sc1' if-scalar]
+        [%scalar 'sc2' case-scalar]
+        [%scalar 'sc3' [%add-time date-time-1 literal-d1]]
+        [%scalar 'sc4' [%hour date-time-1]]
+        ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  (weld expected expected)
+    !>  %-  parse:parse(default-database default-db)
+        "FROM foo ".
+        "SCALARS sc1 IF 1 = 1 THEN ~2024.01.05 ELSE ~2024.02.06 ENDIF ".
+        "        sc2 CASE foo3 WHEN ~2024.01.05 ".
+        "              THEN ~2024.01.05..07.05.09 ELSE ~2024.02.06 END ".
+        "        sc3 ADD-TIME(~2024.01.05..07.05.09,~d1) ".
+        "        sc4 HOUR(~2024.01.05..07.05.09) ".
+        "SELECT foo2,foo3; ".
+        "FROM foo ".
+        "SCALARS sc1 IF 1 = 1 THEN ~2024.1.5 ELSE ~2024.2.6 ENDIF ".
+        "        sc2 CASE foo3 WHEN ~2024.1.5 ".
+        "              THEN ~2024.1.5..7.5.9 ELSE ~2024.2.6 END ".
+        "        sc3 ADD-TIME(~2024.1.5..7.5.9,~d1) ".
+        "        sc4 HOUR(~2024.1.5..7.5.9) ".
+        "SELECT foo2,foo3"
 --

@@ -363,9 +363,9 @@ Attempting to drop the still-populated `my-table-2` without `FORCE` results in a
 DROP TABLE FORCE my-table-2;
 ```
 
-# Referential Integrity
+# Relational Integrity
 
-Referential integrity keeps relationships between tables valid. A foreign key
+Relational integrity keeps relationships between tables valid. A foreign key
 declares that values in a child table must match the primary key of a parent
 table, and Obelisk enforces that rule when rows are inserted, updated, deleted,
 or truncated. This lets you model normalized data, where facts are stored once
@@ -1339,7 +1339,7 @@ namespaces in the same database. Tables cannot be moved into or out of the
 
 `ALTER TABLE` changes one table. It can rename the table, reorder columns,
 change the primary key, add columns, drop columns, rename columns, and change a
-column aura. Foreign-key behavior is covered in the `Referential Integrity`
+column aura. Foreign-key behavior is covered in the `Relational Integrity`
 section; alteration syntax is in the `ALTER TABLE` reference.
 
 Foreign-key participation constrains some table alterations. A primary key
