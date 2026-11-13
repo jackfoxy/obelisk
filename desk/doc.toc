@@ -3,7 +3,7 @@
   /ace-keys/md              Ace Editor Keys
   /modal-keys/md            Dialog Keys
   /key-policy/md            Key Policy
-/usr/                       User Docs
+/usr                        User Docs
   /users-guide/md             Users Guide
   /reference                  urQL Reference
     /preliminaries/md           Preliminaries

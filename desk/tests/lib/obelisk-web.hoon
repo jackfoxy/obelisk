@@ -711,8 +711,6 @@
       !>(~[['content-type' 'text/plain; charset=utf-8']])
     !>((response-headers -.out))
     (expect !>(?=(^ (find "/users-guide/md" (trip (response-body -.out))))))
-    ::  User Docs is an inline folder: urui lists its pages at the top
-    (expect !>(?=(^ (find "\0a/usr/ " (trip (response-body -.out))))))
   ==
 ::
 ++  test-web-method-not-allowed-13

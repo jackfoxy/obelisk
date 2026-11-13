@@ -371,7 +371,6 @@
         "docs-help-summary"
         "docs-help-subnav"
         "docs-help-link"
-        "entry.inline"
         "doc.toc"
         "text/plain"
     ==
