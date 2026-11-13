@@ -36,6 +36,7 @@ COALESCE ( <scalar-node> [ ,...n ] )
 ```
 
 - Operands are `@ud`, `@sd`, or `@rd`; both sides same type, result same type. `%` (modulo) does **not** accept `@rd`.
+- `/` on `@ud`/`@sd` is **integer division** and truncates toward zero: `5 / 2 END` is `2`, not `.~2.5`. Use `@rd` operands for a fractional result.
 - An arithmetic scalar must **terminate with `END`**: `col1 + col2 * 3 END`.
 - Whitespace required before each operand: `1+ 1` or `1 + 1`, never `1+1`.
 - Precedence: `^` (highest), then `*` `/` `%`, then `+` `-`. `^` is right-associative; the rest left-associative. Parentheses override.
@@ -63,6 +64,21 @@ COALESCE ( <scalar-node> [ ,...n ] )
 - `RAND(low, high)` is inclusive both ends; **the only non-deterministic `SELECT`** — emits `warning: results are non-deterministic`.
 
 Constants (`@rd`, usable in arithmetic): `PI`, `TAU`, `E`, `PHI`.
+
+### Float accuracy
+
+`@rd` math is **not uniformly IEEE-754**. Two tiers:
+
+- **Exact (jetted IEEE-754, round-nearest):** `+` `-` `*` `/`, `ABS`, `SQRT`, `FLOOR`, `CEILING`, `SIGN`, `MIN`, `MAX`, and every comparison (`=` `<` `>` `<=` `>=` in `WHERE`, plus `ORDER BY` and index ordering, which use real float ordering — not bit ordering).
+- **Approximate (pure-Hoon series in `lib/math`, round-toward-zero, ~1e-15 relative tolerance):** `LOG`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `DEGREES`, and the `^` operator. These are not correctly rounded. Expect last-digit divergence from libm-based SQL engines, and never test their output with exact equality against a literal.
+
+`^` is **not** a correctly-rounded `pow`. Integer exponents are repeated multiplication (error accumulates per multiply); fractional exponents are evaluated as `EXP(n * LOG(x))`. So `.~2.0 ^ .~0.5 END` and `SQRT(.~2.0)` can disagree, as can `.~2.0 ^ .~-1.0 END` and `.~1.0 / .~2.0 END`. Prefer `SQRT` over `^ .~0.5`, and division over a negative exponent.
+
+`ROUND` on `@rd` scales by `10^length` through the approximate `^`, so rounding to many decimal places is itself inexact.
+
+`-0.0` and `.~0.0` compare **equal** in a predicate but sort as **distinct** key values; avoid negative zero in indexed columns.
+
+These are properties of the Urbit float libraries, not of urQL, and may change as `lib/math` gains jets.
 
 ## String
 
