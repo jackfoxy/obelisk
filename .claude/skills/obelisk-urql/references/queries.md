@@ -32,7 +32,7 @@ SELECT [ TOP <n> ]
 | `LEFT`/`RIGHT`/`OUTER JOIN` | parsed, not executed |
 | `GROUP BY`, `HAVING`, `ORDER BY`, `TOP` | parsed, not executed |
 | aggregate functions | not implemented |
-| `DIVIDED BY [ WITH REMAINDER ]` | parsed, not executed |
+| `DIVIDED BY [ WITH REMAINDER ]` | supported |
 | `EQUIV`, `EXISTS` | parsed; pending outer joins |
 | `ALL`, `ANY` | not implemented |
 
@@ -114,14 +114,19 @@ SELECT *;
 
 ## Set operations
 
-`UNION`, `EXCEPT`, `INTERSECT` combine complete queries, written between them, evaluated **left-to-right** (no precedence). `DIVIDED BY [ WITH REMAINDER ]` parses but does not execute.
+`UNION`, `EXCEPT`, `INTERSECT`, `DIVIDED BY [ WITH REMAINDER ]` combine complete queries, written between them, evaluated **left-to-right** (no precedence). An operand query needs `FROM` unless its `SELECT` is entirely literals (one row).
 
 - `UNION` — rows from either side.
 - `EXCEPT` — left rows not present on the right. Empty right removes nothing; empty left → empty result.
 - `INTERSECT` — rows on both sides. Either side empty → empty result.
 - `UNION` with an empty side returns the non-empty side.
+- `DIVIDED BY` — exact relational division: left = dividend, right = divisor. Divisor columns match dividend columns by **name and aura**; quotient = remaining dividend columns, in dividend order. Returns quotient rows paired with every divisor row **and nothing else**.
+- `DIVIDED BY WITH REMAINDER` — Codd division: quotient rows paired with every divisor row; extra pairings (the remainder) allowed.
+- Division, empty dividend → empty. Empty divisor → all distinct quotient rows (`WITH REMAINDER`), empty (`DIVIDED BY`).
+- Division with multiple row types: each dividend row type is divided separately by each divisor row type whose column names it contains.
+- Division crashes (`SET-QUERY DIVIDED BY[ WITH REMAINDER]: ...`) when a divisor column is not in the dividend, a matched column's aura differs, the divisor covers every dividend column, or an operand has duplicate output column names.
 
-Results are true sets; equality is **exact** — output column names, column order, and auras all participate, not just raw values. So `SELECT name` vs `SELECT name AS animal-name` do not match.
+Results are true sets; equality is **exact** — output column names, column order, and auras all participate, not just raw values. Source primary keys do not participate: projecting several source rows to equal values yields one row. So `SELECT name` vs `SELECT name AS animal-name` do not match.
 
 Unlike SQL, operands need not return the same row type: `UNION` can hold distinct row shapes side by side; `EXCEPT`/`INTERSECT` only match complete vectors that are exactly equal.
 

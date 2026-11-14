@@ -54,6 +54,9 @@
     joined-rows=(list joined-row)
     ==
 ::
+::  $set-op-row: set operation row, identified by row type and data
++$  set-op-row  $+(set-op-row [columns=(list column) =indexed-row])
+::
 +$  column-meta
   $+  column-meta
   $:  =qualified-column

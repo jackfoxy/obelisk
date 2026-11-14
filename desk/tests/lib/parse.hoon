@@ -4374,6 +4374,370 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
             "WITH (FROM foo SELECT * UNION FROM bar SELECT *) AS u1 FROM u1 SELECT *"
+::  DIVIDED BY: lower case, extra whitespace and newline between keywords
+++  test-set-op-divided-by-01
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divided-by query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * divided  \0a by\0aFROM bar SELECT *"
+::  DIVIDED BY WITH REMAINDER: mixed case, extra whitespace, newlines
+++  test-set-op-divide-with-remainder-01
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divide-with-remainder query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * Divided\0aBy   wITh\0a  ReMainder ".
+            "FROM bar SELECT *"
+::  DIVIDED BY with column lists on dividend and divisor
+++  test-set-op-divided-by-02
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divided-by query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 DIVIDED BY FROM bar SELECT col2"
+::  DIVIDED BY WITH REMAINDER with column lists on dividend and divisor
+++  test-set-op-divide-with-remainder-02
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divide-with-remainder query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 ".
+            "DIVIDED BY WITH REMAINDER FROM bar SELECT col2"
+::  DIVIDED BY a literal-only divisor without FROM
+++  test-set-op-divided-by-03
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        ~
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            ~[[%selected-value [value-type=%t value='a'] alias=[~ %col2]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divided-by query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 DIVIDED BY SELECT 'a' AS col2"
+::  literal-only dividend without FROM DIVIDED BY WITH REMAINDER
+++  test-set-op-divide-with-remainder-03
+  =/  dividend
+    :*  %query
+        ~
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%selected-value [value-type=%t value='a'] alias=[~ %col1]]
+                [%selected-value [value-type=%t value='b'] alias=[~ %col2]]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divide-with-remainder query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "SELECT 'a' AS col1, 'b' AS col2 ".
+            "DIVIDED BY WITH REMAINDER FROM bar SELECT col2"
+::  chain: q1 DIVIDED BY q2 UNION q3
+++  test-set-op-chain-03
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divided-by query=bar-set-query]
+                [op=%union query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY FROM bar SELECT * ".
+            "UNION FROM baz SELECT *"
+::  chain: q1 EXCEPT q2 DIVIDED BY WITH REMAINDER q3
+++  test-set-op-chain-04
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%except query=bar-set-query]
+                [op=%divide-with-remainder query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * EXCEPT FROM bar SELECT * ".
+            "DIVIDED BY WITH REMAINDER FROM baz SELECT *"
+::  chain: q1 DIVIDED BY WITH REMAINDER q2 DIVIDED BY q3
+++  test-set-op-chain-05
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divide-with-remainder query=bar-set-query]
+                [op=%divided-by query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY WITH REMAINDER FROM bar SELECT * ".
+            "DIVIDED BY FROM baz SELECT *"
+::  chain: q1 DIVIDED BY q2 INTERSECT q3 DIVIDED BY WITH REMAINDER q1
+++  test-set-op-chain-06
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divided-by query=bar-set-query]
+                [op=%intersect query=baz-set-query]
+                [op=%divide-with-remainder query=foo-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY FROM bar SELECT * ".
+            "INTERSECT FROM baz SELECT * ".
+            "DIVIDED BY WITH REMAINDER FROM foo SELECT *"
+::  CTE with DIVIDED BY body
+++  test-set-op-cte-divided-by-00
+  =/  cte-body=cte-body:ast
+    :-  %set-query
+    :*  %set-query
+        head=foo-set-query
+        tail=~[[op=%divided-by query=bar-set-query]]
+        ==
+  =/  outer-q
+    :*  %query
+        [~ [%from relation-id=[%cte-name 'q1' ~] as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        select-all-columns
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~[[%cte name='q1' body=cte-body]]
+        body=[%query outer-q]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM foo SELECT * DIVIDED BY FROM bar SELECT *) AS q1 ".
+            "FROM q1 SELECT *"
+::  CTE with DIVIDED BY WITH REMAINDER body
+++  test-set-op-cte-divide-with-remainder-00
+  =/  cte-body=cte-body:ast
+    :-  %set-query
+    :*  %set-query
+        head=foo-set-query
+        tail=~[[op=%divide-with-remainder query=bar-set-query]]
+        ==
+  =/  outer-q
+    :*  %query
+        [~ [%from relation-id=[%cte-name 'q1' ~] as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        select-all-columns
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~[[%cte name='q1' body=cte-body]]
+        body=[%query outer-q]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM foo SELECT * DIVIDED BY WITH REMAINDER ".
+            "FROM bar SELECT *) AS q1 ".
+            "FROM q1 SELECT *"
+::
+::  fail: DIVIDED without BY
+++  test-fail-set-op-divided-by-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED FROM bar SELECT *"
+::
+::  fail: no whitespace between DIVIDED and BY
+++  test-fail-set-op-divided-by-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDEDBY FROM bar SELECT *"
+::
+::  fail: DIVIDED BY without divisor query
+++  test-fail-set-op-divided-by-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY"
+::
+::  fail: BY without DIVIDED
+++  test-fail-set-op-divided-by-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * BY FROM bar SELECT *"
+::
+::  fail: REMAINDER without WITH
+++  test-fail-set-op-divide-with-remainder-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY REMAINDER FROM bar SELECT *"
+::
+::  fail: WITH without REMAINDER
+++  test-fail-set-op-divide-with-remainder-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITH FROM bar SELECT *"
+::
+::  fail: no whitespace between WITH and REMAINDER
+++  test-fail-set-op-divide-with-remainder-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITHREMAINDER FROM bar SELECT *"
+::
+::  fail: DIVIDED BY WITH REMAINDER without divisor query
+++  test-fail-set-op-divide-with-remainder-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITH REMAINDER"
+::
+::  fail: WITH REMAINDER without DIVIDED BY
+++  test-fail-set-op-divide-with-remainder-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * WITH REMAINDER FROM bar SELECT *"
 ::
 :: fail: cte name conflicts with from alias (case-insensitive)
 ++  test-fail-cte-alias-conflict-00

@@ -46,4 +46,4 @@ Canonical worked examples: [examples/sample.md](examples/sample.md).
 
 ## Implementation status (frequent traps)
 
-Parsed but **not yet executed**: `LEFT/RIGHT/OUTER JOIN`, `GROUP BY`, `HAVING`, `ORDER BY`, `TOP`, aggregates, `DIVIDED BY`, `EQUIV`, `EXISTS`, `ALL`, `ANY`, `INSERT` from SELECT, `CREATE/ALTER/DROP INDEX`, `CREATE/DROP VIEW`. Executed: DDL on databases/namespaces/tables, `INSERT`/`UPSERT`/`UPDATE`/`DELETE`/`TRUNCATE`, `JOIN`/`JOIN ON`/`CROSS JOIN`, `UNION`/`EXCEPT`/`INTERSECT`, scalar functions, `AS OF`.
+Parsed but **not yet executed**: `LEFT/RIGHT/OUTER JOIN`, `GROUP BY`, `HAVING`, `ORDER BY`, `TOP`, aggregates, `EQUIV`, `EXISTS`, `ALL`, `ANY`, `INSERT` from SELECT, `CREATE/ALTER/DROP INDEX`, `CREATE/DROP VIEW`. Executed: DDL on databases/namespaces/tables, `INSERT`/`UPSERT`/`UPDATE`/`DELETE`/`TRUNCATE`, `JOIN`/`JOIN ON`/`CROSS JOIN`, `UNION`/`EXCEPT`/`INTERSECT`/`DIVIDED BY [ WITH REMAINDER ]`, scalar functions, `AS OF`.

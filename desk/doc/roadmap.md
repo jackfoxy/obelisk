@@ -17,8 +17,6 @@
 
 * __SELECT TOP n ...__ -- dependent on total ordering
 
-* __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
-
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)

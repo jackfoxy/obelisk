@@ -1088,13 +1088,17 @@ WHERE <predicate>
 SELECT <columns>;
 ```
 
-The supported set operations are `UNION`, `EXCEPT`, and `INTERSECT`.
+A query in a set operation needs a `FROM` clause unless its `SELECT` is entirely literals, which produces one row.
+
+The supported set operations are `UNION`, `EXCEPT`, `INTERSECT`, `DIVIDED BY`, and `DIVIDED BY WITH REMAINDER`.
 
 `UNION` returns rows from either side. Exact duplicate rows appear once.
 
 `EXCEPT` starts with the rows on the left and removes any rows that also appear on the right.
 
 `INTERSECT` returns only rows that appear on both sides.
+
+`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` perform relational division. They return the left-side values that are paired with every row on the right side.
 
 The operations are evaluated left-to-right. This matters when they are chained:
 
@@ -1231,6 +1235,123 @@ If either side of an `INTERSECT` is empty, the result is empty.
 
 `UNION` with an empty side returns the non-empty side. These empty-set rules are often useful when a `WHERE` predicate happens to match no rows.
 
+## DIVIDED BY WITH REMAINDER
+
+Relational division answers questions containing "all": which animals received *all* of these vaccines? The left query is the dividend and the right query is the divisor. Divisor columns are matched to dividend columns by name and aura. The remaining dividend columns form the quotient.
+
+```
+FROM vaccinations
+WHERE species = 'Rabbit'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Rabbit'
+SELECT vaccine;
+```
+
+The divisor `vaccine` matches the dividend `vaccine`, so the quotient is `name`. This returns the rabbits that received every rabbit vaccine: Humphrey.
+
+`WITH REMAINDER` allows a quotient row to be paired with values that are not in the divisor. Here the divisor holds only two dog vaccines:
+
+```
+FROM vaccinations
+WHERE species = 'Dog'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Dog'
+  AND vaccine IN ('Adenovirus', 'Rabies')
+SELECT vaccine;
+```
+
+This returns Aspen, Benny, Dolly, and Odin. Aspen is also vaccinated against Distemper Virus, which is the remainder.
+
+## DIVIDED BY
+
+`DIVIDED BY` without `WITH REMAINDER` is exact division. A quotient row is returned only when the values it is paired with are exactly the divisor rows, no more and no fewer.
+
+```
+FROM vaccinations
+WHERE species = 'Dog'
+SELECT name, vaccine
+DIVIDED BY
+FROM reference.species-vaccines
+WHERE species = 'Dog'
+  AND vaccine IN ('Adenovirus', 'Rabies')
+SELECT vaccine;
+```
+
+This returns Benny, Dolly, and Odin. Aspen is excluded because of its Distemper Virus vaccination.
+
+The divisor may have more than one column, in any order. The quotient keeps the dividend's column order:
+
+```
+FROM vaccinations
+SELECT name, species, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Rabbit'
+SELECT vaccine, species;
+```
+
+The quotient is `name`.
+
+A `SELECT` of only literals is a one-row divisor or dividend:
+
+```
+FROM vaccinations
+SELECT name, vaccine
+DIVIDED BY
+SELECT 'Rabies' AS vaccine;
+```
+
+This returns the animals vaccinated against Rabies and nothing else.
+
+Empty operands:
+
+* An empty dividend returns an empty result.
+* An empty divisor returns every distinct quotient row for `DIVIDED BY WITH REMAINDER`, because every row is trivially paired with all of nothing. `DIVIDED BY` returns an empty result.
+
+If a dividend or divisor contains more than one row type, each dividend row type is divided separately by each divisor row type whose column names it contains.
+
+Division crashes when:
+
+* a divisor column does not exist in the dividend,
+* a column has a different aura on each side,
+* the divisor covers every dividend column, or
+* an operand has duplicate output column names.
+
+For example:
+
+```
+FROM vaccinations
+SELECT name, vaccine
+DIVIDED BY
+FROM reference.species-vaccines
+SELECT species;
+```
+
+```
+SET-QUERY DIVIDED BY: divisor columns ~[%species] not in dividend
+```
+
+The quotient becomes the left side of any following set operation:
+
+```
+FROM vaccinations
+WHERE species = 'Rabbit'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM vaccinations
+WHERE name = 'Bon bon'
+SELECT vaccine
+EXCEPT
+FROM adoptions
+SELECT name;
+```
+
+This returns the rabbits vaccinated against at least everything Bon bon received, leaving out the rabbits that have been adopted: Bon bon. (Humphrey is adopted.)
+
 ## Set Operations in CTEs
 
 Set operations can be used inside `WITH` CTEs, and outer queries can select from those CTEs like any other CTE.
@@ -1261,7 +1382,6 @@ SELECT email;
 
 The metadata returned with a set operation includes the underlying real source tables used by all operands. Internal CTE names are not reported as source relations.
 
-`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` are parsed but are not implemented for execution.
 
 
 # Commenting urQL

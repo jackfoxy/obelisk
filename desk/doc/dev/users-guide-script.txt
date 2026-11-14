@@ -368,6 +368,61 @@
      "FROM vaccinations ".
      "SELECT email;"
 
+=uql "FROM vaccinations ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY WITH REMAINDER ".
+     "FROM reference.species-vaccines ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT vaccine;"
+
+=uql "FROM vaccinations ".
+     "WHERE species = 'Dog' ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY WITH REMAINDER ".
+     "FROM reference.species-vaccines ".
+     "WHERE species = 'Dog' ".
+     "  AND vaccine IN ('Adenovirus', 'Rabies') ".
+     "SELECT vaccine;"
+
+=uql "FROM vaccinations ".
+     "WHERE species = 'Dog' ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY ".
+     "FROM reference.species-vaccines ".
+     "WHERE species = 'Dog' ".
+     "  AND vaccine IN ('Adenovirus', 'Rabies') ".
+     "SELECT vaccine;"
+
+=uql "FROM vaccinations ".
+     "SELECT name, species, vaccine ".
+     "DIVIDED BY WITH REMAINDER ".
+     "FROM reference.species-vaccines ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT vaccine, species;"
+
+=uql "FROM vaccinations ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY ".
+     "SELECT 'Rabies' AS vaccine;"
+
+=uql "FROM vaccinations ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY ".
+     "FROM reference.species-vaccines ".
+     "SELECT species;"
+
+=uql "FROM vaccinations ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT name, vaccine ".
+     "DIVIDED BY WITH REMAINDER ".
+     "FROM vaccinations ".
+     "WHERE name = 'Bon bon' ".
+     "SELECT vaccine ".
+     "EXCEPT ".
+     "FROM adoptions ".
+     "SELECT name;"
+
 =uql "WITH (FROM adoptions ".
      "      SELECT name, species ".
      "      INTERSECT ".

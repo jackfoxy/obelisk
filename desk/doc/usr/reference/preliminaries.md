@@ -32,7 +32,7 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Predicates can reference CTEs for certain use cases.
 
-* Relational division is supported with a DIVIDED BY operator. (parsed but not yet implemented in the Obelisk runtime)
+* Relational division is supported with the DIVIDED BY and DIVIDED BY WITH REMAINDER operators.
 
 * Reading and/or updating data on foreign ships is permissible if the ship's pilot has granted permission. Cross database joins are allowed, but cross ship joins are not. (Not yet implemented in Obelisk.)
 

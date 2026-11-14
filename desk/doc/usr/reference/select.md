@@ -243,7 +243,7 @@ Whitespace is not required between operands and binary-ops, except when the left
 
 Set operations function between the prior `<relation>` or running `<relation>` resulting from prior set operations and the `<relation>` created by the right `<query>`.
 
-`<relation>`s may be or different types.
+`<relation>`s may be of different types.
 
 **UNION**
 
@@ -262,6 +262,28 @@ When a set query contains `UNION`, every `SELECT` participating in the set query
 **DIVIDED BY [ WITH REMAINDER ]**
 
 This operator performs a relational division on the left `<relation>` as the dividend and the right `<relation>` as divisor.
+
+Divisor columns are matched to dividend columns by name and aura. The quotient columns are the dividend columns that are not divisor columns, in dividend column order. For each distinct quotient row, its *matching set* is the set of distinct divisor-column values paired with it in the dividend.
+
+* `DIVIDED BY` is exact division (no remainder). It returns each distinct quotient row whose matching set equals the divisor: it is paired with every divisor row and with nothing else.
+* `DIVIDED BY WITH REMAINDER` is Codd's division. It returns each distinct quotient row whose matching set contains every divisor row. Additional pairings (the remainder) are allowed.
+
+Empty operands:
+
+* An empty dividend returns an empty result.
+* An empty divisor returns every distinct quotient row of the dividend for `DIVIDED BY WITH REMAINDER`, and an empty result for `DIVIDED BY`.
+
+Row types are divided separately. Each dividend `<row-type>` is divided by each divisor `<row-type>` whose column names all occur in it, and the result is the union of those quotients. When an operand is empty, its `<row-type>` is the operand's `SELECT` output.
+
+The quotient becomes the left `<relation>` of the next set operation.
+
+These conditions are rejected:
+
+* A divisor `<row-type>` has a column that is not in any dividend `<row-type>`.
+* A dividend `<row-type>` contains no divisor `<row-type>`.
+* A divisor column name matches a dividend column with a different aura.
+* The divisor covers every dividend column, which leaves no quotient columns.
+* The dividend or divisor has a duplicate output column name.
 
 ### API
 ```

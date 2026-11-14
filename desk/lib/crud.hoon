@@ -970,6 +970,8 @@
   (mk-query-result selected named-ctes join-return %.y resolved-scalars)
 ::
 ++  do-set-query
+  ::  Apply set operations left to right.  The running rows carry their row
+  ::  type; out-cols is the running output row type, which division changes.
   |=  [sq=set-query:ast =named-ctes]
   ^-  join-return
   =/  head-jr
@@ -981,21 +983,20 @@
   =/  out-cols=(list column:ast)  columns.result-st
   =/  has-union                   (set-query-has-union sq)
   =.  out-cols                    ?:  has-union
-                                    (check-union-output-names out-cols)
+                                    (check-output-names "UNION" out-cols)
                                   out-cols
-  =/  out-metas  %+  turn  out-cols
-                           |=  c=column:ast
-                           :+  [%qualified-column *qualified-table:ast name.c ~]
-                               type.c
-                               addr.c
-  =/  rows=(set [(list column:ast) indexed-row])
-    (indexed-rows-to-set-op-rows out-cols indexed-rows.result-st)
+  =/  rows=(set set-op-row)
+    (set-op-operand-rows set-tables.head-jr)
   =/  sources=(list set-table)  (source-set-tables set-tables.head-jr)
   =/  rest                      tail.sq
   |-
   ?~  rest
     =/  result-tables
       (set-op-result-tables result-st out-cols ~(tap in rows))
+    =/  out-metas
+      %+  turn  out-cols
+      |=  c=column:ast
+      [[%qualified-column *qualified-table:ast name.c ~] type.c addr.c]
     :*  %join-return
         state
         (weld result-tables sources)
@@ -1006,20 +1007,22 @@
     %-  project-set-query-operand
     [query.i.rest named-ctes (do-query query.i.rest named-ctes %.n)]
   ?~  set-tables.next-jr          ~|("do-set-query can't get here" !!)
-  =/  next-st=set-table           i.set-tables.next-jr
   =.  state                       server.next-jr
-  =/  next-cols=(list column:ast)  columns.next-st
-  =.  next-cols  ?:  has-union  (check-union-output-names next-cols)
+  =/  next-cols=(list column:ast)  columns.i.set-tables.next-jr
+  =.  next-cols  ?:  has-union  (check-output-names "UNION" next-cols)
                  next-cols
+  =/  applied
+    %:  apply-row-set-op  op.i.rest
+                          out-cols
+                          rows
+                          next-cols
+                          (set-op-operand-rows set-tables.next-jr)
+                          ==
   %=  $
-    rows
-      %-  apply-row-set-op
-          :*  op.i.rest
-              rows
-              (indexed-rows-to-set-op-rows next-cols indexed-rows.next-st)
-              ==
-    sources  (weld sources (source-set-tables set-tables.next-jr))
-    rest     t.rest
+    out-cols  -.applied
+    rows      +.applied
+    sources   (weld sources (source-set-tables set-tables.next-jr))
+    rest      t.rest
   ==
 ::
 ++  source-set-tables
@@ -1049,7 +1052,7 @@
   ?:  (selected-needs-materialization selected)
     jr
   ?:  (selected-preserves-source selected)
-    jr
+    (cte-operand-row-types relation-id.f predicate.q named-ctes jr)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
@@ -1058,6 +1061,30 @@
                                                            map-meta.jr
                                                            ==
   (mk-query-result selected named-ctes jr %.n resolved-scalars)
+::
+++  cte-operand-row-types
+  ::  A CTE holding several row types keeps one result set-table per row,
+  ::  and selecting from it yields only the first.  An operand selecting *
+  ::  without WHERE from such a CTE carries all of the CTE's result
+  ::  set-tables instead.
+  |=  $:  rel=relation-id:ast
+          =predicate:ast
+          =named-ctes
+          jr=join-return
+          ==
+  ^-  join-return
+  ?.  ?=(%cte-name -.rel)  jr
+  ?^  predicate  jr
+  =/  sources=(list set-table)  ?~(set-tables.jr ~ t.set-tables.jr)
+  =/  cte-tables=(list set-table)
+    set-tables:(~(got by named-ctes) name.rel)
+  =/  result-tables=(list set-table)
+    |-  ^-  (list set-table)
+    ?~  cte-tables  ~
+    ?^  relation-id.i.cte-tables  ~
+    [i.cte-tables $(cte-tables t.cte-tables)]
+  ?.  ?=([* * *] result-tables)  jr
+  jr(set-tables (weld result-tables sources))
 ::
 ++  selected-preserves-source
   |=  selected=(list selected-column:ast)
@@ -1070,15 +1097,17 @@
     $(selected t.selected)
   %.n
 ::
-++  check-union-output-names
-  |=  columns=(list column:ast)
+++  check-output-names
+  ::  Crash on a duplicate output column name.  label names the set
+  ::  operation requiring unique names.
+  |=  [label=tape columns=(list column:ast)]
   ^-  (list column:ast)
   =/  seen  *(map @tas ~)
   =/  all-columns  columns
   |-
   ?~  columns  all-columns
   ?:  (~(has by seen) name.i.columns)
-    ~|  "SET-QUERY UNION: duplicate output column ".
+    ~|  "SET-QUERY {label}: duplicate output column ".
         "{<name.i.columns>} in SELECT"
         !!
   %=  $
@@ -1086,37 +1115,249 @@
     seen     (~(put by seen) name.i.columns ~)
   ==
 ::
-++  indexed-rows-to-set-op-rows
-  |=  [columns=(list column:ast) rows=(list indexed-row)]
-  ^-  (set [(list column:ast) indexed-row])
-  %-  ~(gas in *(set [(list column:ast) indexed-row]))
-  %+  turn  rows
-  |=  row=indexed-row
-  [columns row]
+++  set-op-operand-rows
+  ::  Rows of a set operation operand, identified by row type and data.
+  ::
+  ::  The operand's result set-tables precede its source set-tables.
+  ::  Primary keys are dropped, and data is reduced to the row type's columns
+  ::  (a CTE row keeps its source columns): equal column values from
+  ::  different source rows are one row.
+  |=  set-tables=(list set-table)
+  ^-  (set set-op-row)
+  =/  rows  *(set set-op-row)
+  |-
+  ?~  set-tables  rows
+  ?^  relation-id.i.set-tables  rows
+  =/  cols=(list column:ast)  columns.i.set-tables
+  ::  data keys of cols; a repeated name is keyed as in +materialize-cte-row
+  =/  keys=(list @tas)
+    =/  counts  *(map @tas @ud)
+    =/  remaining  cols
+    |-  ^-  (list @tas)
+    ?~  remaining  ~
+    =/  count  (~(gut by counts) name.i.remaining 0)
+    :-  (output-cell-key name.i.remaining count)
+    %=  $
+      remaining  t.remaining
+      counts     (~(put by counts) name.i.remaining +(count))
+    ==
+  =/  width  (lent keys)
+  %=  $
+    set-tables  t.set-tables
+    rows
+      %-  ~(gas in rows)
+      %+  turn  indexed-rows.i.set-tables
+      |=  row=indexed-row
+      ^-  set-op-row
+      ?:  =(width ~(wyt by data.row))
+        [cols row(key ~)]
+      =/  data=(map @tas @)
+        %-  malt
+        %+  murn  keys
+        |=  key=@tas
+        ^-  (unit [@tas @])
+        =/  value  (~(get by data.row) key)
+        ?~  value  ~
+        `[key u.value]
+      [cols [%indexed-row ~ data]]
+  ==
 ::
 ++  apply-row-set-op
+  ::  Apply one set operation to the running left rows and the right operand
+  ::  rows, producing the output row type and rows.  Only division changes
+  ::  the output row type.
   |=  $:  op=set-op:ast
-          left=(set [(list column:ast) indexed-row])
-          right=(set [(list column:ast) indexed-row])
+          left-cols=(list column:ast)
+          left=(set set-op-row)
+          right-cols=(list column:ast)
+          right=(set set-op-row)
           ==
-  ^-  (set [(list column:ast) indexed-row])
+  ^-  [(list column:ast) (set set-op-row)]
   ?-  op
-    %union
-      (~(uni in left) right)
-    %except
-      (~(dif in left) right)
-    %intersect
-      (~(int in left) right)
-    %divided-by
-      ~|("SET-QUERY DIVIDED BY execution not yet implemented" !!)
-    %divide-with-remainder
-      ~|("SET-QUERY DIVIDE WITH REMAINDER execution not yet implemented" !!)
+    %union                  [left-cols (~(uni in left) right)]
+    %except                 [left-cols (~(dif in left) right)]
+    %intersect              [left-cols (~(int in left) right)]
+    %divided-by             (divide-rows %.n left-cols left right-cols right)
+    %divide-with-remainder  (divide-rows %.y left-cols left right-cols right)
   ==
+::
+++  divide-rows
+  ::  Relational division of dividend rows by divisor rows.
+  ::
+  ::  Each dividend row type is divided by each divisor row type whose column
+  ::  names it contains, columns matched by name and aura.  The quotient
+  ::  columns are the remaining dividend columns, in dividend order.  An
+  ::  empty operand has one row type, its SELECT output.
+  ::
+  ::  remainder=%.n is exact division, DIVIDED BY: a quotient row is paired
+  ::  with every divisor row and nothing else.  remainder=%.y is DIVIDED BY
+  ::  WITH REMAINDER: other pairings are allowed.
+  ::
+  ::  Returns the output row type, which is the quotient of the left row type
+  ::  when the dividend has one, and the quotient rows.
+  |=  $:  remainder=?
+          dividend-cols=(list column:ast)
+          dividend=(set set-op-row)
+          divisor-cols=(list column:ast)
+          divisor=(set set-op-row)
+          ==
+  ^-  [(list column:ast) (set set-op-row)]
+  =/  label=tape  ?:(remainder "DIVIDED BY WITH REMAINDER" "DIVIDED BY")
+  =/  dividend-types  (row-types label dividend-cols dividend)
+  =/  divisor-types   (row-types label divisor-cols divisor)
+  =/  dividend-heads=(list (list column:ast))
+    ~(tap in ~(key by dividend-types))
+  =/  divisor-heads=(list (list column:ast))
+    ~(tap in ~(key by divisor-types))
+  =/  lost=(list (list column:ast))
+    %+  skip  divisor-heads
+    |=(s=(list column:ast) (lien dividend-heads (cury names-within s)))
+  ?^  lost
+    ~|  "SET-QUERY {label}: divisor columns {<(column-names i.lost)>} ".
+        "not in dividend"
+        !!
+  =/  pairs=(list [t=(list column:ast) s=(list column:ast)])
+    %-  zing
+    %+  turn  dividend-heads
+    |=  t=(list column:ast)
+    ^-  (list [t=(list column:ast) s=(list column:ast)])
+    =/  divisors=(list (list column:ast))
+      (skim divisor-heads (curr names-within t))
+    ?~  divisors
+      ~|  "SET-QUERY {label}: no divisor for dividend columns ".
+          "{<(column-names t)>}"
+          !!
+    =/  t-pairs=(list [t=(list column:ast) s=(list column:ast)])
+      (turn `(list (list column:ast))`divisors (lead t))
+    t-pairs
+  %+  roll  pairs
+  |=  $:  pair=[t=(list column:ast) s=(list column:ast)]
+          out=[cols=(list column:ast) rows=(set set-op-row)]
+          ==
+  ^-  [cols=(list column:ast) rows=(set set-op-row)]
+  =/  quotient
+    %:  divide-row-type  label
+                         remainder
+                         t.pair
+                         (~(get ja dividend-types) t.pair)
+                         s.pair
+                         (~(get ja divisor-types) s.pair)
+                         ==
+  :-  ?:(|(=(~ cols.out) =(t.pair dividend-cols)) -.quotient cols.out)
+      (~(uni in rows.out) +.quotient)
+::
+++  divide-row-type
+  ::  Divide the rows of dividend row type t by the rows of divisor row type
+  ::  s, whose column names are all in t.
+  ::
+  ::  One pass over the dividend counts, per quotient row, the divisor rows it
+  ::  is paired with and whether it is paired with anything else.  Dividend
+  ::  rows are distinct and t is the quotient columns plus s, so a pairing is
+  ::  counted once.  An empty divisor needs no special case: under exact
+  ::  division every quotient row has an extra pairing; with remainder every
+  ::  quotient row is paired with all zero divisor rows.
+  ::
+  ::  O(n log n) in dividend and divisor rows; no cross product.
+  |=  $:  label=tape
+          remainder=?
+          t=(list column:ast)
+          dividend=(list (map @tas @))
+          s=(list column:ast)
+          divisor=(list (map @tas @))
+          ==
+  ^-  [(list column:ast) (set set-op-row)]
+  =/  mismatched=(list column:ast)
+    %+  skip  s
+    |=  c=column:ast
+    (lien t |=(d=column:ast &(=(name.c name.d) =(type.c type.d))))
+  ?^  mismatched
+    =/  found=(list column:ast)
+      (skim t |=(d=column:ast =(name.i.mismatched name.d)))
+    ?>  ?=(^ found)
+    ~|  "SET-QUERY {label}: column {<name.i.mismatched>} is ".
+        "@{(trip type.i.mismatched)} in divisor, ".
+        "@{(trip type.i.found)} in dividend"
+        !!
+  =/  quotient-cols=(list column:ast)
+    (skip t |=(c=column:ast (lien s |=(d=column:ast =(name.c name.d)))))
+  ?~  quotient-cols
+    ~|  "SET-QUERY {label}: divisor columns {<(column-names s)>} ".
+        "leave no quotient columns"
+        !!
+  =/  divisor-keys=(set (list @))  (silt (turn divisor (cury row-values s)))
+  =/  needed=@ud  ~(wyt in divisor-keys)
+  =/  counts=(map (list @) [data=(map @tas @) hits=@ud extra=?])
+    %+  roll  dividend
+    |=  $:  data=(map @tas @)
+            acc=(map (list @) [data=(map @tas @) hits=@ud extra=?])
+            ==
+    =/  quotient-key=(list @)  (row-values quotient-cols data)
+    =/  hit=?  (~(has in divisor-keys) (row-values s data))
+    =/  prior  (~(get by acc) quotient-key)
+    %+  ~(put by acc)  quotient-key
+    ?~  prior
+      =/  quotient-data=(map @tas @)
+        %-  malt
+        %+  turn  `(list column:ast)`quotient-cols
+        |=(c=column:ast [name.c (~(got by data) name.c)])
+      [quotient-data ?:(hit 1 0) !hit]
+    :+  data.u.prior
+        ?:(hit +(hits.u.prior) hits.u.prior)
+        |(extra.u.prior !hit)
+  =/  out-cols=(list column:ast)  (addr-columns quotient-cols)
+  :-  out-cols
+  %-  silt
+  %+  murn  ~(val by counts)
+  |=  [data=(map @tas @) hits=@ud extra=?]
+  ^-  (unit set-op-row)
+  ?.  =(needed hits)  ~
+  ?:  &(extra !remainder)  ~
+  `[out-cols [%indexed-row ~ data]]
+::
+++  row-types
+  ::  Group set operation rows by row type, rejecting duplicate output column
+  ::  names.  An empty operand has one row type, cols, its SELECT output.
+  |=  $:  label=tape
+          cols=(list column:ast)
+          rows=(set set-op-row)
+          ==
+  ^-  (jar (list column:ast) (map @tas @))
+  =/  types=(jar (list column:ast) (map @tas @))
+    ?~  rows  (malt ~[[cols ~]])
+    %-  ~(rep in `(set set-op-row)`rows)
+    |=  [row=set-op-row acc=(jar (list column:ast) (map @tas @))]
+    (~(add ja acc) columns.row data.indexed-row.row)
+  ::  crashes on a duplicate output column name
+  =/  checked=(list (list column:ast))
+    (turn ~(tap in ~(key by types)) (cury check-output-names label))
+  types
+::
+++  row-values
+  ::  Values of the cols columns of a row, in cols order: a hash key for
+  ::  matching rows on those columns.
+  |=  [cols=(list column:ast) data=(map @tas @)]
+  ^-  (list @)
+  %+  turn  cols
+  |=  c=column:ast
+  ~|  "row-values: column {<name.c>} not in row"
+      (~(got by data) name.c)
+::
+++  names-within
+  ::  %.y when every column name of inner is a column name of outer
+  |=  [inner=(list column:ast) outer=(list column:ast)]
+  ^-  ?
+  %+  levy  inner
+  |=(c=column:ast (lien outer |=(d=column:ast =(name.c name.d))))
+::
+++  column-names
+  |=  cols=(list column:ast)
+  ^-  (list @tas)
+  (turn cols |=(c=column:ast name.c))
 ::
 ++  set-op-result-tables
   |=  $:  base=set-table
           out-cols=(list column:ast)
-          rows=(list [(list column:ast) indexed-row])
+          rows=(list set-op-row)
           ==
   ^-  (list set-table)
   ?~  rows
@@ -1132,7 +1373,7 @@
     =.  pri-indx.base      ~
     =.  indexed-rows.base
       %+  turn  rows
-      |=  row=[(list column:ast) indexed-row]
+      |=  row=set-op-row
       +.row
     =.  rowcount.base      (lent indexed-rows.base)
     =.  pri-indexed.base   *(tree [(list @) (map @tas @)])
@@ -1140,7 +1381,7 @@
   (set-op-result-tables-loop base rows ~)
 ::
 ++  same-set-op-columns
-  |=  [cols=(list column:ast) rows=(list [(list column:ast) indexed-row])]
+  |=  [cols=(list column:ast) rows=(list set-op-row)]
   ^-  ?
   |-
   ?~  rows  %.y
@@ -1150,7 +1391,7 @@
 ::
 ++  set-op-result-tables-loop
   |=  $:  base=set-table
-          rows=(list [(list column:ast) indexed-row])
+          rows=(list set-op-row)
           out=(list set-table)
           ==
   ^-  (list set-table)

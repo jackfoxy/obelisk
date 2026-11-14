@@ -1575,15 +1575,16 @@
   ;~  pose
     %:  cold  %divide-with-remainder
               ;~  plug  (jester 'divided')
-                        whitespace
+                        required-whitespace
                         (jester 'by')
-                        whitespace
+                        required-whitespace
                         (jester 'with')
-                        whitespace
+                        required-whitespace
                         (jester 'remainder')
               ==
     ==
-    (cold %divided-by ;~(plug (jester 'divided') whitespace (jester 'by')))
+    %+  cold  %divided-by
+    ;~(plug (jester 'divided') required-whitespace (jester 'by'))
     (cold %union (jester 'union'))
     (cold %except (jester 'except'))
     (cold %intersect (jester 'intersect'))
@@ -3527,6 +3528,7 @@
 ::  parser rules and helpers
 ::
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
+++  required-whitespace  ~+  (plus ;~(pose gah (just '\09') (just '\0d')))
 ::
 ++  peek
   |*  sef=rule

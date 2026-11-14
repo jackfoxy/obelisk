@@ -3,6 +3,8 @@
 ## next-release
 * inline scalars directly without SCALARS clause entry
 * VERSION() scalar added, returns %obelisk version
+* DIVIDED BY and DIVIDED BY WITH REMAINDER set operations
+* fix set operations comparing rows by source primary key instead of data
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0
