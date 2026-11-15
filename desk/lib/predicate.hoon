@@ -144,11 +144,45 @@
                                                     resolved-scalars
                                                     ==
       (bake (cury not ll) data-row)
-    %exists
-      ~|("%exists not implemented" !!)
-    %not-exists
-      ~|("%not-exists not implemented" !!)
+    ?(%exists %not-exists)
+      ::  a query's own column exists in every row of a single row type;
+      ::  rows of several row types have EXISTS settled per row type
+      =/  exists=?  (datum-exists n.l.p map-meta named-ctes)
+      =/  result=?  ?:(=(%exists n.p) exists !exists)
+      |=(data-row result)
     ==
+::
+++  datum-exists
+  ::  EXISTS of a column (which must be a column of the query) or of a CTE
+  ::  column (whether the CTE returns any rows)
+  |=  [d=predicate-component:ast =map-meta =named-ctes]
+  ^-  ?
+  ?:  ?=(cte-column:ast d)
+    =/  cte-fr  ~|  "CTE {<cte.d>} does not exist"
+                (~(got by named-ctes) cte.d)
+    =/  tables  set-tables.cte-fr
+    |-
+    ?~  tables  %.n
+    ?^  relation-id.i.tables  %.n
+    ?:  (gth rowcount.i.tables 0)  %.y
+    $(tables t.tables)
+  ?:  ?=(qualified-column:ast d)
+    ?:  ?-  -.map-meta
+          %qualified-map-meta    (~(has bi:mip +.map-meta) qualifier.d name.d)
+          %unqualified-map-meta  (~(has by +.map-meta) name.d)
+        ==
+      %.y
+    ~|("column {<name.d>} does not exist" !!)
+  ?.  ?=(unqualified-column:ast d)  ~|("EXISTS requires a column" !!)
+  =/  found=?
+    ?-  -.map-meta
+      %unqualified-map-meta  (~(has by +.map-meta) name.d)
+      %qualified-map-meta
+        %+  lien  ~(val by +.map-meta)
+        |=(m=(map @tas typ-addr) (~(has by m) name.d))
+    ==
+  ?:  found  %.y
+  ~|("column {<name.d>} does not exist" !!)
 :: 
 ++  prepare-binary-op
   |=  $:  p=predicate:ast
@@ -189,71 +223,18 @@
                                  named-ctes
                                  resolved-scalars
                                  ==
-    %equiv
-      :: to do: the commented code tests for existence in the wrong place
-      ::        it needs to take place at run time and row-by-row
-      ::    fix when outer joins implemented 
-      ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(dime n.l.p)  n.l.p
-      ::             ~|("prepare-binary-op can't get here" !!)
-      ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(qualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(scalar-name:ast n.r.p)   n.r.p
-      ::             ?:  ?=(dime n.r.p)   n.r.p
-      ::             ~|("prepare-binary-op can't get here" !!::)
-      ::=/  l-exists=?  ?:  ?=(dime l)  %.y
-      ::                (~(has by map-meta) name.l)
-      ::=/  r-exists=?  ?:  ?=(dime r)  %.y
-      ::                (~(has by map-meta) name.r)
-      ::::
-      ::?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-      ::  ?:  &(?!(l-exists) ?!(r-exists))  always-true
-      ::  ?.  &(l-exists r-exists)  always-false
-      ::  ?:  %+  types-match  -:(~(got by map-meta) [qualifier.l name.l])
-      ::                    -:(~(got by map-meta) [qualifier.r name.r])
-      ::    %+  bake  %+  cury
-      ::                  %+  cury  (cury eq-col-col [qualifier.l name.l])
-      ::                            [qualifier.r name.r]
-      ::                  -:(~(got by map-meta) [qualifier.l name.l])
-      ::              data-row
-      ::  ~|  "comparing columns of different auras: ".
-      ::      "{<name.l>} {<name.r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(qualified-column:ast l) ?=(dime r))
-      ::  ?.  l-exists  always-false
-      ::  ?:  (types-match -:(~(got by map-meta) [qualifier.l name.l]) -.r)
-      ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.r) [qualifier.l name.l]) -.r)
-      ::          data-row
-      ::  ~|  "comparing column and literal of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(dime l) ?=(qualified-column:ast r))
-      ::  ?.  r-exists  always-false
-      ::  ?:  (types-match -.l -:(~(got by map-meta) [qualifier.r name.r]))
-      ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.l) [qualifier.r name.r]) -.l)
-      ::          data-row
-      ::  ~|  "comparing column and literal of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(dime l) ?=(dime r))
-      ::  ?:  (types-match -.l -.r)
-      ::    %+  bake  (cury (cury (cury eq-lit-lit +.l) +.r) -.l)
-      ::              data-row
-      ::  ~|  "comparing column literals of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::~|("prepare-binary-op can't get here" !!)
-      ~|("%equiv not implemented" !!)
-    %not-equiv
-      ~|("%not-equiv not implemented" !!)
+    ?(%equiv %not-equiv)
+      ::  operands of a single row type exist, so EQUIV is =; rows of several
+      ::  row types have absent operands settled per row type
+      =/  eq=$-(data-row ?)
+        %:  prepare-binary-op  p(n %eq)
+                               map-meta
+                               qualifier-lookup
+                               named-ctes
+                               resolved-scalars
+                               ==
+      ?:  =(%equiv n.p)  eq
+      (bake (cury not eq) data-row)
     %in
       %:  prepare-common-list  p
                                map-meta

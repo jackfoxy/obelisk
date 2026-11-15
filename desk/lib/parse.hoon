@@ -2579,23 +2579,25 @@
               joined-relations
         raw-joined-relations  +.raw-joined-relations
       ==
-  ::natural join
-  ?:  ?|  ?=  [%join [%qualified-table (unit @p) @ @ @ (unit @t)]]
+  ::natural join, inner or outer
+  ?:  ?|  ?=  $:  ?(%join %left-join %right-join %outer-join)
+                  [%qualified-table (unit @p) @ @ @ (unit @t)]
+                  ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       %as-of-offset
                       *
                       ==
                   ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       [%da @]
                       ==
                   ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       [%dr @]
                       ==
@@ -2606,9 +2608,9 @@
       joined-relations
         :-
           :*  %joined-relation
-            %join
+            ;;(join-type:ast -.raw-join)
             ::  object
-            ?:  ?=  $:  %join
+            ?:  ?=  $:  ?(%join %left-join %right-join %outer-join)
                         [%qualified-table (unit @p) @ @ @ (unit @t)]
                         ==
                     raw-join
@@ -4497,6 +4499,7 @@
     ;~(plug (jester 'right') whitespace)
     ;~(plug (jester 'outer') whitespace)
     ;~(plug (jester 'cross') whitespace)
+    ;~(plug (jester 'full') whitespace)
     ;~(plug (jester 'on') whitespace)
     ;~(plug (jester 'as') whitespace)
   ==
@@ -4530,18 +4533,12 @@
   ;~  pfix  whitespace
     ;~  pose
       (cold %join (jester 'join'))
-      (cold %left-join ;~(plug (jester 'left') whitespace (jester 'join')))
-      (cold %right-join ;~(plug (jester 'right') whitespace (jester 'join')))
-      %:  cold  %outer-join-all
-                ;~  plug
-                  (jester 'outer')
-                  whitespace
-                  (jester 'join')
-                  whitespace
-                  (jester 'all')
-                ==
-      ==
-      (cold %outer-join ;~(plug (jester 'outer') whitespace (jester 'join')))
+      %+  cold  %left-join
+      ;~(plug (jester 'left') required-whitespace (jester 'join'))
+      %+  cold  %right-join
+      ;~(plug (jester 'right') required-whitespace (jester 'join'))
+      %+  cold  %outer-join
+      ;~(plug (jester 'outer') required-whitespace (jester 'join'))
     ==
   ==
 ++  build-query-object  ~+
@@ -4610,12 +4607,7 @@
     (cook build-query-object query-object)
   ==
 ++  parse-natural-join  ~+
-  ;~  plug
-    ;~  pfix  whitespace
-      (cold %join (jester 'join'))
-    ==
-    parse-query-object
-  ==
+  ;~(plug parse-join-type parse-query-object)
 ++  parse-join-obj  ~+
   ;~  plug
     parse-join-type
@@ -4832,8 +4824,8 @@
   (star ;~(less predicate-stop predicate-part))
 ::
 ++  produce-predicate
-  ::  when not qualified by () right conjunction takes precedence and "or"
-  ::  takes precedence over "and"
+  ::  when not qualified by () "and" binds tighter than "or", and equal
+  ::  conjunctions group left to right, so the rightmost is the root
   ::
   ::  1=1 and 1=3 (false)
   ::       /\

@@ -6,7 +6,7 @@ Cross-cutting rules. Command-specific syntax: [ddl.md](ddl.md), [dml.md](dml.md)
 
 - Clauses are written in evaluation order: `FROM .. WHERE .. SELECT ..`, not SELECT-first.
 - All results are proper **sets** — no duplicate rows. No `DISTINCT` keyword (it is always implicit).
-- **No nulls.** Table columns are non-nullable typed atoms. Outer joins (when implemented) produce jagged rows of varying length instead of nulls.
+- **No nulls.** Table columns are non-nullable typed atoms. Outer joins produce jagged rows of varying length instead of nulls.
 - Columns are typed by hoon **auras**; literals follow hoon aura rules, not SQL literal rules.
 - **No inlined sub-queries.** Use CTEs (`WITH`) or joins; reference by alias.
 - The keyword `INNER` does not exist; an inner join is just `JOIN`.

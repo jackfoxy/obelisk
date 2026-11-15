@@ -2310,6 +2310,181 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo as y join bar x SELECT *"
 ::
+::  outer joins
+::
+++  baz-unaliased
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='baz' alias=~]
+::
+++  from-foo-with-joins
+  |=  [rel=qualified-table joins=(list joined-relation)]
+  ^-  crud-txn
+  :+  %crud-txn
+      ctes=~
+      :-  %query
+          :*  %query
+              [~ [%from relation-id=rel as-of=~ joins=joins]]
+              scalars=~
+              predicate=~
+              group-by=~
+              having=~
+              select=select-all-columns
+              order-by=~
+              ==
+::
+::  natural LEFT JOIN
+++  test-join-45
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo left join bar SELECT *"
+::
+::  natural RIGHT JOIN
+++  test-join-46
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo RIGHT JOIN bar SELECT *"
+::
+::  natural OUTER JOIN
+++  test-join-47
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo Outer Join bar SELECT *"
+::
+::  natural RIGHT JOIN, aliased
+++  test-join-48
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-alias-x ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-alias-y joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo as y right join bar x SELECT *"
+::
+::  natural OUTER JOIN AS OF
+++  test-join-49
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased [~ [%da ~2000.1.1]] ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo OUTER JOIN bar AS OF ~2000.1.1 SELECT *"
+::
+::  LEFT JOIN ON, aliased
+++  test-join-50
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-alias-x ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-alias-y joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo as y left join bar x on 1 = 1 SELECT *"
+::
+::  RIGHT JOIN ON
+++  test-join-51
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo RIGHT JOIN bar ON 1 = 1 SELECT *"
+::
+::  OUTER JOIN ON
+++  test-join-52
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo OUTER JOIN bar ON 1 = 1 SELECT *"
+::
+::  outer join keywords separated by several whitespace characters
+++  test-join-53
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-unaliased ~ ~]
+        [%joined-relation %right-join baz-unaliased ~ one-eq-1]
+        [%joined-relation %outer-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo LEFT  \0a JOIN bar ".
+            "RIGHT\0aJOIN baz ON 1 = 1 ".
+            "OUTER \09 JOIN bar SELECT *"
+::
+::  every join type in one FROM
+++  test-join-54
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %join bar-unaliased ~ ~]
+        [%joined-relation %left-join baz-unaliased ~ ~]
+        [%joined-relation %right-join bar-unaliased ~ one-eq-1]
+        [%joined-relation %outer-join baz-unaliased ~ ~]
+        [%joined-relation %cross-join bar-unaliased ~ ~]
+        [%joined-relation %left-join baz-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo JOIN bar LEFT JOIN baz RIGHT JOIN bar ON 1 = 1 ".
+            "OUTER JOIN baz CROSS JOIN bar LEFT JOIN baz ON 1 = 1 ".
+            "SELECT *"
+::
+::  fail: no whitespace between LEFT and JOIN
+++  test-fail-join-00
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo LEFTJOIN bar SELECT *")
+::
+::  fail: no whitespace between RIGHT and JOIN
+++  test-fail-join-01
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo RIGHTJOIN bar SELECT *")
+::
+::  fail: no whitespace between OUTER and JOIN
+++  test-fail-join-02
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo OUTERJOIN bar SELECT *")
+::
+::  fail: LEFT OUTER JOIN is not urQL
+++  test-fail-join-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo LEFT OUTER JOIN bar SELECT *"
+::
+::  fail: RIGHT OUTER JOIN is not urQL
+++  test-fail-join-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo RIGHT OUTER JOIN bar SELECT *"
+::
+::  fail: FULL OUTER JOIN is not urQL
+++  test-fail-join-05
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo FULL OUTER JOIN bar SELECT *"
+::
+::  fail: LEFT without JOIN
+++  test-fail-join-06
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo LEFT bar SELECT *")
+::
+::  fail: OUTER JOIN without relation
+++  test-fail-join-07
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo OUTER JOIN SELECT *")
+::
 ::  AS OF queries
 ::
 ::  from foo %now (un-aliased)

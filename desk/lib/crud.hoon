@@ -899,6 +899,8 @@
     (select-literals state columns.select.q is-cte resolved-scalars)
   :: no joins, it's a single relation
   =/  f  (normalize-from (need from.q))
+  ?:  (query-row-types f named-ctes)
+    (do-row-type-query q f named-ctes)
   ?~  joins.f
     =/  jr  (select-relation(state state, bowl bowl) q is-cte named-ctes)
     ?:  is-cte  jr
@@ -941,33 +943,443 @@
       %+  skim  joined-rows.i.set-tables.join-return
                 |=(a=joined-row (filter a))
     join-return
+  (need (select-joined q named-ctes join-return ~))
+::
+++  select-joined
+  ::  Filter and project joined rows into a result set-table.
   ::
-  =/  selected          (normalize-selected columns.select.q)
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return)
+  ::  prune is given for the rows of one row type of several: the presence
+  ::  of values, by the scalars absent, and the relations present (~ for a
+  ::  single source).  Values absent from the row type are pruned from the
+  ::  query first.  Produces ~ when no selected value is present.
+  |=  $:  q=query:ast
+          =named-ctes
+          jr=join-return
+          prune=(unit row-type-prune)
+          ==
+  ^-  (unit join-return)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
+  =/  selected
+    %+  qualify-unqualified  (normalize-selected columns.select.q)
+                             qualifier-lookup
+  =/  predicate=predicate:ast
+    ?~  predicate.q  ~
+    (normalize-predicate predicate.q qualifier-lookup)
+  =/  pruned=[(list scalar:ast) predicate:ast (list selected-column:ast)]
+    ?~  prune  [scalars.q predicate selected]
+    (prune-query u.prune scalars.q predicate selected)
+  ?~  +>.pruned  ~
   =/  resolved-scalars
-        %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+        %:  resolve-query-scalars(state state, bowl bowl)  -.pruned
                                                            named-ctes
                                                            qualifier-lookup
-                                                           map-meta.join-return
+                                                           map-meta.jr
                                                            ==
-  =.  selected          (qualify-unqualified selected qualifier-lookup)
-  ::
-  =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
-                                    :-  ~
-                                        %:  prepare-predicate
-                                              %+  normalize-predicate
-                                                  predicate.q
-                                                  qualifier-lookup
-                                              map-meta.join-return
-                                              qualifier-lookup
-                                              named-ctes
-                                              resolved-scalars
-                                              ==
-  ?~  set-tables.join-return  join-return
-  =.  joined-rows.i.set-tables.join-return
-    %+  skim  joined-rows.i.set-tables.join-return
+  =/  filter=(unit $-(data-row ?))
+    ?~  +<.pruned  ~
+    :-  ~
+    %:  prepare-predicate  +<.pruned
+                           map-meta.jr
+                           qualifier-lookup
+                           named-ctes
+                           resolved-scalars
+                           ==
+  ?~  set-tables.jr  `jr
+  =.  joined-rows.i.set-tables.jr
+    %+  skim  joined-rows.i.set-tables.jr
               |=(a=joined-row ?~(filter %.y ((need filter) a)))
-  (mk-query-result selected named-ctes join-return %.y resolved-scalars)
+  `(mk-query-result +>.pruned named-ctes jr %.y resolved-scalars)
+::
+::  +|  row types
+::
+::  A query's rows are of several row types when it has an outer join (a row
+::  that matched nothing lacks the relations it did not match) or a source
+::  is a CTE of several row types.  Each row type runs the query against
+::  its own rows, with the values absent from it pruned from the query:
+::  every other part of the engine then sees one row type with a fixed
+::  shape, addressed as before.  The result holds one result set-table per
+::  row type.
+::
+++  query-row-types
+  ::  %.y when a query's rows may be of several row types
+  |=  [f=from:ast =named-ctes]
+  ^-  ?
+  ?|  %+  lien  joins.f
+      |=  j=joined-relation:ast
+      ?=(?(%left-join %right-join %outer-join) join-type.j)
+    ::
+      (cte-row-types relation-id.f named-ctes)
+    ::
+      %+  lien  joins.f
+      |=(j=joined-relation:ast (cte-row-types relation-id.j named-ctes))
+  ==
+::
+++  cte-row-types
+  ::  %.y when a relation is a CTE of several row types
+  |=  [rel=relation-id:ast =named-ctes]
+  ^-  ?
+  =/  tables  (cte-result-tables rel named-ctes)
+  ?~  tables  %.n
+  (lien t.tables |=(st=set-table !=(columns.st columns.i.tables)))
+::
+++  cte-result-tables
+  ::  the result set-tables of a CTE, which precede its source set-tables;
+  ::  ~ when rel is not a CTE
+  |=  [rel=relation-id:ast =named-ctes]
+  ^-  (list set-table)
+  ?.  ?=(%cte-name -.rel)  ~
+  =/  cte-fr  (~(get by named-ctes) name.rel)
+  ?~  cte-fr  ~
+  =/  tables  set-tables.u.cte-fr
+  |-  ^-  (list set-table)
+  ?~  tables  ~
+  ?^  relation-id.i.tables  ~
+  [i.tables $(tables t.tables)]
+::
+++  do-row-type-query
+  |=  [q=query:ast f=from:ast =named-ctes]
+  ^-  join-return
+  ?~  joins.f  (cte-row-type-query q f named-ctes)
+  =/  jr=join-return  (join-all(state state, bowl bowl) q named-ctes)
+  =.  state  server.jr
+  ?~  set-tables.jr  ~|("do-row-type-query can't get here" !!)
+  =/  joined=set-table  i.set-tables.jr
+  =/  all-pairs=(list [qualified-table:ast @tas])
+    %+  turn  column-metas.jr
+    |=  cm=column-meta
+    ^-  [qualified-table:ast @tas]
+    :-  (normalize-qt-alias qualifier.qualified-column.cm)
+        name.qualified-column.cm
+  =/  all=(set [qualified-table:ast @tas])  (silt all-pairs)
+  =/  lookup=qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
+  =/  types=(jar (set [qualified-table:ast @tas]) joined-row)
+    %+  roll  joined-rows.joined
+    |=  $:  r=joined-row
+            acc=(jar (set [qualified-table:ast @tas]) joined-row)
+            ==
+    (~(add ja acc) (joined-row-shape r) r)
+  =/  results=(list join-return)
+    %+  murn  ~(tap by types)
+    |=  [here=(set [qualified-table:ast @tas]) rows=(list joined-row)]
+    ^-  (unit join-return)
+    =/  here-list=(list [qualified-table:ast @tas])  ~(tap in here)
+    =/  qts=(list qualified-table:ast)
+      (turn here-list |=([qt=qualified-table:ast @tas] qt))
+    =/  tables=(set qualified-table:ast)  (silt qts)
+    %:  select-joined  q
+                       named-ctes
+                       (row-type-join-return jr here (flop rows))
+                       `[%.n [all here lookup] `tables]
+                       ==
+  ?~  results
+    ::  no row has a selected value present: an empty result
+    =.  set-tables.jr  [joined(joined-rows ~, rowcount 0) t.set-tables.jr]
+    (need (select-joined q named-ctes jr ~))
+  (row-type-results results)
+::
+++  cte-row-type-query
+  ::  a query of a CTE of several row types, without joins: each row type
+  ::  runs the query against a CTE of its own rows
+  |=  [q=query:ast f=from:ast =named-ctes]
+  ^-  join-return
+  =/  rel  relation-id.f
+  ?>  ?=(%cte-name -.rel)
+  =/  cte-fr  (~(got by named-ctes) name.rel)
+  =/  tables  (cte-result-tables rel named-ctes)
+  ?~  tables  ~|("cte-row-type-query can't get here" !!)
+  =/  sources=(list set-table)  (source-set-tables set-tables.cte-fr)
+  =/  types=(map (list column:ast) (list indexed-row))
+    %+  roll  `(list set-table)`tables
+    |=  [st=set-table acc=(map (list column:ast) (list indexed-row))]
+    %+  ~(put by acc)  columns.st
+    (weld (~(gut by acc) columns.st ~) indexed-rows.st)
+  =/  type-cols=(list (list column:ast))  ~(tap in ~(key by types))
+  =/  all-cols=(list column:ast)  (zing type-cols)
+  =/  all-pairs=(list [qualified-table:ast @tas])
+    (turn all-cols |=(c=column:ast [*qualified-table:ast name.c]))
+  =/  all=(set [qualified-table:ast @tas])  (silt all-pairs)
+  =/  results=(list join-return)
+    %+  murn  ~(tap by types)
+    |=  [cols=(list column:ast) rows=(list indexed-row)]
+    ^-  (unit join-return)
+    =/  here-pairs=(list [qualified-table:ast @tas])
+      (turn cols |=(c=column:ast [*qualified-table:ast name.c]))
+    =/  here=(set [qualified-table:ast @tas])  (silt here-pairs)
+    =/  pruned
+      %:  prune-query  [%.y [all here *qualifier-lookup] ~]
+                       scalars.q
+                       predicate.q
+                       columns.select.q
+                       ==
+    ?~  +>.pruned  ~
+    =/  st=set-table
+      %=  i.tables
+        columns       cols
+        indexed-rows  rows
+        rowcount      (lent rows)
+      ==
+    =/  type-cte=full-relation
+      %+  set-query-cte-relation  name.rel
+      [%join-return state [st sources] *map-meta ~]
+    =/  type-q=query:ast
+      q(scalars -.pruned, predicate +<.pruned, columns.select +>.pruned)
+    `(do-query type-q (~(put by named-ctes) name.rel type-cte) %.n)
+  ?^  results  (row-type-results results)
+  ::  no row has a selected value present: an empty result
+  =/  empty=set-table  i.tables(indexed-rows ~, rowcount 0)
+  [%join-return state [empty sources] map-meta.cte-fr column-metas.cte-fr]
+::
+++  row-type-results
+  ::  one join-return of the results of several row types
+  |=  results=(list join-return)
+  ^-  join-return
+  ?~  results  ~|("row-type-results can't get here" !!)
+  =/  heads=(list set-table)
+    %+  murn  `(list join-return)`results
+    |=(r=join-return ?~(set-tables.r ~ `i.set-tables.r))
+  i.results(set-tables (weld heads (source-set-tables set-tables.i.results)))
+::
+++  joined-row-shape
+  ::  the row type of a joined row: the columns of its relations
+  |=  row=joined-row
+  ^-  (set [qualified-table:ast @tas])
+  %+  roll  ~(tap by data.row)
+  |=  $:  [qt=qualified-table:ast cols=(map @tas @)]
+          shape=(set [qualified-table:ast @tas])
+          ==
+  ^-  (set [qualified-table:ast @tas])
+  =/  nqt  (normalize-qt-alias qt)
+  =/  names=(list @tas)  ~(tap in ~(key by cols))
+  =/  pairs=(list [qualified-table:ast @tas])
+    (turn names |=(c=@tas [nqt c]))
+  (~(gas in shape) pairs)
+::
+++  row-type-join-return
+  ::  the join-return of the joined rows of one row type, addressed by it
+  |=  $:  jr=join-return
+          here=(set [qualified-table:ast @tas])
+          rows=(list joined-row)
+          ==
+  ^-  join-return
+  ?~  set-tables.jr  ~|("row-type-join-return can't get here" !!)
+  ?~  rows  ~|("row-type-join-return can't get here" !!)
+  =/  metas=(list column-meta)
+    %+  murn  column-metas.jr
+    |=  cm=column-meta
+    ^-  (unit column-meta)
+    =/  qt    qualifier.qualified-column.cm
+    =/  name  name.qualified-column.cm
+    ?.  (~(has in here) [(normalize-qt-alias qt) name])  ~
+    `cm(addr (calc-joined-addr data.i.rows qt name))
+  =/  =map-meta
+    :-  %qualified-map-meta
+    %+  roll  metas
+    |=  [cm=column-meta mm=(mip:mip qualifier @tas typ-addr)]
+    %^  ~(put bi:mip mm)  qualifier.qualified-column.cm
+                          name.qualified-column.cm
+                          [type.cm addr.cm]
+  =/  joined=set-table  i.set-tables.jr
+  :*  %join-return
+      server.jr
+      [joined(joined-rows rows, rowcount (lent rows)) t.set-tables.jr]
+      map-meta
+      metas
+      ==
+::
+++  row-presence
+  ::  The presence in a row type of a datum: [~ %.y] present, [~ %.n] a
+  ::  value of the query absent from the row type, ~ not a column or scalar.
+  ::  Crashes on a column of no relation of the query.  by-name matches
+  ::  columns by name alone, for a single source.
+  |=  $:  by-name=?
+          all=(set [qualified-table:ast @tas])
+          here=(set [qualified-table:ast @tas])
+          lookup=qualifier-lookup
+          absent-scalars=(set @tas)
+          ==
+  |=  d=*
+  ^-  (unit ?)
+  ?:  ?=(scalar-name:ast d)  `!(~(has in absent-scalars) name.d)
+  =/  key=(unit [qualified-table:ast @tas])
+    ?:  ?=(qualified-column:ast d)
+      ?:  by-name  `[*qualified-table:ast name.d]
+      `[(normalize-qt-alias qualifier.d) name.d]
+    ?.  ?=(unqualified-column:ast d)  ~
+    ?:  by-name  `[*qualified-table:ast name.d]
+    =/  qts  (~(gut by lookup) name.d ~)
+    ?~  qts  ~|("column {<name.d>} does not exist" !!)
+    `[(normalize-qt-alias i.qts) name.d]
+  ?~  key  ~
+  ?:  (~(has in here) u.key)  `%.y
+  ?:  (~(has in all) u.key)  `%.n
+  ~|("column {<+.u.key>} does not exist" !!)
+::
+++  prune-query
+  ::  Remove from a query's scalars, predicate, and selected columns the
+  ::  values absent from a row type.
+  |=  $:  prune=row-type-prune
+          scalars=(list scalar:ast)
+          =predicate:ast
+          selected=(list selected-column:ast)
+          ==
+  ^-  [(list scalar:ast) predicate:ast (list selected-column:ast)]
+  =/  presence
+    |=  absent=(set @tas)
+    %:  row-presence  by-name.prune
+                      all.shape.prune
+                      here.shape.prune
+                      lookup.shape.prune
+                      absent
+                      ==
+  =/  kept=[(list scalar:ast) (set @tas)]  (prune-scalars scalars presence)
+  =/  present=$-(* (unit ?))  (presence +.kept)
+  :+  -.kept
+      (prune-predicate predicate present)
+      (prune-selected selected present tables.prune)
+::
+++  true-predicate   `predicate:ast`[%eq [[%ud 1] ~ ~] [[%ud 1] ~ ~]]
+++  false-predicate  `predicate:ast`[%eq [[%ud 0] ~ ~] [[%ud 1] ~ ~]]
+::
+++  prune-predicate
+  ::  Settle each predicate leaf over a value absent from a row type: a
+  ::  comparison with an absent operand is false, EXISTS is constant, and
+  ::  EQUIV of two absent operands is true.  EQUIV of present operands is =.
+  |=  [p=predicate:ast present=$-(* (unit ?))]
+  ^-  predicate:ast
+  ?~  p  ~
+  =/  operand
+    |=  t=predicate:ast
+    ^-  (unit ?)
+    ?~  t  ~
+    (present n.t)
+  ?+  n.p  p
+    ?(%and %or)  [n.p $(p l.p) $(p r.p)]
+    %not         [%not $(p l.p) ~]
+  ::
+    ?(%exists %not-exists)
+      =/  d  (operand l.p)
+      ?~  d  p
+      ?:  =(u.d =(%exists n.p))  true-predicate
+      false-predicate
+  ::
+    ?(%equiv %not-equiv)
+      =/  l  (operand l.p)
+      =/  r  (operand r.p)
+      ?:  &(!=([~ %.n] l) !=([~ %.n] r))
+        ?:  =(%equiv n.p)  [%eq l.p r.p]
+        [%not [%eq l.p r.p] ~]
+      =/  equiv=?  &(=([~ %.n] l) =([~ %.n] r))
+      ?:  =(equiv =(%equiv n.p))  true-predicate
+      false-predicate
+  ::
+    ?(%between %not-between %eq %neq %gt %gte %lt %lte %in %not-in)
+      ?:  (predicate-absent p present)  false-predicate
+      p
+  ==
+::
+++  predicate-absent
+  ::  %.y when any datum of a predicate is absent
+  |=  [p=predicate:ast present=$-(* (unit ?))]
+  ^-  ?
+  ?~  p  %.n
+  ?|  =([~ %.n] (present n.p))
+      $(p l.p)
+      $(p r.p)
+  ==
+::
+++  prune-scalars
+  ::  Drop the scalars absent from a row type, in order, so a scalar of an
+  ::  absent scalar is absent; produce the names of those dropped.
+  |=  $:  scalars=(list scalar:ast)
+          presence=$-((set @tas) $-(* (unit ?)))
+          ==
+  ^-  [(list scalar:ast) (set @tas)]
+  =/  absent  *(set @tas)
+  =/  out  *(list scalar:ast)
+  |-
+  ?~  scalars  [(flop out) absent]
+  =/  f  (prune-scalar-node f.i.scalars (presence absent))
+  ?~  f
+    $(scalars t.scalars, absent (~(put in absent) name.i.scalars))
+  %=  $
+    scalars  t.scalars
+    out      [i.scalars(f ;;(scalar-function:ast u.f)) out]
+  ==
+::
+++  prune-scalar-node
+  ::  A scalar node is absent when any value it uses is absent, except that
+  ::  COALESCE keeps its present arguments and is absent only when all are.
+  ::  IF and CASE conditions are pruned as predicates.
+  |=  [n=* present=$-(* (unit ?))]
+  ^-  (unit *)
+  ?@  n  `n
+  =/  d  (present n)
+  ?^  d  ?:(u.d `n ~)
+  ::  test the tag alone: the node types are recursive
+  ?:  ?=([%coalesce *] n)
+    =/  c  ;;(coalesce:ast n)
+    =/  kept=(list *)
+      (murn `(list *)`data.c |=(a=* (prune-scalar-node a present)))
+    ?~  kept  ~
+    `[%coalesce kept]
+  ?:  ?=([%if-then-else *] n)
+    =/  c  ;;(if-then-else:ast n)
+    =/  then  $(n then.c)
+    ?~  then  ~
+    =/  else  $(n else.c)
+    ?~  else  ~
+    `[%if-then-else (prune-predicate if.c present) u.then u.else]
+  ?:  ?=([%case *] n)
+    =/  c  ;;(case:ast n)
+    =/  target=(unit (unit *))
+      ?~  target.c  `~
+      =/  t  $(n u.target.c)
+      ?~  t  ~
+      ``u.t
+    ?~  target  ~
+    =/  else=(unit (unit *))
+      ?~  else.c  `~
+      =/  e  $(n u.else.c)
+      ?~  e  ~
+      ``u.e
+    ?~  else  ~
+    =/  cases=(unit (list *))
+      =/  rest=(list case-when-then:ast)  cases.c
+      =|  out=(list *)
+      |-  ^-  (unit (list *))
+      ?~  rest  `(flop out)
+      =/  then  (prune-scalar-node then.i.rest present)
+      ?~  then  ~
+      =/  when=(unit *)
+        ?~  target.c
+          `(prune-predicate ;;(predicate:ast when.i.rest) present)
+        (prune-scalar-node when.i.rest present)
+      ?~  when  ~
+      $(rest t.rest, out [[%case-when-then u.when u.then] out])
+    ?~  cases  ~
+    `[%case u.target u.cases u.else]
+  =/  h  $(n -.n)
+  ?~  h  ~
+  =/  t  $(n +.n)
+  ?~  t  ~
+  `[u.h u.t]
+::
+++  prune-selected
+  ::  drop the selected columns and scalars absent from a row type, and the
+  ::  <alias>.* of relations absent from it
+  |=  $:  selected=(list selected-column:ast)
+          present=$-(* (unit ?))
+          tables=(unit (set qualified-table:ast))
+          ==
+  ^-  (list selected-column:ast)
+  %+  skim  selected
+  |=  s=selected-column:ast
+  ?:  ?=(selected-scalar:ast s)
+    !=([~ %.n] (present [%scalar-name name.s]))
+  ?:  ?=(selected-all-table:ast s)
+    ?~  tables  %.y
+    (~(has in u.tables) (normalize-qt-alias qualified-table.s))
+  !=([~ %.n] (present s))
 ::
 ++  do-set-query
   ::  Apply set operations left to right.  The running rows carry their row
@@ -1046,13 +1458,16 @@
   ?~  from.q
     jr
   =/  f  (normalize-from u.from.q)
+  ::  rows of several row types are projected per row type by +do-query
+  ?:  (query-row-types f named-ctes)
+    jr
   ?^  joins.f
     jr
   =/  selected  (normalize-selected columns.select.q)
   ?:  (selected-needs-materialization selected)
     jr
   ?:  (selected-preserves-source selected)
-    (cte-operand-row-types relation-id.f predicate.q named-ctes jr)
+    jr
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
@@ -1061,30 +1476,6 @@
                                                            map-meta.jr
                                                            ==
   (mk-query-result selected named-ctes jr %.n resolved-scalars)
-::
-++  cte-operand-row-types
-  ::  A CTE holding several row types keeps one result set-table per row,
-  ::  and selecting from it yields only the first.  An operand selecting *
-  ::  without WHERE from such a CTE carries all of the CTE's result
-  ::  set-tables instead.
-  |=  $:  rel=relation-id:ast
-          =predicate:ast
-          =named-ctes
-          jr=join-return
-          ==
-  ^-  join-return
-  ?.  ?=(%cte-name -.rel)  jr
-  ?^  predicate  jr
-  =/  sources=(list set-table)  ?~(set-tables.jr ~ t.set-tables.jr)
-  =/  cte-tables=(list set-table)
-    set-tables:(~(got by named-ctes) name.rel)
-  =/  result-tables=(list set-table)
-    |-  ^-  (list set-table)
-    ?~  cte-tables  ~
-    ?^  relation-id.i.cte-tables  ~
-    [i.cte-tables $(cte-tables t.cte-tables)]
-  ?.  ?=([* * *] result-tables)  jr
-  jr(set-tables (weld result-tables sources))
 ::
 ++  selected-preserves-source
   |=  selected=(list selected-column:ast)
@@ -1784,6 +2175,21 @@
       ctes   +.ctes
     ==
   =/  cte-q=query:ast   +.body.i.ctes
+  ?:  ?&  ?=(^ from.cte-q)
+          (query-row-types (normalize-from u.from.cte-q) nctes)
+      ==
+    ::  rows of several row types: one result set-table per row type, as for
+    ::  a set query
+    =/  jr  (do-query cte-q nctes %.n)
+    =.  state  server.jr
+    =/  checked=(list (list column:ast))
+      %+  turn  (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+      |=(st=set-table (cte-col-dups name.i.ctes columns.st))
+    %=  $
+      nctes  %+  ~(put by nctes)  name.i.ctes
+             (set-query-cte-relation name.i.ctes jr)
+      ctes   +.ctes
+    ==
   =/  =join-return    (do-query cte-q nctes %.y)
   =.  state             server.join-return
   =/  selected          (normalize-selected columns.select.cte-q)

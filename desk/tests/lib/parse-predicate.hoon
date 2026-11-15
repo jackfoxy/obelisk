@@ -2650,4 +2650,60 @@
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
           "FROM foo WHERE foo = ~2024.012.5 SELECT *"
+::
+::  EXISTS <cte-column>
+++  cte-c1-col1
+  :*  %query
+      [~ [%from relation-id=[%qualified-table ~ 'db1' 'dbo' 'bar' ~] ~ ~]]
+      scalars=~
+      predicate=~
+      group-by=~
+      having=~
+      [%select top=~ columns=~[[%unqualified-column name='col1' alias=~]]]
+      order-by=~
+      ==
+++  test-predicate-73
+  =/  pred=(tree predicate-component:ast)
+    [%exists [[%cte-column 'c1' 'col1'] ~ ~] ~]
+  =/  query
+    :*  %query
+        from-foo
+        scalars=~
+        pred
+        group-by=~
+        having=~
+        select-all-columns
+        order-by=~
+        ==
+  %+  expect-eq
+    !>  :~  :+  %crud-txn
+                ctes=~[[%cte name='c1' body=[%query cte-c1-col1]]]
+                body=[%query query]
+            ==
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM bar SELECT col1) AS c1 ".
+            "FROM foo WHERE EXISTS c1.col1 SELECT *"
+::
+::  NOT EXISTS <cte-column>
+++  test-predicate-74
+  =/  pred=(tree predicate-component:ast)
+    [%not-exists [[%cte-column 'c1' 'col1'] ~ ~] ~]
+  =/  query
+    :*  %query
+        from-foo
+        scalars=~
+        pred
+        group-by=~
+        having=~
+        select-all-columns
+        order-by=~
+        ==
+  %+  expect-eq
+    !>  :~  :+  %crud-txn
+                ctes=~[[%cte name='c1' body=[%query cte-c1-col1]]]
+                body=[%query query]
+            ==
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM bar SELECT col1) AS c1 ".
+            "FROM foo WHERE NOT EXISTS c1.col1 SELECT *"
 --

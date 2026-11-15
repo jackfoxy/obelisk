@@ -85,14 +85,20 @@
   |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (normalize-from (need from.q))
+  ::  outer joins are not commutative with cross joins: keep written order
+  =/  in-order=?
+    %+  lien  joins.from
+    |=  j=joined-relation:ast
+    ?=(?(%left-join %right-join %outer-join) join-type.j)
   =/  joined-relations=(list joined-relat)
-        %+  cross-joins-to-end  :*  %joined-relat
-                                     ~
-                                     relation-id.from
-                                     as-of.from
-                                     ~
-                                     ==
-                                 joins.from
+        %^  cross-joins-to-end  in-order
+                                :*  %joined-relat
+                                    ~
+                                    relation-id.from
+                                    as-of.from
+                                    ~
+                                    ==
+                                joins.from
   =/  relat=joined-relat  -.joined-relations
   =.  joined-relations    +.joined-relations
   =/  =full-relation  %:  source-full-relation  relation-id.relat
@@ -132,14 +138,67 @@
       ?:  =(~ predicate.this)  (join-natural prior this column-metas)
       (join-predicate prior this column-metas)
     %left-join
-      ~|("%left-join not implemented" !!)
+      (outer-join %.y %.n prior this column-metas)
     %right-join
-      ~|("right-join not implemented" !!)
+      (outer-join %.n %.y prior this column-metas)
     %outer-join
-      ~|("%outer-join not implemented" !!)
+      (outer-join %.y %.y prior this column-metas)
     %cross-join
       (cross-join prior this)
   ==
+::
+++  outer-join
+  ::  Inner join prior and this, natural or ON, then add the rows of prior
+  ::  (keep-prior) and of this (keep-this) that matched nothing.  An
+  ::  unmatched row lacks the other side's relations.
+  ::
+  ::  Every inner join algorithm is reused; unmatched rows are found in one
+  ::  pass against the matched rows, O(n log n).  The result is not ordered
+  ::  by any key.
+  |=  $:  keep-prior=?
+          keep-this=?
+          prior=set-table
+          this=set-table
+          column-metas=(list column-meta)
+          ==
+  ^-  set-table
+  =/  inner=set-table
+    ?:  =(~ predicate.this)  (join-natural prior this column-metas)
+    (join-predicate prior this column-metas)
+  =/  rel-prior  (need relation-id.prior)
+  =/  rel-this   (need relation-id.this)
+  =/  matched=(list joined-row)  joined-rows.inner
+  =/  unmatched-prior=(list joined-row)
+    ?.  keep-prior  ~
+    =/  matched-prior=(list (mip:mip qualified-table:ast @tas @))
+      (turn matched |=(r=joined-row (~(del by data.r) rel-this)))
+    =/  seen=(set (mip:mip qualified-table:ast @tas @))  (silt matched-prior)
+    =/  prior-rows=(list data-row)
+      ?~  joined-rows.prior  indexed-rows.prior
+      joined-rows.prior
+    %+  murn  prior-rows
+    |=  r=data-row
+    ^-  (unit joined-row)
+    =/  row=joined-row
+      ?:  ?=(%joined-row -.r)  r
+      [%joined-row key.r (malt ~[[rel-prior data.r]])]
+    ?:  (~(has in seen) data.row)  ~
+    `row
+  =/  unmatched-this=(list joined-row)
+    ?.  keep-this  ~
+    =/  matched-this=(list (map @tas @))
+      (turn matched |=(r=joined-row (~(got by data.r) rel-this)))
+    =/  seen=(set (map @tas @))  (silt matched-this)
+    %+  murn  indexed-rows.this
+    |=  r=indexed-row
+    ^-  (unit joined-row)
+    ?:  (~(has in seen) data.r)  ~
+    `[%joined-row key.r (malt ~[[rel-this data.r]])]
+  =/  rows=(list joined-row)  :(weld matched unmatched-prior unmatched-this)
+  =.  joined-rows.inner  rows
+  =.  rowcount.inner     (lent rows)
+  =.  pri-indx.inner     ~
+  inner
 ::
 ++  join-natural
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
@@ -352,7 +411,7 @@
   ::  resolve unqualified columns, validate existence, assign to prior/this
   =/  resolved  %+  turn  raw-pairs
     |=  [l=resolved-on-col r=resolved-on-col]
-    ^-  [@tas @tas]
+    ^-  [[qualified-table:ast @tas] @tas]
     ::  rebrand alias qualifiers to match execution-time relations
     =.  l  (rebrand-on-col l rel-prior rel-this)
     =.  r  (rebrand-on-col r rel-prior rel-this)
@@ -377,13 +436,13 @@
     =/  l-is-this   (col-in-relation l rel-this column-metas)
     =/  r-is-this   (col-in-relation r rel-this column-metas)
     ::  l=prior-side, r=this-side
-    ?:  &(?!(l-is-this) r-is-this)  [name.l name.r]
+    ?:  &(?!(l-is-this) r-is-this)  [(on-col-key l column-metas) name.r]
     ::  l=this-side, r=prior-side
-    ?:  &(l-is-this ?!(r-is-this))  [name.r name.l]
+    ?:  &(l-is-this ?!(r-is-this))  [(on-col-key r column-metas) name.l]
     ::  both are this-side or both are prior-side
     ~|("ON predicate must reference columns from different relations" !!)
-  =/  prior-cols  (turn resolved |=(p=[@tas @tas] -.p))
-  =/  this-cols   (turn resolved |=(p=[@tas @tas] +.p))
+  =/  prior-cols=(list [qualified-table:ast @tas])  (turn resolved head)
+  =/  this-cols=(list @tas)                         (turn resolved tail)
   ?~  pri-indx.prior
     (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
   ?~  pri-indx.this
@@ -395,7 +454,7 @@
           this=set-table
           rel-prior=qualified-table:ast
           rel-this=qualified-table:ast
-          prior-cols=(list @tas)
+          prior-cols=(list [qualified-table:ast @tas])
           this-cols=(list @tas)
           ==
   ^-  set-table
@@ -559,6 +618,22 @@
   ::  relation exists but column doesn't
   ~|  "column %{(trip name.col)} does not exist"  !!
 ::
+++  on-col-key
+  ::  the row data key of a resolved ON column: its qualifier exactly as
+  ::  the joined rows hold it
+  |=  [col=resolved-on-col column-metas=(list column-meta)]
+  ^-  [qualified-table:ast @tas]
+  =/  qt=qualified-table:ast  (need qualifier.col)
+  =/  match=(list column-meta)
+    %+  skim  column-metas
+    |=  cm=column-meta
+    ?&  =(name.qualified-column.cm name.col)
+        .=  (normalize-qt-alias qualifier.qualified-column.cm)
+            (normalize-qt-alias qt)
+    ==
+  ?~  match  [qt name.col]
+  [qualifier.qualified-column.i.match name.col]
+::
 ++  get-on-col-type
   ::  get the type of a resolved ON column from column-metas
   |=  [col=resolved-on-col column-metas=(list column-meta)]
@@ -585,11 +660,14 @@
 ++  join-predicate-hash
   ::  hash join for predicate joins with different column names per side
   ::  builds hash map on this-cols from b, probes with prior-cols from a
+  ::
+  ::  a joined row is probed by qualified column, so a relation an outer
+  ::  join left absent never matches through a same-named column
   |=  $:  a=(list data-row)
           a-qual=qualified-table:ast
           b=(list indexed-row)
           b-qual=qualified-table:ast
-          a-cols=(list @tas)
+          a-cols=(list [qualified-table:ast @tas])
           b-cols=(list @tas)
           ==
   ^-  [@ud (list joined-row)]
@@ -604,11 +682,19 @@
     =/  existing  (~(gut by m) u.hash-key ~)
     $(m (~(put by m) u.hash-key [i.rows existing]), rows t.rows)
   ::  probe a rows against hash map using a-cols
+  =/  a-names=(list @tas)  (turn a-cols tail)
   =/  out  *(list joined-row)
   =/  cnt  0
   |-
   ?~  a  [cnt (flop out)]
-  =/  hash-key  (extract-match-key i.a a-cols)
+  =/  hash-key=(unit (list @))
+    ?:  ?=(%indexed-row -.i.a)  (extract-match-key i.a a-names)
+    =/  vals=(list (unit @))
+      %+  turn  a-cols
+      |=  [qt=qualified-table:ast name=@tas]
+      (~(get bi:mip data.i.a) qt name)
+    ?.  (levy vals |=(v=(unit @) ?=(^ v)))  ~
+    `(turn vals need)
   ?~  hash-key  $(a t.a)
   =/  matches  (~(gut by b-map) u.hash-key ~)
   =/  b-rows  matches
@@ -818,10 +904,21 @@
     %^  spin  column-metas.full-relation
               *qualified-map-meta
               |=  [=column-meta mm=qualified-map-meta]
+              =/  qt    qualifier.qualified-column.column-meta
+              =/  name  name.qualified-column.column-meta
+              ::  outer joins: the first row holding the column; rows of other
+              ::  row types are addressed by their own row type
+              =/  holder=(unit joined-row)
+                ::  widen: joined-rows.set-table is narrowed non-empty above
+                =/  rows=(list joined-row)  joined-rows.set-table
+                |-  ^-  (unit joined-row)
+                ?~  rows  ~
+                =/  cols  (~(get by data.i.rows) qt)
+                ?:  ?&(?=(^ cols) (~(has by u.cols) name))  `i.rows
+                $(rows t.rows)
               =/  new-addr
-                    %^  calc-joined-addr  data.i.joined-rows.set-table
-                                          qualifier.qualified-column.column-meta
-                                          name.qualified-column.column-meta
+                ?~  holder  addr.column-meta
+                (calc-joined-addr data.u.holder qt name)
               =.  addr.column-meta  new-addr
               :-  column-meta
                   :-  %qualified-map-meta
@@ -1019,11 +1116,50 @@
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
+  ::  a CTE of several row types holds one result set-table per row type
+  ::  or row; join them as one relation of all their columns, unindexed
+  =/  others=(list set-table)
+    =/  rest  t.set-tables.cte-fr
+    |-  ^-  (list set-table)
+    ?~  rest  ~
+    ?^  relation-id.i.rest  ~
+    [i.rest $(rest t.rest)]
+  ::  each wet product is typed before the next wet gate sees it
+  =/  other-cols=(list (list column:ast))
+    (turn others |=(st=set-table columns.st))
+  =/  all-other-cols=(list column:ast)  (zing other-cols)
+  =/  extra-cols=(list column:ast)
+    %+  roll  all-other-cols
+    |=  [c=column:ast acc=(list column:ast)]
+    ^-  (list column:ast)
+    ?:  (lien acc |=(a=column:ast =(name.a name.c)))  acc
+    ?:  (lien columns.cte-st |=(a=column:ast =(name.a name.c)))  acc
+    (snoc acc c)
+  =?  cte-st  ?=(^ others)
+    =/  other-rows=(list (list indexed-row))
+      (turn others |=(st=set-table indexed-rows.st))
+    =/  all-rows=(list indexed-row)  (zing [indexed-rows.cte-st other-rows])
+    %=  cte-st
+      columns       (weld columns.cte-st extra-cols)
+      indexed-rows  all-rows
+      rowcount      (lent all-rows)
+      pri-indx      ~
+    ==
   =.  relation-id.cte-st  [~ norm-qt]
   =.  join.cte-st      join
   =.  predicate.cte-st  predicate
-  =/  cte-col-meta
-    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table ~]))
+  =/  cte-col-meta=(map @tas typ-addr)
+    %-  %~  gas  by
+        (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table ~]))
+    (turn extra-cols |=(c=column:ast [name.c [type.c addr.c]]))
+  ::  +weld casts to its second list: type the extra metas first
+  =/  extra-metas=(list column-meta)
+    %+  turn  extra-cols
+    |=  c=column:ast
+    ^-  column-meta
+    [[%qualified-column norm-qt name.c ~] type.c addr.c]
+  =/  cte-column-metas=(list column-meta)
+    (weld column-metas.cte-fr extra-metas)
   :*  %full-relation
       norm-qt
       [cte-st ~]
@@ -1032,7 +1168,7 @@
       ::  use CTE's original column-metas (correct addr from
       ::  calc-joined-addr for JOINs) rebranded to outer qualified-table
       %+  weld  column-metas
-      %+  turn  column-metas.cte-fr
+      %+  turn  cte-column-metas
       |=  cm=column-meta
       :+  :^  %qualified-column
               norm-qt
@@ -1043,14 +1179,14 @@
       ==
 ::
 ++  cross-joins-to-end
-  ::  put all cross joins at the end of the list
-  |=  [relat=joined-relat joins=(list joined-relation:ast)]
+  ::  put all cross joins at the end of the list, unless in-order
+  |=  [in-order=? relat=joined-relat joins=(list joined-relation:ast)]
   ^-  (list joined-relat)
   =/  joined-relations=(list joined-relat)    ~[relat]
   =/  cross-joins  *(list joined-relat)
   |-
   ?~  joins  (flop (weld cross-joins joined-relations))
-  ?:  ?=(%cross-join join-type.i.joins)
+  ?:  &(!in-order ?=(%cross-join join-type.i.joins))
     %=  $
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
@@ -1095,10 +1231,13 @@
   name.a
 ::
 ++  joined-set-table
+  ::  a join result: its rows are joined-rows alone, so an empty result is
+  ::  not mistaken for the indexed-rows of the relation joined last
   |=  [st=set-table row-count=@ud joined-rows=(list joined-row)]
   ^-  set-table
-  =.  rowcount.st     row-count
-  =.  joined-rows.st  joined-rows
+  =.  rowcount.st      row-count
+  =.  joined-rows.st   joined-rows
+  =.  indexed-rows.st  ~
   st
 ::
 ++  join-pri-key
@@ -1200,9 +1339,10 @@
           pk=(list key-column:ast)
           ==
   ^-  set-table
-  =.  rowcount.st     row-count
-  =.  joined-rows.st  joined-rows
-  =.  pri-indx.st     [~ [%index %.y pk]]
+  =.  rowcount.st      row-count
+  =.  joined-rows.st   joined-rows
+  =.  indexed-rows.st  ~
+  =.  pri-indx.st      [~ [%index %.y pk]]
   st
 ::
 ++  leading-prefix-len

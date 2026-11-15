@@ -47,7 +47,7 @@ COALESCE ( <scalar-node> [ ,...n ] )
 
 - `IF` — `ELSE` is required; `THEN`/`ELSE` must be the same type.
 - `CASE` — **simple form** with a leading expression compares it to each `WHEN` value; **searched form** omits it and evaluates each `WHEN` as a predicate. First match wins. `ELSE` optional; with no match and no `ELSE` the query crashes. All `THEN`/`ELSE` must share a type.
-- `COALESCE` — first existing argument. Useless until outer joins exist (no nulls otherwise).
+- `COALESCE` — first existing argument (outer joins); none exists → result does not exist.
 
 ## Arithmetic
 

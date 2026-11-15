@@ -140,6 +140,15 @@ JOIN vaccinations V
 SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
 
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+WHERE NOT EXISTS D.adopter-email
+SELECT A.name, A.species;
+```
+
 ### Query Arguments
 
 **`WITH [ <common-table-expression> [ ,...n ] ]`**
@@ -176,17 +185,19 @@ When specified with `ON <predicate>` the predicate may only contain column equal
 
 Cross database joins are permitted, but not cross ship joins.
 
-`LEFT JOIN` is a left outer join returning all rows from the left table not meeting the join condition, along with all matching pairs of rows.
+`LEFT JOIN` is a left outer join returning all matching pairs of rows, along with all rows from the left `<relation>` not meeting the join condition.
 
-*not yet supported in Obelisk runtime*
+`RIGHT JOIN` is a right outer join returning all matching pairs of rows, along with all rows from the right `<relation>` not meeting the join condition.
 
-`RIGHT JOIN` is a right outer join returning all rows from the right table not meeting the join condition, along with all matching pairs of rows.
+`OUTER JOIN` is a full outer join returning all matching pairs of rows, as well as all rows from both `<relation>`s not meeting the join condition.
 
-*not yet supported in Obelisk runtime*
+The left `<relation>` of a join is everything joined before it. Outer joins take the same join conditions as `JOIN`: a natural join without `ON`, or `ON <predicate>` with column equality conditions joined by `AND`.
 
-`OUTER JOIN` is a full outer join returning matching pairs of rows, as well as all rows from both tables not meeting the join condition.
+Obelisk has no nulls. A row not meeting the join condition has no columns from the `<relation>` it did not match: it is a row of a sub-type of the full joined `<row-type>`. Such a row cannot match a later join whose condition uses a missing column.
 
-*not yet supported in Obelisk runtime*
+When a `FROM` clause contains an outer join, joins are performed in the order written. Otherwise `CROSS JOIN`s are performed last.
+
+`SELECT` returns only the values that exist in a row. A selected column, `<alias>.*`, or scalar whose value does not exist in a row is omitted from that row. A row in which no selected value exists is omitted from the result.
 
 `CROSS JOIN` is a cartesian join of two tables.
 
@@ -211,9 +222,7 @@ Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<que
 
 `OR` performs logical *OR* on left and right predicates.
 
-`[ NOT ] EQUIV` is a binary operator, similar to (not) equals `<>`, `=`. However, comparing two `NOT EXISTS` yields true.
-
-*EQUIV will be implemented in Obelisk when outer joins are available.*
+`[ NOT ] EQUIV` is a binary operator, similar to (not) equals `<>`, `=`. However, comparing two `NOT EXISTS` yields true. `EQUIV` is true when both operands exist and are equal, or when neither exists. `NOT EQUIV` is its negation.
 
 `[ NOT ] BETWEEN ... [ AND ]`
 
@@ -221,9 +230,9 @@ tests for in the range defined by the beginning expression and the ending expres
 
 `BETWEEN` returns TRUE if the value of the test expression is greater than or equal to the value of beginning expression and less than or equal to the value of ending expression.
 
-When applied to a column `EXISTS` tests whether the returned `<row-type>` includes the required column. In the case of `<cte-column>`, it tests whether a CTE returns any rows.
+When applied to a column `EXISTS` tests whether the returned `<row-type>` includes the required column. In the case of `<cte-column>`, it tests whether a CTE returns any rows. `NOT EXISTS` is its negation. The column must belong to a `<relation>` of the query.
 
-*EXISTS will be implemented in Obelisk when outer joins are available.*
+A column, or a scalar computed from one, does not exist in a row from an outer join not matching that column's `<relation>`. Any comparison (`=`, `<>`, `>`, `BETWEEN`, `IN`, and the rest, including their `NOT` forms) with an operand that does not exist is false. `NOT` negates as usual, so `NOT <column> = <value>` is true when `<column>` does not exist. Use `EXISTS` and `EQUIV` to test existence directly.
 
 `ALL` *not implemented.*
 

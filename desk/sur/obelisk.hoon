@@ -54,6 +54,22 @@
     joined-rows=(list joined-row)
     ==
 ::
+::  $row-type-prune: what one row type of a query's rows holds.  shape gives
+::  all of the query's columns, those of the row type (here), and the
+::  relations of unqualified column names; by-name matches columns by name
+::  alone, for a single source; tables are the relations present (~ for a
+::  single source).
++$  row-type-prune
+  $+  row-type-prune
+  $:  by-name=?
+      $=  shape
+      $:  all=(set [qualified-table @tas])
+          here=(set [qualified-table @tas])
+          lookup=qualifier-lookup
+          ==
+      tables=(unit (set qualified-table))
+      ==
+::
 ::  $set-op-row: set operation row, identified by row type and data
 +$  set-op-row  $+(set-op-row [columns=(list column) =indexed-row])
 ::

@@ -142,11 +142,11 @@ END
 
 ### COALESCE
 
-`COALESCE` returns the first `<scalar-node>` in the list that exists. Non-existence occurs when a selected `<scalar-node>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows.
+`COALESCE` returns the first `<scalar-node>` in the list that exists. Non-existence occurs when a selected `<scalar-node>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows. When no `<scalar-node>` in the list exists, the result does not exist.
 
 All expressions must share the same type.
 
-NOTE: until outer joins are implemented `COALESCE` is a useless function. 
+Any other scalar function or arithmetic with an operand that does not exist also does not exist. `IF` and `CASE` do not exist when any of their result branches does not exist; a condition comparing a value that does not exist is false.
 
 ## Arithmetic Operations
 

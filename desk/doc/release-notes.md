@@ -5,6 +5,9 @@
 * VERSION() scalar added, returns %obelisk version
 * DIVIDED BY and DIVIDED BY WITH REMAINDER set operations
 * fix set operations comparing rows by source primary key instead of data
+* LEFT JOIN, RIGHT JOIN, OUTER JOIN
+* EXISTS, NOT EXISTS, EQUIV, NOT EQUIV predicates
+* COALESCE tests existence
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

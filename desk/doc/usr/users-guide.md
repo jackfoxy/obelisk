@@ -1072,7 +1072,81 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 ## Outer Joins
 
-While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, they are not supported by the Obelisk runtime in the current release. Some outer-join-style questions can be rewritten with `UNION`, regular `JOIN`, and `CROSS JOIN` filtered by a `WHERE` predicate, but this is not a complete substitute for runtime outer joins.
+An outer join keeps rows that find no match. `LEFT JOIN` keeps the unmatched rows of everything joined so far (the left side), `RIGHT JOIN` keeps the unmatched rows of the newly joined object (the right side), and `OUTER JOIN` keeps both.
+
+Outer joins take the same join conditions as `JOIN`: a natural join without `ON`, or an `ON` predicate of column equalities joined by `AND`.
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+SELECT A.name, A.species, D.adopter-email;
+```
+
+This returns every animal. Adopted animals carry their adopter's email.
+
+Obelisk has no nulls. A row that found no match simply has no columns from the object it did not match, so the unadopted animals above are returned with only `name` and `species`. The result holds rows of more than one row type, just as a `UNION` can. A row in which none of the selected values exist is left out of the result.
+
+### Testing existence
+
+`EXISTS` tests whether a column exists in a row. `NOT EXISTS` turns a `LEFT JOIN` into a list of the unmatched rows:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+WHERE NOT EXISTS D.adopter-email
+SELECT A.name, A.species;
+```
+
+This returns the animals that have not been adopted.
+
+Any comparison with a column that does not exist is false. `NOT` negates as usual:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+WHERE NOT D.adoption-fee > 75
+SELECT A.name, A.species;
+```
+
+This returns the animals adopted for a fee of 75 or less, and the animals not adopted at all.
+
+`EQUIV` is like `=`, except that it is also true when neither side exists. `NOT EQUIV` is its negation.
+
+### COALESCE
+
+`COALESCE` returns the first of its arguments that exists:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+SCALARS adopted-on COALESCE(D.adoption-date, A.admission-date)
+SELECT A.name, A.species, adopted-on;
+```
+
+When none of its arguments exist, the result of `COALESCE` does not exist. Any other scalar function or arithmetic over a column that does not exist also does not exist.
+
+### Join order
+
+A missing column never matches a later join. Here staff assignments are matched to persons, and their vaccinations, if any, are joined on the staff email:
+
+```
+FROM staff-assignments S
+JOIN persons P
+  ON S.email = P.email
+LEFT JOIN vaccinations V
+  ON S.email = V.email
+SELECT P.first-name, P.last-name, S.role, V.name, V.vaccine;
+```
+
+When a `FROM` clause contains an outer join, joins are performed in the order written. Otherwise `CROSS JOIN`s are performed last.
 
 # SET OPERATIONS
 

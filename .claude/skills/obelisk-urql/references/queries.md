@@ -29,11 +29,11 @@ SELECT [ TOP <n> ]
 | `JOIN` (natural, no ON) | supported |
 | `JOIN ... ON` | supported |
 | `CROSS JOIN` | supported |
-| `LEFT`/`RIGHT`/`OUTER JOIN` | parsed, not executed |
+| `LEFT`/`RIGHT`/`OUTER JOIN` | supported |
 | `GROUP BY`, `HAVING`, `ORDER BY`, `TOP` | parsed, not executed |
 | aggregate functions | not implemented |
 | `DIVIDED BY [ WITH REMAINDER ]` | supported |
-| `EQUIV`, `EXISTS` | parsed; pending outer joins |
+| `EQUIV`, `EXISTS` | supported |
 | `ALL`, `ANY` | not implemented |
 
 `TOP` requires `ORDER BY` with a total ordering. Avoid `ORDER BY` inside CTEs or before the last step of a set-operation query unless `TOP` requires it.
@@ -50,6 +50,15 @@ Any number of tables/views/CTEs may be joined. Cross-database joins allowed; cro
 FROM adoptions A
 JOIN vaccinations V ON A.name = V.name AND A.species = V.species
 SELECT A.name, A.species, V.vaccine, V.vaccination-time;
+```
+
+**Outer joins** (`LEFT JOIN`, `RIGHT JOIN`, `OUTER JOIN`): same conditions as `JOIN` (natural, or `ON` equalities). No nulls: an unmatched row has **no columns** from the relation it did not match (rows of several row types). `SELECT` omits values that do not exist; a row with no selected value is omitted. A missing column never matches a later join. With an outer join present, joins run in written order (otherwise `CROSS JOIN`s run last). `COALESCE` returns its first existing argument; a scalar over a missing column does not exist.
+
+```
+FROM animals A
+LEFT JOIN adoptions D ON A.name = D.name AND A.species = D.species
+WHERE NOT EXISTS D.adopter-email
+SELECT A.name, A.species;
 ```
 
 **`CROSS JOIN`**: cartesian product, no predicate. Use with `WHERE` for any join condition that `ON` cannot express (inequalities, `OR`, expressions).
@@ -87,7 +96,9 @@ SELECT A.name, A.species, V.vaccine, V.vaccination-time;
 - `BETWEEN` is inclusive on both ends; test, begin, and end must be the same type and end > begin.
 - `IN` tests membership in a value list or a single-column CTE.
 - A `<cte-column>` used with `=`/inequality requires the CTE to return exactly one row (singleton).
-- `EQUIV`/`EXISTS` pending outer joins; `ALL`/`ANY` not implemented.
+- `EXISTS col` tests whether the row has the column (outer joins); `EXISTS cte.col` whether the CTE returns rows. `EQUIV` is `=` that is also true when neither side exists.
+- Any comparison with a non-existent operand is **false**; `NOT` negates as usual (two-valued logic).
+- `ALL`/`ANY` not implemented.
 
 ## Common table expressions (CTEs)
 
