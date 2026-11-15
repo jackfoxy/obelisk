@@ -3,6 +3,10 @@
 
 ##  V1.0
 
+* __ORDER BY ...__ -- order result set
+
+* __SELECT TOP n ...__ -- dependent on total ordering
+
 * __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
 
 * __Views__ -- views are cached queries and can shadow user-defined tables.
@@ -10,10 +14,6 @@
 * __GROUP BY...HAVING__ -- as in SQL.
 
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
-
-* __ORDER BY ...__ -- order result set
-
-* __SELECT TOP n ...__ -- dependent on total ordering
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
