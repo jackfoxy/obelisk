@@ -130,6 +130,23 @@
 ::
 +$  resolved-scalars  (map @tas resolved-scalar)
 ::
+::  $sort-key: an ORDER BY column of a result relation, by output column
+::  name or by 1-based position among the shown output columns
++$  sort-key  $%([%name name=@tas] [%ordinal ordinal=@ud])
++$  sort-spec  $+(sort-spec [key=sort-key ascending=?])
+::
+::  $sort-row: a result row with its ORDER BY key and its shown identity
++$  sort-row
+  $+  sort-row
+  $:  key=(list (unit [p=@ta q=@]))
+      ident=[format=@ud values=(list (unit [p=@ta q=@]))]
+      =data-row
+      ==
+::
++$  format-column  $%(column qualified-column)
++$  relation-format  (lest format-column)
++$  format-value  [col=format-column value=(unit [p=@ta q=@])]
+::
 ::  template for selected column from qualified-column objects
 +$  templ-cell
   $+  templ-cell

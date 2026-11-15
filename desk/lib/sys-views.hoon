@@ -1292,13 +1292,37 @@
               ==
           ==
 ::
-++  apply-ordering
-  |=  v=view
-  ^-  view
-  ?.  ?=([%query *] body.crud-txn.v)  v
-  =/  q=query:ast  +.body.crud-txn.v
-  ?~  order-by.q  v
-  v(ordering (make-ordering columns.v order-by.q))
+++  view-row-order
+  ::  Comparator of raw view rows by the ORDER BY of the view query, by the
+  ::  aura of each column.  Inverse, since +atoms-2-mapped-row reverses the
+  ::  rows.  An ORDER BY column that is not a view column is ignored.
+  ::
+  ::  The ordering of a view is computed here; the ordering field of a view
+  ::  is no longer set or read.
+  |=  =view
+  ^-  $-([(list @) (list @)] ?)
+  =/  order-by=(list ordering-column:ast)
+    ?.  ?=([%query *] body.crud-txn.view)  ~
+    =/  q=query:ast  +.body.crud-txn.view
+    order-by.q
+  =/  names=(list @tas)  (turn columns.view |=(c=column:ast name.c))
+  =/  keys=(list [aura=@ta ascending=? offset=@ud])
+    %+  murn  order-by
+    |=  oc=ordering-column:ast
+    ^-  (unit [@ta ? @ud])
+    ?.  ?=(qualified-column:ast column.oc)
+      ~|("view order column error:  {<column.oc>}" !!)
+    =/  at  (find ~[name.column.oc] names)
+    ?~  at  ~
+    `[type:(snag u.at columns.view) ascending.oc u.at]
+  =/  ascending=(list ?)  (turn keys |=([* a=? *] a))
+  =/  key
+    |=  row=(list @)
+    ^-  (list (unit [p=@ta q=@]))
+    (turn keys |=([a=@ta * o=@ud] `[a (snag o row)]))
+  |=  [p=(list @) q=(list @)]
+  ^-  ?
+  (key-before ascending (key q) (key p))
 ::
 ++  populate-system-view
   ::  Side effect: populate view-cache
@@ -1313,7 +1337,7 @@
                       (zing (turn ~(val by server) sys-view-databases))
                   |=(a=(list @) (lte +>-.a cache-time))
     %+  atoms-2-mapped-row
-          (sort dbes ~(order order-row ordering.view))
+          (sort dbes (view-row-order view))
           columns.view
   ::
   %namespaces
@@ -1322,7 +1346,7 @@
                   `(list (list @))`~(val by namespaces)
                   |=(a=(list @) (lte +<.a cache-time))
     %+  atoms-2-mapped-row
-          (sort nses ~(order order-row ordering.view))
+          (sort nses (view-row-order view))
           columns.view
   ::
   %tables
@@ -1334,7 +1358,7 @@
                                     ~(foo sys-view-tables tables.schema)
                   |=(a=(list @) (lte +>+<.a cache-time))                  
     %+  atoms-2-mapped-row
-        (sort tbls ~(order order-row ordering.view))
+        (sort tbls (view-row-order view))
         columns.view
   ::
   %table-keys
@@ -1344,7 +1368,7 @@
                                   %+  turn  ~(tap by files.udata)
                                       ~(foo sys-view-table-keys tables.schema)
     %+  atoms-2-mapped-row
-        (sort table-keys ~(order order-row ordering.view))
+        (sort table-keys (view-row-order view))
         columns.view
   ::
   %foreign-keys
@@ -1354,7 +1378,7 @@
                                     %+  turn  ~(tap by files.udata)
                                         ~(foo sys-view-foreign-keys tables.schema)
     %+  atoms-2-mapped-row
-        (sort foreign-keys ~(order order-row ordering.view))
+        (sort foreign-keys (view-row-order view))
         columns.view
   ::
   %columns
@@ -1364,7 +1388,7 @@
                             %+  turn  ~(tap by files.udata)
                                 ~(foo sys-view-columns tables.schema)
     %+  atoms-2-mapped-row
-        (sort columns ~(order order-row ordering.view))
+        (sort columns (view-row-order view))
         columns.view
   ::
   %sys-log
@@ -1372,7 +1396,7 @@
                   (turn event-log.database sys-view-sys-log-event)
                   |=(a=(list @) (lte -.a cache-time))
     %+  atoms-2-mapped-row
-        (sort `(list (list @))`log ~(order order-row ordering.view))
+        (sort `(list (list @))`log (view-row-order view))
         columns.view
   ::
   %data-log
@@ -1384,7 +1408,7 @@
                                     sys-view-data-log
                   |=(a=(list @) (lte -.a cache-time))
     %+  atoms-2-mapped-row
-        (sort tbls ~(order order-row ordering.view))
+        (sort tbls (view-row-order view))
         columns.view
   ==
 ::
@@ -1603,60 +1627,6 @@
   =/  prior  (pry:data-key (lot:data-key sys `time ~))
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
-::
-++  order-row
-  ::  Currently orders rows inversely so +select-columns is not required to flop
-  ::  its output
-  |_  index=(list column-order)
-  :: to do: accommodate varying row types
-  ++  order
-  |=  [p=(list @) q=(list @)]
-  =/  k=(list [aor=? ascending=? offset=@ud])  index
-  |-  ^-  ?
-  ?~  k  %.n
-  =/  pp=(list @)
-    ?:  =(0 ->+.k)  p                      ::offset of current index
-    (oust [0 ->+.k] p)
-  =/  qq=(list @)
-    ?:  =(0 ->+.k)  q                      ::offset of current index
-    (oust [0 ->+.k] q)
-  ?:  =(-.pp -.qq)  $(k +.k)
-  ?:  =(-<.k %.y)  (alpha -.pp -.qq)
-  ?:  ->-.k  (gth -.qq -.pp)
-  (lth -.qq -.pp)
-  --
-::
-++  make-ordering
-  |=  [columns=(list column:ast) order=*]
-  ^-  (list column-order)
-  =/  out  *(list column-order)
-  |-
-  ?~  order  (flop out)
-  ~|  "bad order column:  {<-.order>} ..."
-  ?>  ?=(ordering-column:ast -.order)
-  =/  ordering=ordering-column:ast  `ordering-column:ast`-.order
-  =/  order-column  column.ordering
-  =/  col-i=(unit [@ @ta])
-        ?:  ?=(qualified-column:ast order-column)
-          (try-find-col-index columns name.order-column)
-        ~|("order column error:  {<order-column>}" !!)
-  ?~  col-i  $(order +.order)
-  =/  offset-type  (need col-i)
-  %=  $
-    order  +.order
-    out
-      ?:  ?|(=(~.t +.offset-type) =(~.ta +.offset-type) =(~.tas +.offset-type))
-        [[%.y ascending.ordering -.offset-type] out]
-      [[%.n ascending.ordering -.offset-type] out]
-  ==
-::
-++  try-find-col-index
-  |=  [a=(list column:ast) name=@tas]
-  =/  i  0
-  |-  ^-  (unit [@ @ta])
-  ?~  a  ~
-  ?:  =(name name.i.a)  `[i type.i.a]
-  $(a t.a, i +(i))
 ::
 ++  atoms-2-mapped-row
   |=  [p=(list (list @)) q=(list column:ast)]

@@ -172,9 +172,11 @@ Used to select columns for ordering and grouping. `<column-ordinal>`s are 1-base
 
 **`[ TOP <n> ]`**
 
-Selects only the first and/or last `n` rows returned by the rest of the query. If the result set is less than `n`, the entire set of rows is returned. 
+Selects only the first `n` rows returned by the rest of the query, in `ORDER BY` order. `n` must be 1 or greater. If the result set is less than `n`, the entire set of rows is returned.
 
-`TOP` requires the presence of an `ORDER BY` clause. This clause must provide for a total ordering of the returned rows, i.e. every sequence of `ORDER BY` columns must be unique within the returned rows. 
+`TOP` requires the presence of an `ORDER BY` clause. This clause must provide for a total ordering of the returned rows, i.e. every sequence of `ORDER BY` values must be unique within the returned rows. The ordering is checked against the actual rows: when two returned rows have equal `ORDER BY` values the query crashes.
+
+`TOP` is not allowed in the last `<query>` of a set operation, because the `ORDER BY` following it orders the combined result. An earlier `<query>` of a set operation, or a CTE, may use `TOP` with its own `ORDER BY`.
 
 **`JOIN`**
 `JOIN` is an inner join returning all matching pairs of rows.
@@ -210,9 +212,23 @@ Timestamp for crud-txn of table data. Defaults to `NOW` (current time). When spe
 *supported in urQL parser, not yet supported in Obelisk runtime*
 
 **`ORDER BY`**
-Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<query>` involving set operations, unless required by `TOP` specified in the `SELECT` statement.
+Orders the rows of the result. Each `ORDER BY` column is one of:
 
-*GROUP BY, ORDER BY, and TOP supported in urQL parser, not yet supported in Obelisk runtime*
+* `<column-alias>` -- an output column name of the `SELECT`. An output name takes precedence over a source column of the same name.
+* `<qualified-column>` -- any column of the `FROM` relations, selected or not. An unqualified column name found in more than one joined relation must be qualified.
+* `<column-ordinal>` -- the 1-based position of an output column, counting the columns of `*` and `<alias>.*`.
+
+Rows are ordered by the aura of each column: `@t`, `@ta`, and `@tas` alphabetically ignoring case, with lower case first among otherwise equal values; `@rd`, `@rs`, `@rh`, and `@rq` as floating point numbers; signed auras (`@s...`) as signed numbers; other auras by atom value.
+
+Obelisk has no nulls. A row lacking an `ORDER BY` column (from an outer join) sorts after all other rows ascending, and before them descending.
+
+When the `ORDER BY` columns do not order the returned rows totally (two returned rows have equal `ORDER BY` values), the result is preceded by the message `warning: result set order is non-deterministic`.
+
+`ORDER BY` following a set operation orders the combined result and may only name output columns or ordinals.
+
+`ORDER BY` in a CTE, or in any query prior to the last step in a `<query>` involving set operations, is ignored unless `TOP` is specified in the `SELECT` statement.
+
+*GROUP BY supported in urQL parser, not yet supported in Obelisk runtime*
 
 ### Predicate Arguments
 

@@ -304,6 +304,26 @@
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov2))
 ::
+++  exec-0-1-ordered
+  ::  init + 1 resolve → compare 1 result, row order significant
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+      %obelisk-action
+      !>  [%tape db.resolve uql.resolve]
+  ::
+  %+  expect-eq
+      !>  expect
+      !>  ;;(cmd-result:ast ->+>+>+<.mov2)
+::
 ++  debug-0-1
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]

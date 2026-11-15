@@ -14,7 +14,6 @@
   =/  values=(list [ns-rel-key view])
     ?:  has-foreign-keys
       =/  view=view
-        %-  apply-ordering
         (sys-foreign-keys-view database fixture-path time)
       ~[[[%sys %foreign-keys time] view]]
     ~

@@ -266,26 +266,19 @@
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   =/  db-views
         %-  limo  :~  :-  [%sys %namespaces sys-time]
-                          %-  apply-ordering
-                              (sys-namespaces-view +<.c sap.bowl sys-time)
+                          (sys-namespaces-view +<.c sap.bowl sys-time)
                       :-  [%sys %tables sys-time]
-                          %-  apply-ordering
-                              (sys-tables-view +<.c sap.bowl sys-time)
+                          (sys-tables-view +<.c sap.bowl sys-time)
                       :-  [%sys %table-keys sys-time]
-                          %-  apply-ordering
-                              (sys-table-keys-view +<.c sap.bowl sys-time)
+                          (sys-table-keys-view +<.c sap.bowl sys-time)
                       :-  [%sys %foreign-keys sys-time]
-                          %-  apply-ordering
-                              (sys-foreign-keys-view +<.c sap.bowl sys-time)
+                          (sys-foreign-keys-view +<.c sap.bowl sys-time)
                       :-  [%sys %columns sys-time]
-                          %-  apply-ordering
-                              (sys-columns-view +<.c sap.bowl sys-time)
+                          (sys-columns-view +<.c sap.bowl sys-time)
                       :-  [%sys %sys-log sys-time]
-                          %-  apply-ordering
-                              (sys-sys-log-view +<.c sap.bowl sys-time)
+                          (sys-sys-log-view +<.c sap.bowl sys-time)
                       :-  [%sys %data-log sys-time]
-                          %-  apply-ordering
-                              (sys-data-log-view +<.c sap.bowl sys-time)
+                          (sys-data-log-view +<.c sap.bowl sys-time)
                       ==
   =/  vws=views  (gas:view-key *((mop ns-rel-key view) ns-rel-comp) db-views)
   ::
@@ -295,8 +288,7 @@
                     (my ~[[%sys sys-time]])
                     sys-time
                     :~  :-  [%sys %databases sys-time]
-                            %-  apply-ordering
-                                (sys-sys-dbs-view sap.bowl sys-time)
+                            (sys-sys-dbs-view sap.bowl sys-time)
                         ==
                     ==
   =.  event-log.sys-db
@@ -350,28 +342,21 @@
   =.  name.db  new-name.c
   =/  db-views
         %-  limo  :~  :-  [%sys %namespaces sys-time]
-                          %-  apply-ordering
-                              (sys-namespaces-view new-name.c sap.bowl sys-time)
+                          (sys-namespaces-view new-name.c sap.bowl sys-time)
                       :-  [%sys %tables sys-time]
-                          %-  apply-ordering
-                              (sys-tables-view new-name.c sap.bowl sys-time)
+                          (sys-tables-view new-name.c sap.bowl sys-time)
                       :-  [%sys %table-keys sys-time]
-                          %-  apply-ordering
-                              (sys-table-keys-view new-name.c sap.bowl sys-time)
+                          (sys-table-keys-view new-name.c sap.bowl sys-time)
                       :-  [%sys %foreign-keys sys-time]
-                          %-  apply-ordering
-                              %^  sys-foreign-keys-view  new-name.c
-                                                         sap.bowl
-                                                         sys-time
+                          %^  sys-foreign-keys-view  new-name.c
+                                                     sap.bowl
+                                                     sys-time
                       :-  [%sys %columns sys-time]
-                          %-  apply-ordering
-                              (sys-columns-view new-name.c sap.bowl sys-time)
+                          (sys-columns-view new-name.c sap.bowl sys-time)
                       :-  [%sys %sys-log sys-time]
-                          %-  apply-ordering
-                              (sys-sys-log-view new-name.c sap.bowl sys-time)
+                          (sys-sys-log-view new-name.c sap.bowl sys-time)
                       :-  [%sys %data-log sys-time]
-                          %-  apply-ordering
-                              (sys-data-log-view new-name.c sap.bowl sys-time)
+                          (sys-data-log-view new-name.c sap.bowl sys-time)
                       ==
   =.  views.nxt-schema       (gas:view-key views.nxt-schema db-views)
   =.  tmsp.nxt-schema        sys-time

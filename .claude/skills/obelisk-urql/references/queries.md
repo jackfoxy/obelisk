@@ -30,13 +30,24 @@ SELECT [ TOP <n> ]
 | `JOIN ... ON` | supported |
 | `CROSS JOIN` | supported |
 | `LEFT`/`RIGHT`/`OUTER JOIN` | supported |
-| `GROUP BY`, `HAVING`, `ORDER BY`, `TOP` | parsed, not executed |
+| `GROUP BY`, `HAVING` | parsed, not executed |
+| `ORDER BY`, `TOP` | supported |
 | aggregate functions | not implemented |
 | `DIVIDED BY [ WITH REMAINDER ]` | supported |
 | `EQUIV`, `EXISTS` | supported |
 | `ALL`, `ANY` | not implemented |
 
-`TOP` requires `ORDER BY` with a total ordering. Avoid `ORDER BY` inside CTEs or before the last step of a set-operation query unless `TOP` requires it.
+### ORDER BY and TOP
+
+- `ORDER BY` column: an output name (alias wins over a source column), any `FROM` column whether selected or not (`<alias>.<column>` or full qualification), or a 1-based ordinal over the expanded output (`*`, `t.*` count their columns).
+- An unqualified `ORDER BY` column in more than one joined relation crashes: `ORDER BY: column %<name> must be qualified, it is in ~[...]`.
+- Ordering is by aura: `@t`/`@ta`/`@tas` case-insensitive then lower case first; `@rd`/`@rs`/`@rh`/`@rq` as floats; `@s*` signed; others by atom value.
+- No nulls: a row lacking the column (outer join) sorts last `ASC`, first `DESC` (PostgreSQL convention).
+- Not a total ordering of the returned rows → result preceded by `[%message 'warning: result set order is non-deterministic']` (a RAND warning, if any, comes first).
+- `TOP <n>`: `n` ≥ 1; requires `ORDER BY` (parse error `TOP requires ORDER BY`); crashes when the order is not total (`TOP <n>: ORDER BY is not a total ordering of the result`).
+- Set operations: the `ORDER BY` after the last query orders the combined result and may name only output columns or ordinals; `TOP` on the last query is a parse error. An earlier query may use `TOP` with its own `ORDER BY`.
+- `ORDER BY` in a CTE, or an earlier set-operation query, is ignored unless that `SELECT` has `TOP`.
+- Ordered results with several row types (outer joins): `%vector` keeps each row's own row type; text formats render one table holding every row type's columns, with empty cells (`null` in `%json`) for absent columns.
 
 ## Joins
 

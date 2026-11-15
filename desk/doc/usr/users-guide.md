@@ -577,7 +577,7 @@ SELECT day-name AS Day;
 ```
 Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
-Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order. `GROUP BY`, `ORDER BY`, and `TOP` are supported by the urQL parser but not by the Obelisk runtime in the current release.
+Without the `ORDER BY` clause, data rows are returned in an arbitrary order. `GROUP BY` is supported by the urQL parser but not by the Obelisk runtime in the current release.
 
 ## SCALARS
 
@@ -2078,7 +2078,10 @@ The mark for the poke is always `%obelisk-action`.
   list of column schemas, and each data row carries the zero-based index of its
   schema.
 
-Ordered output with multiple schemas is not implemented for formatted results.
+Ordered output with multiple schemas (for example ORDER BY over an outer join)
+keeps row order in one table whose header holds the columns of every schema;
+a column absent from a row's schema is an empty cell (`null` in `%json`).
+`%vector` and `%raw` keep each row's own schema.
 
 ## Result molds
 

@@ -3,10 +3,6 @@
 
 ##  V1.0
 
-* __ORDER BY ...__ -- order result set
-
-* __SELECT TOP n ...__ -- dependent on total ordering
-
 * __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
 
 * __Views__ -- views are cached queries and can shadow user-defined tables.

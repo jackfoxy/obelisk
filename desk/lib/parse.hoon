@@ -2021,7 +2021,7 @@
               acc
                 [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
             ==
-          [%set-query [%set-query head=head-q tail=tail]]
+          [%set-query (validate-set-query [%set-query head=head-q tail=tail])]
     %=  $
       a  +.a
       ctes  [(cte:ast %cte ->+>.a body) ctes]
@@ -2421,6 +2421,9 @@
     ?^  conflict
       ~|  "FROM alias conflicts with CTE name: {<(need conflict)>}"
       !!
+    =/  top=(unit @ud)  ?~(select ~ top.u.select)
+    ?:  ?&(?=(^ top) =(0 u.top))  ~|("TOP must be 1 or greater" !!)
+    ?:  ?&(?=(^ top) =(~ order-by))  ~|("TOP requires ORDER BY" !!)
     :*  %query
         ?~  from  ~
           `(finalize-predicates (need from) alias-map cte-map cte-col-map)
@@ -2471,7 +2474,12 @@
         `(produce-select raw.ex from alias-map +.inl cte-map cte-col-map)
     ==
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
-  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
+  ?:  =(-<.a %order-by)
+    %=  $
+      a  +.a
+      order-by
+        (produce-order-by (order-by-list ->.a) select alias-map cte-map)
+    ==
   ?:  =(-<-.a %qualified-table)
     ~|  "make-query produce-from qualified-table: {<-.a>}"
     =/  f  (produce-from -.a)
@@ -2506,7 +2514,65 @@
       raw-tail  +.raw-tail
       acc       [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
     ==
-  (crud-txn:ast %crud-txn ctes [%set-query [%set-query head=head-q tail=tail]])
+  %^  crud-txn:ast  %crud-txn
+                    ctes
+  [%set-query (validate-set-query [%set-query head=head-q tail=tail])]
+::
+++  validate-set-query
+  ::  The ORDER BY of the last query of a set query orders the combined
+  ::  result, so it names output columns, and that query has no TOP.
+  |=  sq=set-query:ast
+  ^-  set-query:ast
+  =/  last=query:ast  ?~(tail.sq head.sq query:(rear tail.sq))
+  ?^  top.select.last
+    ~|("TOP is not allowed on the last query of a set operation" !!)
+  =/  qualified
+    %+  lien  order-by.last
+    |=(oc=ordering-column:ast ?=(qualified-column:ast column.oc))
+  ?:  qualified
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  sq
+::
+++  produce-order-by
+  ::  Resolve ORDER BY columns as SELECT columns are resolved: an
+  ::  <alias>.<column> names a FROM relation or CTE.  A bare name, an output
+  ::  name or a source column, is resolved at run time.
+  |=  $:  order-by=(list ordering-column:ast)
+          select=(unit select:ast)
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          ==
+  ^-  (list ordering-column:ast)
+  =/  all-columns=?
+    ?~  select  %.n
+    %+  lien  columns.u.select
+    |=(s=selected-column:ast ?=(?(%all %all-object) -.s))
+  %+  turn  order-by
+  |=  oc=ordering-column:ast
+  ^-  ordering-column:ast
+  =/  column  column.oc
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    ?:  ?|(all-columns =(~ select))  oc
+    ?.  (gth column (lent columns:(need select)))  oc
+    ~|  "ORDER BY: column ordinal {<column>} exceeds the selected columns"
+        !!
+  ?:  ?=(qualified-column:ast column)  oc
+  ?~  alias.column  oc
+  =/  tbl=@t  u.alias.column
+  =/  resolved  (~(get by alias-map) (fold-key tbl))
+  ?^  resolved
+    =/  qt  u.resolved
+    =?  qt  (~(has by cte-map) name.qt)  qt(database %cte, namespace %cte)
+    oc(column [%qualified-column qt name.column ~])
+  =/  cte  (~(get by cte-map) (fold-key tbl))
+  ?^  cte
+    =/  qt=qualified-table:ast  [%qualified-table ~ %cte %cte u.cte ~]
+    oc(column [%qualified-column qt name.column ~])
+  =/  qt=qualified-table:ast
+    [%qualified-table ~ default-database 'dbo' tbl ~]
+  oc(column [%qualified-column qt name.column ~])
 ::
 ++  produce-from
   |=  a=*

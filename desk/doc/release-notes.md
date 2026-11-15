@@ -1,6 +1,12 @@
 # Releases
 
 ## next-release
+* ORDER BY, by output name, column (selected or not), or ordinal, ordered by aura
+* SELECT TOP n, requires ORDER BY to be a total ordering of the result
+* warning when ORDER BY is not a total ordering of the result set
+* TOP in CTEs and in set operation queries before the last
+* ordered results of several row types format as one table with empty cells
+* system views ordered by aura
 * inline scalars directly without SCALARS clause entry
 * VERSION() scalar added, returns %obelisk version
 * DIVIDED BY and DIVIDED BY WITH REMAINDER set operations

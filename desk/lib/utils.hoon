@@ -535,6 +535,12 @@
                                    (limo ~[(need relation-id.source)])
   ==
 ::
+++  select-label
+  ::  the clause a selected column came from, for crash messages
+  |=  alias=(unit @t)
+  ^-  tape
+  ?:((is-order-by-alias alias) "ORDER BY" "SELECT")
+::
 ++  qualify-unqualified
   |=  [selected=(list selected-column:ast) =qualifier-lookup]
   =/  selected-out  *(list selected-column:ast)
@@ -545,10 +551,14 @@
       selected      t.selected
       selected-out  [i.selected selected-out]
     ==
-  =/  qualifiers   ~|  "SELECT: column {<name.i.selected>} not found"
+  =/  label=tape  (select-label alias.i.selected)
+  =/  qualifiers   ~|  "{label}: column {<name.i.selected>} not found"
                        (~(got by qualifier-lookup) name.i.selected)
   ?:  (gth (lent qualifiers) 1)
-    ~|("SELECT: column {<name.i.selected>} must be qualified" !!)
+    =/  names=(list @tas)  (turn qualifiers |=(q=qualified-table:ast name.q))
+    ~|  "{label}: column {<name.i.selected>} must be qualified, ".
+        "it is in {<names>}"
+        !!
   %=  $
     selected      t.selected
     selected-out  :-  ^-  selected-column:ast
@@ -1238,6 +1248,66 @@
   =/  b-cass  (cass b)
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
   (aor b a)
+::
+++  order-atom
+  ::  %.y when a sorts before b in ascending order of aura; a and b unequal
+  |=  [aura=@ta a=@ b=@]
+  ^-  ?
+  ?:  ?|(=(aura ~.t) =(aura ~.ta) =(aura ~.tas))  (alpha a b)
+  ?:  =(aura ~.rd)  (lth:rd a b)
+  ?:  =(aura ~.rs)  (lth:rs a b)
+  ?:  =(aura ~.rh)  (lth:rh a b)
+  ?:  =(aura ~.rq)  (lth:rq a b)
+  ?:  =('s' (end 3 aura))  =(-1 (cmp:si `@s`a `@s`b))
+  (lth a b)
+::
+++  key-before
+  ::  %.y when sort key a precedes sort key b.  ascending holds the direction
+  ::  of each key column.  An absent value sorts after every value ascending
+  ::  and before every value descending, as NULL in PostgreSQL.
+  |=  $:  ascending=(list ?)
+          a=(list (unit [p=@ta q=@]))
+          b=(list (unit [p=@ta q=@]))
+          ==
+  ^-  ?
+  |-
+  ?~  ascending  %.n
+  ?~  a  %.n
+  ?~  b  %.n
+  ?:  =(i.a i.b)  $(ascending t.ascending, a t.a, b t.b)
+  ?~  i.a  !i.ascending
+  ?~  i.b  i.ascending
+  =/  before  (order-atom p.u.i.a q.u.i.a q.u.i.b)
+  ?:(i.ascending before !before)
+::
+++  order-by-alias
+  ::  alias of the hidden output column carrying ORDER BY column i; no urQL
+  ::  name contains _ so it cannot collide with a user column
+  |=  i=@ud
+  ^-  @t
+  (crip "_ob{(a-co:co i)}")
+::
+++  is-order-by-name
+  |=  name=@
+  ^-  ?
+  =('_ob' (end [3 3] name))
+::
+++  is-order-by-alias
+  |=  alias=(unit @t)
+  ^-  ?
+  ?~(alias %.n (is-order-by-name u.alias))
+::
+++  is-order-by-selected
+  ::  %.y for a hidden output column carrying an ORDER BY column
+  |=  s=selected-column:ast
+  ^-  ?
+  ?+  -.s  %.n
+    %qualified-column     (is-order-by-alias alias.s)
+    %unqualified-column   (is-order-by-alias alias.s)
+    %selected-scalar      (is-order-by-alias alias.s)
+    %selected-cte-column  (is-order-by-alias alias.s)
+    %selected-value       (is-order-by-alias alias.s)
+  ==
 ::
 ::  tree engine
 ::

@@ -73,7 +73,6 @@
   ?:  (has-foreign-keys-view input)
     input
   =/  view=view
-    %-  apply-ordering
     (sys-foreign-keys-view database provenance.input tmsp.input)
   =/  next-views=views
     (gas:view-key views.input ~[[[%sys %foreign-keys tmsp.input] view]])

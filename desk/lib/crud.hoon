@@ -197,26 +197,33 @@
           (do-upsert +.body.crud-txn next-data next-schemas)
     %query
       =/  q=query:ast  +.body.crud-txn
+      =/  plan  (order-by-plan q)
       :-  %.y
           ::::~&  "{<relation:(need from.q)>}"   :: from objects
           ::::~>  %bout.[0 %select]
-          =/  jr  (do-query q named-ctes %.n)
-          =/  results  (select-results named-ctes jr)
+          =/  jr  (do-query -.plan named-ctes %.n)
+          =/  ordered
+            %^  order-select-results  +.plan
+                                      top.select.q
+                                      (select-results named-ctes jr)
           :+  next-data  server.jr
-          ?.  (crud-txn-has-rand scalars.q ctes.crud-txn)
-            results
-          [[%message 'warning: results are non-deterministic'] results]
+          %^  result-warnings  (crud-txn-has-rand scalars.q ctes.crud-txn)
+                               -.ordered
+                               +.ordered
     %set-query
       =/  sq=set-query:ast  +.body.crud-txn
       :-  %.y
           =/  jr  (do-set-query sq named-ctes)
-          =/  results  (select-results named-ctes jr)
+          =/  ordered
+            %^  order-select-results  (set-query-sort-specs sq)
+                                      ~
+                                      (select-results named-ctes jr)
           :+  next-data  server.jr
-          ?.  ?|  (set-query-has-rand sq)
-                  (ctes-have-rand ctes.crud-txn)
-              ==
-            results
-          [[%message 'warning: results are non-deterministic'] results]
+          %^  result-warnings  ?|  (set-query-has-rand sq)
+                                   (ctes-have-rand ctes.crud-txn)
+                               ==
+                               -.ordered
+                               +.ordered
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
@@ -968,7 +975,8 @@
   =/  pruned=[(list scalar:ast) predicate:ast (list selected-column:ast)]
     ?~  prune  [scalars.q predicate selected]
     (prune-query u.prune scalars.q predicate selected)
-  ?~  +>.pruned  ~
+  ::  a row type holding only hidden ORDER BY values has no selected value
+  ?:  (levy +>.pruned is-order-by-selected)  ~
   =/  resolved-scalars
         %:  resolve-query-scalars(state state, bowl bowl)  -.pruned
                                                            named-ctes
@@ -1111,7 +1119,7 @@
                        predicate.q
                        columns.select.q
                        ==
-    ?~  +>.pruned  ~
+    ?:  (levy +>.pruned is-order-by-selected)  ~
     =/  st=set-table
       %=  i.tables
         columns       cols
@@ -1386,9 +1394,10 @@
   ::  type; out-cols is the running output row type, which division changes.
   |=  [sq=set-query:ast =named-ctes]
   ^-  join-return
-  =/  head-jr
-    %-  project-set-query-operand
-    [head.sq named-ctes (do-query head.sq named-ctes %.n)]
+  =/  last=query:ast  (last-set-query sq)
+  ?^  top.select.last
+    ~|("TOP is not allowed on the last query of a set operation" !!)
+  =/  head-jr  (set-query-operand head.sq named-ctes)
   ?~  set-tables.head-jr          ~|("do-set-query can't get here" !!)
   =.  state                       server.head-jr
   =/  result-st=set-table         i.set-tables.head-jr
@@ -1415,9 +1424,7 @@
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
         out-metas
         ==
-  =/  next-jr
-    %-  project-set-query-operand
-    [query.i.rest named-ctes (do-query query.i.rest named-ctes %.n)]
+  =/  next-jr  (set-query-operand query.i.rest named-ctes)
   ?~  set-tables.next-jr          ~|("do-set-query can't get here" !!)
   =.  state                       server.next-jr
   =/  next-cols=(list column:ast)  columns.i.set-tables.next-jr
@@ -1904,6 +1911,369 @@
   ?:  =(format i.formats)  `index
   $(formats t.formats, index +(index))
 ::
+::  +|  order by
+::
+++  order-by-plan
+  ::  Append to the SELECT of q a hidden output column for each ORDER BY
+  ::  column, so every query path carries the sort values through its
+  ::  projection, and produce the sort specs of the result.
+  ::
+  ::  An ORDER BY column names a SELECT output (an alias first), a SCALARS
+  ::  scalar, or a source column, selected or not.  An ordinal at or past *
+  ::  or t.* is resolved against the shown result columns instead.
+  |=  q=query:ast
+  ^-  [query:ast (list sort-spec)]
+  ?~  order-by.q  [q ~]
+  =/  selected=(list selected-column:ast)  columns.select.q
+  =/  scalar-names=(set @tas)
+    (silt (turn scalars.q |=(s=scalar:ast name.s)))
+  =/  planned=(list [(unit selected-column:ast) sort-spec])
+    %+  spun  `(list ordering-column:ast)`order-by.q
+    |=  [oc=ordering-column:ast i=@ud]
+    ^-  [[(unit selected-column:ast) sort-spec] @ud]
+    =/  alias=@t  (order-by-alias i)
+    =/  hidden=(unit selected-column:ast)
+      %:  order-by-selected  column.oc
+                             selected
+                             scalar-names
+                             alias
+                             ==
+    =/  key=sort-key
+      ?~  hidden
+        ?>  ?=(@ column.oc)
+        [%ordinal column.oc]
+      [%name alias]
+    [[hidden [key ascending.oc]] +(i)]
+  =/  hidden=(list selected-column:ast)
+    (murn planned |=([s=(unit selected-column:ast) *] s))
+  :_  (turn planned |=([* s=sort-spec] s))
+  q(columns.select (weld selected hidden))
+::
+++  order-by-selected
+  ::  The hidden output column, aliased alias, carrying an ORDER BY column;
+  ::  ~ for an ordinal at or past * or t.*
+  |=  $:  column=grouping-column:ast
+          selected=(list selected-column:ast)
+          scalar-names=(set @tas)
+          alias=@t
+          ==
+  ^-  (unit selected-column:ast)
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    =/  n  1
+    |-  ^-  (unit selected-column:ast)
+    ?~  selected
+      ~|  "ORDER BY: column ordinal {<column>} exceeds the selected columns"
+          !!
+    ?:  ?=(?(%all %all-object) -.i.selected)  ~
+    ?:  =(n column)  `(hide-selected i.selected alias)
+    $(selected t.selected, n +(n))
+  ?:  ?=(qualified-column:ast column)  `column(alias `alias)
+  ?^  alias.column
+    ~|  "ORDER BY: unresolved column {<(need alias.column)>}.{<name.column>}"
+        !!
+  =/  named=(list selected-column:ast)
+    %+  skim  selected
+    |=  s=selected-column:ast
+    ^-  ?
+    =/  out=(unit @t)
+      ?+  -.s  ~
+        %qualified-column     alias.s
+        %unqualified-column   alias.s
+        %selected-value       alias.s
+        %selected-scalar      `(fall alias.s name.s)
+        %selected-cte-column  `(fall alias.s name.s)
+      ==
+    ?~  out  %.n
+    =(name.column (crip (cass (trip u.out))))
+  ?^  named
+    ?^  t.named
+      ~|("ORDER BY: column {<name.column>} is ambiguous in SELECT" !!)
+    `(hide-selected i.named alias)
+  ?:  (~(has in scalar-names) name.column)
+    `[%selected-scalar name.column `alias]
+  `column(alias `alias)
+::
+++  hide-selected
+  ::  a SELECT column as the hidden output column alias
+  |=  [s=selected-column:ast alias=@t]
+  ^-  selected-column:ast
+  ?+  -.s  ~|("ORDER BY: cannot order by {<s>}" !!)
+    %qualified-column     s(alias `alias)
+    %unqualified-column   s(alias `alias)
+    %selected-scalar      s(alias `alias)
+    %selected-cte-column  s(alias `alias)
+    %selected-value       s(alias `alias)
+  ==
+::
+++  last-set-query
+  |=  sq=set-query:ast
+  ^-  query:ast
+  ?~(tail.sq head.sq query:(rear tail.sq))
+::
+++  set-query-sort-specs
+  ::  The sort specs of a set query, from the ORDER BY of its last query,
+  ::  over the output columns of the combined result
+  |=  sq=set-query:ast
+  ^-  (list sort-spec)
+  %+  turn  order-by:(last-set-query sq)
+  |=  oc=ordering-column:ast
+  ^-  sort-spec
+  :_  ascending.oc
+  =/  column  column.oc
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    [%ordinal column]
+  ?:  ?=(qualified-column:ast column)
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  ?^  alias.column
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  [%name name.column]
+::
+++  set-query-operand
+  ::  Execute and project a set operation operand.  An operand with TOP
+  ::  keeps its top rows by its ORDER BY; otherwise its ORDER BY is ignored.
+  |=  [q=query:ast =named-ctes]
+  ^-  join-return
+  ?~  top.select.q
+    (project-set-query-operand q named-ctes (do-query q named-ctes %.n))
+  =/  plan  (order-by-plan q)
+  %^  top-join-return  +.plan
+                       u.top.select.q
+  (project-set-query-operand -.plan named-ctes (do-query -.plan named-ctes %.n))
+::
+++  result-warnings
+  ::  prefix results with the warnings of a non-deterministic result
+  |=  [random=? total=? results=(list result:ast)]
+  ^-  (list result:ast)
+  =?  results  !total
+    [[%message 'warning: result set order is non-deterministic'] results]
+  ?.  random  results
+  [[%message 'warning: results are non-deterministic'] results]
+::
+++  order-select-results
+  ::  Order the result relation of a SELECT by specs and keep its top rows.
+  ::  Produces %.n when the order is not total over the result.
+  |=  [specs=(list sort-spec) top=(unit @ud) results=(list result:ast)]
+  ^-  [? (list result:ast)]
+  ?~  specs
+    ?^  top  ~|("TOP requires ORDER BY" !!)
+    [%.y results]
+  =/  total=?  %.y
+  =/  count=@ud  0
+  =/  out  *(list result:ast)
+  |-
+  ?~  results  [total (flop out)]
+  ?:  ?=(%relations -.i.results)
+    =/  ordered=(list [? relation:ast])
+      %+  turn  `(list relation:ast)`+.i.results
+      |=(r=relation:ast (order-relation specs top r))
+    =/  relations=(list relation:ast)
+      (turn ordered |=([? r=relation:ast] r))
+    %=  $
+      results  t.results
+      total    &(total (levy ordered |=([t=? *] t)))
+      count    (roll (turn relations |=(r=relation:ast (lent data-rows.r))) add)
+      out      [[%relations relations] out]
+    ==
+  ?:  ?=(%vector-count -.i.results)
+    $(results t.results, out [[%vector-count count] out])
+  $(results t.results, out [i.results out])
+::
+++  order-relation
+  ::  Sort the rows of a result relation by specs, keep the first of rows
+  ::  shown alike, remove the hidden ORDER BY columns, then keep the top
+  ::  rows.  Produces %.n when two shown rows have equal sort keys; TOP
+  ::  crashes on such an order, which is not total.
+  |=  [specs=(list sort-spec) top=(unit @ud) rel=relation:ast]
+  ^-  [? relation:ast]
+  =/  formats=(list relation-format)  columns.rel
+  ::  shown columns, readdressed when hidden columns are removed
+  =/  shown=(list (list format-column))
+    %+  turn  formats
+    |=  f=relation-format
+    ^-  (list format-column)
+    =/  cols=(list format-column)
+      %+  skip  `(list format-column)`f
+      |=(c=format-column (is-order-by-name (format-column-name c)))
+    ?:  =((lent cols) (lent f))  f
+    %-  addr-columns
+    %+  turn  cols
+    |=  c=format-column
+    ^-  column:ast
+    ?>  ?=(%column -.c)
+    c
+  =/  out-formats=(list relation-format)
+    %+  roll  shown
+    |=  $:  f=(list format-column)
+            acc=(list relation-format)
+            ==
+    ^-  (list relation-format)
+    ?~  f  acc
+    ?^  (find ~[f] acc)  acc
+    (snoc acc [i.f t.f])
+  ?:  ?&  (gth (lent out-formats) 1)
+          (lien specs |=(s=sort-spec ?=(%ordinal -.key.s)))
+      ==
+    ~|  "ORDER BY: a column ordinal cannot order rows of several row ".
+        "types, order by column name"
+        !!
+  =/  rows=(list sort-row)
+    %+  murn  data-rows.rel
+    |=  [ci=@ud row=data-row:ast]
+    ^-  (unit sort-row)
+    =/  full  (format-values (snag ci formats) row)
+    =/  vis=(list format-value)
+      %+  skip  full
+      |=([c=format-column *] (is-order-by-name (format-column-name c)))
+    =/  oi  (find ~[(snag ci shown)] out-formats)
+    ?~  oi  ~
+    =/  key=(list (unit [p=@ta q=@]))
+      %+  turn  specs
+      |=  s=sort-spec
+      ^-  (unit [p=@ta q=@])
+      ?-  -.key.s
+        %name
+          =/  at=(list format-value)
+            %+  skim  full
+            |=([c=format-column *] =(name.key.s (format-column-name c)))
+          ?~  at  ~
+          ?^  t.at
+            ~|("ORDER BY: column {<name.key.s>} is ambiguous" !!)
+          value.i.at
+        %ordinal
+          ?:  (gth ordinal.key.s (lent vis))
+            ~|  "ORDER BY: column ordinal {<ordinal.key.s>} exceeds the ".
+                "selected columns"
+                !!
+          value:(snag (dec ordinal.key.s) vis)
+      ==
+    :-  ~
+    :+  key
+        [u.oi (turn vis |=([* v=(unit [p=@ta q=@])] v))]
+    ?.  ?=(%indexed-row -.row)  row
+    %=  row
+      data  %-  malt
+            %+  skip  ~(tap by data.row)
+            |=([k=@tas *] (is-order-by-name k))
+    ==
+  =/  ascending=(list ?)  (turn specs |=(s=sort-spec ascending.s))
+  =/  sorted=(list sort-row)
+    (sort rows |=([a=sort-row b=sort-row] (key-before ascending key.a key.b)))
+  ::  keep the first of rows shown alike
+  =/  distinct=(list sort-row)
+    =/  seen  *(set [@ud (list (unit [p=@ta q=@]))])
+    =/  out  *(list sort-row)
+    |-
+    ?~  sorted  (flop out)
+    ?:  (~(has in seen) ident.i.sorted)  $(sorted t.sorted)
+    %=  $
+      sorted  t.sorted
+      out     [i.sorted out]
+      seen    (~(put in seen) ident.i.sorted)
+    ==
+  ::  sorted, so rows of equal keys are adjacent
+  =/  total=?
+    =/  remaining  distinct
+    |-
+    ?~  remaining  %.y
+    ?~  t.remaining  %.y
+    ?:  =(key.i.remaining key.i.t.remaining)  %.n
+    $(remaining t.remaining)
+  =/  kept=(list sort-row)
+    ?~  top  distinct
+    ?.  total
+      ~|  "TOP {<u.top>}: ORDER BY is not a total ordering of the result"
+          !!
+    (scag u.top distinct)
+  ?~  out-formats  [total rel(data-rows ~, ordered %.y)]
+  :-  total
+  %=  rel
+    columns      [i.out-formats t.out-formats]
+    ordered      %.y
+    pri-indexed  ~
+    data-rows    (turn kept |=(r=sort-row [format.ident.r data-row.r]))
+  ==
+::
+++  format-values
+  ::  Each column of a result format with its value in row, ~ when absent.
+  ::  A repeated column name is keyed as in +materialize-cte-row.
+  |=  [format=(list format-column) row=data-row:ast]
+  ^-  (list format-value)
+  =/  counts  *(map @tas @ud)
+  |-  ^-  (list format-value)
+  ?~  format  ~
+  =/  col  i.format
+  =/  name  (format-column-name col)
+  =/  count  (~(gut by counts) name 0)
+  =/  type=@ta  ?:(?=(%column -.col) type.col ~.ud)
+  =/  value=(unit [p=@ta q=@])
+    ?-  -.row
+      %indexed-row
+        =/  keyed  (~(get by data.row) (output-cell-key name count))
+        ?^  keyed  `[type u.keyed]
+        =/  named  (~(get by data.row) name)
+        ?^  named  `[type u.named]
+        ?.  ?=(%column -.col)  ~
+        ?:  =(0 addr.col)  ~
+        =/  x  .*(data.row [%0 addr.col])
+        `[type ?@(x x ;;(@ +.x))]
+      %joined-row
+        ?.  ?=(%qualified-column -.col)  ~
+        =/  vals  (~(get by data.row) qualifier.col)
+        ?~  vals  ~
+        (bind (~(get by u.vals) name) (lead type))
+    ==
+  :-  [col value]
+  $(format t.format, counts (~(put by counts) name +(count)))
+::
+++  format-column-name
+  |=  c=format-column
+  ^-  @tas
+  ?-(-.c %column name.c, %qualified-column name.c)
+::
+++  top-join-return
+  ::  Keep the top rows by specs of the result set-tables of jr, for a CTE or
+  ::  a set operation operand with TOP.  The kept rows have no order.
+  |=  [specs=(list sort-spec) top=@ud jr=join-return]
+  ^-  join-return
+  =/  results=(list set-table)
+    (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+  ?~  results  jr
+  =/  rel=relation:ast
+    +:(order-relation specs `top (set-tables-relation [i.results t.results]))
+  =/  tables=(list set-table)
+    %+  spun  `(list relation-format)`columns.rel
+    |=  [f=relation-format i=@ud]
+    ^-  [set-table @ud]
+    =/  cols=(list column:ast)
+      %+  turn  `(list format-column)`f
+      |=  c=format-column
+      ^-  column:ast
+      ?>  ?=(%column -.c)
+      c
+    =/  rows=(list indexed-row)
+      %+  murn  data-rows.rel
+      |=  [ci=@ud row=data-row:ast]
+      ^-  (unit indexed-row)
+      ?.  =(ci i)  ~
+      ?>  ?=(%indexed-row -.row)
+      `row
+    :_  +(i)
+    %=  i.results
+      columns       cols
+      map-meta      :-  %unqualified-map-meta
+                        (mk-unqualified-typ-addr-lookup cols)
+      indexed-rows  rows
+      joined-rows   ~
+      rowcount      (lent rows)
+      ordered       %.n
+      pri-indexed   (materialize-cte-pri-index pri-indx.i.results rows)
+    ==
+  jr(set-tables (weld tables (source-set-tables set-tables.jr)))
+::
 ++  order-results
   ::  sort comparator for select-results table metadata output.
   ::  returns %.y if p should appear before q in the results list.
@@ -2175,6 +2545,20 @@
       ctes   +.ctes
     ==
   =/  cte-q=query:ast   +.body.i.ctes
+  ?^  top.select.cte-q
+    ::  a CTE with TOP keeps its top rows by its ORDER BY, as a set query
+    =/  plan  (order-by-plan cte-q)
+    =/  jr  (do-query -.plan nctes %.n)
+    =.  state  server.jr
+    =.  jr  (top-join-return +.plan u.top.select.cte-q jr)
+    =/  checked=(list (list column:ast))
+      %+  turn  (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+      |=(st=set-table (cte-col-dups name.i.ctes columns.st))
+    %=  $
+      nctes  %+  ~(put by nctes)  name.i.ctes
+             (set-query-cte-relation name.i.ctes jr)
+      ctes   +.ctes
+    ==
   ?:  ?&  ?=(^ from.cte-q)
           (query-row-types (normalize-from u.from.cte-q) nctes)
       ==

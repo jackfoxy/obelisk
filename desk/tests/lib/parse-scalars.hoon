@@ -5254,12 +5254,12 @@
         group-by=~
         having=~
         select=[%select top=[~ 2] columns=~[(inline-col 0 0)]]
-        ~
+        ~[[%ordering-column 1 %.y]]
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  %-  parse:parse(default-database default-db)
-            "FROM inl SELECT TOP 2 ABS(nsd)"
+            "FROM inl SELECT TOP 2 ABS(nsd) ORDER BY 1"
 ::
 ::  UPDATE SET values and WHERE; SET lists are produced last to first
 ++  test-inline-update

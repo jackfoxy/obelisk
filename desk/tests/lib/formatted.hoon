@@ -222,6 +222,30 @@
       ~[[0 ud-row-1] [1 ux-row] [0 ud-row-3]]
       ==
 ::
+::  ordered rows of two formats; the id-only row lacks label
+++  outer-relation
+  ^-  relation:ast
+  =/  full
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %id ~.ud 0] [%column %label ~.t 0]]
+  =/  id-only
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %id ~.ud 0]]
+  =/  row-1=data-row:ast
+    [%indexed-row ~[1] (~(gas by *(map @tas @)) ~[[%id 1] [%label 'one']])]
+  =/  row-4=data-row:ast
+    [%indexed-row ~[4] (~(gas by *(map @tas @)) ~[[%id 4]])]
+  =/  row-2=data-row:ast
+    [%indexed-row ~[2] (~(gas by *(map @tas @)) ~[[%id 2] [%label 'two']])]
+  :*  %relation
+      ~
+      ~[full id-only]
+      ~
+      %.y
+      *(tree [(list @) (map @tas @)])
+      ~[[0 row-1] [1 row-4] [0 row-2]]
+      ==
+::
 ++  vectors-relation
   |=  $:  columns=(lest $%(column:ast qualified-column:ast))
           vectors=(list vector:ast)
@@ -330,21 +354,31 @@
     'format: invalid relation columns index 2'
   |.  (format-relation %vector bad)
 ::
-::  Ordered vector formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-vector-11
+::  Ordered vector formatting with multiple schemas keeps row order.
+++  test-ordered-multi-schema-vector-11
   =/  relation  direct-relation
   =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema vector output not implemented'
-  |.  (format-relation %vector ordered-relation)
+  =/  formatted  (format-relation %vector ordered-relation)
+  =/  vectors  (result-vectors formatted)
+  %+  expect-eq
+    !>(`(list @ta)`~[~.ud ~.ux ~.ud])
+  !>((turn vectors vector-aura))
 ::
-::  Ordered HTML formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-html-12
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema html output not implemented'
-  |.  (format-relation %html ordered-relation)
+::  Ordered HTML with multiple schemas is one table with empty cells.
+++  test-ordered-multi-schema-html-12
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>id</th><th>label</th></tr>"
+        "<tr><td>1</td><td>'one'</td></tr>"
+        "<tr><td>4</td><td></td></tr>"
+        "<tr><td>2</td><td>'two'</td></tr></table>"
+        ==
+  =/  expected-output=(list cmd-result:ast)
+    ~[[%results ~[[%message expected] [%vector-count 3]]]]
+  %+  expect-eq
+    !>(expected-output)
+  !>((format-relation %html outer-relation))
 ::
 ::  HTML renders multiple columns and data rows in one table.
 ++  test-html-multiple-columns-rows-13
@@ -474,13 +508,17 @@
     !>('| value |\0a| --- |\0a| \'a\\|b\' |')
   !>((result-message (format-relation %markdown relation)))
 ::
-::  Ordered Markdown formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-markdown-18
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema markdown output not implemented'
-  |.  (format-relation %markdown ordered-relation)
+::  Ordered Markdown with multiple schemas is one table with empty cells.
+++  test-ordered-multi-schema-markdown-18
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "| id | label |\0a| --- | --- |\0a"
+        "| 1 | 'one' |\0a| 4 |  |\0a| 2 | 'two' |"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((result-message (format-relation %markdown outer-relation)))
 ::
 ::  Markdown renders multiple columns and data rows in one GFM table.
 ++  test-markdown-multiple-columns-rows-19
@@ -589,13 +627,18 @@
     !>('[[{"value":"\'a\\"b\\\\\\\\c\'"}]]')
   !>((result-message (format-relation %json relation)))
 ::
-::  Ordered JSON formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-json-24
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema json output not implemented'
-  |.  (format-relation %json ordered-relation)
+::  Ordered JSON with multiple schemas is one array; absent cells are null.
+++  test-ordered-multi-schema-json-24
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "[[\{\"id\":1,\"label\":\"'one'\"},"
+        "\{\"id\":4,\"label\":null},"
+        "\{\"id\":2,\"label\":\"'two'\"}]]"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((result-message (format-relation %json outer-relation)))
 ::
 ::  JSON renders multiple columns and data rows as row objects.
 ++  test-json-multiple-columns-rows-25
@@ -685,13 +728,16 @@
                    !>(q.formatted)
   ==
 ::
-::  Ordered Wain formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-wain-29
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema wain output not implemented'
-  |.  (relation-wain ordered-relation)
+::  Ordered Wain with multiple schemas is one header with empty cells.
+++  test-ordered-multi-schema-wain-29
+  =/  formatted  (relation-wain outer-relation)
+  ;:  weld
+    %+  expect-eq  !>(`wain`~['id label' '1 \'one\'' '4 ' '2 \'two\''])
+                   !>(p.formatted)
+  ::
+    %+  expect-eq  !>(3)
+                   !>(q.formatted)
+  ==
 ::
 ::  Wain separates multiple columns with one space.
 ++  test-wain-multiple-columns-rows-30
@@ -781,13 +827,11 @@
     !>(expected-output)
   !>((format-relation %tape empty))
 ::
-::  Ordered Tape formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-tape-34
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema tape output not implemented'
-  |.  (format-relation %tape ordered-relation)
+::  Ordered Tape with multiple schemas is one header with empty cells.
+++  test-ordered-multi-schema-tape-34
+  %+  expect-eq
+    !>('id label\0a1 \'one\'\0a4 \0a2 \'two\'')
+  !>((result-message (format-relation %tape outer-relation)))
 ::
 ::  Tape separates columns with spaces and rows with line feeds.
 ++  test-tape-multiple-columns-rows-35
@@ -902,13 +946,19 @@
   !>  %-  result-message
       (format-relation %manx (vectors-relation columns vectors))
 ::
-::  Ordered Manx formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-manx-40
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema manx output not implemented'
-  |.  (format-relation %manx ordered-relation)
+::  Ordered Manx with multiple schemas is one table with empty cells.
+++  test-ordered-multi-schema-manx-40
+  =/  expected
+    %-  crip
+    %-  zing
+    :~  "<table><tr><th>id</th><th>label</th></tr>"
+        "<tr><td>1</td><td>&#39;one&#39;</td></tr>"
+        "<tr><td>4</td><td></td></tr>"
+        "<tr><td>2</td><td>&#39;two&#39;</td></tr></table>"
+        ==
+  %+  expect-eq
+    !>(expected)
+  !>((result-message (format-relation %manx outer-relation)))
 ::
 ::  Manx renders multiple columns and data rows in one table node.
 ++  test-manx-multiple-columns-rows-41
@@ -1003,13 +1053,11 @@
     !>((result-message (format-relation %spac relation)))
   ==
 ::
-::  Ordered CSV formatting with multiple schemas is not implemented.
-++  test-fail-ordered-multi-schema-csv-44
-  =/  relation  direct-relation
-  =/  ordered-relation  relation(ordered %.y)
-  %+  expect-fail-message
-    'format: ordered multi-schema csv output not implemented'
-  |.  (format-relation %csv ordered-relation)
+::  Ordered CSV with multiple schemas is one header with empty cells.
+++  test-ordered-multi-schema-csv-44
+  %+  expect-eq
+    !>('id,label\0a1,\'one\'\0a4,\0a2,\'two\'')
+  !>((result-message (format-relation %csv outer-relation)))
 ::
 ::  CSV retains cord quotes and escapes carriage returns and line feeds.
 ++  test-csv-record-boundaries-45

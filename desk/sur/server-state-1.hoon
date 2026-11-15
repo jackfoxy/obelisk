@@ -202,7 +202,7 @@
     =column-lookup
     typ-addr-lookup=(map @tas typ-addr)
     columns=(list column)      ::  canonical column list
-    ordering=(list column-order)
+    ordering=(list column-order)  ::  unused, see +view-row-order
     indices=(list index)
     ==
 ::

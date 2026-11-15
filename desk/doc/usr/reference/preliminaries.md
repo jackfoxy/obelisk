@@ -80,7 +80,10 @@ it.
 | `%raw` | Unformatted `%relations`, preserving column schemas and schema-indexed data rows. |
 
 Formatted results produce one table or row block for each column schema.
-Ordered output with multiple column schemas is not implemented. `%parse` does
+Ordered output with multiple column schemas is one table holding the columns
+of every schema, in row order; a column absent from a row's schema is an
+empty cell (`null` in `%json`). `%vector` and `%raw` keep each row's own
+schema. `%parse` does
 not accept a result format. `%test` is reserved for Obelisk's test code; the
 legacy `%tape`, `%tape-print`, and `%commands` actions are deprecated.
 

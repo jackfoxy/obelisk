@@ -2630,57 +2630,33 @@
   |.  %-  parse:parse(default-database 'db1')
       "select ~.bad!"
 ::
-::  star select top, trailing whitespace
-++  test-select-02
+::  fail star select top, trailing whitespace: TOP requires ORDER BY
+++  test-fail-select-top-02
   =/  select  "select top 10   * "
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top
-++  test-select-03
+::  fail star select top: TOP requires ORDER BY
+++  test-fail-select-top-03
   =/  select  "select top 10 *"
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top, trailing whitespace
-++  test-select-04
+::  fail star select top, trailing whitespace: TOP requires ORDER BY
+++  test-fail-select-top-04
   =/  select  "select top 10   * "
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top
-++  test-select-05
+::  fail star select top: TOP requires ORDER BY
+++  test-fail-select-top-05
   =/  select  "select top 10   *"
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
 ::  star select, trailing whitespace
 ++  test-select-06
@@ -2711,7 +2687,7 @@
   =/  select  "FROM ns.table JOIN table-alias ".
               "JOIN db.dbo.table T1 select top 10 ".
               " x1, db1.ns.table.col1, table-alias.name, db..table.col2, ".
-              "T1.foo, 1, ~zod, 'cord'"
+              "T1.foo, 1, ~zod, 'cord' order by x1"
   =/  qt-ns-table
     :*  %qualified-table  ship=~
         database='db1'  namespace='ns'
@@ -2763,7 +2739,7 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=my-columns]
-        ~
+        ~[[%ordering-column [%unqualified-column 'x1' ~] %.y]]
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2772,7 +2748,8 @@
 ::  from foo select top, simple columns, trailing space, no internal space
 ++  test-select-09
   =/  select  "from foo T1 join db.ns.foo select top 10  ".
-              "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' "
+              "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' ".
+              "order by 1 desc,t1.name"
   =/  from  :-  ~
                 :^  %from
                     relation-id=foo-table-t1
@@ -2819,7 +2796,11 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=my-columns]
-        ~
+        :~  [%ordering-column 1 %.n]
+            :+  %ordering-column
+                [%qualified-column qt-foo-t1 'name' ~]
+                %.y
+            ==
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2881,7 +2862,8 @@
   =/  select  "FROM ns.table JOIN table-alias ".
               "JOIN db.dbo.table select  top 10  ".
               "x1 as foo,db.ns.table.col1 as foo2,table-alias.name as bar,".
-              "db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3"
+              "db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3 ".
+              "ORDER BY foo DESC"
   =/  qt-from
     :*  %qualified-table  ship=~
         database='db1'  namespace='ns'
@@ -2920,7 +2902,7 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=aliased-columns-1]
-        ~
+        ~[[%ordering-column [%unqualified-column 'foo' ~] %.n]]
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2941,12 +2923,20 @@
 ::::
 ::::  , top, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-13
-  =/  select  "from t1 T1 select top 10  db..t1.*,foo as foobar,bar,*,T1.*"
+  =/  select  "from t1 T1 select top 10  db..t1.*,foo as foobar,bar,*,T1.* ".
+              "order by T1.bar asc, 12"
+  =/  qt
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='t1'  alias=[~ 'T1']
+        ==
   =/  query
     :*  %query  from-t1  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=mixed-all]
-        ~
+        :~  [%ordering-column [%qualified-column qt 'bar' ~] %.y]
+            [%ordering-column 12 %.y]
+            ==
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -3040,7 +3030,13 @@
         name='table'  alias=~
         ==
   =/  qc  [%qualified-column qualifier=qt column='col' alias=~]
-  =/  uc  [%unqualified-column name='foo' alias=[~ 'T1']]
+  ::  T1 is not a FROM alias, so it names a table of the default database
+  =/  t1
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='T1'  alias=~
+        ==
+  =/  uc  [%qualified-column qualifier=t1 column='foo' alias=~]
   :~  [%ordering-column qc ascending=%.y]
       [%ordering-column uc ascending=%.n]
       [%ordering-column 3 ascending=%.y]
@@ -3096,6 +3092,99 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
+::
+::  order by FROM alias resolves to the aliased relation
+++  test-order-by-03
+  =/  select  "from foo F1 select * order by f1.col desc"
+  =/  qt
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='foo'  alias=[~ 'F1']
+        ==
+  =/  query
+    :*  %query
+        [~ [%from relation-id=qt as-of=~ joins=~]]
+        scalars=~
+        predicate=~  group-by=~
+        having=~
+        select=select-all-columns
+        ~[[%ordering-column [%qualified-column qt 'col' ~] %.n]]
+        ==
+  %+  expect-eq
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
+    !>  (parse:parse(default-database 'db1') select)
+::
+::  order by of the last query of a set query orders the combined result;
+::  an earlier query may have TOP with its own order by
+++  test-order-by-04
+  =/  select  "FROM foo SELECT TOP 2 * ORDER BY 1 UNION ".
+              "FROM bar SELECT * ORDER BY col DESC, 2"
+  =/  head-q
+    :*  %query  from-foo  scalars=~
+        predicate=~  group-by=~
+        having=~
+        [%select top=[~ 2] columns=~[[%all %all]]]
+        ~[[%ordering-column 1 %.y]]
+        ==
+  =/  tail-q
+    :*  %query  from-bar  scalars=~
+        predicate=~  group-by=~
+        having=~
+        select-all-columns
+        :~  [%ordering-column [%unqualified-column 'col' ~] %.n]
+            [%ordering-column 2 %.y]
+            ==
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=head-q
+            tail=~[[op=%union query=tail-q]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') select)
+::
+::  fail TOP without ORDER BY
+++  test-fail-order-by-00
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 2 *")
+::
+::  fail TOP 0
+++  test-fail-order-by-01
+  %+  expect-fail-message
+    'TOP must be 1 or greater'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT TOP 0 * ORDER BY 1"
+::
+::  fail column ordinal 0
+++  test-fail-order-by-02
+  %+  expect-fail-message
+    'ORDER BY: column ordinal must be 1 or greater'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT a ORDER BY 0")
+::
+::  fail column ordinal beyond the selected columns
+++  test-fail-order-by-03
+  %+  expect-fail-message
+    'ORDER BY: column ordinal 3 exceeds the selected columns'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT a, b ORDER BY 3")
+::
+::  fail TOP on the last query of a set query
+++  test-fail-order-by-04
+  %+  expect-fail-message
+    'TOP is not allowed on the last query of a set operation'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * UNION FROM bar SELECT TOP 2 * ORDER BY 1"
+::
+::  fail qualified ORDER BY column of a set query
+++  test-fail-order-by-05
+  %+  expect-fail-message
+    'ORDER BY of a set operation must name an output column or ordinal'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * UNION FROM bar B1 SELECT * ORDER BY B1.col"
 ::
 :: update
 ::

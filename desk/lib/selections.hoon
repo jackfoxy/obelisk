@@ -828,8 +828,10 @@
           ==
   ^-  (map @tas [@tas (unit @t)])
   ?:  ?=(unqualified-column:ast a)
+    ?:  (is-order-by-alias alias.a)  b
     (~(put by b) name.a [name.a alias.a])
   ?:  ?=(qualified-column:ast a)
+    ?:  (is-order-by-alias alias.a)  b
     (~(put by b) name.a [name.a alias.a])
   ?:  ?=(selected-all:ast a)
     |-
@@ -859,10 +861,12 @@
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
-      ~|  "SELECT: column {<name.selected-column>} not found"
+      ~|  "{(select-label alias.selected-column)}: column ".
+          "{<name.selected-column>} not found"
       ~[(~(got by col-map) name.selected-column)]
     unqualified-column:ast
-      ~|  "SELECT: column {<name.selected-column>} not found"
+      ~|  "{(select-label alias.selected-column)}: column ".
+          "{<name.selected-column>} not found"
       ~[(~(got by col-map) name.selected-column)]
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
