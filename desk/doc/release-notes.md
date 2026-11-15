@@ -8,6 +8,8 @@
 * LEFT JOIN, RIGHT JOIN, OUTER JOIN
 * EXISTS, NOT EXISTS, EQUIV, NOT EQUIV predicates
 * COALESCE tests existence
+* fix SCALARS clause arithmetic led by IF, CASE, or COALESCE, or using %
+* fix arithmetic operands and scalars named end-*
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

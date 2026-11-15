@@ -2489,8 +2489,8 @@
   ::  otherwise build a %fn that walks validated at runtime per data-row,
   ::  returning the first non-null value; the list-walk is captured in the gate
   =/  fn  |=  [datums=(list resolved-scalar) =data-row]
-          :: to do: once outer joins implemented must test columns for existence
-          ::        in data-row
+          ::  arguments absent from a row type were pruned before preparation
+          ::  (+prune-scalar-node in lib/crud): the first is present
           ^-  dime
           |-
           ?~  datums  ~|("coalesce: no non-null value found in row" !!)

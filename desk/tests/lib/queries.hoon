@@ -14068,6 +14068,426 @@
               ==
       ==
 ::
+::  COALESCE scalar in WHERE
+++  test-outer-join-62
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, L.l-val) ".
+          "WHERE v = 'L2' OR v = 'R4' ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  nested COALESCE
+++  test-outer-join-63
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SCALARS v COALESCE(COALESCE(R.r-val, X.ref-val), L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  COALESCE of a scalar that does not exist
+++  test-outer-join-64
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SCALARS a COALESCE(R.r-val, X.ref-val) ".
+          "        v COALESCE(a, L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  COALESCE in IF
+++  test-outer-join-65
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v IF L.id > 1 THEN COALESCE(R.r-val, 'none') ELSE L.l-val ENDIF ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE in inline arithmetic
+++  test-outer-join-66
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, COALESCE(R.id, 0) + 10"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%scalar-1 [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%scalar-1 [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%scalar-1 [~.ud 13]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%scalar-1 [~.ud 14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE on a RIGHT JOIN
+++  test-outer-join-67
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-right R ".
+          "SCALARS v COALESCE(L.l-val, R.r-val) ".
+          "SELECT R.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'L4']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 5]]
+                              [%v [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 6]]
+                              [%v [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE on an OUTER JOIN
+++  test-outer-join-68
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-right R ".
+          "SCALARS v COALESCE(L.l-val, R.r-val) ".
+          "SELECT v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%v [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L4']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  COALESCE on a CTE of a LEFT JOIN
+++  test-outer-join-69
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM lr ".
+          "SCALARS v COALESCE(r-val, 'none') ".
+          "SELECT id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE leading arithmetic in SCALARS, named end-*
+++  test-outer-join-70
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS end-r COALESCE(R.id, 0) + 10 END ".
+          "SELECT L.id, end-r"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%end-r [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%end-r [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%end-r [~.ud 13]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%end-r [~.ud 14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
 ::  natural LEFT JOIN with no shared column
 ++  test-fail-outer-join-00
   =|  run=@ud
@@ -14199,5 +14619,39 @@
           "SELECT L.id"
       ::
       'comparing columns of different auras'
+      ==
+::
+::  COALESCE of arguments of different auras
+++  test-fail-outer-join-08
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, L.id) ".
+          "SELECT L.id, v"
+      ::
+      'inconsistent types'
+      ==
+::
+::  COALESCE of a column of no relation
+++  test-fail-outer-join-09
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.nope, L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      'column %nope does not exist'
       ==
 --

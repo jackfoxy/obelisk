@@ -6287,4 +6287,356 @@
     'PARSER: '
     |.  %-  parse:parse(default-database default-db)
             "SELECT VERSION(1)"
+::
+::  +|  IF, CASE, COALESCE leading SCALARS arithmetic; names starting "end"
+::
+++  coalesce-foo3-0  [%coalesce ~[unqualified-foo-3 [~.ud 0]]]
+++  end-a            [%scalar-name name=%end-a]
+::
+::  COALESCE followed by an operator is an arithmetic operand
+++  test-scalars-operand-coalesce
+  =/  f  [%arithmetic %lus coalesce-foo3-0 [~.ud 1]]
+  %+  expect-eq
+    !>  (mk-crud-txn ~[[%scalar 'sc1' f]] ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS sc1 COALESCE(foo3, 0) + 1 END SELECT foo2,foo3"
+::
+::  IF followed by an operator is an arithmetic operand
+++  test-scalars-operand-if
+  =/  if  [%if-then-else simple-true-pred [~.ud 1] [~.ud 0]]
+  =/  f  [%arithmetic %tar if [~.ud 2]]
+  %+  expect-eq
+    !>  (mk-crud-txn ~[[%scalar 'sc1' f]] ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 IF 1 = 1 THEN 1 ELSE 0 ENDIF * 2 END ".
+            "SELECT foo2,foo3"
+::
+::  simple CASE followed by an operator is an arithmetic operand
+++  test-scalars-operand-case-simple
+  =/  case
+    :^  %case
+        `unqualified-foo-3
+        ~[[%case-when-then [~.ud 1] [~.ud 10]]]
+        `[~.ud 20]
+  =/  f  [%arithmetic %hep case [~.ud 1]]
+  %+  expect-eq
+    !>  (mk-crud-txn ~[[%scalar 'sc1' f]] ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 CASE foo3 WHEN 1 THEN 10 ELSE 20 END - 1 END ".
+            "SELECT foo2,foo3"
+::
+::  searched CASE followed by an operator is an arithmetic operand
+++  test-scalars-operand-case-searched
+  =/  case  [%case ~ ~[[%case-when-then simple-true-pred [~.ud 10]]] ~]
+  =/  f  [%arithmetic %fas case [~.ud 2]]
+  %+  expect-eq
+    !>  (mk-crud-txn ~[[%scalar 'sc1' f]] ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 CASE WHEN 1 = 1 THEN 10 END / 2 END ".
+            "SELECT foo2,foo3"
+::
+::  modulo follows COALESCE and a function
+++  test-scalars-operand-modulo
+  =/  scalars
+    :~  [%scalar 'sc1' [%arithmetic %cen coalesce-foo3-0 [~.ud 2]]]
+        :+  %scalar
+            'sc2'
+            [%arithmetic %cen [%abs unqualified-foo-3] [~.ud 2]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 COALESCE(foo3, 0) % 2 END ".
+            "        sc2 ABS(foo3) % 2 END ".
+            "SELECT foo2,foo3"
+::
+::  operands lead longer arithmetic, without whitespace, and follow
+::  operators
+++  test-scalars-operand-positions
+  =/  if  [%if-then-else simple-true-pred [~.ud 1] [~.ud 0]]
+  =/  scalars
+    :~  :+  %scalar
+            'sc1'
+            :^  %arithmetic
+                %lus
+                coalesce-foo3-0
+                [%arithmetic %tar if [~.ud 2]]
+        [%scalar 'sc2' [%arithmetic %lus coalesce-foo3-0 [~.ud 1]]]
+        [%scalar 'sc3' [%arithmetic %lus [~.ud 1] coalesce-foo3-0]]
+        [%scalar 'sc4' [%arithmetic %hep coalesce-foo3-0 coalesce-foo3-0]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 COALESCE(foo3, 0) + IF 1 = 1 THEN 1 ELSE 0 ENDIF ".
+            "            * 2 END ".
+            "        sc2 COALESCE(foo3, 0)+1 END ".
+            "        sc3 1 + COALESCE(foo3, 0) END ".
+            "        sc4 COALESCE(foo3, 0) - COALESCE(foo3, 0) END ".
+            "SELECT foo2,foo3"
+::
+::  IF, CASE, COALESCE, and a function not followed by an operator stand
+::  alone, also before scalars named end-*
+++  test-scalars-standalone-before-end-names
+  =/  scalars
+    :~  [%scalar 'sc1' coalesce-foo3-0]
+        :+  %scalar
+            'end-a'
+            [%if-then-else simple-true-pred [~.ud 1] [~.ud 0]]
+        :+  %scalar
+            'end-b'
+            [%case ~ ~[[%case-when-then simple-true-pred [~.ud 10]]] ~]
+        [%scalar 'end-c' [%abs unqualified-foo-3]]
+        [%scalar 'end-d' [%arithmetic %lus [~.ud 1] [~.ud 1]]]
+        [%scalar 'endif-e' coalesce-foo3-0]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 COALESCE(foo3, 0) ".
+            "        end-a IF 1 = 1 THEN 1 ELSE 0 ENDIF ".
+            "        end-b CASE WHEN 1 = 1 THEN 10 END ".
+            "        end-c ABS(foo3) ".
+            "        end-d 1 + 1 END ".
+            "        endif-e COALESCE(foo3, 0) ".
+            "SELECT foo2,foo3"
+::
+::  a CASE of a scalar named end-*
+++  case-end-a
+  :^  %case
+      `unqualified-foo-3
+      ~[[%case-when-then [~.ud 1] [%arithmetic %lus end-a [~.ud 1]]]]
+      `end-a
+++  end-col  [%unqualified-column name=%end-col alias=~]
+::
+::  a scalar named end-* leads arithmetic
+++  test-scalars-end-name-operand-00
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' [%arithmetic %lus end-a [~.ud 1]]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 end-a + 1 END ".
+            "SELECT foo2,foo3"
+::
+::  a scalar named end-* follows an operator
+++  test-scalars-end-name-operand-01
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' [%arithmetic %lus [~.ud 1] end-a]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 1 + end-a END ".
+            "SELECT foo2,foo3"
+::
+::  both operands are a scalar named end-*
+++  test-scalars-end-name-operand-02
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' [%arithmetic %tar end-a end-a]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 end-a * end-a END ".
+            "SELECT foo2,foo3"
+::
+::  a scalar named end-* in CASE branches
+++  test-scalars-end-name-operand-03
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' case-end-a]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 CASE foo3 WHEN 1 THEN end-a + 1 ELSE end-a END ".
+            "SELECT foo2,foo3"
+::
+::  a column named end-* leads arithmetic
+++  test-scalars-end-name-operand-04
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' [%arithmetic %lus end-col [~.ud 1]]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 end-col + 1 END ".
+            "SELECT foo2,foo3"
+::
+::  a scalar named end-* is a function argument
+++  test-scalars-end-name-operand-05
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' [%arithmetic %lus [%abs end-a] [~.ud 1]]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 ABS(end-a) + 1 END ".
+            "SELECT foo2,foo3"
+::
+::  simple CASE THEN arithmetic of a column
+++  test-scalars-end-name-operand-06
+  =/  then  [%arithmetic %lus unqualified-foo-2 [~.ud 1]]
+  =/  sc1
+    :^  %case
+        `unqualified-foo-3
+        ~[[%case-when-then [~.ud 1] then]]
+        `unqualified-foo-2
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' sc1]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 CASE foo3 WHEN 1 THEN foo2 + 1 ELSE foo2 END ".
+            "SELECT foo2,foo3"
+::
+::  simple CASE THEN and ELSE a scalar named end-*
+++  test-scalars-end-name-operand-07
+  =/  sc1
+    [%case `unqualified-foo-3 ~[[%case-when-then [~.ud 1] end-a]] `end-a]
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' sc1]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 CASE foo3 WHEN 1 THEN end-a ELSE end-a END ".
+            "SELECT foo2,foo3"
+::
+::  simple CASE ELSE arithmetic of a scalar named end-*
+++  test-scalars-end-name-operand-08
+  =/  sc1
+    :^  %case
+        `unqualified-foo-3
+        ~[[%case-when-then [~.ud 1] [~.ud 1]]]
+        `[%arithmetic %lus end-a [~.ud 1]]
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' sc1]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 CASE foo3 WHEN 1 THEN 1 ELSE end-a + 1 END ".
+            "SELECT foo2,foo3"
+::
+::  searched CASE THEN arithmetic of a column
+++  test-scalars-end-name-operand-09
+  =/  then  [%arithmetic %lus unqualified-foo-2 [~.ud 1]]
+  =/  sc1  [%case ~ ~[[%case-when-then simple-true-pred then]] ~]
+  =/  scalars
+    :~  [%scalar 'end-a' [%abs unqualified-foo-3]]
+        [%scalar 'sc1' sc1]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo SCALARS end-a ABS(foo3) ".
+            "sc1 CASE WHEN 1 = 1 THEN foo2 + 1 END ".
+            "SELECT foo2,foo3"
+::
+::  a scalar named end-* follows arithmetic
+++  test-scalars-end-name-after-arithmetic
+  =/  scalars
+    :~  [%scalar 'sc1' [%arithmetic %lus unqualified-foo-3 [~.ud 1]]]
+        [%scalar 'end-a' [%arithmetic %tar [~.ud 2] [~.ud 3]]]
+        [%scalar 'endb' [%abs unqualified-foo-2]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS sc1 foo3 + 1 END ".
+            "        end-a 2 * 3 END ".
+            "        endb ABS(foo2) ".
+            "SELECT foo2,foo3"
+::
+::  scalars named with a keyword prefix
+++  test-scalars-keyword-prefixed-names
+  =/  where-a   [%scalar-name name=%where-a]
+  =/  select-b  [%scalar-name name=%select-b]
+  =/  case
+    :^  %case
+        `unqualified-foo-3
+        ~[[%case-when-then [~.ud 1] [%arithmetic %lus where-a [~.ud 1]]]]
+        `[%arithmetic %hep select-b [~.ud 1]]
+  =/  scalars
+    :~  [%scalar 'where-a' [%abs unqualified-foo-3]]
+        [%scalar 'select-b' [%arithmetic %lus where-a [~.ud 1]]]
+        [%scalar 'else-c' [%arithmetic %tar [~.ud 2] select-b]]
+        [%scalar 'when-d' case]
+        [%scalar 'update-e' [%abs where-a]]
+        [%scalar 'delete-f' [%abs where-a]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS where-a ABS(foo3) ".
+            "        select-b where-a + 1 END ".
+            "        else-c 2 * select-b END ".
+            "        when-d CASE foo3 WHEN 1 THEN where-a + 1 ".
+            "                         ELSE select-b - 1 END ".
+            "        update-e ABS(where-a) ".
+            "        delete-f ABS(where-a) ".
+            "SELECT foo2,foo3"
+::
+::  names starting end without a hyphen, and names ending in end, are
+::  arithmetic operands and CASE values
+++  test-scalars-end-names-unhyphenated
+  =/  endpoint  [%scalar-name name=%endpoint]
+  =/  weekend   [%scalar-name name=%weekend]
+  =/  endx      [%unqualified-column name=%endx alias=~]
+  =/  case
+    :^  %case
+        `endpoint
+        ~[[%case-when-then weekend [%arithmetic %lus endpoint [~.ud 1]]]]
+        `weekend
+  =/  scalars
+    :~  [%scalar 'endpoint' [%abs unqualified-foo-3]]
+        [%scalar 'weekend' [%abs unqualified-foo-2]]
+        [%scalar 'sc1' [%arithmetic %lus endpoint weekend]]
+        [%scalar 'sc2' [%arithmetic %hep weekend endpoint]]
+        [%scalar 'sc3' [%arithmetic %tar endx [~.ud 2]]]
+        [%scalar 'sc4' case]
+        [%scalar 'endend' [%arithmetic %lus [~.ud 1] endpoint]]
+        ==
+  %+  expect-eq
+    !>  (mk-crud-txn scalars ~)
+    !>  %-  parse:parse(default-database default-db)
+            "FROM foo ".
+            "SCALARS endpoint ABS(foo3) ".
+            "        weekend ABS(foo2) ".
+            "        sc1 endpoint + weekend END ".
+            "        sc2 weekend - endpoint END ".
+            "        sc3 endx * 2 END ".
+            "        sc4 CASE endpoint WHEN weekend THEN endpoint + 1 ".
+            "                          ELSE weekend END ".
+            "        endend 1 + endpoint END ".
+            "SELECT foo2,foo3"
 --

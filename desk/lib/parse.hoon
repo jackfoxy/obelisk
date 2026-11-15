@@ -3694,6 +3694,12 @@
     (fail tub)
   $(p.tub (lust i.q.tub p.tub), q.tub t.q.tub, daf (rsh 3 daf))
 ::
+++  keyword
+  ::  match a cord, case agnostic, that is not the prefix of a longer name:
+  ::  'end' does not match the start of end-date
+  |=  daf=@t
+  ;~(sfix (jester daf) ;~(less ;~(pose low hig nud hep) (easy ~)))
+::
 ::  qualified objects, usually table or view
 ::  maximally qualified by @p.database.namespace
 ::  minimally qualified by namespace
@@ -5881,7 +5887,7 @@
 ::
 ++  arithmetic-token-core
   ;~  pose
-    (cold %end (jester 'end'))
+    (cold %end (keyword 'end'))
     (cold %pal pal)
     (cold %par par)
     (cold %lus lus)
@@ -5910,37 +5916,41 @@
     ;~  sfix
       %-  star
         ;~(less scalar-stop arithmetic-token)
-      ;~(pfix whitespace (jester 'end'))
+      ;~(pfix whitespace (keyword 'end'))
     ==
   ==
 ::
 ++  arithmetic-continuation
   ;~  pose
-    ;~(pfix whitespace (jester 'end'))
+    ;~(pfix whitespace (keyword 'end'))
     ;~(pfix whitespace lus)
     ;~(pfix whitespace hep)
     ;~(pfix whitespace tar)
     ;~(pfix whitespace fas)
+    ;~(pfix whitespace cen)
     ;~(pfix whitespace ket)
-    (jester 'end')
+    (keyword 'end')
     lus
     hep
     tar
     fas
+    cen
     ket
   ==
 ::
-++  parse-standalone-builtin-scalar-fn
+++  standalone
+  ::  a scalar not followed by an arithmetic operator or END: when one
+  ::  follows, the scalar is an operand and arithmetic parses it
+  |*  sef=rule
   |=  tub=nail
   ^-  (like *)
-  =/  parsed  (parse-builtin-scalar-fn tub)
-  ?~  q.parsed
-    parsed
-  =/  rest  q.u.q.parsed
-  =/  continuation  (arithmetic-continuation rest)
-  ?.  ?=(^ q.continuation)
-    parsed
+  =/  parsed  (sef tub)
+  ?~  q.parsed  parsed
+  =/  continuation  (arithmetic-continuation q.u.q.parsed)
+  ?.  ?=(^ q.continuation)  parsed
   (fail tub)
+::
+++  parse-standalone-builtin-scalar-fn  (standalone parse-builtin-scalar-fn)
 ::
 ++  raw-arithmetic-has-operator
   |=  raw-body=*
@@ -5963,10 +5973,12 @@
   (fail tub)
 ::
 ++  case-scalar-stop
+  ::  THEN ends the value of a simple CASE WHEN
   ;~  pose
-    ;~(plug whitespace (jester 'when') whitespace)
-    ;~(plug whitespace (jester 'else') whitespace)
-    ;~(plug whitespace (jester 'end') whitespace)
+    ;~(plug whitespace (keyword 'when') whitespace)
+    ;~(plug whitespace (keyword 'then') whitespace)
+    ;~(plug whitespace (keyword 'else') whitespace)
+    ;~(plug whitespace (keyword 'end') whitespace)
   ==
 ++  parse-case-branch-arithmetic
   ;~  plug
@@ -5991,16 +6003,20 @@
   ==
 ::
 ++  scalar-stop
+  ::  +whitespace may be empty: +keyword keeps end-a from stopping at end
   ;~  pose
-    ;~(plug whitespace (jester 'where') whitespace)
-    ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'else') whitespace)
-    ;~(plug whitespace (jester 'endif') whitespace)
-    ;~(plug whitespace (jester 'end') whitespace)
+    ;~(plug whitespace (keyword 'where') whitespace)
+    ;~(plug whitespace (keyword 'select') whitespace)
+    ;~(plug whitespace (keyword 'else') whitespace)
+    ;~(plug whitespace (keyword 'endif') whitespace)
+    ;~(plug whitespace (keyword 'end') whitespace)
   ==
 ++  parse-scalar-body
+  ::  IF, CASE, COALESCE, or a function followed by an arithmetic operator
+  ::  is the leading operand of arithmetic
   ;~  pose
-    ;~(plug (cold %if (jester 'if')) parse-if)
+    (standalone ;~(plug (cold %if (jester 'if')) parse-if))
+    %-  standalone
     ;~  pfix
       (jester 'case')
       ;~  pose
@@ -6008,7 +6024,7 @@
         (stag %searched-case parse-searched-case)
       ==
     ==
-    parse-coalesce
+    (standalone parse-coalesce)
     parse-standalone-builtin-scalar-fn
     parse-scalar-node-arithmetic
     parse-builtin-scalar-constant
@@ -6116,12 +6132,12 @@
   ==
 ++  query-scalar-stop
   ;~  pose
-    ;~(plug whitespace (jester 'delete') whitespace)
-    ;~(plug whitespace (jester 'update') whitespace)
-    ;~(plug whitespace (jester 'where') whitespace)
-    ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
-    ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'order') whitespace (jester 'by') whitespace)
+    ;~(plug whitespace (keyword 'delete') whitespace)
+    ;~(plug whitespace (keyword 'update') whitespace)
+    ;~(plug whitespace (keyword 'where') whitespace)
+    ;~(plug whitespace (keyword 'group') whitespace (keyword 'by') whitespace)
+    ;~(plug whitespace (keyword 'select') whitespace)
+    ;~(plug whitespace (keyword 'order') whitespace (keyword 'by') whitespace)
   ==
 ++  parse-scalars
   ;~  plug
