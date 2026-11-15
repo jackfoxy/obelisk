@@ -3,8 +3,6 @@
 
 ##  V1.0
 
-* __`INSERT INTO [ FORCE ] \<table>__ -- INSERT data defined by a query.
-
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __GROUP BY...HAVING__ -- as in SQL.
@@ -57,8 +55,6 @@
 * __Pivoting__ -- similar to SQL.
 
 * __Windowing__ -- and windowing functions, similar to SQL.
-
-* __INSERT `<columns>` ... AS `<name> <key columns>`__ -- Skip CREATE TABLE and define new table in the INSERT command.
 
 * __MERGE__ -- a much maligned SQL command that could be better implemented in urQL/%obelisk. (cf. Merge document, which is incomplete)
 

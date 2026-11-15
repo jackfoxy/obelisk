@@ -1,5 +1,5 @@
 /-  ast=obelisk-ast, *obelisk, *server-state-1
-/+  *utils, *selections, *predicate, mip
+/+  *utils, *selections, *predicate, mip, fmt=format
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -188,13 +188,23 @@
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
-          ::::~&  "{<name.qualified-table.+.body.crud-txn>}"   :: table name
-          ::::~>  %bout.[0 %insert]
-          (do-insert +.body.crud-txn next-data next-schemas)
+          %:  do-insert-upsert  %insert
+                                +.body.crud-txn
+                                ctes.crud-txn
+                                named-ctes
+                                next-data
+                                next-schemas
+                                ==
     %upsert
       ?:  query-has-run  ~|("UPSERT: state change after query in script" !!)
       :-  %.n
-          (do-upsert +.body.crud-txn next-data next-schemas)
+          %:  do-insert-upsert  %upsert
+                                +.body.crud-txn
+                                ctes.crud-txn
+                                named-ctes
+                                next-data
+                                next-schemas
+                                ==
     %query
       =/  q=query:ast  +.body.crud-txn
       =/  plan  (order-by-plan q)
@@ -300,19 +310,13 @@
       [%vector-count (lent rows)]
       ==
 ::
-++  do-insert
-  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result:ast)]
-  (do-insert-upsert %insert ins next-data next-schemas)
-::
-++  do-upsert
-  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result:ast)]
-  (do-insert-upsert %upsert ins next-data next-schemas)
-::
 ++  do-insert-upsert
+  ::  INSERT or UPSERT rows of VALUES or of a query source.  Query rows match
+  ::  the target columns by position and aura.
   |=  $:  op=?(%insert %upsert)
           ins=insert:ast
+          ctes=(list cte:ast)
+          =named-ctes
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
@@ -351,11 +355,36 @@
             `(list @t)`(need columns.ins)
             |=(a=@t (to-column op a column-lookup.table.txn))
   ::
-  ?.  ?=([%data *] values.ins)
-    ?:  =(%insert op)
-      ~|("INSERT: from query not implemented: {<values.ins>}" !!)
-    ~|("UPSERT: from query not implemented: {<values.ins>}" !!)
-  =/  value-table  `(list (list value-or-default:ast))`+.values.ins
+  =/  source  values.ins
+  =/  random=?
+    ?-  -.source
+      %data       %.n
+      %query      (crud-txn-has-rand scalars.+.source ctes)
+      %set-query  ?|((set-query-has-rand +.source) (ctes-have-rand ctes))
+    ==
+  =/  value-table=(list (list value-or-default:ast))
+    ?:  ?=(%data -.source)  +.source
+    (query-source-rows verb cols source named-ctes)
+  ::  an empty query source changes nothing; =(~) keeps value-table wide
+  ?:  =(~ value-table)
+    :+  next-data
+        state
+    %^  result-warnings  random
+                         %.y
+    :~  :-  %action
+            %-  crip
+                %+  weld  (weld verb " INTO ")
+                          (trip (qualified-table-to-cord qualified-table.ins))
+        [%server-time now.bowl]
+        [%schema-time tmsp.table.txn]
+        [%data-time source-content-time.txn]
+        [%message message]
+        [%vector-count 0]
+        [%message 'table data:']
+        [%vector-count ~(wyt by pri-idx.file.txn)]
+        ==
+  =/  from-query=?  ?!(?=(%data -.source))
+  =/  source-keys  *(set (list @))
   ::
   ?.  =((lent cols) (lent -.value-table))
         ?:  =(%insert op)
@@ -427,6 +456,8 @@
                                                                 op
                                                                 ==
                             ==
+      %^  result-warnings  random
+                           %.y
       :~  :-  %action
               %-  crip
                   %+  weld  (weld verb " INTO ")
@@ -445,6 +476,10 @@
   =/  got-fr  ~(got by file-row)
   =/  row-key=(list @)  (turn key-pick |=(a=[@tas @] (got-fr -.a)))
   =/  inserted-row=indexed-row  [%indexed-row row-key file-row]
+  ::  query rows are unordered, so an UPSERT of two rows of one key is
+  ::  not deterministic
+  ?:  &(from-query (~(has in source-keys) row-key))
+    ~|("{verb}: query rows have duplicate key: {<row-key>}" !!)
   =.  pri-idx.file.txn  ?:  =(%insert op)
                           ?:  (has:primary-key pri-idx.file.txn row-key)
                             ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
@@ -454,7 +489,52 @@
     i              +(i)
     value-table    `(list (list value-or-default:ast))`+.value-table
     inserted-rows  [inserted-row inserted-rows]
+    source-keys    ?.(from-query source-keys (~(put in source-keys) row-key))
   ==
+::
+++  query-source-rows
+  ::  The rows of an INSERT or UPSERT query source as VALUES rows, each of
+  ::  the target's column count.  The query ORDER BY serves only its TOP.
+  |=  $:  verb=tape
+          cols=(list column:ast)
+          source=cte-body:ast
+          =named-ctes
+          ==
+  ^-  (list (list value-or-default:ast))
+  =/  results=(list result:ast)
+    ?-  -.source
+      %set-query
+        (select-results named-ctes (do-set-query +.source named-ctes))
+      %query
+        =/  q=query:ast  +.source
+        ?~  top.select.q
+          (select-results named-ctes (do-query q named-ctes %.n))
+        =/  plan  (order-by-plan q)
+        =/  jr  (do-query -.plan named-ctes %.n)
+        =/  ordered
+          %^  order-select-results  +.plan
+                                    top.select.q
+                                    (select-results named-ctes jr)
+        +.ordered
+    ==
+  =/  vectors=(list vector:ast)
+    %-  zing
+    %+  turn  +:(format-vectors:fmt [%results results])
+    |=  r=result:ast
+    ^-  (list vector:ast)
+    ?.(?=(%result-set -.r) ~ +.r)
+  %+  turn  vectors
+  |=  v=vector:ast
+  ^-  (list value-or-default:ast)
+  =/  row=(list value-or-default:ast)
+    (turn `(list vector-cell:ast)`+.v tail)
+  ?:  =((lent row) (lent cols))  row
+  ?:  (lth (lent row) (lent cols))
+    ~|  "{verb}: query row lacks column {<name:(snag (lent row) cols)>}"
+        !!
+  ~|  "{verb}: query row has {<(lent row)>} columns, ".
+      "target has {<(lent cols)>}"
+      !!
 ::
 ++  do-delete
   |=  $:  d=delete:ast

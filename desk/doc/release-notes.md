@@ -6,6 +6,7 @@
 * warning when ORDER BY is not a total ordering of the result set
 * TOP in CTEs and in set operation queries before the last
 * ordered results of several row types format as one table with empty cells
+* INSERT and UPSERT from a query, set operation query, or CTE
 * system views ordered by aura
 * inline scalars directly without SCALARS clause entry
 * VERSION() scalar added, returns %obelisk version

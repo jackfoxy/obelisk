@@ -421,7 +421,12 @@
     ==
 ::
 ::
-+$  insert-values      $%([%data (list (list value-or-default))] [%query query])
+::  $insert-values: VALUES rows, or the rows of a query source
++$  insert-values
+  $%  [%data (list (list value-or-default))]
+      [%query query]
+      [%set-query set-query]
+      ==
 ::
 ::  $insert:
 +$  insert

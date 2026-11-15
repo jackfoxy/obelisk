@@ -1006,7 +1006,7 @@
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  ins
             ::~>  %bout.[0 %parse-produce-insert]
-            (produce-insert %insert parsed)
+            (produce-insert %insert ~ parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
@@ -1023,7 +1023,7 @@
                                 [(wonk nail) nail]
       ~|  "upsert parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  ups  (produce-insert %upsert parsed)
+      =/  ups  (produce-insert %upsert ~ parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%upsert ups])
@@ -1163,24 +1163,18 @@
                             commands
             ==
           ?:  =(+<.parsed %insert)
+            =/  ctes=(list cte:ast)  (produce-ctes -.parsed)
+            =/  ins  (produce-insert %insert ctes +>.parsed)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  crud-txn:ast  %crud-txn
-                                              (produce-ctes -.parsed)
-                                              :-  %insert
-                                                  (produce-insert %insert +>.parsed)
-                                              ==
-                            commands
+              commands  [(crud-txn:ast %crud-txn ctes [%insert ins]) commands]
             ==
           ?:  =(+<.parsed %upsert)
+            =/  ctes=(list cte:ast)  (produce-ctes -.parsed)
+            =/  ins  (produce-insert %upsert ctes +>.parsed)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  crud-txn:ast  %crud-txn
-                                              (produce-ctes -.parsed)
-                                              :-  %upsert
-                                                  (produce-insert %upsert +>.parsed)
-                                              ==
-                            commands
+              commands  [(crud-txn:ast %crud-txn ctes [%upsert ins]) commands]
             ==
           ?:  =(+<.parsed %merge)
             %=  $
@@ -1551,20 +1545,40 @@
             (stag %table parse-qualified-3object)
             ==
 ++  parse-insert  ~+
-  ;~  plug
+  ;~  pose
     ;~  plug
-      ;~(pfix whitespace parse-qualified-table)
-      ;~(pose parse-as-of (easy ~))
-      ;~  pose
-        ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-        ;~(pfix whitespace (jester 'values'))
-        ==
-      ;~  pfix
-        whitespace
-        (more whitespace (ifix [pal par] (more com parse-insert-value)))
-        ==
+      ;~  plug
+        ;~(pfix whitespace parse-qualified-table)
+        ;~(pose parse-as-of (easy ~))
+        ;~  pose
+          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
+          ;~(pfix whitespace (jester 'values'))
+          ==
+        ;~  pfix
+          whitespace
+          (more whitespace (ifix [pal par] (more com parse-insert-value)))
+          ==
+      ==
+      end-or-next-command
     ==
-    end-or-next-command
+    ::  query source; each query of the chain ends its own command
+    ;~  plug
+      ;~  plug
+        ;~(pfix whitespace parse-qualified-table)
+        ;~(pose parse-as-of (easy ~))
+        ;~(pose face-list (easy ~))
+        %+  stag  %query-source
+        ;~  pfix  whitespace
+          ;~  pose
+            ;~(pfix (jester 'from') parse-query-chain)
+            ;~  pfix  (peek ;~(pose (jester 'select') (jester 'scalars')))
+                      parse-query-chain
+                      ==
+            ==
+          ==
+      ==
+      (easy ~)
+    ==
   ==
 ++  parse-query  ~+
   ;~  pose
@@ -2148,12 +2162,27 @@
   [%qualified-column obj name.a alias.a]
 ::
 ++  produce-insert
-  |=  [op=?(%insert %upsert) a=*]
+  |=  [op=?(%insert %upsert) ctes=(list cte:ast) a=*]
   ~+
   ^-  insert:ast
   =/  table  -<.a
   =/  c      ->.a
   ::
+  ?:  ?=([* * %query-source *] c)    :: insert rows of a query
+    =/  as-of=*  -.c
+    =/  source  body:(produce-query ctes +>+.c)
+    %:  insert:ast  op
+                    table
+                    ?:  ?=([%as-of %now] as-of)  ~
+                    ?:  ?=([%as-of @ @] as-of)  [~ +.as-of]
+                    ?:  ?=([%as-of @ @ @] as-of)
+                      [~ [%as-of-offset +<.as-of +>-.as-of]]
+                    ~
+                    ?~(+<.c ~ `;;((list @tas) +<.c))
+                    ?:  ?=(%query -.source)  source
+                    ?:  ?=(%set-query -.source)  source
+                    ~|("Cannot parse insert/upsert query source {<a>}" !!)
+                    ==
   ?:  ?=([~ %values *] c)            :: insert rows
     %:  insert:ast  op
                     table

@@ -223,6 +223,18 @@ If the data in the `INSERT` command has columns ordered in the same order as the
 
 Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column.
 
+`INSERT` and `UPSERT` also take their rows from a query instead of `VALUES`.
+The query's output columns match the target columns by position and aura:
+
+```
+UPSERT INTO my-table-1 (col2, col1)
+FROM my-table-2 WHERE col3 > 1
+SELECT col2, col1;
+```
+
+The query may be a set operation or read a `WITH` CTE. See the
+[INSERT reference](/docs/usr/reference/dml-insert.md).
+
 Text-like literals may be written as single-quoted `@t` cords, `%`-prefixed
 `@tas` terms, or `~.`-prefixed `@ta` knots:
 

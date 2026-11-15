@@ -4,15 +4,16 @@ Inserts rows into a `<table>`.
 
 ```
 <insert> ::=
+  [ WITH [ <common-table-expression> [ ,...n ] ] ]
   INSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
     VALUES (<scalar-node> [ ,...n ] ) [ ...n ]
-  | INSERT INTO [ FORCE ] <table> [ <as-of> ]
+  | INSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
     <query>
-```
 
-*`INSERT` from `<query>` and `FORCE` are planned (roadmap V1.0) and not yet implemented in the urQL parser or the Obelisk runtime. Only `VALUES` is supported. The `<query>` and `FORCE` descriptions below define the planned behavior.*
+<common-table-expression> ::= ( <query> ) [ AS ] <name>
+```
 
 ```
 <scalar-node> ::=
@@ -37,28 +38,28 @@ VALUES
   ('Cat', .99.5, .102.5, 140, 220, 20, 30)
   ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
 
-::  planned, not yet implemented
-INSERT INTO FORCE reference.species-vital-signs-ranges-copy
+INSERT INTO reference.species-vital-signs-ranges-copy
 FROM reference.species-vital-signs-ranges
 SELECT species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high;
+
+WITH (FROM reference.species-vital-signs-ranges WHERE species = 'Dog' SELECT *) AS dogs
+INSERT INTO reference.species-vital-signs-ranges-copy
+FROM dogs
+SELECT *;
 ```
 
 ### Arguments
 
-**`FORCE`**
-*planned, not yet implemented*
-
-Creates a new target table from a `<query>` source. When `FORCE` is specified the target must not already exist. When `FORCE` is not specified the target must already exist. `FORCE` with `VALUES` is invalid syntax.
+**`<common-table-expression>`**
+A named query that `<query>` may read.
 
 **`<table>`**
-The qualified or unqualified target of the `INSERT` operation.
+The qualified or unqualified target of the `INSERT` operation. The target must already exist.
 
 **`<column>` [ ,...n ]**
 When present, the column list must account for all column identifiers (names or aliases) in the target. This determines the order in which values are applied in the `<table>`'s data rows.
 
-For existing tables, if not specified row values must be in the `<table>`'s canonical column order.
-
-For `FORCE` inserts (planned), if specified the column list defines the new table's canonical column order. If not specified the new table's canonical columns are determined by the `<query>` output column order.
+If not specified row values must be in the `<table>`'s canonical column order.
 
 **(`<scalar-node>` [ ,...n ] ) [ ,...n ]**
 *fully supported in urQL parser, only literals supported in Obelisk runtime*
@@ -66,12 +67,10 @@ For `FORCE` inserts (planned), if specified the column list defines the new tabl
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
 
 **`<query>`**
-*planned, not yet implemented*
-
-`SELECT` query returning a `<relation>` to insert into target. Source auras must match target columnwise.
+A query or set operation query (`UNION`, `EXCEPT`, `INTERSECT`, `DIVIDED BY`) whose rows are inserted into target. It may begin with `FROM` or `SELECT`, and may read `<common-table-expression>`s of the `WITH` clause. Output columns match target columns by position and aura; output column names are ignored.
 
 **`<as-of>`**
-Timestamp equal to or greater than the existing table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time). `FORCE` (planned) creates a new table and must not specify target `<as-of>`.
+Timestamp equal to or greater than the existing table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### API
 ```
@@ -83,10 +82,14 @@ Timestamp equal to or greater than the existing table content state upon which t
     columns=(unit (list @tas))
     values=insert-values
   ==
-+$  insert-values  $%([%data (list (list value-or-default))] [%query query])
++$  insert-values
+  $%  [%data (list (list value-or-default))]
+      [%query query]
+      [%set-query set-query]
+      ==
 ```
 
-`[%query query]` is reserved for the planned `INSERT` from `<query>`; the parser produces only `%data`. A `force` flag will be added with `FORCE`.
+`<query>` produces `[%query query]` or `[%set-query set-query]`.
 
 ### Remarks
 
@@ -96,13 +99,14 @@ The `VALUES` or `<query>` must provide data for all columns in the expected orde
 
 The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
-The following three paragraphs describe planned behavior.
+`INSERT` from `<query>` is executed as though the query result were a `VALUES` source with the same column order, row values, and auras, using the same type checking, duplicate-key, and foreign-key rules as `VALUES`:
 
-`INSERT` from `<query>` will be executed as though the query result were a `VALUES` source with the same column order, row values, and auras. Inserting into an existing table and creating a new table with `FORCE` use the same deterministic row construction, type checking, `DEFAULT`, duplicate-key, and foreign-key rules as `VALUES`.
-
-When `FORCE` is specified, the runtime will create the target table before inserting rows. The new table's column auras are the source auras after applying the column-order rules above.
-
-When `FORCE` is specified, the runtime will determine the new table's primary key by testing prefixes of the canonical column list from left to right. It starts with `~[column-1]`, then `~[column-1 column-2]`, and continues until the set of projected row keys has length equal to the length of the insert rows. The first prefix satisfying that condition becomes the primary key. For zero or one inserted row, `~[column-1]` is selected. Because `<query>` results are sets, the full-row prefix is unique for `INSERT` from `<query>`.
+* The query reads state as it was before the `INSERT`, so a query of the target table itself sees none of the inserted rows.
+* `ORDER BY` in `<query>` serves only `TOP`; without `TOP` it is ignored.
+* Every query row must have a value for every target column. A row of an outer join that lacks a column fails.
+* Two query rows with the same primary key fail, since query rows have no order.
+* A query with no rows inserts nothing and leaves the table's data time unchanged.
+* A query with random scalars adds the `warning: results are non-deterministic` message.
 
 Use [`UPSERT`](/docs/usr/reference/dml-upsert.md) when rows with existing
 primary keys should be overwritten instead of rejected.
@@ -130,11 +134,13 @@ vector count: <count>
 state change after query in script
 type of column `<column>` does not match input value type `<aura>`
 database `<database>` does not exist
-table `<namespace>`.`<table>` already exists (`FORCE`, planned)
 table `<namespace>`.`<table>` does not exist
 table `<table>` as-of data time out of order
 table `<table>` as-of schema time out of order
 incorrect columns specified: `<columns>`
+query row lacks column `<column>`
+query row has `<n>` columns, target has `<m>`
+query rows have duplicate key: `<row-key>`
 invalid column: `<column>`
 cannot add duplicate key: `<row-key>`
 `GRANT` permission on `<table>` violated

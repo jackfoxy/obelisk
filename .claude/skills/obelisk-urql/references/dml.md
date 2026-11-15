@@ -5,13 +5,10 @@
 ## INSERT / UPSERT
 
 ```
-INSERT INTO <table> [ <as-of> ]
+[ WITH [ <common-table-expression> [ ,...n ] ] ]
+{ INSERT | UPSERT } INTO <table> [ <as-of> ]
   [ ( <column> [ ,...n ] ) ]
-  VALUES ( <value> [ ,...n ] ) [ ...n ]
-
-UPSERT INTO <table> [ <as-of> ]
-  [ ( <column> [ ,...n ] ) ]
-  VALUES ( <value> [ ,...n ] ) [ ...n ]
+  { VALUES ( <value> [ ,...n ] ) [ ...n ] | <query> }
 ```
 
 - If the column list is omitted, values must be in the table's **canonical column order**. If present, it must list every column and sets the value order.
@@ -19,7 +16,8 @@ UPSERT INTO <table> [ <as-of> ]
 - `DEFAULT` in place of a value uses the column aura's bunt value.
 - Source auras must match target columns pairwise.
 - `INSERT` rejects an existing primary key (`cannot add duplicate key`). `UPSERT` overwrites the existing row instead. If one `UPSERT` lists the same key twice, the last row wins.
-- `INSERT ... <crud-txn>` (INSERT from SELECT) parses but is not yet executed; only literal `VALUES` run.
+- `<query>` is a query or set operation query beginning with `FROM` or `SELECT`; it may read CTEs. Its output columns match target columns **by position and aura** (names ignored). It reads state from before the insert.
+- Query source: `ORDER BY` serves only `TOP` (ignored otherwise); a row lacking a target column (outer join) fails (`query row lacks column`); two query rows with one primary key fail, for `UPSERT` too (`query rows have duplicate key`); no rows inserts nothing and keeps the data time.
 
 ```
 INSERT INTO my-table-1
@@ -32,6 +30,10 @@ UPSERT INTO my-table-2
 VALUES
   ('today', ~2024.9.26, 4)
   ('next week', ~2024.10.3, 7);
+
+INSERT INTO my-table-3 (col2, col1)
+FROM my-table-1 WHERE col1 = 'today'
+SELECT col2, col1;
 ```
 
 ## UPDATE

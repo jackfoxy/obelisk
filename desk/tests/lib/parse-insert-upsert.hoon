@@ -917,4 +917,154 @@
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
           "insert into my-table values (~2024.012.5)"
+::
+::  INSERT and UPSERT from a query
+::
+::  the crud-txn of a query parsed alone
+++  query-txn
+  |=  urql=tape
+  ^-  crud-txn:ast
+  ;;(crud-txn:ast (snag 0 (parse:parse(default-database 'db1') urql)))
+::
+::  the insert source of a query parsed alone
+++  query-source
+  |=  urql=tape
+  ^-  insert-values:ast
+  =/  body  body:(query-txn urql)
+  ?:  ?=(%query -.body)  body
+  ?:  ?=(%set-query -.body)  body
+  ~|("query-source: not a query {<urql>}" !!)
+::
+++  my-table
+  ^-  qualified-table:ast
+  [%qualified-table ~ 'db1' 'dbo' 'my-table' ~]
+::
+++  insert-txn
+  |=  $:  op=?(%insert %upsert)
+          ctes=(list cte:ast)
+          as-of=(unit as-of:ast)
+          columns=(unit (list @tas))
+          source=tape
+          ==
+  ^-  crud-txn:ast
+  =/  ins=insert:ast  [op my-table as-of columns (query-source source)]
+  ?:  ?=(%insert op)
+    [%crud-txn ctes [%insert ins]]
+  [%crud-txn ctes [%upsert ins]]
+::
+++  parse-db1
+  |=  urql=tape
+  (parse:parse(default-database 'db1') urql)
+::
+::  FROM query, no columns
+++  test-insert-query-00
+  %+  expect-eq
+    !>  ~[(insert-txn %insert ~ ~ ~ "FROM foo SELECT a, b")]
+    !>  (parse-db1 "INSERT INTO my-table FROM foo SELECT a, b")
+::
+::  column list, WHERE, extra whitespace, trailing ;
+++  test-insert-query-01
+  =/  source  "FROM foo WHERE a = 1 SELECT a, b"
+  %+  expect-eq
+    !>  ~[(insert-txn %insert ~ ~ `~['c1' 'c2'] source)]
+    !>  %-  parse-db1
+        "insert  into  my-table ( c1 , c2 )  from foo where a = 1 select a, b;"
+::
+::  SELECT without FROM
+++  test-insert-query-02
+  %+  expect-eq
+    !>  ~[(insert-txn %insert ~ ~ ~ "SELECT 1, 'x'")]
+    !>  (parse-db1 "INSERT INTO my-table SELECT 1, 'x'")
+::
+::  AS OF date and column list
+++  test-insert-query-03
+  %+  expect-eq
+    !>  :~  %:  insert-txn  %insert
+                            ~
+                            `[%da ~2023.1.5]
+                            `~['c1']
+                            "FROM foo SELECT a"
+                            ==
+            ==
+    !>  %-  parse-db1
+        "INSERT INTO my-table AS OF ~2023.1.5 (c1) FROM foo SELECT a"
+::
+::  AS OF offset
+++  test-insert-query-04
+  %+  expect-eq
+    !>  :~  %:  insert-txn  %insert
+                            ~
+                            `[%as-of-offset 5 %days]
+                            ~
+                            "FROM foo SELECT a"
+                            ==
+            ==
+    !>  (parse-db1 "INSERT INTO my-table AS OF 5 DAYS AGO FROM foo SELECT a")
+::
+::  set query source
+++  test-insert-query-05
+  =/  source  "FROM foo SELECT a UNION FROM bar SELECT b"
+  %+  expect-eq
+    !>  ~[(insert-txn %insert ~ ~ ~ source)]
+    !>  (parse-db1 (weld "INSERT INTO my-table " source))
+::
+::  CTE source
+++  test-insert-query-06
+  ::  the query parsed with its CTE, so c1 names the CTE
+  =/  txn  (query-txn "WITH (FROM foo SELECT a) AS c1 FROM c1 SELECT a")
+  =/  source  body.txn
+  ?>  ?=(%query -.source)
+  =/  ins=insert:ast  [%insert my-table ~ ~ source]
+  %+  expect-eq
+    !>  `(list crud-txn:ast)`~[[%crud-txn ctes.txn [%insert ins]]]
+    !>  %-  parse-db1
+        "WITH (FROM foo SELECT a) AS c1 INSERT INTO my-table FROM c1 SELECT a"
+::
+::  UPSERT from a query
+++  test-upsert-query-00
+  %+  expect-eq
+    !>  ~[(insert-txn %upsert ~ ~ `~['c1'] "FROM foo SELECT a")]
+    !>  (parse-db1 "UPSERT INTO my-table (c1) FROM foo SELECT a")
+::
+::  TOP with ORDER BY; a following command
+++  test-insert-query-07
+  =/  source  "FROM foo SELECT TOP 2 a ORDER BY a"
+  %+  expect-eq
+    !>  :~  (insert-txn %insert ~ ~ ~ source)
+            (query-txn "FROM bar SELECT b")
+            ==
+    !>  %-  parse-db1
+        "INSERT INTO my-table FROM foo SELECT TOP 2 a ORDER BY a; ".
+        "FROM bar SELECT b"
+::
+::  a VALUES insert after an insert from a query
+++  test-insert-query-08
+  =/  values=crud-txn:ast
+    :+  %crud-txn
+        ~
+        [%insert [%insert my-table ~ ~ [%data ~[~[[~.ud 1]]]]]]
+  %+  expect-eq
+    !>  ~[(insert-txn %insert ~ ~ ~ "FROM foo SELECT a") values]
+    !>  %-  parse-db1
+        "INSERT INTO my-table FROM foo SELECT a; ".
+        "INSERT INTO my-table VALUES (1)"
+::
+::  TOP requires ORDER BY
+++  test-fail-insert-query-00
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse-db1 "INSERT INTO my-table FROM foo SELECT TOP 2 a")
+::
+::  a query source needs FROM or SELECT
+++  test-fail-insert-query-01
+  %-  expect-fail
+  |.  (parse-db1 "INSERT INTO my-table (c1) foo SELECT a")
+::
+::  TOP is not allowed on the last query of a set operation
+++  test-fail-insert-query-02
+  %+  expect-fail-message
+    'TOP is not allowed on the last query of a set operation'
+  |.  %-  parse-db1
+      "INSERT INTO my-table FROM foo SELECT a UNION FROM bar SELECT TOP 1 b ".
+      "ORDER BY b"
 --
