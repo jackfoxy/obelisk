@@ -797,6 +797,153 @@ WHERE species IN target-species.species
 SELECT name, species, adoption-date, adoption-fee;
 ```
 
+## ORDER BY
+
+`ORDER BY` comes last in a query, after `SELECT`. Each `ORDER BY` column is ascending unless followed by `DESC`; `ASC` may be written but is the default.
+
+Leap days in the calendar, latest first:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY date DESC;
+```
+```
+  date  day-name
+  ~2048.2.29  Saturday
+  ~2044.2.29  Monday
+  ~2040.2.29  Wednesday
+  ~2036.2.29  Friday
+  ...
+  ~1992.2.29  Saturday
+```
+
+Several columns order the rows by the first column, then by the second among rows equal on the first, and so on. Text auras (`@t`, `@ta`, `@tas`) sort alphabetically ignoring case; numbers and dates sort by value.
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY day-name, date DESC;
+```
+```
+  date  day-name
+  ~2036.2.29  Friday
+  ~2008.2.29  Friday
+  ~2044.2.29  Monday
+  ~2016.2.29  Monday
+  ~2048.2.29  Saturday
+  ~2020.2.29  Saturday
+  ~1992.2.29  Saturday
+  ~2032.2.29  Sunday
+  ...
+  ~2012.2.29  Wednesday
+```
+
+### What an ORDER BY column may name
+
+An `ORDER BY` column may be any of three things:
+
+1. **An output column name** -- a selected column, or the alias given with `AS`. When an alias matches a source column name, the alias wins.
+2. **A source column** -- any column of the `FROM` and `JOIN` relations, *whether or not it is selected*. In a join, a column name found in more than one relation must be qualified with its alias, e.g. `T2.label`.
+3. **A column ordinal** -- a number giving the position of a column in the `SELECT` list.
+
+Ordering by a column that is not selected:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT day-name
+ORDER BY year;
+```
+
+Ordering by an alias:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date AS Leap-Day, day-name
+ORDER BY leap-day DESC;
+```
+
+### Column ordinals
+
+A column ordinal is a shorthand for "the *n*th output column." Ordinals are 1-based: `1` is the first column of the `SELECT` list, `2` the second, and so on. This query returns the same rows in the same order as the `ORDER BY day-name, date DESC` example above:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY 2, 1 DESC;
+```
+
+`*` and `<alias>.*` count as all the columns they expand to, in the table's column order. `reference.calendar` has the columns `date, year, month, month-name, day, day-name, day-of-year, weekday, year-week`, so in
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT *
+ORDER BY 6, 1 DESC;
+```
+`6` is `day-name` and `1` is `date`.
+
+An ordinal must be 1 or greater and no greater than the number of output columns; otherwise the query fails, e.g. `ORDER BY: column ordinal 10 exceeds the selected columns`.
+
+Ordinals are convenient, but they silently change meaning when the `SELECT` list changes -- and with `SELECT *`, when `ALTER TABLE` changes the table's columns. Prefer names in production scripts.
+
+### Ties and the non-deterministic warning
+
+When the `ORDER BY` columns do not distinguish every returned row, the order among the tied rows is undefined, and the result is preceded by a warning:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY day-name;
+```
+```
+%obelisk-result:
+  %results
+    [ %message 'warning: result set order is partial and non-deterministic' ]
+    [ %action 'SELECT' ]
+    %result-set
+    ...
+```
+Several leap days fall on the same day of the week. Adding `date` as a second `ORDER BY` column makes the order total and removes the warning.
+
+Because a result set has no duplicate rows, rows that look alike are one row. `SELECT day-name ORDER BY day-name` returns seven distinct rows and so is totally ordered.
+
+### Outer joins
+
+Obelisk has no nulls. A row from an outer join that lacks an `ORDER BY` column sorts after all other rows ascending, and before them descending.
+
+### SELECT TOP
+
+`SELECT TOP n` returns the first `n` rows in `ORDER BY` order. The three most recent leap days:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT TOP 3 date, day-name
+ORDER BY date DESC;
+```
+```
+  date  day-name
+  ~2048.2.29  Saturday
+  ~2044.2.29  Monday
+  ~2040.2.29  Wednesday
+```
+
+`TOP` requires `ORDER BY`, and the order must be total: if two returned rows tie on the `ORDER BY` columns the query fails rather than pick arbitrarily among them. `ORDER BY day-name` with `TOP 3` above would fail with `TOP 3: ORDER BY is not a total ordering of the result`. If `n` exceeds the number of rows, all rows are returned.
+
+### ORDER BY with CTEs and set operations
+
+`ORDER BY` orders the final result only. In a CTE, or in a query other than the last of a set operation, `ORDER BY` is ignored unless paired with `TOP`, where it selects which rows are kept:
+```
+WITH (FROM reference.calendar
+      WHERE month-name = 'February' AND day = 29
+      SELECT TOP 3 date, day-name
+      ORDER BY date DESC) AS recent-leap-days
+FROM recent-leap-days
+SELECT date, day-name
+ORDER BY date;
+```
+
+`ORDER BY` after a set operation (`UNION`, `EXCEPT`, ...) orders the combined result, and may only name output columns or ordinals. `TOP` is not allowed in the last query of a set operation. See [Set Operations](#set-operations).
+
 # Time Travel
 
 Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/usr/reference/preliminaries.md) reference document.)

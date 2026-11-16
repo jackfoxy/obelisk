@@ -234,7 +234,8 @@
       [~2012.4.30 %db1 setup]
       [~2012.5.3 %db1 "FROM tbl SELECT id, grp ORDER BY grp"]
       :-  %results
-          :~  [%message 'warning: result set order is non-deterministic']
+          :~  :-  %message
+                  'warning: result set order is partial and non-deterministic'
               [%action 'SELECT']
               :-  %result-set
                   :~  [%vector ~[[%id [~.ud 1]] [%grp [~.ud 1]]]]

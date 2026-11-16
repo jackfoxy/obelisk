@@ -43,7 +43,7 @@ SELECT [ TOP <n> ]
 - An unqualified `ORDER BY` column in more than one joined relation crashes: `ORDER BY: column %<name> must be qualified, it is in ~[...]`.
 - Ordering is by aura: `@t`/`@ta`/`@tas` case-insensitive then lower case first; `@rd`/`@rs`/`@rh`/`@rq` as floats; `@s*` signed; others by atom value.
 - No nulls: a row lacking the column (outer join) sorts last `ASC`, first `DESC` (PostgreSQL convention).
-- Not a total ordering of the returned rows → result preceded by `[%message 'warning: result set order is non-deterministic']` (a RAND warning, if any, comes first).
+- Not a total ordering of the returned rows → result preceded by `[%message 'warning: result set order is partial and non-deterministic']` (a RAND warning, if any, comes first).
 - `TOP <n>`: `n` ≥ 1; requires `ORDER BY` (parse error `TOP requires ORDER BY`); crashes when the order is not total (`TOP <n>: ORDER BY is not a total ordering of the result`).
 - Set operations: the `ORDER BY` after the last query orders the combined result and may name only output columns or ordinals; `TOP` on the last query is a parse error. An earlier query may use `TOP` with its own `ORDER BY`.
 - `ORDER BY` in a CTE, or an earlier set-operation query, is ignored unless that `SELECT` has `TOP`.

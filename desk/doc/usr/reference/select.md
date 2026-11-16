@@ -30,7 +30,7 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
   ] [ ,...n ]
   [ ORDER BY 
     {
-      { <qualified-column> | <column-alias> | <column-ordinal> } { ASC | DESC }
+      { <qualified-column> | <column-alias> | <column-ordinal> } [ ASC | DESC ]
     }  [ ,...n ]
   ]
 ```
@@ -168,7 +168,7 @@ Defines named computed expressions evaluated per row. Scalar names may be used i
 
 **`{ <qualified-column> | <column-alias> | <column-ordinal> }`**
 
-Used to select columns for ordering and grouping. `<column-ordinal>`s are 1-based.
+Used to select columns for ordering and grouping. A `<column-ordinal>` is a positive integer giving the 1-based position of a column in the `SELECT` list; `*` and `<alias>.*` count as each column they expand to, in the table's column order. An ordinal of 0, or greater than the number of output columns, is an error.
 
 **`[ TOP <n> ]`**
 
@@ -212,7 +212,7 @@ Timestamp for crud-txn of table data. Defaults to `NOW` (current time). When spe
 *supported in urQL parser, not yet supported in Obelisk runtime*
 
 **`ORDER BY`**
-Orders the rows of the result. Each `ORDER BY` column is one of:
+Orders the rows of the result. Each `ORDER BY` column is ascending unless followed by `DESC`; `ASC` is the default. Each `ORDER BY` column is one of:
 
 * `<column-alias>` -- an output column name of the `SELECT`. An output name takes precedence over a source column of the same name.
 * `<qualified-column>` -- any column of the `FROM` relations, selected or not. An unqualified column name found in more than one joined relation must be qualified.
@@ -222,7 +222,7 @@ Rows are ordered by the aura of each column: `@t`, `@ta`, and `@tas` alphabetica
 
 Obelisk has no nulls. A row lacking an `ORDER BY` column (from an outer join) sorts after all other rows ascending, and before them descending.
 
-When the `ORDER BY` columns do not order the returned rows totally (two returned rows have equal `ORDER BY` values), the result is preceded by the message `warning: result set order is non-deterministic`.
+When the `ORDER BY` columns do not order the returned rows totally (two returned rows have equal `ORDER BY` values), the result is preceded by the message `warning: result set order is partial and non-deterministic`.
 
 `ORDER BY` following a set operation orders the combined result and may only name output columns or ordinals.
 

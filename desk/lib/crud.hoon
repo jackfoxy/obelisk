@@ -2129,7 +2129,8 @@
   |=  [random=? total=? results=(list result:ast)]
   ^-  (list result:ast)
   =?  results  !total
-    [[%message 'warning: result set order is non-deterministic'] results]
+    :_  results
+    [%message 'warning: result set order is partial and non-deterministic']
   ?.  random  results
   [[%message 'warning: results are non-deterministic'] results]
 ::
