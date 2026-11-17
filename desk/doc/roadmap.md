@@ -3,8 +3,6 @@
 
 ##  V1.0
 
-* __Numeric key ordering__ -- primary keys and indices on @rh, @rs, @rq, @sb, @sv, @sw, @sx, and sized signed (e.g. @sdD) columns sort by atom value, so negative values sort wrong; order as floats like @rd and as signed like @sd (requires state migration to re-sort existing indices).
-
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
 
 * __GROUP BY...HAVING__ -- as in SQL.

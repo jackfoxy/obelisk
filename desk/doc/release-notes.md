@@ -30,6 +30,7 @@
 * negative exponents: x ^ -y is 1 / x ^ y; an integer base with a negative literal or non-literal signed exponent gives @rd
 * fix simple CASE not matching a sized target to an unsized WHEN value
 * fix a signed literal (--5, -3) in SCALARS arithmetic or a CASE WHEN, THEN, or ELSE value read as operators
+* primary keys on @rh, @rs, @rq, @sb, @sv, @sw, @sx, and sized signed auras order by value; state migration re-sorts existing tables
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

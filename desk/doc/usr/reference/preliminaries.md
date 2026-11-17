@@ -330,7 +330,7 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 <table-type> ::= (list <row-type>)
 ```
-A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
+A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. Each key column orders by its aura, as `ORDER BY` does: text alphabetically, floating-point auras as floating-point numbers, signed auras as signed numbers, and other auras by atom value. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
 Rows from `<view>`s, `<cte>`s, and output from `<query>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 

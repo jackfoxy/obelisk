@@ -1,8 +1,12 @@
 ::  Unit tests for current-state Obelisk migrations.
 ::
 /-  *server-state-1
-/+  *migration, *sys-views, *test, *utils
+/+  *migration, *sys-views, *test, *test-helpers, *utils
+/=  agent  /app/obelisk
 |%
+::
+::  agent state, as +on-save gives it
++$  agent-state  [%3 =server]
 ::
 ++  fixture-path
   ^-  path
@@ -66,5 +70,54 @@
     (expect-eq !>(modern) !>(modern-after))
     (expect-eq !>(system) !>(system-after))
     (expect-eq !>(after) !>((migrate-server-1-to-2 after)))
+  ==
+::
+::  key a @sx ascending, b @rs descending: both ordered by atom value
+::  before state 3, so negative values sorted after positive ones
+++  key-order-uql
+  "CREATE DATABASE db1; ".
+  "CREATE TABLE db1..k (a @sx, b @rs, c @ud) PRIMARY KEY (a, b DESC); ".
+  "INSERT INTO db1..k VALUES (-0x1, .1, 1) (--0x1, .-2, 2) ".
+  "(-0x1, .-1, 3) (--0x0, .0.5, 4);"
+::
+++  latest-file
+  |=  [db=database key=[@tas @tas]]
+  ^-  file
+  =/  latest=(unit [@da data])  (pry:data-key content.db)
+  ?~  latest  !!
+  (~(got by files.+.u.latest) key)
+::
+++  legacy-order
+  ::  db with each file's rows reversed and its index dropped, out of key
+  ::  order as an index ordered by atom value leaves signed and float keys
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da data])
+    %+  turn  (tap:data-key content.db)
+    |=  [time=@da d=data]
+    ^-  [@da data]
+    :-  time
+    %=  d
+        files
+      %-  ~(run by files.d)
+      |=(f=file f(pri-idx ~, indexed-rows (flop indexed-rows.f)))
+    ==
+  db(content (gas:data-key *((mop @da data) gth) snapshots))
+::
+++  test-reorders-numeric-keys-00
+  =/  ag  (exec-agent agent 0 ~2012.4.30 %sys key-order-uql)
+  =/  current=server  server:!<(agent-state on-save:ag)
+  =/  legacy=server
+    (~(put by current) %db1 (legacy-order (~(got by current) %db1)))
+  =/  migrated=server  (migrate-server-2-to-3 legacy)
+  =/  keys=(list (list @))
+    %+  turn  indexed-rows:(latest-file (~(got by migrated) %db1) [%dbo %k])
+    |=(row=indexed-row key.row)
+  ;:  weld
+    %+  expect-eq
+      !>  `(list (list @))`~[~[-0x1 .1] ~[-0x1 .-1] ~[--0x0 .0.5] ~[--0x1 .-2]]
+      !>  keys
+    (expect-eq !>(current) !>(migrated))
+    (expect-eq !>(migrated) !>((migrate-server-2-to-3 migrated)))
   ==
 --

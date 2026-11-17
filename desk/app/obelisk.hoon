@@ -5,6 +5,7 @@
   $%  state-0
       state-1
       state-2
+      state-3
   ==
 +$  state-0
   $:  %0
@@ -18,10 +19,14 @@
   $:  %2
       =server
   ==
++$  state-3
+  $:  %3
+      =server
+  ==
 +$  card  card:agent:gall
 --
 %-  agent:dbug
-=|  state-2
+=|  state-3
 =*  state  -
 ^-  agent:gall
 |_  =bowl:gall
@@ -45,7 +50,7 @@
             /gen/animal-shelter/all-animal-shelter/txt
             ==
         ==
-  :_  this(state *state-2)
+  :_  this(state *state-3)
   animal-cards
 ++  on-save
   !>(state)
@@ -54,16 +59,20 @@
   ^-  (quip card _this)
   ::  attempt state reload/migration
   ::
-  =/  r=(each state-2 tang)
+  =/  r=(each state-3 tang)
     %-  mule  |.
               =/  old  !<(versioned-state old-state)
               ?-  -.old
                 %0
                   =/  migrated
                     (migrate-server-0-to-1 server.old)
-                  [%2 (migrate-server-1-to-2 migrated)]
-                %1  [%2 (migrate-server-1-to-2 server.old)]
-                %2  old
+                  :-  %3
+                  (migrate-server-2-to-3 (migrate-server-1-to-2 migrated))
+                %1
+                  :-  %3
+                  (migrate-server-2-to-3 (migrate-server-1-to-2 server.old))
+                %2  [%3 (migrate-server-2-to-3 server.old)]
+                %3  old
                 ==
   ::  if it succeeded, use the old state
   ::
@@ -71,7 +80,7 @@
   ::  if it failed, bunt the correct state type
   ::
   %-  (slog 'old state corrupt, unable to migrate data' ~)
-  `this(state *state-2)
+  `this(state *state-3)
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)

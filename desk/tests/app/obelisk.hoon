@@ -16,7 +16,7 @@
 ::
 ::  Build a reference state mold
 +$  state
-  $:  %2
+  $:  %3
       =server
       ==
 --

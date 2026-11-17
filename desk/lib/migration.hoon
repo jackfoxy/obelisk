@@ -173,17 +173,19 @@
     %+  turn  indexed-rows.old-file
               |=  row=indexed-row:oldstate
               [%indexed-row key.row data.row]
-  =/  primary-key  (pri-key key.pri-indx.u.mtbl)
-  =/  comparator
-        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.u.mtbl))
-  =/  rebuilt-pri=(tree [(list @) (map @tas @)])
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             (turn rows |=(row=indexed-row [key.row data.row]))
-  =/  rebuilt-rows=(list indexed-row)
-        %+  turn  (tap:primary-key rebuilt-pri)
-                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  =/  rebuilt=file
+    %+  resort-file  key.pri-indx.u.mtbl
+    :*  %file
+        ship.old-file
+        provenance.old-file
+        tmsp.old-file
+        rowcount.old-file
+        ~
+        rows
+        ~
+        ==
   =/  source-count=@ud   (lent rows)
-  =/  rebuilt-count=@ud  (lent rebuilt-rows)
+  =/  rebuilt-count=@ud  (lent indexed-rows.rebuilt)
   =/  dummy
     ?:  =(source-count rebuilt-count)  ~
     ~&  "MIGRATION WARNING: primary-index rebuild for file ".
@@ -195,15 +197,69 @@
     ~&  "MIGRATION WARNING: rowcount for file {<-.tbl-key>}.{<+.tbl-key>} ".
         "changed from {<rowcount.old-file>} to {<rebuilt-count>}"
     ~
-  :*  %file
-      ship.old-file
-      provenance.old-file
-      tmsp.old-file
-      rebuilt-count
-      rebuilt-pri
-      rebuilt-rows
-      ~
-      ==
+  rebuilt(rowcount rebuilt-count)
+::
+++  resort-file
+  ::  f with its primary index and rows rebuilt in the order of key
+  |=  [key=(list key-column) f=file]
+  ^-  file
+  =/  primary-key  (pri-key key)
+  =/  comparator  ~(order idx-comp `(list [@ta ?])`(reduce-key key))
+  =/  rebuilt-pri=(tree [(list @) (map @tas @)])
+    %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+    (turn indexed-rows.f |=(row=indexed-row [key.row data.row]))
+  =/  rebuilt-rows=(list indexed-row)
+    %+  turn  (tap:primary-key rebuilt-pri)
+    |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  f(pri-idx rebuilt-pri, indexed-rows rebuilt-rows)
+::
+++  migrate-server-2-to-3
+  ::  Re-sort primary indexes keyed on a float or a signed aura other than
+  ::  @sd, which were ordered by atom value, so negative values sorted
+  ::  wrong.
+  ::
+  |=  old-server=server
+  ^-  server
+  ~&  "migrating numeric key ordering"
+  =/  new-server=server
+    %-  malt
+    %+  turn  ~(tap by old-server)
+    |=  [name=@tas db=database]
+    :-  name
+    ?:(=(%sys name) db (migrate-database-2-to-3 db))
+  ~&  "numeric key ordering migration complete"
+  new-server
+::
+++  migrate-database-2-to-3
+  ::  every data snapshot, its files keyed as the schema of its time
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da data])
+    %+  turn  (tap:data-key content.db)
+    |=  [time=@da d=data]
+    ^-  [@da data]
+    =/  snapshot-schema=(unit schema)  (schema-at sys.db time)
+    ?~  snapshot-schema  [time d]
+    :-  time
+    %=  d
+        files
+      %-  ~(urn by files.d)
+      |=  [key=[@tas @tas] f=file]
+      ^-  file
+      =/  tbl=(unit table)  (~(get by tables.u.snapshot-schema) key)
+      ?~  tbl  f
+      ?.  (lien key.pri-indx.u.tbl reordered-key-column)  f
+      (resort-file key.pri-indx.u.tbl f)
+    ==
+  db(content (gas:data-key *((mop @da data) gth) snapshots))
+::
+++  reordered-key-column
+  ::  %.y when key column k orders differently since state 3: a float, or
+  ::  a signed aura other than @sd
+  |=  k=key-column
+  ^-  ?
+  ?:  =(~.sd aura.k)  %.n
+  |(?=(float-systems (base-aura aura.k)) (signed-aura aura.k))
 ::
 ::  Effective migrated schema for a historical data snapshot.
 ++  schema-at

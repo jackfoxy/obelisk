@@ -41,7 +41,9 @@
   (turn key |=(a=key-column:ast [aura.a ascending.a]))
 ::
 ++  idx-comp
-  ::  comparator for index mops
+  ::  comparator for index mops: each key column by its aura, ascending or
+  ::  descending; atoms of equal value (.0 and .-0, NaN) by atom order, so
+  ::  distinct keys always order
   |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
@@ -49,20 +51,10 @@
     =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  ?|  =(-<.k ~.t)
-            =(-<.k ~.ta)
-            =(-<.k ~.tas)
-            ==
-      ?:  ->.k  (alpha -.p -.q)
-      (alpha -.q -.p)
-    ?:  =(-<.k ~.rd)
-      ?:  ->.k  (lth:rd -.p -.q)
-      (gth:rd -.p -.q)
-    ?:  =(-<.k ~.sd)
-      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
-      =((cmp:si `@s`-.p `@s`-.q) --1)
-    ?:  ->.k  (lth -.p -.q)
-    (gth -.p -.q)
+    =/  [a=@ b=@]  ?:(->.k [-.p -.q] [-.q -.p])
+    ?:  (order-atom -<.k a b)  %.y
+    ?:  (order-atom -<.k b a)  %.n
+    (lth a b)
   --
 ::
 ++  pri-key
