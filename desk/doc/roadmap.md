@@ -5,6 +5,8 @@
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
+* __Float key ordering__ -- primary keys and indices on @rh, @rs, and @rq columns sort by atom value, so negative values sort wrong; order as floats like @rd (requires state migration to re-sort existing indices).
+
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
 
 * __GROUP BY...HAVING__ -- as in SQL.
