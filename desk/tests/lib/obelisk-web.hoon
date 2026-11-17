@@ -1927,7 +1927,7 @@
     (expect !>(?=(^ (find "developer-help-links" html))))
     (expect !>(?=(~ (find "dev-menu-toggle" html))))
     (expect !>(?=(^ (find "API/AST" html))))
-    (expect !>(?=(^ (find "urQL LLM" html))))
+    (expect !>(?=(^ (find "urQL LLM Skill" html))))
     (expect !>(?=(^ (find "Sample urQL" html))))
     (expect !>(?=(^ (find "Benchmarks" html))))
     (expect !>(?=(^ (find ship html))))

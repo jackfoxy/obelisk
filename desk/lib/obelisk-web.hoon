@@ -442,7 +442,7 @@
                 "obelisk-urql"
               =target  "_blank"
               =rel     "noopener noreferrer"
-              urQL LLM
+              urQL LLM Skill
             ==
             ;a
               =href
@@ -476,7 +476,7 @@
           =target  "_blank"
           =rel     "noopener noreferrer"
           =role    "button"
-          urQL LLM
+          urQL LLM Skill
         ==
       ==
   ==
