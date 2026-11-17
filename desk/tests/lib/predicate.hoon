@@ -24,11 +24,11 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @rd, col3 @rd) ".
   "PRIMARY KEY (col1)"
-++  create-float-table
+++  create-aura-table
   |=  aura=tape
   ^-  tape
   "CREATE TABLE db1..my-table (col1 @t, col2 {aura}) PRIMARY KEY (col1)"
-++  create-float-2col-table
+++  create-aura-2col-table
   |=  aura=tape
   ^-  tape
   "CREATE TABLE db1..my-table ".
@@ -14385,7 +14385,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rh")]
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14423,7 +14423,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rh")]
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14461,7 +14461,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-2col-table "@rh")]
+      [~2012.5.1 %db1 (create-aura-2col-table "@rh")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14499,7 +14499,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rh")]
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14536,7 +14536,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rs")]
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14574,7 +14574,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rs")]
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14612,7 +14612,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-2col-table "@rs")]
+      [~2012.5.1 %db1 (create-aura-2col-table "@rs")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14650,7 +14650,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rs")]
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14687,7 +14687,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rq")]
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14725,7 +14725,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rq")]
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14763,7 +14763,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-2col-table "@rq")]
+      [~2012.5.1 %db1 (create-aura-2col-table "@rq")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14801,7 +14801,7 @@
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::
-      [~2012.5.1 %db1 (create-float-table "@rq")]
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
       ::
       :+  ~2012.5.2
           %db1
@@ -14831,4 +14831,96 @@
               ==
       ==
 ::
+::  signed auras other than @sd: pfx is the literal base prefix, base the
+::  value of 10 in that base
+::
+::  WHERE <, >, <= and >= with column and literal both sides
+++  signed-col-lit
+  |=  [aura=@ta pfx=tape]
+  ^-  tang
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@{(trip aura)}")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', --{pfx}10)".
+          " ('row2', --{pfx}1)".
+          " ('row3', -{pfx}1)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 > -{pfx}10 AND col2 < --{pfx}1 ".
+          "AND -{pfx}10 < col2 AND --{pfx}0 > col2 ".
+          "AND col2 >= -{pfx}1 AND col2 <= -{pfx}1 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [aura `@`-1]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <, >, <= and >= between columns
+++  signed-col-col
+  |=  [aura=@ta pfx=tape base=@]
+  ^-  tang
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-2col-table "@{(trip aura)}")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', --{pfx}1, -{pfx}10)".
+          " ('row2', -{pfx}1, --{pfx}10)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 < col3 AND col3 > col2 ".
+          "AND col2 <= col3 AND col3 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [aura `@`-1]]
+                              [%col3 [aura (mul 2 base)]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-signed-col-lit-sb  (signed-col-lit ~.sb "0b")
+++  test-signed-col-lit-sx  (signed-col-lit ~.sx "0x")
+++  test-signed-col-lit-sv  (signed-col-lit ~.sv "0v")
+++  test-signed-col-lit-sw  (signed-col-lit ~.sw "0w")
+++  test-signed-col-col-sb  (signed-col-col ~.sb "0b" 2)
+++  test-signed-col-col-sx  (signed-col-col ~.sx "0x" 16)
+++  test-signed-col-col-sv  (signed-col-col ~.sv "0v" 32)
+++  test-signed-col-col-sw  (signed-col-col ~.sw "0w" 64)
 --

@@ -5064,6 +5064,22 @@
     !>  %-  parse:parse(default-database default-db)
             "SELECT .~~~1.5 / .~~~0.25"
 ::
+++  test-inline-select-uv-literals
+  =/  f  [%arithmetic %lus [~.uv 0v1.00000] [~.uv 0v3v]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT 0v1.00000 + 0v3v"
+::
+++  test-inline-select-sx-literals
+  =/  f  [%arithmetic %hep [~.sx --0x10] [~.sx -0x3]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT --0x10 - -0x3"
+::
 ::  arithmetic without whitespace around an operator after a column
 ++  test-inline-where-no-whitespace
   =/  scalars  ~[[%scalar (inline-name 0) [%arithmetic %tar u-nud [~.ud 2]]]]

@@ -35,6 +35,11 @@
       =(~.tas typ)
       ==
 ::
+++  number-systems-msg
+  ^-  tape
+  "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+  "~.ub ~.ud ~.uv ~.uw ~.ux)"
+::
 +$  float-ops
   ::  gates over raw atoms of one float aura, see +get-float-ops
   $:  aura=float-systems
@@ -67,7 +72,7 @@
       ==
 ::
 ++  get-float-ops
-  ::  float gates for number system ns; @sd and @ud compute in @rd
+  ::  float gates for number system ns; integers compute in @rd
   ::
   ::  rtol, the tolerance of the iterative functions, is about 5 ulp of 1.0
   |=  ns=number-systems
@@ -89,7 +94,7 @@
         atan:m  atan2:m  tau:m
         ==
   ::
-      ?(%rd %sd %ud)
+      ?(%rd signed-systems unsigned-systems)
     =/  m  ~(. rd:math [%z .~1e-15])
     :*  %rd     add:rd  sub:rd  mul:rd   div:rd   sqt:rd  equ:rd  lth:rd
         gte:rd  sig:rd  sun:rd  san:rd   toi:rd   sea:rd  bit:rd  abs:m
@@ -112,8 +117,8 @@
   ^-  @
   ?:  =(ns aura.fo)  a
   ?-  ns
-      %ud                 (sun.fo a)
-      %sd                 (san.fo a)
+      unsigned-systems    (sun.fo a)
+      signed-systems      (san.fo a)
       ?(%rh %rs %rd %rq)  (bit.fo (sea:(get-float-ops ns) a))
       ==
 ::
@@ -150,7 +155,7 @@
     =/  number-system  ?:(?=(dime expr) -.expr type.expr)
     ?.  ?=(number-systems number-system)
       ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
-          "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+          "{number-systems-msg}"
           !!
     ?.  ?=(float-systems number-system)  expr
     =/  fo  (get-float-ops number-system)
@@ -187,7 +192,7 @@
             =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
             [expr-aura (op-fn e d)]
 =/  prepare-trig-op
-      ::  float input keeps its aura, @sd and @ud compute in @rd
+      ::  float input keeps its aura, integers compute in @rd
       |=  $:  op-name=@tas
               expr=resolved-scalar
               get-op=$-(float-ops $-(@ @))
@@ -196,7 +201,7 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
       =/  op  (get-op fo)
@@ -469,7 +474,7 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %abs, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
       =/  do-abs
@@ -478,8 +483,8 @@
         :-  number-system
         ?-  number-system
             ?(%rh %rs %rd %rq)  (abs.fo val)
-            %sd                 (sun:si (abs:si val))
-            %ud                 val
+            signed-systems      (sun:si (abs:si val))
+            unsigned-systems    val
             ==
       ?:  ?=(dime expr)
         [-.ps (do-abs +.expr)]
@@ -503,7 +508,7 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %log, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
       =/  do-log
@@ -513,8 +518,8 @@
           ~|  "log(0) is not a number"  !!
         ?.  ?-  number-system
                 ?(%rh %rs %rd %rq)  (sig.fo val)
-                %sd                 (syn:si val)
-                %ud                 %.y
+                signed-systems      (syn:si val)
+                unsigned-systems    %.y
                 ==
           ~|  "log({(trip (scot number-system val))}) is not a number"  !!
         [aura.fo (log.fo (to-float fo number-system val))]
@@ -555,14 +560,14 @@
         ~|  "max: type conflict: {<ns1>} vs {<ns2>}"  !!
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %max, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops ns1)
       =/  max-val  |=  [a=@ b=@]  ^-  @
                    ?-  ns1
-                       ?(%rh %rs %rd %rq)  ?:((gte.fo a b) a b)
-                       %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  a  b
-                       %ud  ?:  (gte a b)  a  b
+                       float-systems     ?:((gte.fo a b) a b)
+                       signed-systems    ?:((syn:si (dif:si `@s`a `@s`b)) a b)
+                       unsigned-systems  ?:((gte a b) a b)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
         [-.ps [ns1 (max-val +.expr1 +.expr2)]]
@@ -600,14 +605,14 @@
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops ns1)
       =/  min-val  |=  [a=@ b=@]  ^-  @
                    ?-  ns1
-                       ?(%rh %rs %rd %rq)  ?:((gte.fo a b) b a)
-                       %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  b  a
-                       %ud  ?:  (gte a b)  b  a
+                       float-systems     ?:((gte.fo a b) b a)
+                       signed-systems    ?:((syn:si (dif:si `@s`a `@s`b)) b a)
+                       unsigned-systems  ?:((gte a b) b a)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
         [-.ps [ns1 (min-val +.expr1 +.expr2)]]
@@ -651,7 +656,7 @@
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops ns1)
       ::  float literal bounds widen to whole numbers
@@ -680,12 +685,12 @@
                         ?:  (lth.fo d (sun.fo 1))
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         (abs:si (need (toi.fo d)))
-                      %sd
+                      signed-systems
                         ?.  =((cmp:si `@sd`hi `@sd`lo) --1)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         =/  d  (dif:si `@sd`hi `@sd`lo)
                         (abs:si d)
-                      %ud
+                      unsigned-systems
                         ?:  (gte `@ud`lo `@ud`hi)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         (sub `@ud`hi `@ud`lo)
@@ -696,9 +701,9 @@
                 ?-  ns1
                   ?(%rh %rs %rd %rq)
                     [ns1 (add.fo lo (sun.fo r))]
-                  %sd
+                  signed-systems
                     [ns1 (sum:si `@sd`lo (sun:si r))]
-                  %ud
+                  unsigned-systems
                     [ns1 (add `@ud`lo r)]
                   ==
   ::
@@ -718,22 +723,23 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %degrees, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
       ::  360/tau from @rd, except @rq; the +rh door's tau is too coarse
       =/  factor  ?:  =(%rq aura.fo)  (div.fo (sun.fo 360) tau.fo)
                   (to-float fo %rd (div:rd .~360 .~6.283185307179586))
-      ::  @sd and @ud compute in @rd and round half away from zero
+      ::  integers compute in @rd and round half away from zero
       =/  do-degrees
         |=  val=@
         ^-  dime
         =/  res  (mul.fo (to-float fo number-system val) factor)
         :-  number-system
         ?-  number-system
-            ?(%rh %rs %rd %rq)  res
-            %sd  (need (toi.fo (add.fo res ?:((sig.fo res) .~0.5 .~-0.5))))
-            %ud  (abs:si (need (toi.fo (add.fo res .~0.5))))
+            float-systems     res
+            unsigned-systems  (abs:si (need (toi.fo (add.fo res .~0.5))))
+            signed-systems
+              (need (toi.fo (add.fo res ?:((sig.fo res) .~0.5 .~-0.5))))
             ==
       ?:  ?=(dime expr)
         [-.ps (do-degrees +.expr)]
@@ -833,11 +839,11 @@
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %atan2, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       ?.  ?=(number-systems ns2)
         ~|  "{<ns2>} not a supported number system for %atan2, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       ?.  ?|  =(ns1 ns2)
               ?!(?=(float-systems ns1))
@@ -898,7 +904,7 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %round, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  ps  %:  evaluate-datum  length:;;(round:ast scalar)
                                   named-ctes
@@ -910,12 +916,14 @@
                                   ==
       =/  len-expr=resolved-scalar  +.ps
       =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
-      ?.  |(=(~.ud len-type) =(~.sd len-type))
-        ~|  "round: length must be @ud or @sd, got {<len-type>}"  !!
+      ?.  ?=(?(signed-systems unsigned-systems) len-type)
+        ~|  "round: length must be a signed or unsigned integer, ".
+            "got {<len-type>}"
+            !!
       ::  extract [is-positive magnitude] from a raw length atom
       =/  extract-len-info  |=  lval=@
                             ^-  [? @ud]
-                            ?:  =(~.ud len-type)  [%.y lval]
+                            ?:  ?=(unsigned-systems len-type)  [%.y lval]
                             ?:  (syn:si `@s`lval)  [%.y (abs:si `@s`lval)]
                             [%.n (abs:si `@s`lval)]
       ::  round a float using round-half-up at decimal position by
@@ -965,8 +973,8 @@
         :-  number-system
         ?-  number-system
             ?(%rh %rs %rd %rq)  (round-float fo datum is-pos mag)
-            %sd                 (round-sd datum is-pos mag)
-            %ud                 (round-ud datum is-pos mag)
+            signed-systems      (round-sd datum is-pos mag)
+            unsigned-systems    (round-ud datum is-pos mag)
             ==
       ?:  &(?=(dime expr) ?=(dime len-expr))
         [-.ps (do-round +.expr +.len-expr)]
@@ -992,7 +1000,7 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sign, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
       =/  do-sign
@@ -1002,8 +1010,8 @@
         ?:  =(0 val)  0
         ?-  number-system
             ?(%rh %rs %rd %rq)  ?:((sig.fo val) (sun.fo 1) (san.fo -1))
-            %sd                 ?:((syn:si val) --1 -1)
-            %ud                 1
+            signed-systems      ?:((syn:si val) --1 -1)
+            unsigned-systems    1
             ==
       ?:  ?=(dime expr)
         [-.ps (do-sign +.expr)]
@@ -1027,10 +1035,10 @@
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sqrt, ".
-            "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops number-system)
-      ::  @sd and @ud compute in @rd and truncate
+      ::  integers compute in @rd and truncate
       =/  do-sqrt
         |=  val=@
         ^-  dime
@@ -1042,8 +1050,8 @@
           ~|  "sqrt({(trip (scot number-system val))}) is not a number"  !!
         ?-  number-system
             ?(%rh %rs %rd %rq)  res
-            %sd                 u.int
-            %ud                 (abs:si u.int)
+            signed-systems      u.int
+            unsigned-systems    (abs:si u.int)
             ==
       ?:  ?=(dime expr)
         [-.ps (do-sqrt +.expr)]
@@ -2489,7 +2497,7 @@
   ?.  ?=(number-systems l-number-system)
     ~|  "{<l-number-system>} {<operator.scalar>} {<r-number-system>} : ".
         "{<l-number-system>} not a supported number system, ".
-        "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+        "{number-systems-msg}"
         !!
   ?>  ?=(number-systems r-number-system)
   =/  op  (arithmetic-gate operator.scalar l-number-system r-number-system)
@@ -2511,7 +2519,7 @@
   ^-  $-([@ @] @)
   =/  fo  (get-float-ops l-ns)
   ?:  ?=(%ket op)
-    ::  @sd and @ud compute in @rd and truncate
+    ::  integers compute in @rd and truncate
     |=  [a=@ b=@]
     ^-  @
     =/  ex  (to-float fo r-ns b)
@@ -2523,8 +2531,8 @@
              (pow-n.fo (to-float fo l-ns a) ex)
     ?-  l-ns
         ?(%rh %rs %rd %rq)  res
-        %sd                 (need (toi.fo res))
-        %ud                 (abs:si (need (toi.fo res)))
+        signed-systems      (need (toi.fo res))
+        unsigned-systems    (abs:si (need (toi.fo res)))
         ==
   ?-  l-ns
       ?(%rh %rs %rd %rq)
@@ -2541,7 +2549,7 @@
               ~|("remainder not implemented for @{(trip l-ns)}" !!)
         ==
   ::
-      %sd
+      signed-systems
     ?-  op
         %lus  sum:si
         %hep  dif:si
@@ -2553,7 +2561,7 @@
         %cen  rem:si
         ==
   ::
-      %ud
+      unsigned-systems
     ?-  op
         %lus  add
         %hep  |=  [a=@ b=@]

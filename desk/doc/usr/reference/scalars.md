@@ -161,17 +161,25 @@ Any other scalar function or arithmetic with an operand that does not exist also
 
 Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules. Arithmetic defined in the SCALARS clause must terminate with the END keyword. Inline arithmetic takes no END (see [Inline Scalar Functions](#inline-scalar-functions)).
 
-`<scalar-node>` must evaluate to a `<numeric-expression>`, `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`.
+`<scalar-node>` must evaluate to a `<numeric-expression>` of a numeric type.
 
 ### Accepted Types
 
-All arithmetic operators accept `@ud`, `@sd`, and the floating-point types `@rh` (half), `@rs` (single), `@rd` (double), and `@rq` (quad precision). Both scalar-nodes must be the same type. The result is the same type as the inputs.
+All arithmetic operators accept the numeric types:
+
+| Kind | Types |
+|------|-------|
+| unsigned integer | `@ub` (binary), `@ud` (decimal), `@uv` (base32), `@uw` (base64), `@ux` (hexadecimal) |
+| signed integer | `@sb`, `@sd`, `@sv`, `@sw`, `@sx` |
+| floating-point | `@rh` (half), `@rs` (single), `@rd` (double), `@rq` (quad precision) |
+
+Both scalar-nodes must be the same type. The result is the same type as the inputs. Every unsigned integer type computes like `@ud` and every signed integer type like `@sd`; the type only sets how a value is written.
 
 **Exceptions:**
-- `%` (modulo) does not support floating-point types; it accepts only `@ud` and `@sd`.
-- The exponent of `^` may be any numeric type. A floating-point base computes in its own precision. A `@ud` or `@sd` base computes in `@rd` and truncates to its own type. Negative exponents are not supported.
+- `%` (modulo) does not support floating-point types; it accepts only integer types.
+- The exponent of `^` may be any numeric type. A floating-point base computes in its own precision. An integer base computes in `@rd` and truncates to its own type, so results beyond 2^53 lose precision. Negative exponents are not supported.
 
-Floating-point operations round toward zero. Mixing floating-point types, such as `@rs + @rd`, is a number system conflict.
+Floating-point operations round toward zero. Mixing types, such as `@rs + @rd` or `@ux + @ud`, is a number system conflict. Unsigned subtraction below zero and division by zero crash.
 
 ### Important Syntax Requirements
 
@@ -185,6 +193,8 @@ Floating-point operations round toward zero. Mixing floating-point types, such a
 | `@rs` | `.3.14` |
 | `@rd` | `.~3.14` |
 | `@rq` | `.~~~3.14` |
+
+Integer literals of the other types also use Hoon notation, for example `0x1f` (`@ux`), `0v1f.ab3ck` (`@uv`, dotted every five digits), `--0x1f` and `-0x1f` (`@sx`). See Literals in [Preliminaries](preliminaries.md).
 
 ### Operator Precedence and Associativity
 
@@ -416,7 +426,7 @@ SUBTRACT-TIME(~d10, ~d3)
 
 **ABS(** `<numeric-expression>` **)** returns the absolute value of a numeric expression.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -431,8 +441,8 @@ ABS(5)        :: @ud → returns 5
 
 **LOG(** `<numeric-expression>` **)** returns the natural logarithm (base *e*) of a numeric expression. Crashes on zero or negative input.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
@@ -448,9 +458,9 @@ LOG(1)
 
 ---
 
-**FLOOR(** `<numeric-expression>` **)** returns the largest integer value less than or equal to the expression. For `@sd` and `@ud` inputs (which have no fractional part), returns the value unchanged.
+**FLOOR(** `<numeric-expression>` **)** returns the largest integer value less than or equal to the expression. For integer inputs (which have no fractional part), returns the value unchanged.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -462,9 +472,9 @@ FLOOR(5)       :: @ud → returns 5
 
 ---
 
-**CEILING(** `<numeric-expression>` **)** returns the smallest integer value greater than or equal to the expression. For `@sd` and `@ud` inputs, returns the value unchanged.
+**CEILING(** `<numeric-expression>` **)** returns the smallest integer value greater than or equal to the expression. For integer inputs, returns the value unchanged.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -478,12 +488,12 @@ CEILING(5)      :: @ud → returns 5
 
 **ROUND(** `<numeric-expression>` **,** `<numeric-expression>` **)** rounds a numeric value. Uses round-half-up (ties round toward +infinity).
 
-Parameters: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq` (value); `@ud` or `@sd` (length)
+Parameters: any numeric type (value); any integer type (length)
 Returns: same type as first parameter
 
 The `length` parameter controls rounding position:
-- **Positive length** (or `@ud`): rounds to that many decimal places. For `@sd` and `@ud` inputs this is a no-op since they have no fractional part.
-- **Negative length** (`@sd` only): rounds to the nearest 10^|length| before the decimal point.
+- **Positive length** (or an unsigned length): rounds to that many decimal places. For integer inputs this is a no-op since they have no fractional part.
+- **Negative length** (signed length only): rounds to the nearest 10^|length| before the decimal point.
 
 Examples:
 ```
@@ -500,7 +510,7 @@ ROUND(--1235, -1)    :: @sd, rounds to nearest 10 → --1240
 
 **SIGN(** `<numeric-expression>` **)** returns -1, 0, or 1 depending on the sign of the expression.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -518,7 +528,7 @@ SIGN(0)       :: @ud → returns 0
 
 **SQRT(** `<numeric-expression>` **)** returns the square root of a numeric expression. Crashes on negative input.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -533,7 +543,7 @@ SQRT(--9)     :: @sd → returns --3
 
 **MAX(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the larger of two numeric values. Both arguments must be the same type.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq` (both must match)
+Parameter: any numeric type (both must match)
 Returns: same type as inputs
 
 Examples:
@@ -547,7 +557,7 @@ MAX(--10, -5)       :: @sd → returns --10
 
 **MIN(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the smaller of two numeric values. Both arguments must be the same type.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq` (both must match)
+Parameter: any numeric type (both must match)
 Returns: same type as inputs
 
 Examples:
@@ -565,7 +575,7 @@ For floating-point inputs, fractional parts are adjusted so the effective range 
 
 NOTE: Invoking `RAND` is the only instance of a `SELECT` command in Obelisk producing a result set that is not deterministic. Obelisk produces the following warning message: "warning: results are non-deterministic".
 
-Parameters: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq` (both must match)
+Parameters: any numeric type (both must match)
 Returns: same type as inputs
 
 Examples:
@@ -579,7 +589,7 @@ RAND(.~1.5, .~10.8)    :: @rd → returns a random whole number from .~1.0 to .~
 
 **DEGREES(** `<numeric-expression>` **)** converts radians to degrees.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -593,8 +603,8 @@ DEGREES(.~~1)        :: @rh → returns .~~57.28
 
 **SIN(** `<numeric-expression>` **)** returns the sine of an angle in radians.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
@@ -607,8 +617,8 @@ SIN(1)           :: @ud → returns .~0.8414709848078961
 
 **COS(** `<numeric-expression>` **)** returns the cosine of an angle in radians.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
@@ -620,8 +630,8 @@ COS(.0.5)     :: @rs → returns .0.87758243
 
 **TAN(** `<numeric-expression>` **)** returns the tangent of an angle in radians.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -632,8 +642,8 @@ TAN(.~0.0)    :: returns .~0.0
 
 **ASIN(** `<numeric-expression>` **)** returns the arcsine of a value, in radians. Input must be in the range [-1, 1].
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -644,8 +654,8 @@ ASIN(.~1.0)    :: returns approximately .~1.5707963 (π/2)
 
 **ACOS(** `<numeric-expression>` **)** returns the arccosine of a value, in radians. Input must be in the range [-1, 1].
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -656,8 +666,8 @@ ACOS(.~1.0)    :: returns .~0.0
 
 **ATAN(** `<numeric-expression>` **)** returns the arctangent of a value, in radians.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
-Returns: same floating-point type as input; `@rd` for `@ud` and `@sd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -668,8 +678,8 @@ ATAN(.~1.0)    :: returns approximately .~0.7853982 (π/4)
 
 **ATAN2(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the angle (in radians) whose tangent is the quotient of the two arguments. The first argument is the y-coordinate and the second is the x-coordinate. Two floating-point arguments must be the same type.
 
-Parameters: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq` (y and x)
-Returns: the floating-point type of an argument; `@rd` when both are `@ud` or `@sd`
+Parameters: any numeric type (y and x)
+Returns: the floating-point type of an argument; `@rd` when both are integers
 
 Example:
 ```
@@ -917,7 +927,7 @@ REVERSE('hello')
 
 **STRING(** `<numeric-expression>` **)** converts a numeric value to its string representation.
 
-Parameter: `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`
+Parameter: any numeric type
 Returns: `@t`
 
 Examples:

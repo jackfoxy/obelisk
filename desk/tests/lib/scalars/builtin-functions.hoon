@@ -6814,7 +6814,8 @@
 ++  test-fail-abs-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %abs, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%abs [~.t 'foo']]
@@ -6829,7 +6830,8 @@
 ++  test-fail-log-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %log, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%log [~.t 'foo'] ~]
@@ -6858,7 +6860,8 @@
 ++  test-fail-max-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %max, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%max [~.t 'foo'] [~.t 'bar']]
@@ -6887,7 +6890,8 @@
 ++  test-fail-min-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %min, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%min [~.t 'foo'] [~.t 'bar']]
@@ -6902,7 +6906,8 @@
 ++  test-fail-degrees-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %degrees, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%degrees [~.t 'foo']]
@@ -6917,7 +6922,8 @@
 ++  test-fail-sin-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %sin, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%sin [~.t 'foo']]
@@ -6932,7 +6938,8 @@
 ++  test-fail-cos-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %cos, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%cos [~.t 'foo']]
@@ -6947,7 +6954,8 @@
 ++  test-fail-tan-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %tan, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%tan [~.t 'foo']]
@@ -6962,7 +6970,8 @@
 ++  test-fail-asin-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %asin, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%asin [~.t 'foo']]
@@ -6977,7 +6986,8 @@
 ++  test-fail-acos-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %acos, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%acos [~.t 'foo']]
@@ -6992,7 +7002,8 @@
 ++  test-fail-atan-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %atan, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%atan [~.t 'foo']]
@@ -7007,7 +7018,8 @@
 ++  test-fail-atan2-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %atan2, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%atan2 [~.t 'foo'] [~.t 'bar']]
@@ -7022,7 +7034,8 @@
 ++  test-fail-floor-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %floor, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%floor [~.t 'foo']]
@@ -7037,7 +7050,8 @@
 ++  test-fail-ceiling-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %ceiling, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%ceiling [~.t 'foo']]
@@ -7052,7 +7066,8 @@
 ++  test-fail-round-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %round, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%round [~.t 'foo'] [~.ud 0]]
@@ -7066,7 +7081,7 @@
 ::
 ++  test-fail-round-bad-length-type
   %+  expect-fail-message
-    'round: length must be @ud or @sd, got ~.t'
+    'round: length must be a signed or unsigned integer, got ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%round [~.rd .~1] [~.t 'foo']]
@@ -7081,7 +7096,8 @@
 ++  test-fail-sign-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %sign, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%sign [~.t 'foo']]
@@ -7096,7 +7112,8 @@
 ++  test-fail-sqrt-unsupported-ns
   %+  expect-fail-message
     %-  crip  "~.t not a supported number system for %sqrt, ".
-                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+                "~.ub ~.ud ~.uv ~.uw ~.ux)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%sqrt [~.t 'foo']]

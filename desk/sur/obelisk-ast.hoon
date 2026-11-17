@@ -733,7 +733,9 @@
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
 +$  float-systems     ?(%rh %rs %rd %rq)
-+$  number-systems    ?(float-systems %sd %ud)
++$  signed-systems    ?(%sb %sd %sv %sw %sx)
++$  unsigned-systems  ?(%ub %ud %uv %uw %ux)
++$  number-systems    ?(float-systems signed-systems unsigned-systems)
 +$  time-element      ?(%da %dr)
 ::
 +$  if-then-else

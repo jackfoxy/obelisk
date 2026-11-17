@@ -3883,6 +3883,7 @@
     (full tash:so)                                :: @sd or @sx
     (stag %ub (full bay:ag))                     :: formatted @ub, no leading 0s
     (stag %ux ;~(pfix (jest '0x') (full hex:ag))) :: formatted @ux
+    (stag %uv ;~(pfix (jest '0v') (full viz:ag))) :: formatted @uv
     (stag %uw (full wiz:ag))                   :: formatted @uw base-64 unsigned
   ==
 ++  non-numeric-parser  ~+

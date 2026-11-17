@@ -232,7 +232,7 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @ub  | unsigned binary      | 10.1011 | 10.1011 |
 | @ud  | unsigned decimal     | 2.222 | 2.222 |
 |      |                      | 2222 | 2222 |
-| @uv  | unsigned base32      | **not supported** | **not supported** |
+| @uv  | unsigned base32      | 0v1f.ab3ck | 0v1f.ab3ck |
 | @uw  | unsigned base64      | e2O.l4Xpm | **not supported** |
 | @ux  | unsigned hexadecimal | 0x12.6401 | 0x12.6401 |
 

@@ -5,7 +5,7 @@
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
-* __Float key ordering__ -- primary keys and indices on @rh, @rs, and @rq columns sort by atom value, so negative values sort wrong; order as floats like @rd (requires state migration to re-sort existing indices).
+* __Numeric key ordering__ -- primary keys and indices on @rh, @rs, @rq, @sb, @sv, @sw, and @sx columns sort by atom value, so negative values sort wrong; order as floats like @rd and as signed like @sd (requires state migration to re-sort existing indices).
 
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
 
@@ -14,8 +14,6 @@
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
-
-* __@uv aura__ -- requires research: what flavor of RFC 4648 is urbit supporting?
 
 * __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
 
