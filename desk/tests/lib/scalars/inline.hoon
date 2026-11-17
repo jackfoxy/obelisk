@@ -559,7 +559,7 @@
   :*  run
       [~2012.4.30 %db1 init-inl]
       ::
-      [~2012.5.3 %db1 "FROM inl WHERE ABS(nsd) = 1 SELECT id"]
+      [~2012.5.3 %db1 "FROM inl WHERE ABS(nsd) = 'a' SELECT id"]
       ::
       'comparing scalar to literal of different aura'
       ==

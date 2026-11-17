@@ -164,16 +164,21 @@
       :-  %ket-negative-base
           :-  [%arithmetic %ket [aura -2] [~.ud 3]]
               [aura -8]
+      ::  a signed column exponent gives @rd
       :-  %ket-col-col
           :-  [%arithmetic %ket q-col-2 q-col-3]
-              [aura --8]
+              [~.rd .~8]
       :-  %ket-ux-exponent
           :-  [%arithmetic %ket [aura --2] [~.ux 0x3]]
               [aura --8]
-      ::  2^0.5 truncates
+      ::  a float exponent gives the float
       :-  %ket-rd-exponent
-          :-  [%arithmetic %ket [aura --2] [~.rd .~0.5]]
-              [aura --1]
+          :-  [%arithmetic %ket [aura --2] [~.rd .~3]]
+              [~.rd .~8]
+      ::  a negative literal exponent gives @rd
+      :-  %ket-negative-exponent
+          :-  [%arithmetic %ket [aura --2] [~.sd -1]]
+              [~.rd .~0.5]
       ::  (1 + 1) * 2
       :-  %nested
           :-  :^  %arithmetic
@@ -212,7 +217,7 @@
     ::  x^0 = 1
     :-  %ket-unqual
         :-  [%arithmetic %ket u-col-6 u-col-7]
-            [aura --1]
+            [~.rd .~1]
     ==
   ==
 ::
@@ -305,12 +310,8 @@
       |.((apply-scalar s-row +.fn))
   ::
     %+  expect-fail-message
-      (crip "number system conflict: ~.{a} %lus ~.sd")
-      |.((prep aura [%arithmetic %lus [aura --1] [~.sd --1]]))
-  ::
-    %+  expect-fail-message
-      (crip "negative exponent [p=~.{a} q=1] not supported")
-      |.((prep aura [%arithmetic %ket [aura --2] [aura -1]]))
+      (crip "number system conflict: ~.{a} %lus ~.t")
+      |.((prep aura [%arithmetic %lus [aura --1] [~.t 'a']]))
   ::
     %+  expect-fail-message
       (crip "log({neg-one}) is not a number")
@@ -321,8 +322,8 @@
       |.((prep aura [%sqrt [aura -1]]))
   ::
     %+  expect-fail-message
-      (crip "max: type conflict: ~.{a} vs ~.sd")
-      |.((prep aura [%max [aura --1] [~.sd --1]]))
+      (crip "max: type conflict: ~.{a} vs ~.t")
+      |.((prep aura [%max [aura --1] [~.t 'a']]))
   ==
 ::
 ::  unsigned
@@ -371,16 +372,17 @@
       :-  %ket-ud-exponent
           :-  [%arithmetic %ket [aura 2] [~.ud 3]]
               [aura 8]
+      ::  a signed exponent makes the base signed, of the same notation
       :-  %ket-sd-exponent
           :-  [%arithmetic %ket [aura 2] [~.sd --3]]
-              [aura 8]
+              [(cat 3 's' (rsh 3 aura)) --8]
       :-  %ket-col-col
           :-  [%arithmetic %ket q-col-2 q-col-3]
               [aura 8]
-      ::  2^0.5 truncates
+      ::  a float exponent gives the float
       :-  %ket-rd-exponent
-          :-  [%arithmetic %ket [aura 2] [~.rd .~0.5]]
-              [aura 1]
+          :-  [%arithmetic %ket [aura 2] [~.rd .~3]]
+              [~.rd .~8]
       ::  (1 + 1) * 2
       :-  %nested
           :-  :^  %arithmetic
@@ -511,16 +513,16 @@
       |.((apply-scalar u-row +.fn))
   ::
     %+  expect-fail-message
-      (crip "number system conflict: ~.{a} %lus ~.ud")
-      |.((prep aura [%arithmetic %lus [aura 1] [~.ud 1]]))
+      (crip "number system conflict: ~.{a} %lus ~.t")
+      |.((prep aura [%arithmetic %lus [aura 1] [~.t 'a']]))
   ::
     %+  expect-fail-message
       'log(0) is not a number'
       |.((prep aura [%log [aura 0] ~]))
   ::
     %+  expect-fail-message
-      (crip "min: type conflict: ~.{a} vs ~.ud")
-      |.((prep aura [%min [aura 1] [~.ud 1]]))
+      (crip "min: type conflict: ~.{a} vs ~.t")
+      |.((prep aura [%min [aura 1] [~.t 'a']]))
   ==
 ::
 ::  signed and unsigned

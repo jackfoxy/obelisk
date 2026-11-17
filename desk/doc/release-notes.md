@@ -25,6 +25,11 @@
 * predicates compare @sb, @sx, @sv, @sw as signed
 * sized integer column types, e.g. @udD, @sdD, @uxF; values and results must fit the bit width
 * fix a column named e, pi, tau, or phi read as the constant in arithmetic
+* mixed numeric arithmetic, functions, and comparison: operands convert to their common type, float > signed > unsigned, widest float and bit width
+* comparisons, IN, simple CASE, and JOIN ON across numeric types compare exact values
+* negative exponents: x ^ -y is 1 / x ^ y; an integer base with a negative literal or non-literal signed exponent gives @rd
+* fix simple CASE not matching a sized target to an unsized WHEN value
+* fix a signed literal (--5, -3) in SCALARS arithmetic or a CASE WHEN, THEN, or ELSE value read as operators
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

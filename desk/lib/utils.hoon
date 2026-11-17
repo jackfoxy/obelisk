@@ -1296,6 +1296,126 @@
   ?:  &((size-letter a) (size-letter b))  ~
   ?:((size-letter a) `a `b)
 ::
+++  number-aura
+  ::  %.y when aura a, sized or not, is a number system
+  |=  a=@ta
+  ^-  ?
+  ?=(number-systems:ast (base-aura a))
+::
+++  mixed-numbers
+  ::  %.y when a and b are auras of different number systems
+  |=  [a=@ta b=@ta]
+  ^-  ?
+  ?&  (number-aura a)
+      (number-aura b)
+      ?!(=((base-aura a) (base-aura b)))
+      ==
+::
+++  common-aura
+  ::  the aura of a result from operands of auras a and b; ~ when they
+  ::  differ and are not both number systems
+  ::
+  ::  a float over a signed over an unsigned integer; the wider float, an
+  ::  integer and a float at least @rd; integers keep a notation they
+  ::  share, else decimal, and the widest bit width of either
+  |=  [a=@ta b=@ta]
+  ^-  (unit @ta)
+  ?:  =(a b)  `a
+  =/  ba  (base-aura a)
+  =/  bb  (base-aura b)
+  ?.  &(?=(number-systems:ast ba) ?=(number-systems:ast bb))  ~
+  ?:  |(?=(float-systems:ast ba) ?=(float-systems:ast bb))
+    =/  floats  `(list @ta)`~[%rh %rs %rd %rq]
+    ::  an integer ranks as @rd
+    =/  rank  |=(c=@ta (fall (find ~[c] floats) 2))
+    `(snag (max (rank ba) (rank bb)) floats)
+  =/  sign  ?:(|((signed-aura a) (signed-aura b)) 's' 'u')
+  =/  notation  ?:(=((rsh 3 ba) (rsh 3 bb)) (rsh 3 ba) 'd')
+  =/  size  |=(c=@ta ?.((size-letter c) 0 (rsh [3 (dec (met 3 c))] c)))
+  `(rap 3 ~[sign notation (max (size a) (size b))])
+::
+++  to-fn
+  ::  number a of aura ta as an exact fn
+  |=  [ta=@ta a=@]
+  ^-  fn
+  =/  ns  (base-aura ta)
+  ?+  ns  [%f & --0 a]
+    signed-systems:ast  [%f (syn:si a) --0 (abs:si a)]
+    %rh                 (sea:rh a)
+    %rs                 (sea:rs a)
+    %rd                 (sea:rd a)
+    %rq                 (sea:rq a)
+  ==
+::
+++  num-cmp
+  ::  exact order of number a of aura ta to number b of aura tb, across
+  ::  number systems; %nan when either is a NaN
+  |=  [ta=@ta a=@ tb=@ta b=@]
+  ^-  ?(%lt %eq %gt %nan)
+  =/  x=fn  (to-fn ta a)
+  =/  y=fn  (to-fn tb b)
+  ::  0 negative, 1 zero, 2 positive
+  =/  rank
+    |=  z=fn
+    ^-  @
+    ?-  -.z
+      %n  1
+      %i  ?:(s.z 2 0)
+      %f  ?:(=(0 a.z) 1 ?:(s.z 2 0))
+    ==
+  ?:  |(?=(%n -.x) ?=(%n -.y))  %nan
+  =/  rx  (rank x)
+  =/  ry  (rank y)
+  ?.  =(rx ry)  ?:((lth rx ry) %lt %gt)
+  ?:  =(1 rx)  %eq
+  ::  order of the magnitudes
+  =/  mag=?(%lt %eq %gt)
+    ?:  &(?=(%i -.x) ?=(%i -.y))  %eq
+    ?:  ?=(%i -.x)  %gt
+    ?:  ?=(%i -.y)  %lt
+    =/  d  (dif:si e.x e.y)
+    =/  [p=@ q=@]
+      ?:  (syn:si d)  [(lsh [0 (abs:si d)] a.x) a.y]
+      [a.x (lsh [0 (abs:si d)] a.y)]
+    ?:  =(p q)  %eq
+    ?:((lth p q) %lt %gt)
+  ?:  =(2 rx)  mag
+  ?-(mag %lt %gt, %eq %eq, %gt %lt)
+::
+++  dime-equ
+  ::  %.y when dimes a and b hold equal values, numbers across systems
+  |=  [a=dime b=dime]
+  ^-  ?
+  ?.  &((number-aura p.a) (number-aura p.b))  =(a b)
+  =(%eq (num-cmp p.a q.a p.b q.b))
+::
+++  convert-number
+  ::  number a of aura from as aura to, of an equal or higher number
+  ::  system; crashes when the value exceeds to's bit width
+  |=  [from=@ta to=@ta a=@]
+  ^-  @
+  ?:  =(from to)  a
+  =/  t  (base-aura to)
+  ?+  t
+    ?.  &((signed-aura to) ?!((signed-aura from)))  (fit-width to a)
+    (fit-width to (sun:si a))
+    %rh  (bit:rh (to-fn from a))
+    %rs  (bit:rs (to-fn from a))
+    %rd  (bit:rd (to-fn from a))
+    %rq  (bit:rq (to-fn from a))
+  ==
+::
+++  number-key
+  ::  number a of aura ta as an atom equal for equal values across number
+  ::  systems: the jam of its reduced fn
+  |=  [ta=@ta a=@]
+  ^-  @
+  =/  x=fn  (to-fn ta a)
+  ?.  ?=(%f -.x)  (jam x)
+  ?:  =(0 a.x)  (jam [%f & --0 0])
+  =/  z  (ctz a.x)
+  (jam [%f s.x (sum:si e.x (sun:si z)) (rsh [0 z] a.x)])
+::
 ++  order-atom
   ::  %.y when a sorts before b in ascending order of aura; a and b unequal
   |=  [aura=@ta a=@ b=@]

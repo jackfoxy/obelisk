@@ -5987,39 +5987,12 @@
         (tree-to-arithmetic r.op-tree)
   ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ::
-++  arithmetic-token-core
-  ;~  pose
-    (cold %end (keyword 'end'))
-    (cold %pal pal)
-    (cold %par par)
-    (cold %lus lus)
-    (cold %hep hep)
-    (cold %tar tar)
-    (cold %fas fas)
-    (cold %cen cen)
-    (cold %ket ket)
-    ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
-    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    parse-coalesce
-    parse-builtin-scalar-fn
-    parse-builtin-scalar-constant
-    parse-scalar-param
-  ==
-++  arithmetic-token
-  ;~  pose
-    ;~(pfix whitespace arithmetic-token-core)
-    arithmetic-token-core
-  ==
-::
 ++  parse-arithmetic
+  ::  operands alternate with operators, so a signed literal operand such
+  ::  as --5 or -3 is not read as operators
   ;~  plug
     (easy %arithmetic)
-    ;~  sfix
-      %-  star
-        ;~(less scalar-stop arithmetic-token)
-      ;~(pfix whitespace (keyword 'end'))
-    ==
+    ;~(sfix inline-arithmetic-tokens ;~(pfix whitespace (keyword 'end')))
   ==
 ::
 ++  arithmetic-continuation
@@ -6074,20 +6047,10 @@
     parsed
   (fail tub)
 ::
-++  case-scalar-stop
-  ::  THEN ends the value of a simple CASE WHEN
-  ;~  pose
-    ;~(plug whitespace (keyword 'when') whitespace)
-    ;~(plug whitespace (keyword 'then') whitespace)
-    ;~(plug whitespace (keyword 'else') whitespace)
-    ;~(plug whitespace (keyword 'end') whitespace)
-  ==
 ++  parse-case-branch-arithmetic
-  ;~  plug
-    (easy %arithmetic)
-    %-  star
-      ;~(less case-scalar-stop arithmetic-token)
-  ==
+  ::  a WHEN, THEN, or ELSE value; the keyword after it is not an operator,
+  ::  so the operand-operator alternation ends there
+  ;~(plug (easy %arithmetic) inline-arithmetic-tokens)
 ++  parse-case-branch-scalar-node-arithmetic
   |=  tub=nail
   ^-  (like *)
@@ -6104,15 +6067,6 @@
     parse-scalar-node
   ==
 ::
-++  scalar-stop
-  ::  +whitespace may be empty: +keyword keeps end-a from stopping at end
-  ;~  pose
-    ;~(plug whitespace (keyword 'where') whitespace)
-    ;~(plug whitespace (keyword 'select') whitespace)
-    ;~(plug whitespace (keyword 'else') whitespace)
-    ;~(plug whitespace (keyword 'endif') whitespace)
-    ;~(plug whitespace (keyword 'end') whitespace)
-  ==
 ++  parse-scalar-body
   ::  IF, CASE, COALESCE, or a function followed by an arithmetic operator
   ::  is the leading operand of arithmetic

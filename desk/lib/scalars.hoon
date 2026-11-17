@@ -558,9 +558,11 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      =/  sized  (sized-match ns1 ns2)
+      =/  sized  (common-aura ns1 ns2)
       ?~  sized
         ~|  "max: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  expr1  (cast-scalar u.sized expr1)
+      =.  expr2  (cast-scalar u.sized expr2)
       =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %max, ".
@@ -605,9 +607,11 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      =/  sized  (sized-match ns1 ns2)
+      =/  sized  (common-aura ns1 ns2)
       ?~  sized
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  expr1  (cast-scalar u.sized expr1)
+      =.  expr2  (cast-scalar u.sized expr2)
       =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
@@ -658,12 +662,14 @@
       =/  high=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime low) -.low type.low)
       =/  ns2  ?:(?=(dime high) -.high type.high)
-      =/  sized  (sized-match ns1 ns2)
+      =/  sized  (common-aura ns1 ns2)
       ?~  sized
-        ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+        ~|  "rand: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  low  (cast-scalar u.sized low)
+      =.  high  (cast-scalar u.sized high)
       =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
-        ~|  "{<ns1>} not a supported number system for %min, ".
+        ~|  "{<ns1>} not a supported number system for %rand, ".
             "{number-systems-msg}"
             !!
       =/  fo  (get-float-ops ns1)
@@ -855,13 +861,9 @@
         ~|  "{<ns2>} not a supported number system for %atan2, ".
             "{number-systems-msg}"
             !!
-      ?.  ?|  =(ns1 ns2)
-              ?!(?=(float-systems ns1))
-              ?!(?=(float-systems ns2))
-              ==
-        ~|  "atan2: type conflict: {<`@ta`ns1>} vs {<`@ta`ns2>}"  !!
-      ::  a float argument sets the result aura, else @rd
-      =/  fo  (get-float-ops ?:(?=(float-systems ns1) ns1 ns2))
+      ::  the arguments' common aura when a float, else @rd
+      =/  common  (need (common-aura ns1 ns2))
+      =/  fo  (get-float-ops ?:(?=(float-systems common) common %rd))
       =/  do-atan2
         |=  [y=@ x=@]
         ^-  dime
@@ -2063,7 +2065,7 @@
           typ
           |=  =data-row
           ^-  dime
-          %+  fit-dime  typ
+          %+  cast-dime  typ
           =/  resolved  ?:((pred-result data-row) then else)
           ?:  ?=(dime resolved)  resolved
           ?:  =(%fn -.resolved)
@@ -2168,7 +2170,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (fit-dime typ (apply-scalar data-row +.fn-datum))
+            (cast-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  prepare-case-simple
@@ -2278,7 +2280,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (fit-dime typ (apply-scalar data-row +.fn-datum))
+            (cast-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
@@ -2370,7 +2372,7 @@
                                                seed
                                                ==
                =/  when-val  %+  apply-scalar  data-row  +.when-ps
-               =(target-val when-val)
+               (dime-equ target-val when-val)
   =/  loop-ps
     =|  acc=(list [$-(data-row ?) resolved-scalar])
     =/  items  cases.scalar
@@ -2503,11 +2505,20 @@
   =/  r-aura  ?:(?=(dime r) -.r type.r)
   =/  l-number-system  (base-aura l-aura)
   =/  r-number-system  (base-aura r-aura)
-  ::  the result aura: the operands' common aura, the left one's for ^
-  =/  sized=(unit @ta)
-    ?.  =(%ket operator.scalar)  (sized-match l-aura r-aura)
-    ?:(?=(number-systems r-number-system) `l-aura ~)
-  ?~  sized
+  ::  the result aura: the operands' common aura; for ^ the base's aura,
+  ::  but the common aura of a float exponent, @rd for an integer base
+  ::  with a signed exponent negative or not a literal, signed for an
+  ::  unsigned base with a signed exponent
+  =/  res=(unit @ta)
+    ?.  =(%ket operator.scalar)  (common-aura l-aura r-aura)
+    ?.  &((number-aura l-aura) (number-aura r-aura))  ~
+    ?:  ?=(float-systems r-number-system)  (common-aura l-aura r-aura)
+    ?:  ?=(float-systems l-number-system)  `l-aura
+    ?.  (signed-aura r-aura)  `l-aura
+    ?.  &(?=(dime r) (syn:si +.r))  `~.rd
+    ?:  (signed-aura l-aura)  `l-aura
+    `(cat 3 's' (rsh 3 l-aura))
+  ?~  res
     ~|  "number system conflict: ".
         "{<l-aura>} {<operator.scalar>} {<r-aura>}"
         !!
@@ -2516,83 +2527,110 @@
         "{<l-aura>} not a supported number system, ".
         "{number-systems-msg}"
         !!
-  ?>  ?=(number-systems r-number-system)
-  =/  op  (arithmetic-gate operator.scalar l-number-system r-number-system)
+  =/  op  (arithmetic-gate operator.scalar u.res l-aura r-aura)
   :-  seed
   ?:  &(?=(dime l) ?=(dime r))
-    [u.sized (fit-width u.sized (op +.l +.r))]
+    [u.res (fit-width u.res (op +.l +.r))]
   :+  %fn
-      u.sized
+      u.res
       |=  =data-row
       ^-  dime
       =/  a  ?:(?=(dime l) +.l +:(f.l data-row))
       =/  b  ?:(?=(dime r) +.r +:(f.r data-row))
-      [u.sized (fit-width u.sized (op a b))]
+      [u.res (fit-width u.res (op a b))]
 ::
 ++  arithmetic-gate
-  ::  gate applying operator op to raw atoms; the left operand's number
-  ::  system l-ns is the result's, r-ns differs from it only for %ket
-  |=  [op=arithmetic-op:ast l-ns=number-systems r-ns=number-systems]
+  ::  gate applying operator op to raw atoms of auras l and r, giving aura
+  ::  res; both operands convert to res first, but the exponent of ^ keeps
+  ::  its number system
+  |=  [op=arithmetic-op:ast res=@ta l=@ta r=@ta]
   ^-  $-([@ @] @)
-  =/  fo  (get-float-ops l-ns)
+  =/  ns  (base-aura res)
+  =/  l-ns  (base-aura l)
+  =/  r-ns  (base-aura r)
+  ?>  ?&  ?=(number-systems ns)
+          ?=(number-systems l-ns)
+          ?=(number-systems r-ns)
+          ==
+  =/  fo  (get-float-ops ns)
   ?:  ?=(%ket op)
-    ::  integers compute in @rd and truncate
+    ::  integers compute in @rd and truncate; x ^ -y is 1 / x ^ y
     |=  [a=@ b=@]
     ^-  @
     =/  ex  (to-float fo r-ns b)
-    ?:  (lth.fo ex (sun.fo 0))
-      =/  exponent=dime  [r-ns b]
-      ~|("negative exponent {<exponent>} not supported" !!)
-    =/  res  ?:  ?=(float-systems r-ns)
-               (pow.fo (to-float fo l-ns a) ex)
-             (pow-n.fo (to-float fo l-ns a) ex)
-    ?-  l-ns
-        ?(%rh %rs %rd %rq)  res
-        signed-systems      (need (toi.fo res))
-        unsigned-systems    (abs:si (need (toi.fo res)))
+    =/  neg  (lth.fo ex (sun.fo 0))
+    =?  ex  neg  (sub.fo (sun.fo 0) ex)
+    =/  base  (to-float fo l-ns a)
+    =/  pw  ?:  ?=(float-systems r-ns)  (pow.fo base ex)
+            (pow-n.fo base ex)
+    =?  pw  neg
+      ?:  (equ.fo pw (sun.fo 0))  ~|("division by zero" !!)
+      (div.fo (sun.fo 1) pw)
+    ?-  ns
+        float-systems     pw
+        signed-systems    (need (toi.fo pw))
+        unsigned-systems  (abs:si (need (toi.fo pw)))
         ==
-  ?-  l-ns
-      ?(%rh %rs %rd %rq)
-    ?-  op
-        %lus  add.fo
-        %hep  sub.fo
-        %tar  mul.fo
-        %fas  |=  [a=@ b=@]
-              ^-  @
-              ?:  (equ.fo b (sun.fo 0))  ~|("division by zero" !!)
-              (div.fo a b)
-        %cen  |=  [a=@ b=@]
-              ^-  @
-              ~|("remainder not implemented for @{(trip l-ns)}" !!)
-        ==
-  ::
-      signed-systems
-    ?-  op
-        %lus  sum:si
-        %hep  dif:si
-        %tar  pro:si
-        %fas  |=  [a=@ b=@]
-              ^-  @
-              ?:  =(--0 b)  ~|("division by zero" !!)
-              (fra:si a b)
-        %cen  rem:si
-        ==
-  ::
-      unsigned-systems
-    ?-  op
-        %lus  add
-        %hep  |=  [a=@ b=@]
-              ^-  @
-              ?:  (gth b a)  ~|("subtraction underflow" !!)
-              (sub a b)
-        %tar  mul
-        %fas  |=  [a=@ b=@]
-              ^-  @
-              ?:  =(0 b)  ~|("division by zero" !!)
-              (div a b)
-        %cen  mod
-        ==
-  ==
+  =/  gate=$-([@ @] @)
+    ?-  ns
+        float-systems
+      ?-  op
+          %lus  add.fo
+          %hep  sub.fo
+          %tar  mul.fo
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  (equ.fo b (sun.fo 0))  ~|("division by zero" !!)
+                (div.fo a b)
+          %cen  |=  [a=@ b=@]
+                ^-  @
+                ~|("remainder not implemented for @{(trip ns)}" !!)
+          ==
+    ::
+        signed-systems
+      ?-  op
+          %lus  sum:si
+          %hep  dif:si
+          %tar  pro:si
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  =(--0 b)  ~|("division by zero" !!)
+                (fra:si a b)
+          %cen  rem:si
+          ==
+    ::
+        unsigned-systems
+      ?-  op
+          %lus  add
+          %hep  |=  [a=@ b=@]
+                ^-  @
+                ?:  (gth b a)  ~|("subtraction underflow" !!)
+                (sub a b)
+          %tar  mul
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  =(0 b)  ~|("division by zero" !!)
+                (div a b)
+          %cen  mod
+          ==
+      ==
+  |=  [a=@ b=@]
+  ^-  @
+  (gate (convert-number l res a) (convert-number r res b))
+::
+++  cast-dime
+  ::  d converted to aura a, an equal or higher number system
+  |=  [a=@ta d=dime]
+  ^-  dime
+  [a (convert-number p.d a q.d)]
+::
+++  cast-scalar
+  ::  rs converted to aura a, an equal or higher number system
+  |=  [a=@ta rs=resolved-scalar]
+  ^-  resolved-scalar
+  ?:  ?=(dime rs)  (cast-dime a rs)
+  ?:  =(a type.rs)  rs
+  [%fn a |=(=data-row (cast-dime a (f.rs data-row)))]
 ::
 ++  check-consistent-types
   ::  validate that all datum items share a common aura type,
@@ -2614,13 +2652,6 @@
                     [type.item item]
   ::  walk the list, tracking expected type, verifying consistency,
   ::  and accumulating the (possibly-substituted) output list
-  ::  retag an item of an unsized aura as the common sized aura a
-  =/  fit-item  |=  [a=@ta item=resolved-scalar]
-                ^-  resolved-scalar
-                ?:  ?=(dime item)
-                  ?:(=(a -.item) item (fit-dime a item))
-                ?:  =(a type.item)  item
-                [%fn a |=(=data-row (fit-dime a (f.item data-row)))]
   =/  expected  *(unit @ta)
   =/  out       *(list resolved-scalar)
   =/  items  dos
@@ -2628,7 +2659,7 @@
   ?~  items
     ?~  expected
       ~|("check-consistent-types: empty argument list" !!)
-    =.  out  (turn out (cury fit-item u.expected))
+    =.  out  (turn out (cury cast-scalar u.expected))
     ?~  allowed
       [u.expected (flop out)]  ::  no type constraint
     ~|  %+  weld  "check-consistent-types: type {<u.expected>} "
@@ -2643,7 +2674,7 @@
   =/  [t=@ta sub=resolved-scalar]  (resolve-item i.items)
   ?~  expected
     $(expected `t, out [sub out], items t.items)
-  =/  common  (sized-match u.expected t)
+  =/  common  (common-aura u.expected t)
   ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
       "but got {<t>} at {<i.items>}"
   ?>  ?=(^ common)

@@ -141,13 +141,23 @@
       '300 exceeds @udD'
       ==
 ::
-++  test-fail-sized-size-conflict
+::  mixed widths take the largest width
+++  test-sized-mixed-width
   =|  run=@ud
-  %-  failon-1
+  %-  exec-0-1
   :*  run
       [~2012.4.30 %db1 init-sz]
-      [~2012.5.1 %db1 "FROM sz SELECT a + w"]
-      'number system conflict: ~.udD %lus ~.udE'
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sz WHERE id = 1 SELECT a + w, MAX(a, w)"
+      ::
+      %+  sz-results  ~2012.5.3
+      :~  :-  %vector
+              :~  [%scalar-0 ['udE' 1.100]]
+                  [%scalar-1 ['udE' 1.000]]
+                  ==
+          ==
       ==
 ::
 ++  test-fail-sized-alter-column

@@ -409,9 +409,12 @@
   ::  validate and extract equi-join column pairs from predicate
   =/  raw-pairs  (extract-equi-pairs predicate.this)
   ::  resolve unqualified columns, validate existence, assign to prior/this
-  =/  resolved  %+  turn  raw-pairs
+  ::  each pair's prior and this columns, and their auras when they are of
+  ::  different number systems and match by value
+  =/  resolved
+    %+  turn  raw-pairs
     |=  [l=resolved-on-col r=resolved-on-col]
-    ^-  [[qualified-table:ast @tas] @tas]
+    ^-  [[qualified-table:ast @tas] @tas (unit [@ta @ta])]
     ::  rebrand alias qualifiers to match execution-time relations
     =.  l  (rebrand-on-col l rel-prior rel-this)
     =.  r  (rebrand-on-col r rel-prior rel-this)
@@ -425,11 +428,10 @@
     =/  r-found  (col-exists-any r column-metas)
     ?.  r-found
       (on-col-not-found r column-metas)
-    ::  type check: both columns must have the same type, or one is the
-    ::  other's sized form
+    ::  type check: both columns must have compatible types
     =/  l-type  (get-on-col-type l column-metas)
     =/  r-type  (get-on-col-type r column-metas)
-    ?~  (sized-match l-type r-type)
+    ?~  (common-aura l-type r-type)
       ~|  "type mismatch in ON predicate: %{(trip name.l)} is {<l-type>} ".
           "but %{(trip name.r)} is {<r-type>}"
           !!
@@ -437,18 +439,31 @@
     =/  l-is-this   (col-in-relation l rel-this column-metas)
     =/  r-is-this   (col-in-relation r rel-this column-metas)
     ::  l=prior-side, r=this-side
-    ?:  &(?!(l-is-this) r-is-this)  [(on-col-key l column-metas) name.r]
+    =/  mixed  (mixed-numbers l-type r-type)
+    ?:  &(?!(l-is-this) r-is-this)
+      :+  (on-col-key l column-metas)
+          name.r
+          ?.(mixed ~ `[l-type r-type])
     ::  l=this-side, r=prior-side
-    ?:  &(l-is-this ?!(r-is-this))  [(on-col-key r column-metas) name.l]
+    ?:  &(l-is-this ?!(r-is-this))
+      :+  (on-col-key r column-metas)
+          name.l
+          ?.(mixed ~ `[r-type l-type])
     ::  both are this-side or both are prior-side
     ~|("ON predicate must reference columns from different relations" !!)
   =/  prior-cols=(list [qualified-table:ast @tas])  (turn resolved head)
-  =/  this-cols=(list @tas)                         (turn resolved tail)
-  ?~  pri-indx.prior
-    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
-  ?~  pri-indx.this
-    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
-  (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+  =/  this-cols=(list @tas)
+    (turn resolved |=([* name=@tas *] name))
+  =/  auras=(list (unit [@ta @ta]))
+    (turn resolved |=([* * a=(unit [@ta @ta])] a))
+  %:  join-predicate-hash-set  prior
+                               this
+                               rel-prior
+                               rel-this
+                               prior-cols
+                               this-cols
+                               auras
+                               ==
 ::
 ++  join-predicate-hash-set
   |=  $:  prior=set-table
@@ -457,6 +472,7 @@
           rel-this=qualified-table:ast
           prior-cols=(list [qualified-table:ast @tas])
           this-cols=(list @tas)
+          auras=(list (unit [@ta @ta]))
           ==
   ^-  set-table
   ::  hash join with separate column name lists
@@ -471,6 +487,7 @@
       rel-this
       prior-cols
       this-cols
+      auras
     ==
   (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
@@ -664,14 +681,21 @@
   ::
   ::  a joined row is probed by qualified column, so a relation an outer
   ::  join left absent never matches through a same-named column
+  ::
+  ::  auras holds, per column pair of different number systems, the a and
+  ::  b column auras; their values key by number-key to match by value
   |=  $:  a=(list data-row)
           a-qual=qualified-table:ast
           b=(list indexed-row)
           b-qual=qualified-table:ast
           a-cols=(list [qualified-table:ast @tas])
           b-cols=(list @tas)
+          auras=(list (unit [@ta @ta]))
           ==
   ^-  [@ud (list joined-row)]
+  =/  mixed  (lien auras |=(u=(unit [@ta @ta]) ?=(^ u)))
+  =/  a-auras  (turn auras |=(u=(unit [@ta @ta]) ?~(u ~ `-.u.u)))
+  =/  b-auras  (turn auras |=(u=(unit [@ta @ta]) ?~(u ~ `+.u.u)))
   ::  build hash map from b rows keyed by b-cols values
   =/  b-map=(map (list @) (list indexed-row))
     =/  m  *(map (list @) (list indexed-row))
@@ -680,6 +704,7 @@
     ?~  rows  m
     =/  hash-key  (extract-match-key i.rows b-cols)
     ?~  hash-key  $(rows t.rows)
+    =?  hash-key  mixed  `(number-keys u.hash-key b-auras)
     =/  existing  (~(gut by m) u.hash-key ~)
     $(m (~(put by m) u.hash-key [i.rows existing]), rows t.rows)
   ::  probe a rows against hash map using a-cols
@@ -697,6 +722,7 @@
     ?.  (levy vals |=(v=(unit @) ?=(^ v)))  ~
     `(turn vals need)
   ?~  hash-key  $(a t.a)
+  =?  hash-key  mixed  `(number-keys u.hash-key a-auras)
   =/  matches  (~(gut by b-map) u.hash-key ~)
   =/  b-rows  matches
   |-
@@ -709,6 +735,15 @@
             (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a)
         [b-qual data.i.b-rows]
   $(b-rows t.b-rows, out [jr out], cnt +(cnt))
+::
+++  number-keys
+  ::  equi-join key k, each value with an aura in auras keyed by its value
+  |=  [k=(list @) auras=(list (unit @ta))]
+  ^-  (list @)
+  ?~  k  ~
+  ?~  auras  k
+  :-  ?~(i.auras i.k (number-key u.i.auras i.k))
+  $(k t.k, auras t.auras)
 ::
 ++  cross-join
   |=  [prior=set-table this=set-table]

@@ -242,7 +242,7 @@ When the `ORDER BY` columns do not order the returned rows totally (two returned
 
 `[ NOT ] BETWEEN ... [ AND ]`
 
-tests for in the range defined by the beginning expression and the ending expression. The test expression, beginning and ending expression must all be the same data type. Ending expression must be greater than beginning expression.
+tests for in the range defined by the beginning expression and the ending expression. The test expression, beginning and ending expression must all be the same data type, or all numeric types, which compare by exact value (see Mixed Numeric Types in [Scalars](scalars.md#mixed-numeric-types)). Ending expression must be greater than beginning expression.
 
 `BETWEEN` returns TRUE if the value of the test expression is greater than or equal to the value of beginning expression and less than or equal to the value of ending expression.
 

@@ -612,7 +612,7 @@ Scalar function categories:
 - **Arithmetic**
   - `col1 + col2 * 3 END`
   - must end with `END`
-  - supports `+`, `-`, `*`, `/`, `%`, `^` on the integer auras `@ub`, `@ud`, `@uv`, `@uw`, `@ux`, `@sb`, `@sd`, `@sv`, `@sw`, `@sx` and the float auras `@rh`, `@rs`, `@rd`, `@rq`; `%` is integer only
+  - supports `+`, `-`, `*`, `/`, `%`, `^` on the integer auras `@ub`, `@ud`, `@uv`, `@uw`, `@ux`, `@sb`, `@sd`, `@sv`, `@sw`, `@sx` and the float auras `@rh`, `@rs`, `@rd`, `@rq`, in any mix (see [Mixed arithmetic](#mixed-arithmetic)); `%` is integer only
 
 - **DateTime**
   - `GETUTCDATE()`
@@ -687,6 +687,37 @@ SELECT name, UPPER(species) AS species, adoption-fee * 2;
 ```
 
 Inline arithmetic takes no `END`. An inline scalar function in `SELECT` without `AS` is named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list, so `adoption-fee * 2` above is the column `scalar-2`. Each inline invocation is evaluated on its own: two `RAND(1, 10)` calls produce independent values, while `GETUTCDATE()` is always the query time. Define a scalar in `SCALARS` when the same expression is used more than once. Scalar functions are not valid in `JOIN ... ON` predicates.
+
+### Mixed arithmetic
+
+Arithmetic, comparisons, and functions accept values of different numeric types. Every operation has one deterministic result type, the *common type* of its operands, and every operand converts to it before the operation.
+
+The common type is the most granular of the operand types: floating point over signed integer over unsigned integer.
+
+- Two floating-point types produce the wider: `@rq`, then `@rd`, `@rs`, `@rh`.
+- An integer and a floating-point type produce the floating-point type, but at least `@rd`: `@ud` with `@rh` or `@rs` produces `@rd`.
+- A signed and an unsigned integer produce a signed integer.
+- Integers of the same notation keep it (`@ux` and `@sx` produce `@sx`); integers of different notations produce decimal (`@ux` and `@ud` produce `@ud`).
+- A sized integer keeps its width with an unsized one (`@udD` and `@ud` produce `@udD`, `@udD` and `@sd` produce `@sdD`); two widths produce the larger (`@udD` and `@udE` produce `@udE`).
+- A numeric type never combines with a non-numeric type.
+
+A floating-point type widens exactly and an unsigned integer converts to signed exactly. An integer converts to a floating-point type exactly up to that type's precision (2^53 for `@rd`), and otherwise rounds. A value must fit a sized result type: `@udD` 200 converted to `@sdD` (-128 to 127) crashes the command.
+
+`^` keeps the type of its base, except that a floating-point exponent produces the common type; with an integer base, a negative literal exponent or a signed exponent that is not a literal produces `@rd`, even for `@sd ^ @sd` (`x ^ -y` is `1 / x ^ y`), and a non-negative signed literal exponent makes an unsigned base signed. `%` on a floating-point type crashes.
+
+Functions of one argument compute in their argument's type. `MAX`, `MIN`, `RAND`, and the branches of `IF`, `CASE`, and `COALESCE` convert to their common type. `ATAN2` computes in the common floating-point type, or `@rd` for two integers.
+
+Comparisons (`=`, `<>`, `<`, `>`, `<=`, `>=`, `BETWEEN`, `IN`, simple `CASE` `WHEN` values, and `JOIN ... ON`) compare numeric values of different types by their exact values: `--2 = .~~2` is true, and `9.007.199.254.740.993 > .~9007199254740992` is true even though the integer converted to `@rd` would be equal.
+
+```
+FROM readings
+WHERE count > .~2.5
+SELECT count + offset, count * .~1.5, MAX(count, offset);
+```
+
+With `count` an `@ud` and `offset` an `@sd`, `count + offset` and `MAX(count, offset)` are `@sd` and `count * .~1.5` is `@rd`.
+
+`INSERT`, `UPSERT`, and `UPDATE` values are not converted: a value must have the column's type or its sized or unsized base. Set operations, foreign keys, and natural joins also require identical types. See [Mixed Numeric Types](/docs/usr/reference/scalars.md#mixed-numeric-types) for the full rules.
 
 ## WHERE clause
 

@@ -201,7 +201,8 @@
     %eq
       =/  l=datum:ast  (get-datum n.l.p)
       =/  r=datum:ast  (get-datum n.r.p)
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %eq
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -316,6 +317,24 @@
     ?.  (types-match typ p.r)
       ~|("type of IN list incorrect, should be {<typ>}" !!)
     raw
+  =/  list-typ=@ta
+    ?:  ?=(cte-column:ast n.r.p)
+      =/  cte-fr  (~(got by named-ctes) cte.n.r.p)
+      =<  type
+      %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p ~]  name.n.r.p
+    ?:(?=(value-literals n.r.p) p.n.r.p typ)
+  ::  a list of another number system compares exactly by value
+  ?:  (mixed-numbers typ list-typ)
+    =/  get=$-(data-row @)
+      =<  +
+      %-  need
+      (datum-reader (get-datum n.l.p) map-meta named-ctes resolved-scalars)
+    =/  negate  =(%not-in n.p)
+    |=  c=data-row
+    ^-  ?
+    =/  v  (get c)
+    =/  hit  (lien in-list |=(w=@ =(%eq (num-cmp typ v list-typ w))))
+    ?:(negate ?!(hit) hit)
   ::  cte-column on left: resolve single scalar (requires 1-row cte),
   ::  check against list
   ?:  ?=(cte-column:ast n.l.p)
@@ -913,10 +932,38 @@
         !!
   ~|("prepare-unqualified can't get here" !!)
 ::
+++  datum-reader
+  ::  aura and per-row value of datum d; ~ when d is a column not in
+  ::  map-meta
+  |=  [d=datum:ast =map-meta =named-ctes =resolved-scalars]
+  ^-  (unit [@ta $-(data-row @)])
+  ?:  ?=(scalar-name:ast d)
+    =/  rs  (resolve-scalar-name d resolved-scalars)
+    ?:  ?=(dime rs)  `[p.rs |=(data-row q.rs)]
+    `[type.rs |=(c=data-row q:(f.rs c))]
+  ?:  ?=(cte-column:ast d)
+    =/  dl=dime  (resolve-cte-column d named-ctes)
+    `[p.dl |=(data-row q.dl)]
+  ?:  ?=(dime d)  `[p.d |=(data-row q.d)]
+  =/  ta=(unit typ-addr)
+    ?:  ?=(%qualified-map-meta -.map-meta)
+      ?.  ?=(qualified-column:ast d)  ~
+      (~(get bi:mip +.map-meta) qualifier.d name.d)
+    (~(get by +.map-meta) (col-name d))
+  ?~  ta  ~
+  =/  addr  addr.u.ta
+  :+  ~  type.u.ta
+  |=  c=data-row
+  =/  x  .*(data.c [%0 addr])
+  ?@(x x ;;(@ +.x))
+::
 ++  apply-datum-op
-  ::  dispatch to prepare-qualified 
+  ::  dispatch to prepare-qualified
   ::  or prepare-unqualified based on map-meta tag
-  |=  $:  l=datum:ast
+  ::
+  ::  operands of different number systems compare exactly by value
+  |=  $:  op=?(%eq inequality-op)
+          l=datum:ast
           r=datum:ast
           =map-meta
           =qualifier-lookup
@@ -928,6 +975,25 @@
           lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
+  =/  lr  (datum-reader l map-meta named-ctes resolved-scalars)
+  =/  rr  (datum-reader r map-meta named-ctes resolved-scalars)
+  ?:  ?&  ?=(^ lr)
+          ?=(^ rr)
+          (mixed-numbers -.u.lr -.u.rr)
+          ==
+    =/  [lt=@ta lget=$-(data-row @)]  u.lr
+    =/  [rt=@ta rget=$-(data-row @)]  u.rr
+    |=  c=data-row
+    ^-  ?
+    =/  o  (num-cmp lt (lget c) rt (rget c))
+    ?-  op
+      %eq   =(%eq o)
+      %neq  ?!(=(%eq o))
+      %gt   =(%gt o)
+      %gte  |(=(%gt o) =(%eq o))
+      %lt   =(%lt o)
+      %lte  |(=(%lt o) =(%eq o))
+    ==
   ?:  ?=(%qualified-map-meta -.map-meta)
     %:  prepare-qualified  l
                            r
@@ -963,7 +1029,8 @@
   ^-  $-(data-row ?)
   ?-  p
     %neq
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %neq
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -975,7 +1042,8 @@
                           neq-lit-col
                           ==
     %gt
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %gt
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -987,7 +1055,8 @@
                           gt-lit-col
                           ==
     %gte
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %gte
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -999,7 +1068,8 @@
                           gte-lit-col
                           ==
     %lt
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %lt
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1011,7 +1081,8 @@
                           lt-lit-col
                           ==
     %lte
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %lte
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1048,7 +1119,7 @@
 ++  types-match
   |=  [l=@ta r=@ta]
   ^-  ?
-  ?|  ?=(^ (sized-match l r))
+  ?|  ?=(^ (common-aura l r))
       ?&  =(l ~.t) 
           |(=(r ~.ta) =(r ~.tas))
           ==

@@ -6845,10 +6845,10 @@
 ::
 ++  test-fail-max-ns-conflict
   %+  expect-fail-message
-    'max: type conflict: ~.rd vs ~.ud'
+    'max: type conflict: ~.rd vs ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%max [~.rd .~1] [~.ud 1]]
+              [%max [~.rd .~1] [~.t 'a']]
               table-named-ctes
               *qualifier-lookup
               qual-map-meta
@@ -6875,10 +6875,10 @@
 ::
 ++  test-fail-min-ns-conflict
   %+  expect-fail-message
-    'min: type conflict: ~.rd vs ~.ud'
+    'min: type conflict: ~.rd vs ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%min [~.rd .~1] [~.ud 1]]
+              [%min [~.rd .~1] [~.t 'a']]
               table-named-ctes
               *qualifier-lookup
               qual-map-meta
@@ -7491,13 +7491,13 @@
 ::  ::::  RAND crash / expect-fail tests  ::::
 ::  :::::::::::::::::::::::::::::::::::::::::::
 ::
-::  type conflict: @ud vs @sd
+::  type conflict: @ud vs @t
 ++  test-fail-rand-type-conflict
   %+  expect-fail-message
-    'min: type conflict'
+    'rand: type conflict: ~.ud vs ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%rand [~.ud 0] [~.sd --1]]
+              [%rand [~.ud 0] [~.t 'a']]
               table-named-ctes
               *qualifier-lookup
               qual-map-meta
@@ -7509,7 +7509,7 @@
 ::  unsupported type: @t
 ++  test-fail-rand-unsupported-type
   %+  expect-fail-message
-    'not a supported number system for %min'
+    'not a supported number system for %rand'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%rand [~.t 'a'] [~.t 'z']]

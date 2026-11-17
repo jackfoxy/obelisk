@@ -167,20 +167,20 @@
             [~.rh .~~1.412]
     :-  %ket-rq-exponent
         :-  [%arithmetic %ket [~.rh .~~2] [~.rq .~~~3]]
-            [~.rh .~~8]
+            [~.rq .~~~8]
     :-  %ket-negative-base
         :-  [%arithmetic %ket [~.rh .~~-1.5] [~.ud 3]]
             [~.rh .~~-3.375]
     :-  %ket-ud-base
         :-  [%arithmetic %ket [~.ud 2] [~.rh .~~3]]
-            [~.ud 8]
+            [~.rd .~8]
     :-  %ket-sd-base
         :-  [%arithmetic %ket [~.sd -2] [~.rh .~~3]]
-            [~.sd -8]
-    ::  2^0.5 truncates
-    :-  %ket-ud-base-fractional
-        :-  [%arithmetic %ket [~.ud 2] [~.rh .~~0.5]]
-            [~.ud 1]
+            [~.rd .~-8]
+    ::  an integer base with a float exponent computes in at least @rd
+    :-  %ket-ud-base-negative
+        :-  [%arithmetic %ket [~.ud 2] [~.rh .~~-1]]
+            [~.rd .~0.5]
     ==
   ==
 ::
@@ -353,10 +353,10 @@
             [~.rh .~~0.4646]
     :-  %atan2-ud-x
         :-  [%atan2 [~.rh .~~1] [~.ud 2]]
-            [~.rh .~~0.4646]
+            [~.rd .~0.4636476090008075]
     :-  %atan2-ud-y
         :-  [%atan2 [~.ud 1] [~.rh .~~2]]
-            [~.rh .~~0.4646]
+            [~.rd .~0.4636476090008075]
     :-  %degrees-zero
         :-  [%degrees [~.rh .~~0]]
             [~.rh .~~0]
@@ -432,22 +432,22 @@
 ::
 ++  test-fail-ns-conflict-rh
   %+  expect-fail-message
-    'number system conflict: ~.rh %lus ~.rd'
+    'number system conflict: ~.rh %lus ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [~.rh .~~1] [~.rd .~1]]
+              [%arithmetic %lus [~.rh .~~1] [~.t 'a']]
               ~  qual-lookup  (qual-map-meta ~.rh)
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-negative-exponent-rh
-  %+  expect-fail-message
-    %-  crip  "negative exponent [p=~.rh ".
-              "q=48.128] ".
-              "not supported"
-    |.  %:  prepare-scalar
+::  x ^ -y is 1 / x ^ y
+++  test-negative-exponent-rh
+  %+  expect-eq
+    !>  `dime`[~.rh .~~0.5]
+    !>  =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%arithmetic %ket [~.rh .~~2] [~.rh .~~-1]]
               ~  qual-lookup  (qual-map-meta ~.rh)
@@ -480,10 +480,13 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-atan2-conflict-rh
-  %+  expect-fail-message
-    'atan2: type conflict: ~.rh vs ~.rd'
-    |.  %:  prepare-scalar
+::  ATAN2 of mixed floats computes in the wider float
+++  test-atan2-mixed-rh
+  %+  expect-eq
+    !>  ~.rd
+    !>  =<  -
+        =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%atan2 [~.rh .~~1] [~.rd .~1]]
               ~  qual-lookup  (qual-map-meta ~.rh)
@@ -584,14 +587,14 @@
             [~.rs .-3.375]
     :-  %ket-ud-base
         :-  [%arithmetic %ket [~.ud 2] [~.rs .3]]
-            [~.ud 8]
+            [~.rd .~8]
     :-  %ket-sd-base
         :-  [%arithmetic %ket [~.sd -2] [~.rs .3]]
-            [~.sd -8]
-    ::  2^0.5 truncates
-    :-  %ket-ud-base-fractional
-        :-  [%arithmetic %ket [~.ud 2] [~.rs .0.5]]
-            [~.ud 1]
+            [~.rd .~-8]
+    ::  an integer base with a float exponent computes in at least @rd
+    :-  %ket-ud-base-negative
+        :-  [%arithmetic %ket [~.ud 2] [~.rs .-1]]
+            [~.rd .~0.5]
     ==
   ==
 ::
@@ -764,10 +767,10 @@
             [~.rs .0.46364787]
     :-  %atan2-ud-x
         :-  [%atan2 [~.rs .1] [~.ud 2]]
-            [~.rs .0.46364787]
+            [~.rd .~0.4636476090008075]
     :-  %atan2-ud-y
         :-  [%atan2 [~.ud 1] [~.rs .2]]
-            [~.rs .0.46364787]
+            [~.rd .~0.4636476090008075]
     :-  %degrees-zero
         :-  [%degrees [~.rs .0]]
             [~.rs .0]
@@ -843,22 +846,22 @@
 ::
 ++  test-fail-ns-conflict-rs
   %+  expect-fail-message
-    'number system conflict: ~.rs %lus ~.rd'
+    'number system conflict: ~.rs %lus ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [~.rs .1] [~.rd .~1]]
+              [%arithmetic %lus [~.rs .1] [~.t 'a']]
               ~  qual-lookup  (qual-map-meta ~.rs)
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-negative-exponent-rs
-  %+  expect-fail-message
-    %-  crip  "negative exponent [p=~.rs ".
-              "q=3.212.836.864] ".
-              "not supported"
-    |.  %:  prepare-scalar
+::  x ^ -y is 1 / x ^ y
+++  test-negative-exponent-rs
+  %+  expect-eq
+    !>  `dime`[~.rs .0.5]
+    !>  =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%arithmetic %ket [~.rs .2] [~.rs .-1]]
               ~  qual-lookup  (qual-map-meta ~.rs)
@@ -891,10 +894,13 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-atan2-conflict-rs
-  %+  expect-fail-message
-    'atan2: type conflict: ~.rs vs ~.rd'
-    |.  %:  prepare-scalar
+::  ATAN2 of mixed floats computes in the wider float
+++  test-atan2-mixed-rs
+  %+  expect-eq
+    !>  ~.rd
+    !>  =<  -
+        =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%atan2 [~.rs .1] [~.rd .~1]]
               ~  qual-lookup  (qual-map-meta ~.rs)
@@ -995,14 +1001,14 @@
             [~.rq .~~~-3.375]
     :-  %ket-ud-base
         :-  [%arithmetic %ket [~.ud 2] [~.rq .~~~3]]
-            [~.ud 8]
+            [~.rq .~~~8]
     :-  %ket-sd-base
         :-  [%arithmetic %ket [~.sd -2] [~.rq .~~~3]]
-            [~.sd -8]
-    ::  2^0.5 truncates
+            [~.rq .~~~-8]
+    ::  an integer base with a float exponent computes in the float
     :-  %ket-ud-base-fractional
         :-  [%arithmetic %ket [~.ud 2] [~.rq .~~~0.5]]
-            [~.ud 1]
+            [~.rq .~~~1.4142135623730950488016887242096943]
     ==
   ==
 ::
@@ -1254,22 +1260,22 @@
 ::
 ++  test-fail-ns-conflict-rq
   %+  expect-fail-message
-    'number system conflict: ~.rq %lus ~.rd'
+    'number system conflict: ~.rq %lus ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [~.rq .~~~1] [~.rd .~1]]
+              [%arithmetic %lus [~.rq .~~~1] [~.t 'a']]
               ~  qual-lookup  (qual-map-meta ~.rq)
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-negative-exponent-rq
-  %+  expect-fail-message
-    %-  crip  "negative exponent [p=~.rq ".
-              "q=255.206.582.893.845.312.769.902.425.077.496.938.496] ".
-              "not supported"
-    |.  %:  prepare-scalar
+::  x ^ -y is 1 / x ^ y
+++  test-negative-exponent-rq
+  %+  expect-eq
+    !>  `dime`[~.rq .~~~0.5]
+    !>  =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%arithmetic %ket [~.rq .~~~2] [~.rq .~~~-1]]
               ~  qual-lookup  (qual-map-meta ~.rq)
@@ -1302,10 +1308,13 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-atan2-conflict-rq
-  %+  expect-fail-message
-    'atan2: type conflict: ~.rq vs ~.rd'
-    |.  %:  prepare-scalar
+::  ATAN2 of mixed floats computes in the wider float
+++  test-atan2-mixed-rq
+  %+  expect-eq
+    !>  ~.rq
+    !>  =<  -
+        =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%atan2 [~.rq .~~~1] [~.rd .~1]]
               ~  qual-lookup  (qual-map-meta ~.rq)

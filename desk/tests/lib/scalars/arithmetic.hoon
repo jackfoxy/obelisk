@@ -976,28 +976,28 @@
               [~.ud 3]
               [~.sd --2]
               ==
-            [~.ud 9]  :: 3^--2=9
+            [~.sd --9]  :: 3^--2=--9, a signed exponent makes the base signed
     :-  %exponentiation-literal-rd-exponent
         :-  :*  %arithmetic
               %ket
               literal-value-2
               rd-literal-2
               ==
-            [~.ud 4]  :: 2^.~2=4
+            [~.rd .~4]  :: 2^.~2=.~4, a float exponent gives the float
     :-  %exponentiation-qualified-col-sd-exponent
         :-  :*  %arithmetic
               %ket
               arithmetic-q-col-3
               [~.sd --2]
               ==
-            [~.ud 9]  :: 3^--2=9
+            [~.sd --9]  :: 3^--2=--9
     :-  %exponentiation-qualified-col-rd-exponent
         :-  :*  %arithmetic
               %ket
               arithmetic-q-col-3
               rd-literal-2
               ==
-            [~.ud 9]  :: 3^.~2=9
+            [~.rd .~9]  :: 3^.~2=.~9
   ==
   ==
 ::
@@ -1029,21 +1029,21 @@
               sd-literal-2
               arithmetic-q-col-3
               ==
-            [~.sd --8]  :: --2^--3=--8
+            [~.rd .~8]  :: --2^--3=.~8, a column exponent gives @rd
     :-  %exponentiation-qualified-col-qualified-col
         :-  :*  %arithmetic
               %ket
               arithmetic-q-col-3
               arithmetic-q-col-2
               ==
-            [~.sd --9]  :: --3^--2=--9
+            [~.rd .~9]  :: --3^--2=.~9
     :-  %exponentiation-negative-numerand-literal
         :-  :*  %arithmetic
               %ket
               [~.sd -3]
               arithmetic-q-col-2
               ==
-            [~.sd --9]  :: -3^--2=--9
+            [~.rd .~9]  :: -3^--2=.~9
     :-  %exponentiation-literal-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1057,7 +1057,7 @@
               sd-literal-2
               rd-literal-2
               ==
-            [~.sd --4]  :: --2^.~2=--4
+            [~.rd .~4]  :: --2^.~2=.~4
     :-  %exponentiation-qualified-col-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1071,7 +1071,7 @@
               arithmetic-q-col-3
               rd-literal-2
               ==
-            [~.sd --9]  :: --3^.~2=--9
+            [~.rd .~9]  :: --3^.~2=.~9
     :-  %exponentiation-negative-numerand-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1085,7 +1085,7 @@
               [~.sd -3]
               rd-literal-2
               ==
-            [~.sd --9]  :: -3^.~2=--9
+            [~.rd .~9]  :: -3^.~2=.~9
   ==
   ==
 ::
@@ -1569,28 +1569,28 @@
               literal-value-2
               [~.sd --3]
               ==
-            [~.ud 8]  :: 2^--3=8
+            [~.sd --8]  :: 2^--3=--8
     :-  %exponentiation-literal-rd-exponent
         :-  :*  %arithmetic
               %ket
               literal-value-2
               rd-literal-2
               ==
-            [~.ud 4]  :: 2^.~2=4
+            [~.rd .~4]  :: 2^.~2=.~4
     :-  %exponentiation-unqualified-col-sd-exponent
         :-  :*  %arithmetic
               %ket
               arithmetic-u-col-5
               [~.sd --2]
               ==
-            [~.ud 25]  :: 5^--2=25
+            [~.sd --25]  :: 5^--2=--25
     :-  %exponentiation-unqualified-col-rd-exponent
         :-  :*  %arithmetic
               %ket
               arithmetic-u-col-5
               rd-literal-2
               ==
-            [~.ud 25]  :: 5^.~2=25
+            [~.rd .~25]  :: 5^.~2=.~25
   ==
   ==
 ::
@@ -1622,21 +1622,21 @@
               sd-literal-2
               arithmetic-u-col-5
               ==
-            [~.sd --32]  :: --2^--5=--32
+            [~.rd .~32]  :: --2^--5=.~32, a column exponent gives @rd
     :-  %exponentiation-unqualified-col-unqualified-col
         :-  :*  %arithmetic
               %ket
               arithmetic-u-col-4
               arithmetic-u-col-5
               ==
-            [~.sd --1.024]  :: --4^--5=--1.024
+            [~.rd .~1024]  :: --4^--5=.~1024
     :-  %exponentiation-negative-numerand-literal
         :-  :*  %arithmetic
               %ket
               [~.sd -2]
               arithmetic-u-col-5
               ==
-            [~.sd -32]  :: -2^--5=-32
+            [~.rd .~-32]  :: -2^--5=.~-32
     :-  %exponentiation-literal-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1650,7 +1650,7 @@
               sd-literal-2
               rd-literal-2
               ==
-            [~.sd --4]  :: --2^.~2=--4
+            [~.rd .~4]  :: --2^.~2=.~4
     :-  %exponentiation-unqualified-col-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1664,7 +1664,7 @@
               arithmetic-u-col-4
               rd-literal-2
               ==
-            [~.sd --16]  :: --4^.~2=--16
+            [~.rd .~16]  :: --4^.~2=.~16
     :-  %exponentiation-negative-numerand-ud-exponent
         :-  :*  %arithmetic
               %ket
@@ -1678,7 +1678,7 @@
               [~.sd -2]
               rd-literal-2
               ==
-            [~.sd --4]  :: -2^.~2=--4
+            [~.rd .~4]  :: -2^.~2=.~4
   ==
   ==
 ::
@@ -2576,10 +2576,10 @@
 ::
 ++  test-fail-arithmetic-ns-conflict
   %+  expect-fail-message
-    'number system conflict: ~.rd %lus ~.ud'
+    'number system conflict: ~.rd %lus ~.t'
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
-              [%arithmetic %lus [~.rd .~1] [~.ud 1]]
+              [%arithmetic %lus [~.rd .~1] [~.t 'a']]
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
@@ -2600,10 +2600,12 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-arithmetic-neg-exp-prepare
-  %+  expect-fail-message
-    'negative exponent [p=~.sd q=1] not supported'
-    |.  %:  prepare-scalar
+::  x ^ -y is 1 / x ^ y
+++  test-arithmetic-neg-exp-prepare
+  %+  expect-eq
+    !>  `dime`[~.rd .~0.5]
+    !>  =<  +
+        %:  prepare-scalar
               ^-  scalar-function:ast
               [%arithmetic %ket [~.rd .~2] [~.sd -1]]
               ctes  qual-lookup  rd-qual-map-meta
@@ -2612,18 +2614,33 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-arithmetic-neg-exp-runtime
+++  test-arithmetic-neg-exp-runtime
   =/  fn
     %:  prepare-scalar
           ^-  scalar-function:ast
-          [%arithmetic %ket arithmetic-q-col-1 [~.sd -1]]
+          [%arithmetic %ket arithmetic-q-col-2 [~.sd -1]]
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
           eny:(bowl [0 ~2026.4.21])
           ==
+  %+  expect-eq
+    !>  `dime`[~.rd .~0.5]
+    !>  (apply-scalar rd-table-row +.fn)
+::
+++  test-fail-arithmetic-neg-exp-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %ket arithmetic-q-col-0 [~.sd -1]]
+          ctes  qual-lookup  rd-qual-map-meta
+          rd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  ::  0 ^ -1 is 1 / 0
   %+  expect-fail-message
-    'negative exponent [p=~.sd q=1] not supported'
+    'division by zero'
     |.  (apply-scalar rd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-remainder-rd-prepare

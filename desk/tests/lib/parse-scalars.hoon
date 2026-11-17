@@ -1812,6 +1812,54 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: simple case with signed literal WHEN, THEN, and ELSE values
+++  test-case-simple-signed-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE foo3 WHEN --5 THEN -3 WHEN -2 THEN foo3 - -1 ".
+    "ELSE --0 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case
+    :*  %case
+      (some unqualified-foo-3)
+      :~  [%case-when-then [~.sd --5] [~.sd -3]]
+          :+  %case-when-then
+              [~.sd -2]
+              [%arithmetic %hep unqualified-foo-3 [~.sd -1]]
+          ==
+      (some [~.sd --0])
+    ==
+  =/  scalars  ~[[%scalar 'foobar' case]]
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: signed literal operands of END-terminated arithmetic
+++  test-arithmetic-signed-operands-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar foo3 * --2 + -1 END ".
+    "        baz -3 - --4 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  foobar
+    :^  %arithmetic
+        %lus
+        [%arithmetic %tar unqualified-foo-3 [~.sd --2]]
+        [~.sd -1]
+  =/  scalars
+    :~  [%scalar 'foobar' foobar]
+        [%scalar 'baz' [%arithmetic %hep [~.sd -3] [~.sd --4]]]
+        ==
+  =/  expected  (mk-crud-txn scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: simple case expression with arithmetic else
 ++  test-case-simple-arithmetic-01
   ::

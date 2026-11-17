@@ -83,9 +83,9 @@ IF <predicate> THEN <scalar-node>
                ELSE <scalar-node> ENDIF
 ```
 
-The `ELSE` clause is required. The `THEN` and `ELSE` expressions must be the same type.
+The `ELSE` clause is required. The `THEN` and `ELSE` expressions must be the same type, or numeric types, which convert to their common type (see [Mixed Numeric Types](#mixed-numeric-types)).
 
-Accepted types: any, provided `THEN` and `ELSE` expressions share the same type.
+Accepted types: any, provided `THEN` and `ELSE` expressions share the same type or are all numeric.
 
 Example:
 ```
@@ -121,7 +121,7 @@ The expected boolean (or loobean) logic applies to each predicate. The first bra
 
 In both forms, `ELSE` is optional. If no `WHEN` branch matches and no `ELSE` clause is present, the query crashes with an informative message.
 
-Accepted types: any, provided all `THEN` and `ELSE` expressions share the same type.
+Accepted types: any, provided all `THEN` and `ELSE` expressions share the same type or are all numeric, converting to their common type. In the simple form, numeric `WHEN` values match the leading expression by value, across numeric types (see [Mixed Numeric Types](#mixed-numeric-types)).
 
 Examples:
 ```
@@ -144,7 +144,7 @@ END
 
 `COALESCE` returns the first `<scalar-node>` in the list that exists. Non-existence occurs when a selected `<scalar-node>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows. When no `<scalar-node>` in the list exists, the result does not exist.
 
-All expressions must share the same type.
+All expressions must share the same type, or be numeric types, which convert to their common type (see [Mixed Numeric Types](#mixed-numeric-types)).
 
 Any other scalar function or arithmetic with an operand that does not exist also does not exist. `IF` and `CASE` do not exist when any of their result branches does not exist; a condition comparing a value that does not exist is false.
 
@@ -173,15 +173,15 @@ All arithmetic operators accept the numeric types:
 | signed integer | `@sb`, `@sd`, `@sv`, `@sw`, `@sx` |
 | floating-point | `@rh` (half), `@rs` (single), `@rd` (double), `@rq` (quad precision) |
 
-Both scalar-nodes must be the same type. The result is the same type as the inputs. Every unsigned integer type computes like `@ud` and every signed integer type like `@sd`; the type only sets how a value is written.
+The scalar-nodes may be of any numeric types. Operands of one type produce that type, except for `^` with a signed exponent; operands of different types convert to their common type, which is the result type (see [Mixed Numeric Types](#mixed-numeric-types)). Every unsigned integer type computes like `@ud` and every signed integer type like `@sd`; the type only sets how a value is written.
 
-A sized integer type, such as `@udD` (8 bits), combines with its unsized base and produces the sized type; a result that does not fit the width crashes. See Column Types in [Preliminaries](preliminaries.md).
+A sized integer type, such as `@udD` (8 bits), combined with its unsized base produces the sized type; a result that does not fit the width crashes. See Column Types in [Preliminaries](preliminaries.md).
 
 **Exceptions:**
-- `%` (modulo) does not support floating-point types; it accepts only integer types.
-- The exponent of `^` may be any numeric type. A floating-point base computes in its own precision. An integer base computes in `@rd` and truncates to its own type, so results beyond 2^53 lose precision. Negative exponents are not supported.
+- `%` (modulo) on a floating-point type crashes with "remainder not implemented".
+- The exponent of `^` may be any numeric type, and the result type follows its own rule (see [Mixed Numeric Types](#mixed-numeric-types)). A floating-point result computes in its own precision. An integer result computes in `@rd` and truncates, so results beyond 2^53 lose precision. `x ^ -y` is `1 / x ^ y`; a zero base with a negative exponent is division by zero.
 
-Floating-point operations round toward zero. Mixing types, such as `@rs + @rd` or `@ux + @ud`, is a number system conflict. Unsigned subtraction below zero and division by zero crash.
+Floating-point operations round toward zero. A numeric type with a non-numeric type, such as `@ud + @t`, is a number system conflict. Unsigned subtraction below zero and division by zero crash.
 
 ### Important Syntax Requirements
 
@@ -232,6 +232,86 @@ YEAR(~2023.6.20) - MONTH(~2023.6.20)  :: datetime functions in arithmetic
 10 - 5 - 2      :: left-associative: (10 - 5) - 2 = 5 - 2 = 3
 8 / 4 / 2       :: left-associative: (8 / 4) / 2 = 2 / 2 = 1
 10 % 3          :: modulo: remainder of 10 / 3 = 1
+```
+
+## Mixed Numeric Types
+
+Arithmetic, comparisons, and functions accept operands of different numeric types. Each operation follows one deterministic path to its result type, and every operand converts to that type before the operation.
+
+### Common type
+
+The common type of two numeric types is the most granular of them: floating point over signed integer over unsigned integer.
+
+| Operands | Common type | Example |
+|----------|-------------|---------|
+| the same type | that type | `@ux` and `@ux` → `@ux` |
+| two floating-point types | the wider: `@rq` > `@rd` > `@rs` > `@rh` | `@rh` and `@rs` → `@rs` |
+| an integer and a floating-point type | the floating-point type, at least `@rd` | `@ud` and `@rq` → `@rq`; `@sd` and `@rh` → `@rd` |
+| a signed and an unsigned integer | signed | `@ud` and `@sd` → `@sd` |
+| integers of the same notation | that notation | `@ux` and `@sx` → `@sx` |
+| integers of different notations | decimal | `@ux` and `@ud` → `@ud`; `@ub` and `@uv` → `@ud`; `@sx` and `@ud` → `@sd` |
+| a sized and an unsized integer | the sized width | `@udD` and `@ud` → `@udD`; `@udD` and `@sd` → `@sdD` |
+| two sized integers | the larger width | `@udD` and `@udE` → `@udE` |
+
+An integer with `@rh` or `@rs` produces `@rd`, because those types cannot hold most integers exactly. A numeric type never combines with a non-numeric type, and a non-numeric type combines only with itself.
+
+The common type of more than two operands, such as the branches of `CASE`, is the common type of each operand in turn; the order does not change it.
+
+### Conversion
+
+Before an operation each operand converts to the result type.
+
+* A floating-point type widens to a wider one exactly.
+* An unsigned integer converts to a signed integer exactly.
+* An integer converts to a floating-point type exactly when the type can hold it, and otherwise rounds: `@rd` holds every integer up to 2^53.
+* A value converting to a sized type must fit its width, otherwise the command crashes: `@udD` 200 converts to `@sdD`, which holds -128 to 127, so `@udD 200 + @sd -3` crashes with `--200 exceeds @sdD`.
+
+The result of an operation must also fit a sized result type.
+
+### Arithmetic
+
+`+`, `-`, `*`, `/`, and `%` produce the common type of their operands.
+
+The result of `^` takes the type of its base, with these exceptions, applied in order:
+
+1. A floating-point exponent produces the common type: `2 ^ .~0.5` is `@rd`, `.~~2 ^ .~3` is `@rd`.
+2. A floating-point base with an integer exponent keeps the base's type: `.~~1.5 ^ 2` is `@rh`.
+3. An integer base with a signed exponent that is a negative literal, or that is not a literal (a column, scalar, or expression), produces `@rd`: `2 ^ -3` is `.~0.125`. The result type is fixed before any row is read, so a signed exponent that might be negative produces `@rd` even when the base and exponent share a type: `@sd ^ @sd` column is `@rd`.
+4. An unsigned base with a signed exponent literal of zero or more becomes signed, keeping its notation and width: `@ux ^ --2` is `@sx`.
+
+The exponent is not converted to the result type; only its value is used.
+
+### Functions
+
+* Functions of one argument (`ABS`, `CEILING`, `DEGREES`, `FLOOR`, `LOG`, `ROUND`, `SIGN`, `SQRT`, and the trigonometric functions) compute in the type of their argument, as documented for each; a result used in further arithmetic converts like any operand.
+* `MAX`, `MIN`, and `RAND` convert both arguments to their common type.
+* `ATAN2` computes in the common type of its arguments when that is a floating-point type, else in `@rd`.
+* `IF`, `CASE`, and `COALESCE` convert every result branch to the common type of the branches.
+
+### Comparison
+
+Comparisons of numeric values of different types (`=`, `<>`, `<`, `>`, `<=`, `>=`, `BETWEEN`, `IN`, `NOT IN`, the `WHEN` values of a simple `CASE`, and `JOIN ... ON` equality) compare the exact values, without converting either one:
+
+* `--2 = .~~2` is true.
+* `9.007.199.254.740.993 > .~9007199254740992` is true, although the integer converted to `@rd` would equal the float.
+* `.~0` equals `.~-0`.
+* A NaN equals nothing: every comparison with it is false except `<>`.
+
+### Not converted
+
+`INSERT`, `UPSERT`, and `UPDATE` values must have the column's type or its sized or unsized base; they are not converted. Set operations and foreign keys require identical types, and a natural join matches columns of the same name and aura.
+
+### Examples
+
+```
+5 + -3                  :: @ud, @sd → --2 (@sd)
+-3 * .~2.5              :: @sd, @rd → .~-7.5 (@rd)
+5 + .~~1.5              :: @ud, @rh → .~6.5 (@rd)
+.~~1.5 * .~~~0.25       :: @rh, @rq → .~~~0.375 (@rq)
+0x10 + 5                :: @ux, @ud → 21 (@ud)
+0x10 + -3               :: @ux, @sd → --13 (@sd)
+0x10 ^ -1               :: negative exponent → .~0.0625 (@rd)
+5 ^ --2                 :: @ud base, signed exponent → --25 (@sd)
 ```
 
 ## DateTime Functions
@@ -543,42 +623,44 @@ SQRT(--9)     :: @sd → returns --3
 
 ---
 
-**MAX(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the larger of two numeric values. Both arguments must be the same type.
+**MAX(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the larger of two numeric values.
 
-Parameter: any numeric type (both must match)
-Returns: same type as inputs
+Parameter: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
 MAX(3, 5)           :: @ud → returns 5
 MAX(.~3.5, .~2.1)   :: @rd → returns .~3.5
 MAX(--10, -5)       :: @sd → returns --10
+MAX(3, .~2.5)       :: @ud, @rd → returns .~3
 ```
 
 ---
 
-**MIN(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the smaller of two numeric values. Both arguments must be the same type.
+**MIN(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the smaller of two numeric values.
 
-Parameter: any numeric type (both must match)
-Returns: same type as inputs
+Parameter: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
 MIN(3, 5)           :: @ud → returns 3
 MIN(.~3.5, .~2.1)   :: @rd → returns .~2.1
 MIN(--10, -5)       :: @sd → returns -5
+MIN(3, -5)          :: @ud, @sd → returns -5
 ```
 
 ---
 
-**RAND(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns a random integer in the range [low, high], inclusive on both ends. Both arguments must be the same numeric type and high must be greater than low.
+**RAND(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns a random integer in the range [low, high], inclusive on both ends. The arguments may be of any numeric types, which convert to their common type, and high must be greater than low.
 
 For floating-point inputs, fractional parts are adjusted so the effective range uses whole numbers: the low bound is rounded down (floor) and the high bound is rounded up (ceiling). The result is always a whole number value within the adjusted range.
 
 NOTE: Invoking `RAND` is the only instance of a `SELECT` command in Obelisk producing a result set that is not deterministic. Obelisk produces the following warning message: "warning: results are non-deterministic".
 
-Parameters: any numeric type (both must match)
-Returns: same type as inputs
+Parameters: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
@@ -678,10 +760,10 @@ ATAN(.~1.0)    :: returns approximately .~0.7853982 (π/4)
 
 ---
 
-**ATAN2(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the angle (in radians) whose tangent is the quotient of the two arguments. The first argument is the y-coordinate and the second is the x-coordinate. Two floating-point arguments must be the same type.
+**ATAN2(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the angle (in radians) whose tangent is the quotient of the two arguments. The first argument is the y-coordinate and the second is the x-coordinate.
 
-Parameters: any numeric type (y and x)
-Returns: the floating-point type of an argument; `@rd` when both are integers
+Parameters: any numeric types (y and x)
+Returns: the common type of the arguments when it is a floating-point type, else `@rd` (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Example:
 ```
