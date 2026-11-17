@@ -64,7 +64,7 @@ An inline scalar function behaves exactly as if it were defined in the SCALARS c
 
 **Arithmetic.** Inline arithmetic takes no `END` keyword; it ends at the first token that is not an arithmetic operator. Within the SCALARS clause arithmetic still terminates with `END`. A function, `IF`, `CASE`, or `COALESCE` followed by an operator is an operand of the arithmetic, e.g. `ABS(col1) + 1`.
 
-**Constants.** An inline constant standing alone must be written as a function: `PI()`, `TAU()`, `E()`, `PHI()`. The bare forms `PI`, `TAU`, `E`, and `PHI` are allowed only as arithmetic operands and function arguments (`2 * PI`, `SIN(PI)`), so a column named `e` or `pi` is still read as a column. In the SCALARS clause the bare forms may also stand alone.
+**Constants.** An inline constant standing alone must be written as a function: `PI()`, `TAU()`, `E()`, `PHI()`. The bare forms `PI`, `TAU`, `E`, and `PHI` are allowed only as arithmetic operands and function arguments (`2 * PI`, `SIN(PI)`), so a column named `e` or `pi` is still read as a column. In the SCALARS clause the bare forms may also stand alone. Wherever a constant appears, a column of the same name in the `FROM` relations takes precedence, including over `PI()`.
 
 **Evaluation.** `GETUTCDATE()` returns the query time wherever it appears. Each `RAND` invocation is evaluated separately: `SELECT RAND(1, 10), RAND(1, 10)` produces two independent values.
 

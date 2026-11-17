@@ -162,6 +162,36 @@
               ==
       ==
 ::
+::  in arithmetic a column named like a constant takes precedence; with
+::  no such column the constant applies
+++  test-inline-column-named-constant
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          "CREATE DATABASE db1; CREATE TABLE k (id @ud, e @ud, pi @ud) ".
+          "PRIMARY KEY (id); INSERT INTO k VALUES (1, 10, 20);"
+      ::
+      [~2012.5.3 %db1 "FROM k SELECT e + 1, pi * 2, .~1 * TAU"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%scalar-0 [~.ud 11]]
+                              [%scalar-1 [~.ud 40]]
+                              [%scalar-2 [~.rd .~6.283185307179586]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.k']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  GETUTCDATE is the query time wherever it appears
 ++  test-inline-select-getutcdate-twice
   =|  run=@ud

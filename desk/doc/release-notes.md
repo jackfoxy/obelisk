@@ -24,6 +24,7 @@
 * @uv literals, dotted form 0v1f.ab3ck
 * predicates compare @sb, @sx, @sv, @sw as signed
 * sized integer column types, e.g. @udD, @sdD, @uxF; values and results must fit the bit width
+* fix a column named e, pi, tau, or phi read as the constant in arithmetic
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

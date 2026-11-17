@@ -2693,6 +2693,15 @@
     :-  seed
     ~|  "scalar {<name.datum>} not found"
         (~(got by resolved-scalars) name.datum)
+  ::  a column named e, phi, pi, or tau takes precedence over the constant
+  ?:  ?&  ?|  ?=([%e ~] datum)
+              ?=([%phi ~] datum)
+              ?=([%pi ~] datum)
+              ?=([%tau ~] datum)
+              ==
+          (~(has by qualifier-lookup) ;;(@tas -.datum))
+          ==
+    $(datum [%unqualified-column ;;(@tas -.datum) ~])
   ?:  ?|  ?=([%e ~] datum)
           ?=([%phi ~] datum)
           ?=([%pi ~] datum)
