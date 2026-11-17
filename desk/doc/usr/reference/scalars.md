@@ -175,6 +175,8 @@ All arithmetic operators accept the numeric types:
 
 Both scalar-nodes must be the same type. The result is the same type as the inputs. Every unsigned integer type computes like `@ud` and every signed integer type like `@sd`; the type only sets how a value is written.
 
+A sized integer type, such as `@udD` (8 bits), combines with its unsized base and produces the sized type; a result that does not fit the width crashes. See Column Types in [Preliminaries](preliminaries.md).
+
 **Exceptions:**
 - `%` (modulo) does not support floating-point types; it accepts only integer types.
 - The exponent of `^` may be any numeric type. A floating-point base computes in its own precision. An integer base computes in `@rd` and truncates to its own type, so results beyond 2^53 lose precision. Negative exponents are not supported.

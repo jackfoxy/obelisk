@@ -2478,11 +2478,7 @@
               =/  col=column:ast  (~(got by col-map) col-name)
               ?:  (value-type-compatible type.col -.d)
                 :-  col-name
-                ?:  ?|  =(%ta type.col)
-                        =(%tas type.col)
-                        ==
-                  (validate-aura-value %update col-name type.col +.d)
-                +.d
+                (validate-aura-value %update col-name type.col +.d)
               ~|("value type: {<-.d>} does not match column: {<col-name>}" !!)
   =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
@@ -2532,7 +2528,9 @@
         ==
   ?:  =(%tas col-type)
     =(%tas val-type)
-  =(col-type val-type)
+  ::  an aura and its sized form are compatible; +validate-aura-value
+  ::  checks the width
+  ?=(^ (sized-match col-type val-type))
 ::
 ++  aura-value-valid
   |=  [col-type=@ta val=@]
@@ -2544,6 +2542,9 @@
 ++  validate-aura-value
   |=  [op=?(%insert %upsert %update) name=@tas col-type=@ta val=@]
   ^-  @
+  =/  verb  ?-(op %insert "INSERT", %upsert "UPSERT", %update "UPDATE")
+  =.  val  ~|  "{verb}: value of column {<name>} does not fit"
+               (fit-width col-type val)
   ?:  (aura-value-valid col-type val)
     val
   ?:  =(%insert op)
@@ -2592,15 +2593,11 @@
               -:(~(got by +.map-meta) name.i.columns)
         ?:  (value-type-compatible col-type p.i.values)
           :-  :-  name.i.columns
-                  ?:  ?|  =(%ta col-type)
-                          =(%tas col-type)
-                          ==
-                    %:  validate-aura-value  %update
-                                             name.i.columns
-                                             col-type
-                                             +.i.values
-                                             ==
-                  +.i.values
+                  %:  validate-aura-value  %update
+                                           name.i.columns
+                                           col-type
+                                           +.i.values
+                                           ==
               updates
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
@@ -4624,11 +4621,7 @@
   ?:  ?=(dime p)
     ?:  (value-type-compatible type.q p.p)
       :-  name.q
-      ?:  ?|  =(%ta type.q)
-              =(%tas type.q)
-              ==
-        (validate-aura-value op name.q type.q q.p)
-      q.p
+      (validate-aura-value op name.q type.q q.p)
     ?:  =(%insert op)
       ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
           "does not match input value type {<p.p>}"

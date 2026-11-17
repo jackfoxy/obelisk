@@ -152,7 +152,7 @@
             adjust=$-([float-ops @] @)
             ==
     ^-  resolved-scalar
-    =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+    =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
     ?.  ?=(number-systems number-system)
       ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
           "{number-systems-msg}"
@@ -198,7 +198,7 @@
               get-op=$-(float-ops $-(@ @))
               ==
       ^-  resolved-scalar
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
             "{number-systems-msg}"
@@ -471,7 +471,8 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %abs, ".
             "{number-systems-msg}"
@@ -480,6 +481,7 @@
       =/  do-abs
         |=  val=@
         ^-  dime
+        %+  fit-dime  sized
         :-  number-system
         ?-  number-system
             ?(%rh %rs %rd %rq)  (abs.fo val)
@@ -505,7 +507,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %log, ".
             "{number-systems-msg}"
@@ -556,8 +558,10 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      ?.  =(ns1 ns2)
+      =/  sized  (sized-match ns1 ns2)
+      ?~  sized
         ~|  "max: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %max, ".
             "{number-systems-msg}"
@@ -570,15 +574,15 @@
                        unsigned-systems  ?:((gte a b) a b)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [-.ps [ns1 (max-val +.expr1 +.expr2)]]
+        [-.ps [u.sized (max-val +.expr1 +.expr2)]]
       :-  -.ps
           :+  %fn
-              ns1
+              u.sized
               |=  =data-row
               ^-  dime
               =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
               =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
-              [ns1 (max-val v1 v2)]
+              [u.sized (max-val v1 v2)]
   ::
     %min
       =/  ps  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
@@ -601,8 +605,10 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      ?.  =(ns1 ns2)
+      =/  sized  (sized-match ns1 ns2)
+      ?~  sized
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
             "{number-systems-msg}"
@@ -615,15 +621,15 @@
                        unsigned-systems  ?:((gte a b) b a)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [-.ps [ns1 (min-val +.expr1 +.expr2)]]
+        [-.ps [u.sized (min-val +.expr1 +.expr2)]]
       :-  -.ps
           :+  %fn
-              ns1
+              u.sized
               |=  =data-row
               ^-  dime
               =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
               =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
-              [ns1 (min-val v1 v2)]
+              [u.sized (min-val v1 v2)]
   ::
     %phi
       [seed [~.rd .~1.618033988749895]]
@@ -652,8 +658,10 @@
       =/  high=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime low) -.low type.low)
       =/  ns2  ?:(?=(dime high) -.high type.high)
-      ?.  =(ns1 ns2)
+      =/  sized  (sized-match ns1 ns2)
+      ?~  sized
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
             "{number-systems-msg}"
@@ -668,7 +676,7 @@
       =/  new-seed  +>-:(rads:rng 100)
       :-  -.ps
             :+  %fn
-                ns1
+                u.sized
                 |=  =data-row
                 ^-  dime
                 =/  the-seed  (mix new-seed (sham data.data-row))
@@ -700,11 +708,11 @@
                 ::
                 ?-  ns1
                   ?(%rh %rs %rd %rq)
-                    [ns1 (add.fo lo (sun.fo r))]
+                    [u.sized (add.fo lo (sun.fo r))]
                   signed-systems
-                    [ns1 (sum:si `@sd`lo (sun:si r))]
+                    [u.sized (sum:si `@sd`lo (sun:si r))]
                   unsigned-systems
-                    [ns1 (add `@ud`lo r)]
+                    [u.sized (add `@ud`lo r)]
                   ==
   ::
     %tau
@@ -720,7 +728,8 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %degrees, ".
             "{number-systems-msg}"
@@ -734,6 +743,7 @@
         |=  val=@
         ^-  dime
         =/  res  (mul.fo (to-float fo number-system val) factor)
+        %+  fit-dime  sized
         :-  number-system
         ?-  number-system
             float-systems     res
@@ -745,7 +755,7 @@
         [-.ps (do-degrees +.expr)]
       :-  -.ps
           :+  %fn
-              number-system
+              sized
               |=  =data-row
               ^-  dime
               (do-degrees +:(f.expr data-row))
@@ -835,8 +845,8 @@
                                   -.ps
                                   ==
       =/  expr2=resolved-scalar  +.ps
-      =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
-      =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
+      =/  ns1  (base-aura ?:(?=(dime expr1) -.expr1 type.expr1))
+      =/  ns2  (base-aura ?:(?=(dime expr2) -.expr2 type.expr2))
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %atan2, ".
             "{number-systems-msg}"
@@ -901,7 +911,8 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %round, ".
             "{number-systems-msg}"
@@ -915,7 +926,7 @@
                                   -.ps
                                   ==
       =/  len-expr=resolved-scalar  +.ps
-      =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
+      =/  len-type  (base-aura ?:(?=(dime len-expr) -.len-expr type.len-expr))
       ?.  ?=(?(signed-systems unsigned-systems) len-type)
         ~|  "round: length must be a signed or unsigned integer, ".
             "got {<len-type>}"
@@ -970,6 +981,7 @@
         |=  [datum=@ len=@]
         ^-  dime
         =/  [is-pos=? mag=@ud]  (extract-len-info len)
+        %+  fit-dime  sized
         :-  number-system
         ?-  number-system
             ?(%rh %rs %rd %rq)  (round-float fo datum is-pos mag)
@@ -980,7 +992,7 @@
         [-.ps (do-round +.expr +.len-expr)]
       :-  -.ps
       :+  %fn
-          number-system
+          sized
           |=  =data-row
           ^-  dime
           =/  datum  ?:(?=(dime expr) +.expr +:(f.expr data-row))
@@ -997,7 +1009,8 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sign, ".
             "{number-systems-msg}"
@@ -1006,7 +1019,7 @@
       =/  do-sign
         |=  val=@
         ^-  dime
-        :-  number-system
+        :-  sized
         ?:  =(0 val)  0
         ?-  number-system
             ?(%rh %rs %rd %rq)  ?:((sig.fo val) (sun.fo 1) (san.fo -1))
@@ -1032,7 +1045,8 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sqrt, ".
             "{number-systems-msg}"
@@ -1042,7 +1056,7 @@
       =/  do-sqrt
         |=  val=@
         ^-  dime
-        :-  number-system
+        :-  sized
         ?:  =(0 val)  0
         =/  res  (sqt.fo (to-float fo number-system val))
         =/  int  (toi.fo res)
@@ -2049,6 +2063,7 @@
           typ
           |=  =data-row
           ^-  dime
+          %+  fit-dime  typ
           =/  resolved  ?:((pred-result data-row) then else)
           ?:  ?=(dime resolved)  resolved
           ?:  =(%fn -.resolved)
@@ -2153,7 +2168,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (apply-scalar data-row +.fn-datum)
+            (fit-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  prepare-case-simple
@@ -2263,7 +2278,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (apply-scalar data-row +.fn-datum)
+            (fit-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
@@ -2484,33 +2499,35 @@
                               ==
   =.  seed  -.ps
   =/  r=resolved-scalar  +.ps
-  =/  l-number-system  ?:  ?=(dime l)  -.l
-                       type.l
-  =/  r-number-system  ?:  ?=(dime r)  -.r
-                       type.r
-  ?.  ?|  =(l-number-system r-number-system)
-          &(=(%ket operator.scalar) ?=(number-systems r-number-system))
-          ==
+  =/  l-aura  ?:(?=(dime l) -.l type.l)
+  =/  r-aura  ?:(?=(dime r) -.r type.r)
+  =/  l-number-system  (base-aura l-aura)
+  =/  r-number-system  (base-aura r-aura)
+  ::  the result aura: the operands' common aura, the left one's for ^
+  =/  sized=(unit @ta)
+    ?.  =(%ket operator.scalar)  (sized-match l-aura r-aura)
+    ?:(?=(number-systems r-number-system) `l-aura ~)
+  ?~  sized
     ~|  "number system conflict: ".
-        "{<l-number-system>} {<operator.scalar>} {<r-number-system>}"
+        "{<l-aura>} {<operator.scalar>} {<r-aura>}"
         !!
   ?.  ?=(number-systems l-number-system)
-    ~|  "{<l-number-system>} {<operator.scalar>} {<r-number-system>} : ".
-        "{<l-number-system>} not a supported number system, ".
+    ~|  "{<l-aura>} {<operator.scalar>} {<r-aura>} : ".
+        "{<l-aura>} not a supported number system, ".
         "{number-systems-msg}"
         !!
   ?>  ?=(number-systems r-number-system)
   =/  op  (arithmetic-gate operator.scalar l-number-system r-number-system)
   :-  seed
   ?:  &(?=(dime l) ?=(dime r))
-    [l-number-system (op +.l +.r)]
+    [u.sized (fit-width u.sized (op +.l +.r))]
   :+  %fn
-      l-number-system
+      u.sized
       |=  =data-row
       ^-  dime
       =/  a  ?:(?=(dime l) +.l +:(f.l data-row))
       =/  b  ?:(?=(dime r) +.r +:(f.r data-row))
-      [l-number-system (op a b)]
+      [u.sized (fit-width u.sized (op a b))]
 ::
 ++  arithmetic-gate
   ::  gate applying operator op to raw atoms; the left operand's number
@@ -2597,6 +2614,13 @@
                     [type.item item]
   ::  walk the list, tracking expected type, verifying consistency,
   ::  and accumulating the (possibly-substituted) output list
+  ::  retag an item of an unsized aura as the common sized aura a
+  =/  fit-item  |=  [a=@ta item=resolved-scalar]
+                ^-  resolved-scalar
+                ?:  ?=(dime item)
+                  ?:(=(a -.item) item (fit-dime a item))
+                ?:  =(a type.item)  item
+                [%fn a |=(=data-row (fit-dime a (f.item data-row)))]
   =/  expected  *(unit @ta)
   =/  out       *(list resolved-scalar)
   =/  items  dos
@@ -2604,6 +2628,7 @@
   ?~  items
     ?~  expected
       ~|("check-consistent-types: empty argument list" !!)
+    =.  out  (turn out (cury fit-item u.expected))
     ?~  allowed
       [u.expected (flop out)]  ::  no type constraint
     ~|  %+  weld  "check-consistent-types: type {<u.expected>} "
@@ -2618,10 +2643,11 @@
   =/  [t=@ta sub=resolved-scalar]  (resolve-item i.items)
   ?~  expected
     $(expected `t, out [sub out], items t.items)
+  =/  common  (sized-match u.expected t)
   ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
       "but got {<t>} at {<i.items>}"
-  ?>  =(u.expected t)
-  $(out [sub out], items t.items)
+  ?>  ?=(^ common)
+  $(expected common, out [sub out], items t.items)
 ::
 ++  got-qualified-col-type
   |=  [=map-meta col=qualified-column:ast]

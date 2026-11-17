@@ -4002,11 +4002,15 @@
 ::  used for various commands
 ::
 ++  cook-column
+  ::  [name aura] or [name [aura size-letter]]; only integer auras are sized
   |=  a=*
-    ?.  ?=([@ @] [a])  ~|("cannot parse column  {<a>}" !!)
-    ?@  +.a
-      [%column -.a (crip (slag 1 (trip +.a))) 0]
-    ~|("cannot parse column  {<a>}" !!)
+  ?:  ?=([@ @] a)
+    [%column -.a (crip (slag 1 (trip +.a))) 0]
+  ?.  ?=([@ @ @] a)  ~|("cannot parse column  {<a>}" !!)
+  =/  base=@ta  (crip (slag 1 (trip +<.a)))
+  ?.  ?=(?(signed-systems:ast unsigned-systems:ast) base)
+    ~|("bit width applies only to integer auras, not @{(trip base)}" !!)
+  [%column -.a (cat 3 base +>.a) 0]
 ++  cook-ordered-column
   |=  a=*
     ?@  a

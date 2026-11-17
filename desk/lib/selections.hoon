@@ -425,10 +425,11 @@
     =/  r-found  (col-exists-any r column-metas)
     ?.  r-found
       (on-col-not-found r column-metas)
-    ::  type check: both columns must have the same type
+    ::  type check: both columns must have the same type, or one is the
+    ::  other's sized form
     =/  l-type  (get-on-col-type l column-metas)
     =/  r-type  (get-on-col-type r column-metas)
-    ?.  =(l-type r-type)
+    ?~  (sized-match l-type r-type)
       ~|  "type mismatch in ON predicate: %{(trip name.l)} is {<l-type>} ".
           "but %{(trip name.r)} is {<r-type>}"
           !!

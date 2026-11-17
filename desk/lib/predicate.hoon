@@ -1048,7 +1048,7 @@
 ++  types-match
   |=  [l=@ta r=@ta]
   ^-  ?
-  ?|  =(l r)
+  ?|  ?=(^ (sized-match l r))
       ?&  =(l ~.t) 
           |(=(r ~.ta) =(r ~.tas))
           ==
@@ -1140,7 +1140,7 @@
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`a)
   ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) a)
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
   (gth a ?@(x x ;;(@ +.x)))
 ::
 ++  gt-col-lit
@@ -1151,7 +1151,7 @@
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha `@t`b ?@(x `@t`x `@t`;;(@ +.x)))
   ?:  ?=(float-systems typ)  (float-lth typ b ?@(x x ;;(@ +.x)))
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
   (gth ?@(x x ;;(@ +.x)) b)
 ::
 ++  gt-col-col
@@ -1164,13 +1164,13 @@
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
     ?:  ?=(float-systems typ)  (float-lth typ ;;(@ y) x)
-    ?:  ?=(signed-systems typ)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
+    ?:  (signed-aura typ)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
     (gth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))
   ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.y) ;;(@ +.x))
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
   (gth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gt-lit-lit
@@ -1180,7 +1180,7 @@
     ?:  =(a b)  %.n
     (alpha b a)
   ?:  ?=(float-systems typ)  (float-lth typ b a)
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`a `@s`b) --1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`b) --1)
   (gth a b)
 ::
 ::  gte
@@ -1192,7 +1192,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) a)
   ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) a)
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
   (gte a ?@(x x ;;(@ +.x)))
 ::
 ++  gte-col-lit
@@ -1202,7 +1202,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b ?@(x `@t`x `@t`;;(@ +.x)))
   ?:  ?=(float-systems typ)  (float-lte typ b ?@(x x ;;(@ +.x)))
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
   (gte ?@(x x ;;(@ +.x)) b)
 ::
 ++  gte-col-col
@@ -1214,12 +1214,12 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`;;(@ y) `@t`x)
     ?:  ?=(float-systems typ)  (float-lte typ ;;(@ y) x)
-    ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
+    ?:  (signed-aura typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
     (gte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.y) `@t`;;(@ +.x))
   ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.y) ;;(@ +.x))
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
   (gte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gte-lit-lit
@@ -1228,7 +1228,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`b `@t`a)
   ?:  ?=(float-systems typ)  (float-lte typ b a)
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`a `@s`b) -1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`b) -1))
   (gte a b)
 ::
 ::  lt
@@ -1241,7 +1241,7 @@
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
   ?:  ?=(float-systems typ)  (float-lth typ a ?@(x x ;;(@ +.x)))
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
   (lth a ?@(x x ;;(@ +.x)))
 ::
 ++  lt-col-lit
@@ -1252,7 +1252,7 @@
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`b)
   ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) b)
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
   (lth ?@(x x ;;(@ +.x)) b)
 ::
 ++  lt-col-col
@@ -1265,13 +1265,13 @@
       ?:  =(x y)  %.n
       (alpha `@t`x `@t`;;(@ y))
     ?:  ?=(float-systems typ)  (float-lth typ x ;;(@ y))
-    ?:  ?=(signed-systems typ)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
+    ?:  (signed-aura typ)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
     (lth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
   ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.x) ;;(@ +.y))
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
   (lth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lt-lit-lit
@@ -1281,7 +1281,7 @@
     ?:  =(a b)  %.n
     (alpha `@t`a `@t`b)
   ?:  ?=(float-systems typ)  (float-lth typ a b)
-  ?:  ?=(signed-systems typ)  =((cmp:si `@s`a `@s`b) -1)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`b) -1)
   (lth a b)
 ::
 ::  lte
@@ -1293,7 +1293,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
   ?:  ?=(float-systems typ)  (float-lte typ a ?@(x x ;;(@ +.x)))
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
   (lte a ?@(x x ;;(@ +.x)))
 ::
 ++  lte-col-lit
@@ -1303,7 +1303,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) b)
   ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) b)
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
   (lte ?@(x x ;;(@ +.x)) b)
 ::
 ++  lte-col-col
@@ -1315,12 +1315,12 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`x `@t`;;(@ y))
     ?:  ?=(float-systems typ)  (float-lte typ x ;;(@ y))
-    ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
+    ?:  (signed-aura typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
     (lte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
   ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.x) ;;(@ +.y))
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
   (lte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lte-lit-lit
@@ -1329,7 +1329,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a `@t`b)
   ?:  ?=(float-systems typ)  (float-lte typ a b)
-  ?:  ?=(signed-systems typ)  ?!(=((cmp:si `@s`a `@s`b) --1))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`b) --1))
   (lte a b)
 ::
 ::  in

@@ -70,7 +70,9 @@
             ^-  tape
             =/  value=tape
               ?~  q.cell  "null"
-              ?.  =(p.u.q.cell ~.ud)  (json-string (render-dime u.q.cell))
+              ::  @ud and its sized forms are json numbers
+              ?.  =('ud' (end [3 2] p.u.q.cell))
+                (json-string (render-dime u.q.cell))
               (skim (scow %ud q.u.q.cell) |=(char=@tD !=(char '.')))
             :(weld (json-string (trip p.cell)) ":" value)
           :(weld ~['{'] (json-comma-list cells) ~['}'])

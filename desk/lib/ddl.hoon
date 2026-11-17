@@ -577,6 +577,18 @@
               drop-columns.a
               alter-columns.a
               ==
+  ::  existing values must fit the bit width of an altered column; an
+  ::  altered column may be named by its new name
+  =/  dummy
+    %+  turn  (skim alter-columns.a |=(c=column:ast (size-letter type.c)))
+    |=  c=column:ast
+    =/  renamed  (skim rename-columns.a |=(p=[@tas @tas] =(+.p name.c)))
+    =/  src=@tas  ?~(renamed name.c -.i.renamed)
+    %+  turn  indexed-rows.fil
+    |=  row=indexed-row:ast
+    ~|  "ALTER TABLE: {<name.qualified-table.a>} column {<name.c>} has ".
+        "values outside @{(trip type.c)}"
+    (fit-width type.c (~(gut by data.row) src 0))
   ::
   =/  old-cols=(list column:ast)  columns.tbl
   =/  old-col-map  (column-map old-cols)

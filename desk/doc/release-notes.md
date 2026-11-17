@@ -23,6 +23,7 @@
 * @ub, @ux, @uv, @uw, @sb, @sx, @sv, @sw arithmetic and numeric functions, as @ud and @sd
 * @uv literals, dotted form 0v1f.ab3ck
 * predicates compare @sb, @sx, @sv, @sw as signed
+* sized integer column types, e.g. @udD, @sdD, @uxF; values and results must fit the bit width
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

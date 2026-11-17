@@ -1249,6 +1249,53 @@
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
   (aor b a)
 ::
+::  bit-width (sized) auras, e.g. @udF: an integer aura with a size letter
+::  A-J of 2^(letter - A) bits
+::
+++  size-letter
+  ::  %.y when aura a ends in a size letter
+  |=  a=@ta
+  ^-  ?
+  =/  n  (met 3 a)
+  ?:  (lth n 2)  %.n
+  =/  c  (cut 3 [(dec n) 1] a)
+  &((gte c 'A') (lte c 'J'))
+::
+++  base-aura
+  ::  aura a without its size letter, @udF -> @ud
+  |=  a=@ta
+  ^-  @ta
+  ?.  (size-letter a)  a
+  (end [3 (dec (met 3 a))] a)
+::
+++  signed-aura
+  |=  a=@ta
+  ^-  ?
+  ?=(signed-systems:ast (base-aura a))
+::
+++  fit-width
+  ::  val, crashing when it exceeds the bit width of aura a
+  |=  [a=@ta val=@]
+  ^-  @
+  ?.  (size-letter a)  val
+  ?:  (lte (met 0 val) (bex (sub (cut 3 [(dec (met 3 a)) 1] a) 'A')))  val
+  ~|  "{(scow `@tas`(base-aura a) val)} exceeds @{(trip a)}"  !!
+::
+++  fit-dime
+  ::  d as aura a, crashing when its value exceeds a's bit width
+  |=  [a=@ta d=dime]
+  ^-  dime
+  [a (fit-width a q.d)]
+::
+++  sized-match
+  ::  the common aura of a and b: equal, or one is the other's sized form
+  |=  [a=@ta b=@ta]
+  ^-  (unit @ta)
+  ?:  =(a b)  `a
+  ?.  =((base-aura a) (base-aura b))  ~
+  ?:  &((size-letter a) (size-letter b))  ~
+  ?:((size-letter a) `a `b)
+::
 ++  order-atom
   ::  %.y when a sorts before b in ascending order of aura; a and b unequal
   |=  [aura=@ta a=@ b=@]

@@ -302,6 +302,14 @@ Obelisk supports the following auras (see the __Literals__ section for represent
 | @uw  | unsigned base64              |
 | @ux  | unsigned hexadecimal         |
 
+An integer aura (`@ub`, `@ud`, `@uv`, `@uw`, `@ux`, `@sb`, `@sd`, `@sv`, `@sw`, `@sx`) may take a bit-width letter `A` through `J`, for 2^0 through 2^9 bits: `@udD` is an 8-bit unsigned decimal (0 to 255), `@sdD` an 8-bit signed decimal (-128 to 127), `@uxF` a 32-bit unsigned hexadecimal.
+
+| Letter | A | B | C | D | E | F | G | H | I | J |
+| :----- | - | - | - | - | - | - | - | - | - | - |
+| Bits   | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 |
+
+A sized aura and its unsized base are compatible: `INSERT`, `UPSERT`, and `UPDATE` take a literal of the base aura, predicates compare the two, and arithmetic or functions combining them produce the sized aura. Two different widths, such as `@udD` and `@udE`, conflict. A value that does not fit the width crashes the command: on `INSERT`, `UPSERT`, `UPDATE`, `ALTER COLUMN` of existing values, and on any arithmetic or function result.
+
 Columns are typed by an aura and indexed by name.
 ```
 <column-type> ::=
