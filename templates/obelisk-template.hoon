@@ -846,7 +846,7 @@
       ==
       ;div#dev-menu-panel.abs.b2.bd1.br1.fc.hidden(style "position: absolute; z-index: 11; min-width: 12rem; top: calc(100% + 0.25rem); right: 0;")
         ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/sur/obelisk-ast.hoon", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): API/AST
-        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/tree/master/.claude/skills/obelisk-urql", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): urQL
+        ;a.wf.p-1.hover(href "https://github.com/jackfoxy/foxy-skills/tree/master/obelisk-urql", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): urQL
         ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/dev/users-guide-script.txt", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): Sample urQL
         ;a.wf.p-1.hover(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/dev/performance.md", target "_blank", rel "noopener noreferrer", style "text-align: left; display: block;"): Benchmarks
       ==

@@ -438,8 +438,8 @@
             ==
             ;a
               =href
-                "https://github.com/jackfoxy/obelisk/tree/master/".
-                ".claude/skills/obelisk-urql"
+                "https://github.com/jackfoxy/foxy-skills/tree/master/".
+                "obelisk-urql"
               =target  "_blank"
               =rel     "noopener noreferrer"
               urQL LLM
@@ -471,8 +471,8 @@
         ==
         ;a.docs-llm-button
           =href
-            "https://github.com/jackfoxy/obelisk/tree/master/".
-            ".claude/skills/obelisk-urql"
+            "https://github.com/jackfoxy/foxy-skills/tree/master/".
+            "obelisk-urql"
           =target  "_blank"
           =rel     "noopener noreferrer"
           =role    "button"
