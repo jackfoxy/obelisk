@@ -17,6 +17,9 @@
 * COALESCE tests existence
 * fix SCALARS clause arithmetic led by IF, CASE, or COALESCE, or using %
 * fix arithmetic operands and scalars named end-*
+* @rh, @rs, @rq arithmetic and numeric functions; float results keep their aura
+* @rh and @rq literals
+* predicates compare @rh, @rs, @rq as floats
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

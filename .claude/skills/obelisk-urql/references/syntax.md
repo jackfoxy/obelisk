@@ -63,8 +63,10 @@ Literals follow hoon aura notation. Some auras accept relaxed forms in `INSERT`/
 | @if | IPv4 | `.195.198.143.90` | same |
 | @is | IPv6 | `.0.0.0.0.0.1c.c3c6.8f5a` | same |
 | @p | ship | `~sampel-palnet`, `sampel-palnet` | `~`-prefixed only |
+| @rh | half float | `.~~3.14`, `.~~-3.14` | same |
 | @rs | single float | `.3.14`, `.-3.14` | same |
 | @rd | double float | `.~3.14`, `.~-3.14` | same |
+| @rq | quad float | `.~~~3.14`, `.~~~-3.14` | same |
 | @sd | signed decimal | `--20`, `-20` | same |
 | @sx/@sb/@sv/@sw | signed | `--0x2004.90fd` / `-0x2004.90fd` | same |
 | @t | UTF-8 cord | `'text'`, `'it\\'s'` | same |
@@ -74,7 +76,7 @@ Literals follow hoon aura notation. Some auras accept relaxed forms in `INSERT`/
 
 - **Cords** use single quotes. Embed a single quote with double backslash: `'it\\'s'`.
 - **@rd floats need the `.~` prefix**: `3.14` → `.~3.14`, `0.1` → `.~0.1`. Bare `.3.14` is `@rs`.
-- `@c`, `@q`, `@rh`, `@rq`, `@uv`, `@ta`, `@tas` literals are unsupported/pending; insert via the API.
+- `@c`, `@q`, `@uv`, `@ta`, `@tas` literals are unsupported/pending; insert via the API.
 - `DEFAULT` keyword = the column aura's bunt (default) value (valid in `INSERT`/`UPSERT` values and `UPDATE ... SET`).
 
 ## Comments

@@ -3,13 +3,13 @@
 
 ##  V1.0
 
-* __Views__ -- views are cached queries and can shadow user-defined tables.
-
-* __GROUP BY...HAVING__ -- as in SQL.
+* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
 
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
 
-* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems in an expression
+* __GROUP BY...HAVING__ -- as in SQL.
+
+* __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
 
@@ -35,8 +35,6 @@
 * __Additional system views__ -- security, views, etc.
 
 * __Support column cells and/or jammed nouns__ -- currently only aura-typed atoms supported.
-
-* __@rh, @rs, @rq arithmetic__ -- @rh, @rs, @rq 
 
 * __Regex__ -- predicate matching and scalar support
 

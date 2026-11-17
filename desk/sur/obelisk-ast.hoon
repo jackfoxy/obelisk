@@ -732,7 +732,8 @@
 ::
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
-+$  number-systems    ?(%rd %sd %ud)
++$  float-systems     ?(%rh %rs %rd %rq)
++$  number-systems    ?(float-systems %sd %ud)
 +$  time-element      ?(%da %dr)
 ::
 +$  if-then-else

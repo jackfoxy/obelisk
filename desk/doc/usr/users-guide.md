@@ -612,7 +612,7 @@ Scalar function categories:
 - **Arithmetic**
   - `col1 + col2 * 3 END`
   - must end with `END`
-  - supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd` data auras
+  - supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, `@rq` data auras; `%` is integer only
 
 - **DateTime**
   - `GETUTCDATE()`

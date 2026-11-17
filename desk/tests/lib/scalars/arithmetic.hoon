@@ -2401,7 +2401,8 @@
 ::
 ++  test-fail-arithmetic-06
   %+  expect-fail-message
-    '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
+    %-  crip  "~.t %lus ~.t : ~.t not a supported number system, ".
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               :^  %arithmetic  %lus
@@ -2586,7 +2587,8 @@
 ::
 ++  test-fail-arithmetic-unsupported-ns
   %+  expect-fail-message
-    '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
+    %-  crip  "~.t %lus ~.t : ~.t not a supported number system, ".
+                "need ?(~.rh ~.rs ~.rd ~.rq ~.sd ~.ud)"
     |.  %:  prepare-scalar
               ^-  scalar-function:ast
               [%arithmetic %lus [~.t 'foo'] [~.t 'bar']]

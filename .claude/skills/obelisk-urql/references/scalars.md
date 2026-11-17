@@ -55,7 +55,7 @@ COALESCE ( <scalar-node> [ ,...n ] )
 <arithmetic-op> ::= + | - | * | / | % | ^
 ```
 
-- Operands are `@ud`, `@sd`, or `@rd`; both sides same type, result same type. `%` (modulo) does **not** accept `@rd`.
+- Operands are `@ud`, `@sd`, `@rh`, `@rs`, `@rd`, or `@rq`; both sides same type, result same type (mixed float precisions conflict). `%` (modulo) accepts no float. `^` takes any numeric exponent; float operations round toward zero.
 - `/` on `@ud`/`@sd` is **integer division** and truncates toward zero: `5 / 2 END` is `2`, not `.~2.5`. Use `@rd` operands for a fractional result.
 - An arithmetic scalar in the `SCALARS` clause must **terminate with `END`**: `col1 + col2 * 3 END`. Inline arithmetic has no `END`.
 - Put whitespace between a numeric literal and a following operator (`1+1` fails; `1 +1`, `1 + 1` work). After a column or `)` none is needed, except `-`, which a column name absorbs.
@@ -84,7 +84,7 @@ COALESCE ( <scalar-node> [ ,...n ] )
 
 `ABS` · `LOG` (natural; crashes ≤0) · `FLOOR` · `CEILING` · `ROUND(value, length)` · `SIGN` · `SQRT` (crashes <0) · `MAX(a,b)` · `MIN(a,b)` · `RAND(low,high)` · `DEGREES` · `SIN` · `COS` · `TAN` · `ASIN` · `ACOS` · `ATAN` · `ATAN2(y,x)`
 
-- All accept `@ud`/`@sd`/`@rd`; two-arg functions need matching types. Result type generally matches input (`LOG`/`ATAN2` return `@rd`).
+- All accept `@ud`/`@sd`/`@rh`/`@rs`/`@rd`/`@rq`; two-arg functions need matching types. Result type generally matches input; `LOG`, `SIN`…`ATAN2` keep a float aura and return `@rd` for `@ud`/`@sd`.
 - `ROUND` length: positive rounds to that many decimals; negative (`@sd` only) rounds to `10^|length|`; round-half-up toward +inf.
 - `RAND(low, high)` is inclusive both ends; **the only non-deterministic `SELECT`** — emits `warning: results are non-deterministic`.
 

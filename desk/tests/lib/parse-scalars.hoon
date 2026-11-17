@@ -5039,6 +5039,31 @@
     !>  %-  parse:parse(default-database default-db)
             "SELECT .~2 * PI"
 ::
+::  @rh, @rs and @rq literals as arithmetic operands
+++  test-inline-select-rh-literals
+  =/  f  [%arithmetic %tar [~.rh .~~1.5] [~.rh .~~-2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT .~~1.5 * .~~-2"
+::
+++  test-inline-select-rs-literals
+  =/  f  [%arithmetic %lus [~.rs .1.5] [~.rs .-2]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT .1.5 + .-2"
+::
+++  test-inline-select-rq-literals
+  =/  f  [%arithmetic %fas [~.rq .~~~1.5] [~.rq .~~~0.25]]
+  =/  scalars  ~[[%scalar (inline-name 0) f]]
+  %+  expect-eq
+    !>  (mk-crud-txn-no-from-columns scalars ~[(inline-col 0 0)])
+    !>  %-  parse:parse(default-database default-db)
+            "SELECT .~~~1.5 / .~~~0.25"
+::
 ::  arithmetic without whitespace around an operator after a column
 ++  test-inline-where-no-whitespace
   =/  scalars  ~[[%scalar (inline-name 0) [%arithmetic %tar u-nud [~.ud 2]]]]

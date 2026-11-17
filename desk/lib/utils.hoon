@@ -1261,6 +1261,39 @@
   ?:  =('s' (end 3 aura))  =(-1 (cmp:si `@s`a `@s`b))
   (lth a b)
 ::
+++  float-equ
+  ::  float equality of a and b in aura typ, .0 equals .-0
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (equ:rh a b)
+    %rs  (equ:rs a b)
+    %rd  (equ:rd a b)
+    %rq  (equ:rq a b)
+  ==
+::
+++  float-lth
+  ::  %.y when float a is less than float b in aura typ
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (lth:rh a b)
+    %rs  (lth:rs a b)
+    %rd  (lth:rd a b)
+    %rq  (lth:rq a b)
+  ==
+::
+++  float-lte
+  ::  %.y when float a is less than or equal to float b in aura typ
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (lte:rh a b)
+    %rs  (lte:rs a b)
+    %rd  (lte:rd a b)
+    %rq  (lte:rq a b)
+  ==
+::
 ++  key-before
   ::  %.y when sort key a precedes sort key b.  ascending holds the direction
   ::  of each key column.  An absent value sorts after every value ascending

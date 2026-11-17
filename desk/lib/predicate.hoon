@@ -1069,8 +1069,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`xv)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`xv)
+  ?:  ?=(float-systems typ)  (float-equ typ a xv)
   =(a xv)
 ::
 ++  eq-col-lit
@@ -1078,8 +1077,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`b)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`b)
+  ?:  ?=(float-systems typ)  (float-equ typ xv b)
   =(xv b)
 ::
 ++  eq-col-col
@@ -1089,15 +1087,13 @@
   =/  y  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
   =/  yv  ?@(y y ;;(@ +.y))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`yv)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`yv)
+  ?:  ?=(float-systems typ)  (float-equ typ xv yv)
   ?@(x =(x y) =(xv yv))
 ::
 ++  eq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
-  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`b)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`b)
+  ?:  ?=(float-systems typ)  (float-equ typ a b)
   =(a b)
 ::
 ::  neq
@@ -1107,8 +1103,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`xv))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`xv))
+  ?:  ?=(float-systems typ)  !(float-equ typ a xv)
   ?!(=(a xv))
 ::
 ++  neq-col-lit
@@ -1116,8 +1111,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`b))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`b))
+  ?:  ?=(float-systems typ)  !(float-equ typ xv b)
   ?!(=(xv b))
 ::
 ++  neq-col-col
@@ -1127,15 +1121,13 @@
   =/  y  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
   =/  yv  ?@(y y ;;(@ +.y))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`yv))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`yv))
+  ?:  ?=(float-systems typ)  !(float-equ typ xv yv)
   ?@(x ?!(=(x y)) ?!(=(xv yv)))
 ::
 ++  neq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`b))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`b))
+  ?:  ?=(float-systems typ)  !(float-equ typ a b)
   ?!(=(a b))
 ::
 ::  gt
@@ -1147,7 +1139,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`a)
-  ?:  =(typ ~.rd)  (gth:rd a ?@(x x ;;(@ +.x)))
+  ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) a)
   ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
   (gth a ?@(x x ;;(@ +.x)))
 ::
@@ -1158,7 +1150,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha `@t`b ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (gth:rd ?@(x x ;;(@ +.x)) b)
+  ?:  ?=(float-systems typ)  (float-lth typ b ?@(x x ;;(@ +.x)))
   ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
   (gth ?@(x x ;;(@ +.x)) b)
 ::
@@ -1171,13 +1163,13 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gth:rd x ;;(@ y))
+    ?:  ?=(float-systems typ)  (float-lth typ ;;(@ y) x)
     ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
     (gth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))
-  ?:  =(typ ~.rd)  (gth:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.y) ;;(@ +.x))
   ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
   (gth ;;(@ +.x) ;;(@ +.y))
 ::
@@ -1187,7 +1179,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha b a)
-  ?:  =(typ ~.rd)  (gth:rd a b)
+  ?:  ?=(float-systems typ)  (float-lth typ b a)
   ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) --1)
   (gth a b)
 ::
@@ -1199,7 +1191,7 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) a)
-  ?:  =(typ ~.rd)  (gte:rd a ?@(x x ;;(@ +.x)))
+  ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) a)
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
   (gte a ?@(x x ;;(@ +.x)))
 ::
@@ -1209,7 +1201,7 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (gte:rd ?@(x x ;;(@ +.x)) b)
+  ?:  ?=(float-systems typ)  (float-lte typ b ?@(x x ;;(@ +.x)))
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
   (gte ?@(x x ;;(@ +.x)) b)
 ::
@@ -1221,12 +1213,12 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gte:rd x ;;(@ y))
+    ?:  ?=(float-systems typ)  (float-lte typ ;;(@ y) x)
     ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
     (gte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.y) `@t`;;(@ +.x))
-  ?:  =(typ ~.rd)  (gte:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.y) ;;(@ +.x))
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
   (gte ;;(@ +.x) ;;(@ +.y))
 ::
@@ -1235,7 +1227,7 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`b `@t`a)
-  ?:  =(typ ~.rd)  (gte:rd a b)
+  ?:  ?=(float-systems typ)  (float-lte typ b a)
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) -1))
   (gte a b)
 ::
@@ -1248,7 +1240,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (lth:rd a ?@(x x ;;(@ +.x)))
+  ?:  ?=(float-systems typ)  (float-lth typ a ?@(x x ;;(@ +.x)))
   ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
   (lth a ?@(x x ;;(@ +.x)))
 ::
@@ -1259,7 +1251,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`b)
-  ?:  =(typ ~.rd)  (lth:rd ?@(x x ;;(@ +.x)) b)
+  ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) b)
   ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
   (lth ?@(x x ;;(@ +.x)) b)
 ::
@@ -1272,13 +1264,13 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`x `@t`;;(@ y))
-    ?:  =(typ ~.rd)  (lth:rd x ;;(@ y))
+    ?:  ?=(float-systems typ)  (float-lth typ x ;;(@ y))
     ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
     (lth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
-  ?:  =(typ ~.rd)  (lth:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.x) ;;(@ +.y))
   ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
   (lth ;;(@ +.x) ;;(@ +.y))
 ::
@@ -1288,7 +1280,7 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha `@t`a `@t`b)
-  ?:  =(typ ~.rd)  (lth:rd a b)
+  ?:  ?=(float-systems typ)  (float-lth typ a b)
   ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) -1)
   (lth a b)
 ::
@@ -1300,7 +1292,7 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (lte:rd a ?@(x x ;;(@ +.x)))
+  ?:  ?=(float-systems typ)  (float-lte typ a ?@(x x ;;(@ +.x)))
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
   (lte a ?@(x x ;;(@ +.x)))
 ::
@@ -1310,7 +1302,7 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) b)
-  ?:  =(typ ~.rd)  (lte:rd ?@(x x ;;(@ +.x)) b)
+  ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) b)
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
   (lte ?@(x x ;;(@ +.x)) b)
 ::
@@ -1322,12 +1314,12 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`x `@t`;;(@ y))
-    ?:  =(typ ~.rd)  (lte:rd x ;;(@ y))
+    ?:  ?=(float-systems typ)  (float-lte typ x ;;(@ y))
     ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
     (lte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
-  ?:  =(typ ~.rd)  (lte:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.x) ;;(@ +.y))
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
   (lte ;;(@ +.x) ;;(@ +.y))
 ::
@@ -1336,7 +1328,7 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a `@t`b)
-  ?:  =(typ ~.rd)  (lte:rd a b)
+  ?:  ?=(float-systems typ)  (float-lte typ a b)
   ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) --1))
   (lte a b)
 ::
@@ -1348,8 +1340,7 @@
   |-
   ?~  b  %.n
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ a -.b)
     =(a -.b)
   ?:  match  %.y
   $(b +.b)
@@ -1362,8 +1353,7 @@
   |-
   ?~  b  %.n
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ val -.b)
     =(val -.b)
   ?:  match  %.y
   $(b +.b)
@@ -1376,8 +1366,7 @@
   |-
   ?~  b  %.y
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ a -.b)
     =(a -.b)
   ?:  match  %.n
   $(b +.b)
@@ -1390,8 +1379,7 @@
   |-
   ?~  b  %.y
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ val -.b)
     =(val -.b)
   ?:  match  %.n
   $(b +.b)

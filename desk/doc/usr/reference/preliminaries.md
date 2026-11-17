@@ -213,10 +213,10 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @p   | ship name            | ~sampel-palnet | ~sampel-palnet |
 |      |                      | sampel-palnet  |  |
 | @q   | phonemic base        | **not supported** | **not supported** |
-| @rh  | half float (16b)     | **not supported** | **not supported** |
+| @rh  | half float (16b)     | .\~\~3.14, .~~-3.14 | .\~\~3.14, .~~-3.14 |
 | @rs  | single float (32b)   | .3.14, .-3.14 | .3.14, .-3.14 |
 | @rd  | double float (64b)   | \.\~3.14, .~-3.14 | \.\~3.14, .~-3.14 |
-| @rq  | quad float (128b)    | **not supported** | **not supported** |
+| @rq  | quad float (128b)    | .\~\~\~3.14, .~~~-3.14 | .\~\~\~3.14, .~~~-3.14 |
 | @sb  | signed binary        | --0b10.0000 | --0b10.0000 |
 |      |                      | -0b10.0000 | -0b10.0000 |
 | @sd  | signed decimal       | --20, -20 | --20, -20 |
