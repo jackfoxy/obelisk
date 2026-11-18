@@ -3,10 +3,6 @@
 
 ##  V1.0
 
-* __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(\*), SUM(\*).
-
-* __GROUP BY...HAVING__ -- as in SQL.
-
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
@@ -42,7 +38,7 @@
 
 * __Localization of date/time__ -- pass timezoneoffset @dr to server
 
-* __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
+* __Advanced aggregate features__ -- like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
 
 * __String formatting__ -- date formatting, other string formatting (extension of STRING())
 

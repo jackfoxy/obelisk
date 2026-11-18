@@ -13,14 +13,15 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
   ] [ ...n ]
   [ SCALARS { <name> <scalar-function> } [ ...n ]]
   [ WHERE <predicate> ]
-  [ GROUP BY { <qualified-column> 
-               | <column-alias> 
+  [ GROUP BY { <qualified-column>
+               | <column-alias>
                | <column-ordinal> } [ ,...n ]
-    [ HAVING <predicate> ]
   ]
+  [ HAVING <predicate> ]
   SELECT [ TOP <n> ]
     { * | { [<ship-qualifier>]<table-or-view> | <alias> }.*
         | <scalar-node> [ AS <column-alias> ]
+        | <aggregate-function> [ AS <column-alias> ]
     } [ ,...n ]
   [ UNION
     | EXCEPT
@@ -206,10 +207,28 @@ When a `FROM` clause contains an outer join, joins are performed in the order wr
 **`<as-of>`**
 Timestamp for crud-txn of table data. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
-**`HAVING`**
-`HAVING <predicate>` filters aggregated rows returned from the `<query>`. The column references in the predicate must be one of the grouping columns or be contained in an aggregate function.
+**`GROUP BY`**
+`GROUP BY` groups the rows of the query, after `WHERE`, by the values of its columns: the query returns one row per group of rows with equal `GROUP BY` values. Each `GROUP BY` column is one of:
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
+* `<column-alias>` -- an output column name of the `SELECT`, which may name a scalar, e.g. `SELECT YEAR(hire-date) AS hired ... GROUP BY hired`. An output name takes precedence over a source column of the same name, as for `ORDER BY`.
+* `<qualified-column>` -- any column of the `FROM` relations, or a scalar of the `SCALARS` clause by name.
+* `<column-ordinal>` -- the 1-based position of a `SELECT` column.
+
+A query with `GROUP BY`, `HAVING`, or an aggregate function is grouped. Without `GROUP BY` all its rows are one group, even when there are none. Every column of the `SELECT` and `HAVING` of a grouped query must be a `GROUP BY` column or within an aggregate function; `*` and `<alias>.*` are not allowed. Scalars over `GROUP BY` columns and aggregates are allowed.
+
+Groups are of equal values, so `.~0` and `.~-0`, or `5` and `--5` of different numeric types, group together. Rows lacking a `GROUP BY` column (from an outer join) form a group of their own, which lacks that column.
+
+See [Aggregate Functions](aggregates.md).
+
+**`HAVING`**
+`HAVING <predicate>` filters the groups of a grouped query, as `WHERE` filters rows. Its column references must be `GROUP BY` columns or within an aggregate function, and it may use aggregates not selected.
+
+```
+FROM emp
+GROUP BY dept
+HAVING COUNT(*) > 2 AND MAX(pay) < 100
+SELECT dept, AVG(pay);
+```
 
 **`ORDER BY`**
 Orders the rows of the result. Each `ORDER BY` column is ascending unless followed by `DESC`; `ASC` is the default. Each `ORDER BY` column is one of:
@@ -227,8 +246,6 @@ When the `ORDER BY` columns do not order the returned rows totally (two returned
 `ORDER BY` following a set operation orders the combined result and may only name output columns or ordinals.
 
 `ORDER BY` in a CTE, or in any query prior to the last step in a `<query>` involving set operations, is ignored unless `TOP` is specified in the `SELECT` statement.
-
-*GROUP BY supported in urQL parser, not yet supported in Obelisk runtime*
 
 ### Predicate Arguments
 

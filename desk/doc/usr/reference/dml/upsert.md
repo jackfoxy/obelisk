@@ -40,7 +40,7 @@ columnwise.
 
 **`<query>`**
 A query or set operation query whose rows are upserted into target, as in
-[`INSERT`](/docs/usr/reference/dml-insert.md). Output columns match target
+[`INSERT`](/docs/usr/reference/dml/insert.md). Output columns match target
 columns by position and aura.
 
 **`<as-of>`**

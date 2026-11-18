@@ -144,10 +144,6 @@
       ~
       ~
 ++  value-literals   [[%value-literals %ud '3;2;1'] ~ ~]
-++  aggregate-count-foobar
-  :+  %aggregate
-      function='count'
-      [%unqualified-column name='foobar' alias=~]
 ++  literal-10           [[%ud 10] ~ ~]
 ::
 ::  re-used simple predicates
@@ -1342,71 +1338,25 @@
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
 ::
-::  aggregate inequality
-++  test-predicate-33
-  =/  select  "from foo where  count( foobar )  > 10 select * "
-  =/  pred=(tree predicate-component:ast)
-        [%gt [aggregate-count-foobar ~ ~] literal-10]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+::  aggregates are not allowed in WHERE
+++  test-fail-predicate-33
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where  count( foobar )  > 10 select * "
 ::
-::  aggregate inequality, no whitespace
-++  test-predicate-34
-  =/  select  "from foo where count(foobar) > 10 select *"
-  =/  pred=(tree predicate-component:ast)
-        [%gt [aggregate-count-foobar ~ ~] literal-10]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+++  test-fail-predicate-34
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where count(foobar) > 10 select *"
 ::
-::  aggregate equality
-++  test-predicate-35
-  =/  select  "from foo where bar = count(foobar) select *"
-  =/  pred=(tree predicate-component:ast)
-        [%eq bar [aggregate-count-foobar ~ ~]]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+::  an aggregate in an inline scalar of WHERE
+++  test-fail-predicate-35
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where bar = ABS(SUM(foobar)) select *"
 ::
 ::  complext predicate, bug test
 ++  test-predicate-36
@@ -2578,6 +2528,56 @@
               select-all-columns
               order-by=~
               ==
+::
+::  the legacy Y and N alone are loobean literals, before a column of the
+::  name
+++  test-predicate-loobean-00
+  =/  expected
+    %-  from-foo-where
+    :+  %or
+      [%eq foo [[%f %.y] ~ ~]]
+    [%neq [[%f %.n] ~ ~] foo]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = Y OR n <> foo SELECT *"
+::
+::  %.y and %.n are loobean literals
+++  test-predicate-loobean-02
+  =/  expected
+    %-  from-foo-where
+    :+  %or
+      [%eq foo [[%f %.y] ~ ~]]
+    [%neq [[%f %.n] ~ ~] foo]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = %.y OR %.n <> foo SELECT *"
+::
+::  Y.foo is the column foo of the relation aliased Y
+++  test-predicate-loobean-01
+  =/  qt=qualified-table:ast
+    [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' `'Y']
+  =/  pred=(tree predicate-component:ast)
+    [%eq [[%qualified-column qt 'foo' ~] ~ ~] [[%f %.y] ~ ~]]
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %query
+            :*  %query
+                [~ [%from relation-id=qt as-of=~ joins=~]]
+                scalars=~
+                pred
+                group-by=~
+                having=~
+                select-all-columns
+                order-by=~
+                ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo Y WHERE Y.foo = Y SELECT *"
+::
 ::
 ::  <column> = <date>
 ++  test-predicate-da-00

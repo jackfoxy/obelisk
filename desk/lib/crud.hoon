@@ -1,5 +1,5 @@
 /-  ast=obelisk-ast, *obelisk, *server-state-1
-/+  *utils, *selections, *predicate, mip, fmt=format
+/+  *utils, *selections, *predicate, *scalars, mip, fmt=format
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -975,6 +975,7 @@
   ::  any other part of the state.
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  join-return
+  ?:  (grouped-query q)  (do-grouped-query q named-ctes)
   :: literal/scalar only
   ?~  from.q
     =/  resolved-scalars
@@ -1031,6 +1032,629 @@
                 |=(a=joined-row (filter a))
     join-return
   (need (select-joined q named-ctes join-return ~))
+::
+::
+::  +|  grouping
+::
+::  A grouped query (GROUP BY, HAVING, or an aggregate function) runs in
+::  three steps.  The inner query, the FROM and WHERE of the query, selects
+::  every source column and, as hidden columns, the GROUP BY values
+::  (group.<k>) and the aggregate arguments (argument.<j>).  Its rows are
+::  grouped into the group relation, a row per group of its group values
+::  and aggregate results, each result named as its aggregate scalar
+::  (aggregate.<i>).  The outer query selects from the group relation as a
+::  CTE: the SELECT, HAVING as its WHERE, and the scalars they use, with a
+::  grouped column or scalar reading its group value and an aggregate
+::  scalar its result.  A value that does not exist is absent from its
+::  group row, which is then of another row type.
+::
++$  column-ref  $%(qualified-column:ast unqualified-column:ast)
++$  group-source  $%([%column column=column-ref] [%scalar name=@tas])
++$  aggregate-spec
+  $:  name=@tas
+      function=aggregate-function:ast
+      distinct=?
+      argument=(unit @tas)
+  ==
++$  group-row  [types=(map @tas @ta) data=(map @tas @)]
+::
+++  group-relation-name  `@tas`'group.relation'
+::
+++  grouped-query
+  ::  %.y when q groups its rows: GROUP BY, HAVING, or an aggregate
+  |=  q=query:ast
+  ^-  ?
+  ?|  ?=(^ group-by.q)
+      ?=(^ having.q)
+      (lien scalars.q |=(s=scalar:ast ?=(%aggregate -.f.s)))
+  ==
+::
+++  do-grouped-query
+  |=  [q=query:ast =named-ctes]
+  ^-  join-return
+  ?~  from.q
+    ~|("GROUP BY, HAVING, and aggregate functions require FROM" !!)
+  =/  selected=(list selected-column:ast)  columns.select.q
+  =/  scalar-pairs=(list [@tas scalar-function:ast])
+    (turn scalars.q |=(s=scalar:ast `[@tas scalar-function:ast]`[name.s f.s]))
+  =/  scalar-defs=(map @tas scalar-function:ast)  (malt scalar-pairs)
+  =/  dependent=(set @tas)  (aggregate-dependent scalars.q)
+  ?.  =(~ (~(int in (scalar-refs predicate.q)) dependent))
+    ~|("aggregate functions are not allowed in WHERE" !!)
+  =/  groups=(list group-source)
+    %+  turn  group-by.q
+    |=  g=grouping-column:ast
+    (resolve-group-source g selected scalar-defs dependent)
+  =/  group-names=(list @tas)
+    =<  p
+    (spin groups 0 |=([* k=@ud] [(indexed-name "group" k) +(k)]))
+  =/  group-items=(list selected-column:ast)
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list selected-column:ast)
+    ?~  rest  ~
+    ?~  names  ~
+    :_  $(rest t.rest, names t.names)
+    ?-  -.i.rest
+      %column  (alias-column column.i.rest i.names)
+      %scalar  [%selected-scalar name.i.rest `i.names]
+    ==
+  =/  aggregates=(list scalar:ast)
+    (skim scalars.q |=(s=scalar:ast ?=(%aggregate -.f.s)))
+  =/  arguments
+    =/  rest  aggregates
+    =/  j  0
+    =|  specs=(list aggregate-spec)
+    =|  items=(list selected-column:ast)
+    =|  argument-scalars=(list scalar:ast)
+    |-  ^-  $:  (list aggregate-spec)
+                (list selected-column:ast)
+                (list scalar:ast)
+            ==
+    ?~  rest  [(flop specs) (flop items) (flop argument-scalars)]
+    ?>  ?=(%aggregate -.f.i.rest)
+    =/  agg=aggregate:ast  f.i.rest
+    =/  arg=@tas  (indexed-name "argument" j)
+    =/  selection  (argument-selection arg argument.agg)
+    %=  $
+      rest   t.rest
+      j      +(j)
+      specs
+        :_  specs
+        :^  name.i.rest
+            function.agg
+            distinct.agg
+            ?~(argument.agg ~ `arg)
+      items  ?~(-.selection items [u.-.selection items])
+      argument-scalars
+        ?~(+.selection argument-scalars [u.+.selection argument-scalars])
+    ==
+  ::  the inner query: the rows to group
+  =/  inner-scalars=(list scalar:ast)
+    %+  weld
+      (skip scalars.q |=(s=scalar:ast (~(has in dependent) name.s)))
+    +>.arguments
+  =/  all-columns=(list selected-column:ast)  ~[[%all %all]]
+  =/  argument-items=(list selected-column:ast)  +<.arguments
+  =/  inner-selected=(list selected-column:ast)
+    (weld all-columns (weld group-items argument-items))
+  =/  qi=query:ast
+    %=  q
+      scalars         inner-scalars
+      group-by        ~
+      having          ~
+      order-by        ~
+      top.select      ~
+      columns.select  inner-selected
+    ==
+  =/  jr-i=join-return  (do-query qi named-ctes %.n)
+  =.  state  server.jr-i
+  =/  ctes=^named-ctes
+    %+  ~(put by named-ctes)  group-relation-name
+    %+  set-query-cte-relation  group-relation-name
+    (group-rows jr-i group-names -.arguments)
+  ::  the outer query: the groups
+  =/  column-groups=(list [@tas column-ref])
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list [@tas column-ref])
+    ?~  rest  ~
+    ?~  names  ~
+    =/  tail  $(rest t.rest, names t.names)
+    ?.  ?=(%column -.i.rest)  tail
+    [[i.names column.i.rest] tail]
+  =/  scalar-groups=(list [@tas @tas])
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list [@tas @tas])
+    ?~  rest  ~
+    ?~  names  ~
+    =/  tail  $(rest t.rest, names t.names)
+    ?.  ?=(%scalar -.i.rest)  tail
+    [[name.i.rest i.names] tail]
+  =/  group-value
+    |=  [name=@tas column=@tas]
+    ^-  scalar:ast
+    [%scalar name [%coalesce ~[[%unqualified-column column ~]]]]
+  ::  the aggregates and grouped scalars read the group relation
+  =/  aggregate-names=(list @tas)
+    (turn aggregates |=(s=scalar:ast `@tas`name.s))
+  =/  scalar-group-names=(list @tas)
+    (turn scalar-groups |=([name=@tas @tas] `@tas`name))
+  =/  stop=(set @tas)  (silt (weld aggregate-names scalar-group-names))
+  =/  selected-scalars=(list @tas)
+    %+  murn  selected
+    |=  s=selected-column:ast
+    ^-  (unit @tas)
+    ?.(?=(%selected-scalar -.s) ~ `name.s)
+  =/  roots=(set @tas)
+    (~(uni in (scalar-refs having.q)) (silt selected-scalars))
+  =/  needed=(set @tas)  (needed-scalars scalars.q roots stop)
+  =/  aggregate-values=(list scalar:ast)
+    (turn aggregates |=(s=scalar:ast (group-value name.s name.s)))
+  =/  scalar-group-values=(list scalar:ast)
+    (turn scalar-groups group-value)
+  =/  needed-outer=(list scalar:ast)
+    %+  murn  scalars.q
+    |=  s=scalar:ast
+    ^-  (unit scalar:ast)
+    ?.  (~(has in needed) name.s)  ~
+    ?:  (~(has in stop) name.s)  ~
+    =/  f=scalar-function:ast
+      ;;(scalar-function:ast (rewrite-group-columns f.s column-groups))
+    `s(f f)
+  =/  outer-scalars=(list scalar:ast)
+    (weld aggregate-values (weld scalar-group-values needed-outer))
+  =/  outer-selected=(list selected-column:ast)
+    %+  turn  selected
+    |=  s=selected-column:ast
+    ^-  selected-column:ast
+    ?+  -.s  s
+      %all
+        ~|("SELECT * is not allowed with GROUP BY or aggregates" !!)
+      %all-object
+        ~|("SELECT <alias>.* is not allowed with GROUP BY or aggregates" !!)
+      %qualified-column
+        =/  c  ;;(qualified-column:ast s)
+        :+  %unqualified-column
+            (group-column c column-groups)
+            `(fall alias.c name.c)
+      %unqualified-column
+        =/  c  ;;(unqualified-column:ast s)
+        :+  %unqualified-column
+            (group-column c column-groups)
+            `(fall alias.c name.c)
+    ==
+  =/  qo=query:ast
+    %=  q
+      from            `[%from [%cte-name group-relation-name ~] ~ ~]
+      scalars         outer-scalars
+      predicate
+        ;;(predicate:ast (rewrite-group-columns having.q column-groups))
+      group-by        ~
+      having          ~
+      order-by        ~
+      columns.select  outer-selected
+    ==
+  =/  jr-o=join-return  (do-query qo ctes %.n)
+  ::  the source relations of the result are those of the inner query
+  %=  jr-o
+    set-tables
+      %+  weld  (leading-result-tables set-tables.jr-o)
+      (source-set-tables set-tables.jr-i)
+  ==
+::
+++  resolve-group-source
+  ::  what a GROUP BY column groups by: a SELECT output column (an output
+  ::  name first, as for ORDER BY, or an ordinal), a scalar, or a source
+  ::  column
+  |=  $:  g=grouping-column:ast
+          selected=(list selected-column:ast)
+          scalar-defs=(map @tas scalar-function:ast)
+          dependent=(set @tas)
+          ==
+  ^-  group-source
+  =/  item=(unit selected-column:ast)
+    ?@  g
+      ?:  (gth g (lent selected))
+        ~|  "GROUP BY: column ordinal {<g>} exceeds the selected columns"
+            !!
+      `(snag (dec g) selected)
+    ?:  ?=(qualified-column:ast g)  ~
+    =/  named=(list selected-column:ast)
+      %+  skim  selected
+      |=(s=selected-column:ast =(`name.g (selected-output-name s)))
+    ?~  named  ~
+    ?^  t.named  ~|("GROUP BY: column {<name.g>} is ambiguous in SELECT" !!)
+    `i.named
+  =/  source=group-source
+    ?~  item
+      ?>  ?=(^ g)
+      ?:  ?&  ?=(unqualified-column:ast g)
+              (~(has by scalar-defs) name.g)
+          ==
+        [%scalar name.g]
+      [%column g]
+    ?+  -.u.item  ~|("GROUP BY: cannot group by {<u.item>}" !!)
+      %qualified-column    [%column ;;(qualified-column:ast u.item)]
+      %unqualified-column  [%column ;;(unqualified-column:ast u.item)]
+      %selected-scalar     [%scalar name:;;(selected-scalar:ast u.item)]
+    ==
+  ?.  ?=(%scalar -.source)  source
+  ?.  (~(has in dependent) name.source)  source
+  ~|("GROUP BY: cannot group by an aggregate function" !!)
+::
+++  selected-output-name
+  ::  the lower case output name of a SELECT column, if it has one
+  |=  s=selected-column:ast
+  ^-  (unit @t)
+  =/  out=(unit @t)
+    ?+  -.s  ~
+      %qualified-column     `(fall alias.s name.s)
+      %unqualified-column   `(fall alias.s name.s)
+      %selected-value       alias.s
+      %selected-scalar      `(fall alias.s name.s)
+      %selected-cte-column  `(fall alias.s name.s)
+    ==
+  ?~  out  ~
+  `(crip (cass (trip u.out)))
+::
+++  alias-column
+  |=  [c=column-ref alias=@tas]
+  ^-  selected-column:ast
+  ?:  ?=(qualified-column:ast c)  c(alias `alias)
+  c(alias `alias)
+::
+++  argument-selection
+  ::  the inner query column, aliased name, of an aggregate argument, and
+  ::  the scalar computing it when it is a scalar function
+  |=  [name=@tas argument=(unit scalar-node:ast)]
+  ^-  [(unit selected-column:ast) (unit scalar:ast)]
+  ?~  argument  [~ ~]
+  ::  tested by tag as an untyped noun, as +evaluate-datum tests: ?= of the
+  ::  recursive scalar-function type does not compile in reasonable time
+  =/  raw=*  u.argument
+  ?:  ?=([%qualified-column *] raw)
+    [`(alias-column ;;(qualified-column:ast raw) name) ~]
+  ?:  ?=([%unqualified-column *] raw)
+    [`(alias-column ;;(unqualified-column:ast raw) name) ~]
+  ?:  ?=([%scalar-name @] raw)
+    [`[%selected-scalar ;;(@tas +.raw) `name] ~]
+  ?:  ?=([%cte-column @ @] raw)
+    [`[%selected-cte-column ;;(@tas +<.raw) ;;(@tas +>.raw) `name] ~]
+  ::  a dime, but not a function of no arguments
+  ?:  ?&  ?=([@ @] raw)
+          ?!(?=([?(%e %getutcdate %phi %pi %tau %version) ~] raw))
+      ==
+    [`[%selected-value ;;(dime raw) `name] ~]
+  :-  `[%selected-scalar name `name]
+  `[%scalar name ;;(scalar-function:ast raw)]
+::
+++  indexed-name
+  |=  [prefix=tape i=@ud]
+  ^-  @tas
+  (crip "{prefix}.{<i>}")
+::
+++  scalar-refs
+  ::  the scalar names a scalar function, predicate, or other noun uses
+  |=  n=*
+  ^-  (set @tas)
+  ?@  n  ~
+  ?:  ?=([%scalar-name @] n)  (silt ~[`@tas`+.n])
+  ::  bound before the wet +uni, which loops on a self-reference
+  =/  head=(set @tas)  $(n -.n)
+  =/  tail=(set @tas)  $(n +.n)
+  (~(uni in head) tail)
+::
+++  aggregate-dependent
+  ::  the aggregate scalars and the scalars using them
+  |=  scalars=(list scalar:ast)
+  ^-  (set @tas)
+  =/  dependent  *(set @tas)
+  |-  ^-  (set @tas)
+  ?~  scalars  dependent
+  =?  dependent  ?|  ?=(%aggregate -.f.i.scalars)
+                     ?!(=(~ (~(int in (scalar-refs f.i.scalars)) dependent)))
+                 ==
+    (~(put in dependent) name.i.scalars)
+  $(scalars t.scalars)
+::
+++  needed-scalars
+  ::  the scalars of roots and the scalars they use, short of the scalars
+  ::  of stop, which read the group relation
+  |=  [scalars=(list scalar:ast) roots=(set @tas) stop=(set @tas)]
+  ^-  (set @tas)
+  =/  rest  (flop scalars)
+  =/  needed  roots
+  |-  ^-  (set @tas)
+  ?~  rest  needed
+  ?.  ?&  (~(has in needed) name.i.rest)
+          ?!((~(has in stop) name.i.rest))
+      ==
+    $(rest t.rest)
+  $(rest t.rest, needed (~(uni in needed) (scalar-refs f.i.rest)))
+::
+++  group-column
+  ::  the group relation column of a grouped column reference
+  |=  $:  ref=column-ref
+          groups=(list [@tas column-ref])
+          ==
+  ^-  @tas
+  =/  ref-name=@tas  (column-name ref)
+  =/  hits=(list @tas)
+    %+  murn  groups
+    |=  [name=@tas column=column-ref]
+    ^-  (unit @tas)
+    ?.  =((column-name column) ref-name)  ~
+    ?.  ?=(qualified-column:ast column)  `name
+    ?.  ?=(qualified-column:ast ref)  `name
+    ?.  .=  (normalize-qt-alias qualifier.column)
+            (normalize-qt-alias qualifier.ref)
+      ~
+    `name
+  ?~  hits
+    ~|  "column {<ref-name>} must be in GROUP BY or in an aggregate function"
+        !!
+  ?^  t.hits  ~|("column {<ref-name>} is ambiguous in GROUP BY" !!)
+  i.hits
+::
+++  column-name
+  ::  the name of a column reference
+  |=  c=column-ref
+  ^-  @tas
+  ?:(?=(qualified-column:ast c) name.c name.c)
+::
+++  rewrite-group-columns
+  ::  n with each column reference reading its group relation column
+  |=  $:  n=*
+          groups=(list [@tas column-ref])
+          ==
+  ^-  *
+  ?@  n  n
+  ?:  ?=([%qualified-column [%qualified-table *] @ *] n)
+    [%unqualified-column (group-column ;;(qualified-column:ast n) groups) ~]
+  ?:  ?=([%unqualified-column @ *] n)
+    [%unqualified-column (group-column ;;(unqualified-column:ast n) groups) ~]
+  [$(n -.n) $(n +.n)]
+::
+++  leading-result-tables
+  ::  the result set-tables leading the source set-tables
+  |=  set-tables=(list set-table)
+  ^-  (list set-table)
+  ?~  set-tables  ~
+  ?^  relation-id.i.set-tables  ~
+  [i.set-tables $(set-tables t.set-tables)]
+::
+++  group-rows
+  ::  the group relation of the inner query rows: a row per group of rows of
+  ::  equal group values, of the group values and the aggregate results.
+  ::  Without GROUP BY all rows, even none, are one group.
+  |=  $:  jr=join-return
+          group-names=(list @tas)
+          specs=(list aggregate-spec)
+          ==
+  ^-  join-return
+  =/  tables=(list set-table)  (leading-result-tables set-tables.jr)
+  =/  base=(unit set-table)  ?~(tables ~ `i.tables)
+  ::  each wet product typed before the next wet gate sees it
+  =/  per-table=(list (list group-row))
+    %+  turn  tables
+    |=  st=set-table
+    ^-  (list group-row)
+    =/  pairs=(list [@tas @ta])
+      (turn columns.st |=(c=column:ast [name.c type.c]))
+    =/  types=(map @tas @ta)  (malt pairs)
+    (turn indexed-rows.st |=(r=indexed-row `group-row`[types data.r]))
+  =/  rows=(list group-row)  (zing per-table)
+  =/  groups=(map (list (unit @)) [(list (unit dime)) (list group-row)])
+    %+  roll  rows
+    |=  $:  r=group-row
+            acc=(map (list (unit @)) [(list (unit dime)) (list group-row)])
+            ==
+    ^-  (map (list (unit @)) [(list (unit dime)) (list group-row)])
+    =/  values=(list (unit dime))  (turn group-names (cury row-value r))
+    =/  key=(list (unit @))
+      (turn values |=(v=(unit dime) (bind v value-key)))
+    =/  prior  (~(get by acc) key)
+    %+  ~(put by acc)  key
+    ?~(prior [values ~[r]] [-.u.prior [r +.u.prior]])
+  =?  groups  &(=(~ group-names) =(~ groups))
+    (~(put by groups) ~ [~ ~])
+  =/  out-rows=(list (list [@tas dime]))
+    %+  turn  ~(val by groups)
+    |=  [values=(list (unit dime)) members=(list group-row)]
+    ^-  (list [@tas dime])
+    =/  results=(list [@tas dime])
+      %+  murn  specs
+      |=  a=aggregate-spec
+      ^-  (unit [@tas dime])
+      =/  result  (aggregate-result a members)
+      ?~(result ~ `[name.a u.result])
+    (weld (name-values group-names values) results)
+  =/  by-type=(map (list column:ast) (list indexed-row))
+    %+  roll  out-rows
+    |=  $:  cells=(list [@tas dime])
+            acc=(map (list column:ast) (list indexed-row))
+            ==
+    ^-  (map (list column:ast) (list indexed-row))
+    =/  plain=(list column:ast)
+      (turn cells |=([n=@tas d=dime] `column:ast`[%column n p.d 0]))
+    =/  cols=(list column:ast)  (addr-columns plain)
+    =/  pairs=(list [@tas @])  (turn cells |=([n=@tas d=dime] [n q.d]))
+    =/  data=(map @tas @)  (malt pairs)
+    (~(put by acc) cols [[%indexed-row ~ data] (~(gut by acc) cols ~)])
+  =/  populated=(list set-table)
+    %+  turn  ~(tap by by-type)
+    |=  [cols=(list column:ast) r=(list indexed-row)]
+    (group-set-table base cols r)
+  =/  full=(list column:ast)
+    (addr-columns (full-group-columns tables group-names specs))
+  ::  a row type lacking a column is one of several: the full columns lead
+  =/  group-tables=(list set-table)
+    ?:  (levy populated |=(st=set-table =(columns.st full)))
+      ?^(populated populated ~[(group-set-table base full ~)])
+    [(group-set-table base full ~) populated]
+  :*  %join-return
+      server.jr
+      (weld group-tables (source-set-tables set-tables.jr))
+      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup full)]
+      ~
+  ==
+::
+++  group-set-table
+  ::  a group relation set-table, of the times of base, a source of its rows,
+  ::  as a CTE's tables carry them
+  |=  [base=(unit set-table) cols=(list column:ast) rows=(list indexed-row)]
+  ^-  set-table
+  %*  .  *set-table
+    schema-tmsp   ?~(base ~ schema-tmsp.u.base)
+    data-tmsp     ?~(base ~ data-tmsp.u.base)
+    columns       cols
+    rowcount      (lent rows)
+    map-meta      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup cols)]
+    indexed-rows  rows
+  ==
+::
+++  full-group-columns
+  ::  every group relation column, typed by the inner query column of its
+  ::  group value or aggregate argument
+  |=  $:  tables=(list set-table)
+          group-names=(list @tas)
+          specs=(list aggregate-spec)
+          ==
+  ^-  (list column:ast)
+  ::  each wet product typed before the next wet gate sees it
+  =/  per-table=(list (list column:ast))
+    (turn tables |=(st=set-table `(list column:ast)`columns.st))
+  =/  all-columns=(list column:ast)  (zing per-table)
+  =/  types=(map @tas @ta)
+    %+  roll  all-columns
+    |=  [c=column:ast acc=(map @tas @ta)]
+    ^-  (map @tas @ta)
+    ?:((~(has by acc) name.c) acc (~(put by acc) name.c type.c))
+  %+  weld
+    %+  turn  group-names
+    |=(n=@tas `column:ast`[%column n (~(gut by types) n ~.ud) 0])
+  %+  turn  specs
+  |=  a=aggregate-spec
+  ^-  column:ast
+  =/  arg=@ta  ?~(argument.a ~.ud (~(gut by types) u.argument.a ~.ud))
+  [%column name.a (aggregate-aura function.a arg) 0]
+::
+++  row-value
+  |=  [r=group-row name=@tas]
+  ^-  (unit dime)
+  =/  v  (~(get by data.r) name)
+  ?~  v  ~
+  `[(~(got by types.r) name) u.v]
+::
+++  value-key
+  ::  an atom equal for equal values: numbers across number systems
+  |=  d=dime
+  ^-  @
+  ?.  (number-aura p.d)  q.d
+  (number-key p.d q.d)
+::
+++  name-values
+  ::  the present values of names
+  |=  [names=(list @tas) values=(list (unit dime))]
+  ^-  (list [@tas dime])
+  ?~  names  ~
+  ?~  values  ~
+  =/  rest  $(names t.names, values t.values)
+  ?~(i.values rest [[i.names u.i.values] rest])
+::
+++  distinct-values
+  ::  values without repeats, the first of equal values kept
+  |=  values=(list dime)
+  ^-  (list dime)
+  =/  seen  *(set @)
+  |-  ^-  (list dime)
+  ?~  values  ~
+  =/  key  (value-key i.values)
+  ?:  (~(has in seen) key)  $(values t.values)
+  [i.values $(values t.values, seen (~(put in seen) key))]
+::
+++  aggregate-aura
+  ::  the aura of aggregate function fn of values of aura arg
+  |=  [fn=aggregate-function:ast arg=@ta]
+  ^-  @ta
+  ?-  fn
+    %count                             ~.ud
+    ?(%bool-and %bool-or)              ~.f
+    ?(%max %min)                       arg
+    %sum                               (base-aura arg)
+    ?(%avg %stdev %stdevp %var %varp)  (fall (common-aura arg ~.rd) ~.rd)
+  ==
+::
+++  aggregate-result
+  ::  aggregate a over the rows of a group; ~ when it does not exist
+  |=  [a=aggregate-spec rows=(list group-row)]
+  ^-  (unit dime)
+  =/  values=(list dime)
+    ?~  argument.a  ~
+    (murn rows (curr row-value u.argument.a))
+  =?  values  distinct.a  (distinct-values values)
+  ?:  ?=(%count function.a)
+    `[~.ud ?~(argument.a (lent rows) (lent values))]
+  ?~  values  ~
+  =/  label=tape  (cuss (trip function.a))
+  ::  the common aura of the values
+  =/  typ=@ta
+    =/  rest=(list dime)  t.values
+    =/  acc=@ta  p.i.values
+    |-  ^-  @ta
+    ?~  rest  acc
+    =/  common  (common-aura acc p.i.rest)
+    ?~  common
+      ~|("{label}: values of @{(trip acc)} and @{(trip p.i.rest)}" !!)
+    $(rest t.rest, acc u.common)
+  ?:  ?=(?(%bool-and %bool-or) function.a)
+    ?.  =(~.f typ)
+      ~|("{label}: requires a loobean argument, not @{(trip typ)}" !!)
+    =/  yes  |=(d=dime =(%.y q.d))
+    :+  ~  ~.f
+    ::  widen: values is narrowed non-empty, which the wet gates recurse on
+    ?:  ?=(%bool-and function.a)  (levy `(list dime)`values yes)
+    (lien `(list dime)`values yes)
+  ?:  ?=(?(%max %min) function.a)
+    =/  rest=(list @)
+      (turn `(list dime)`values |=(d=dime (convert-number p.d typ q.d)))
+    =/  best=(unit @)  ~
+    |-  ^-  (unit dime)
+    ?~  rest  ?~(best ~ `[typ u.best])
+    ?~  best  $(rest t.rest, best `i.rest)
+    =/  before=?
+      ?:  ?=(%min function.a)  (order-atom typ i.rest u.best)
+      (order-atom typ u.best i.rest)
+    $(rest t.rest, best ?:(before `i.rest best))
+  ?.  (number-aura typ)
+    ~|("{label}: requires a numeric argument, not @{(trip typ)}" !!)
+  ?:  ?=(%sum function.a)
+    =/  res=@ta  (base-aura typ)
+    =/  plus  (arithmetic-gate %lus res res res)
+    =/  xs=(list @)
+      (turn `(list dime)`values |=(d=dime (convert-number p.d res q.d)))
+    `[res (roll xs |=([v=@ acc=@] ^-(@ (plus acc v))))]
+  ::  AVG, STDEV, STDEVP, VAR, VARP compute in a float of at least @rd
+  =/  float=@ta  (fall (common-aura typ ~.rd) ~.rd)
+  ?>  ?=(float-systems:ast float)
+  =/  fo  (get-float-ops float)
+  =/  xs=(list @)
+    (turn `(list dime)`values |=(d=dime (convert-number p.d float q.d)))
+  =/  n=@ud  (lent xs)
+  =/  mean=@  (div.fo (roll xs |=([v=@ acc=@] (add.fo acc v))) (sun.fo n))
+  ?:  ?=(%avg function.a)  `[float mean]
+  =/  sample=?  ?=(?(%stdev %var) function.a)
+  ?:  &(sample (lth n 2))  ~
+  =/  squares=@
+    %+  roll  xs
+    |=  [v=@ acc=@]
+    =/  d  (sub.fo v mean)
+    (add.fo acc (mul.fo d d))
+  =/  variance=@  (div.fo squares (sun.fo ?:(sample (dec n) n)))
+  ?:  ?=(?(%var %varp) function.a)  `[float variance]
+  `[float (sqt.fo variance)]
 ::
 ++  select-joined
   ::  Filter and project joined rows into a result set-table.
@@ -1544,6 +2168,8 @@
   ^-  join-return
   ?~  from.q
     jr
+  ::  a grouped query is projected by +do-grouped-query
+  ?:  (grouped-query q)  jr
   =/  f  (normalize-from u.from.q)
   ::  rows of several row types are projected per row type by +do-query
   ?:  (query-row-types f named-ctes)
@@ -2637,11 +3263,13 @@
              (set-query-cte-relation name.i.ctes jr)
       ctes   +.ctes
     ==
-  ?:  ?&  ?=(^ from.cte-q)
-          (query-row-types (normalize-from u.from.cte-q) nctes)
+  ?:  ?|  (grouped-query cte-q)
+          ?&  ?=(^ from.cte-q)
+              (query-row-types (normalize-from u.from.cte-q) nctes)
+          ==
       ==
-    ::  rows of several row types: one result set-table per row type, as for
-    ::  a set query
+    ::  rows of several row types, or of groups: one result set-table per
+    ::  row type, as for a set query
     =/  jr  (do-query cte-q nctes %.n)
     =.  state  server.jr
     =/  checked=(list (list column:ast))
@@ -2796,8 +3424,6 @@
     ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
     unqualified-column
       ~|("can't be unqualified in join" !!)
-    selected-aggregate
-      ~|("selected-aggregate not implemented" !!)
     selected-scalar
       =/  rs=resolved-scalar
         ~|  "selected scalar {<name.a>} not in resolved-scalars"
@@ -2902,8 +3528,6 @@
                           type.cte-ta
                           addr.out-ta
                       ==
-                selected-aggregate:ast
-                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
                   =/  out-name  (heading c (crip "literal"))
                   =/  out-ta  (~(got by unq-lookup) out-name)

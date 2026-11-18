@@ -231,8 +231,6 @@
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-cte-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
-    selected-aggregate:ast
-      $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-value:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-all:ast

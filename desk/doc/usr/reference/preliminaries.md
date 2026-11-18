@@ -184,7 +184,7 @@ Specifying **\<as-of>** overrides setting the schema and/or content timestamps i
 
 ## Literals
 
-urQL supports most aura types implemented in Urbit as literals for the INSERT and UPSERT commands, SELECT statement, and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT and UPSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
+urQL supports most aura types implemented in Urbit as literals for the INSERT and UPSERT commands, SELECT statement, and predicates. The *loobean* literals are Urbit's `%.y` and `%.n`. The legacy literals `Y` and `N` (either case) are also accepted; in predicates and scalar function arguments a bare `Y` or `N` is the loobean literal, so a column named `y` or `n` must be qualified there, e.g. `T1.y`. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT and UPSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
 
 Column types (auras) not supported for INSERT can only be inserted into tables through the API.
 
@@ -207,7 +207,7 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 |      |                      | d71.h19.m26 |  |
 |      |                      | d71.h19 |  |
 |      |                      | d71 |  |
-| @f   | loobean              | y, n, Y, N | Y, N |
+| @f   | loobean              | %.y, %.n (legacy y, n, Y, N) | %.y, %.n (legacy Y, N) |
 | @if  | IPv4 address         | .195.198.143.90 | .195.198.143.90 |
 | @is  | IPv6 address         | .0.0.0.0.0.1c.c3c6.8f5a | .0.0.0.0.0.1c.c3c6.8f5a |
 | @p   | ship name            | ~sampel-palnet | ~sampel-palnet |

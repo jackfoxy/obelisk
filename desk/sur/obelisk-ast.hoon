@@ -164,7 +164,6 @@
     ops-and-conjs
     datum
     value-literals
-    aggregate
     ==
 +$  predicate     (tree predicate-component)
 +$  datum 
@@ -287,7 +286,6 @@
     unqualified-column
     selected-scalar
     selected-cte-column
-    selected-aggregate
     selected-value
     selected-all
     selected-all-table
@@ -313,25 +311,12 @@
   $:  %all-object
     =qualified-table
     ==
-+$  selected-aggregate
-  $+  selected-aggregate
-  $:  %selected-aggregate
-    =aggregate
-    alias=(unit @t)
-    ==
 +$  selected-value
   $+  selected-value
   $:  %selected-value
     value=dime
     alias=(unit @t)
     ==
-+$  aggregate
-  $+  aggregate
-  $:  %aggregate
-    function=@t
-    source=aggregate-source
-    ==
-+$  aggregate-source     $%(qualified-column unqualified-column)
 +$  grouping-column      ?(qualified-column unqualified-column @ud)
 +$  ordering-column
   $+  ordering-column
@@ -707,7 +692,24 @@
     upper
     ::  system functions
     version
+    ::  aggregate functions, only in SELECT and HAVING
+    aggregate
     ==
+::
+::
+::  $aggregate: an aggregate function of a group's rows; argument is ~ for
+::  COUNT(*)
++$  aggregate
+  $+  aggregate
+  $:  %aggregate
+    function=aggregate-function
+    distinct=?
+    argument=(unit scalar-node)
+    ==
++$  aggregate-function
+  $?  %avg  %bool-and  %bool-or  %count  %max  %min  %stdev  %stdevp  %sum
+      %var  %varp
+  ==
 ::
 +$  scalar-name
   $+  scalar-name

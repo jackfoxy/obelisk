@@ -2529,34 +2529,6 @@
       [%all %all]
       [%all-object qualifier=qt2]
       ==
-++  aggregates
-  =/  agg-col
-    :*  %qualified-column
-        :*  %qualified-table  ship=~
-            database='UNKNOWN'
-            namespace='COLUMN-OR-CTE'
-            name='foobar'  ~
-            ==
-        column='foobar'  alias=~
-        ==
-  :~  column-foo
-      :*  %selected-aggregate
-          [%aggregate function='count' source=column-foo]
-          alias=[~ 'CountFoo']
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='count' source=column-bar]
-          alias=~
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='sum' source=column-bar]
-          alias=~
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='sum' source=agg-col]
-          alias=[~ 'foobar']
-          ==
-      ==
 ++  from-t1
   =/  qt
     :*  %qualified-table  ship=~
@@ -2942,26 +2914,6 @@
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 
-::::  to do: revive tests when group by implemented 
-::::
-::::  mixed aggregates
-::++  test-select-14
-::  =/  select  "FROM tbl1 ".
-::              "JOIN tbl2 ".
-::              "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
-::  %+  expect-eq
-::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ columns=aggregates] ~]]]]
-::    !>  (parse:parse(default-database 'db1') select)
-::::
-::::  , top, mixed aggregates, no whitespace
-::++  test-select-15
-::  =/  select  "FROM tbl1 ".
-::              "JOIN tbl2 ".
-::              "select top 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
-::  %+  expect-eq
-::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] columns=aggregates] ~]]]]
-::    !>  (parse:parse(default-database 'db1') select)
-::
 :: fail top, no top parameter, trailing whitespace
 ++  test-fail-select-16
     =/  select  "select top   * "
@@ -3018,8 +2970,14 @@
         database='db'  namespace='ns'
         name='table'  alias=~
         ==
+  ::  T1 is not a FROM alias, so it names a table of the default database
+  =/  t1
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='T1'  alias=~
+        ==
   :~  [%qualified-column qualifier=qt column='col' alias=~]
-      [%unqualified-column name='foo' alias=[~ 'T1']]
+      [%qualified-column qualifier=t1 column='foo' alias=~]
       3
       4
       ==

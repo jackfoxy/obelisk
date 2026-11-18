@@ -21,9 +21,11 @@
     /select/md                  Select
     /scry/md                    Scries and Subscriptions
     /scalars/md                 Scalars
+    /aggregates/md              Aggregate Functions
     /security-permissions/md    Security Permissions
 /dev                        Developer Docs
   /performance/md             Performance
+  /obelisk-web-parity/md      Obelisk Web Parity
   /users-guide-script/txt     Users Guide Scripts
 /release-notes/md          Release Notes
 /roadmap/md                Obelisk roadmap

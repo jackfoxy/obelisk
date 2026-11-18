@@ -108,7 +108,7 @@ The `DEFAULT` keyword may be used instead of a value to specify the column type'
 * A query with no rows inserts nothing and leaves the table's data time unchanged.
 * A query with random scalars adds the `warning: results are non-deterministic` message.
 
-Use [`UPSERT`](/docs/usr/reference/dml-upsert.md) when rows with existing
+Use [`UPSERT`](/docs/usr/reference/dml/upsert.md) when rows with existing
 primary keys should be overwritten instead of rejected.
 
 Text values use Hoon aura notation: `@t` cords are represented in single

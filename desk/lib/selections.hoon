@@ -694,8 +694,10 @@
           ==
   ^-  [@ud (list joined-row)]
   =/  mixed  (lien auras |=(u=(unit [@ta @ta]) ?=(^ u)))
-  =/  a-auras  (turn auras |=(u=(unit [@ta @ta]) ?~(u ~ `-.u.u)))
-  =/  b-auras  (turn auras |=(u=(unit [@ta @ta]) ?~(u ~ `+.u.u)))
+  =/  a-auras=(list (unit @ta))
+    (turn auras |=(u=(unit [@ta @ta]) ^-((unit @ta) ?~(u ~ `-.u.u))))
+  =/  b-auras=(list (unit @ta))
+    (turn auras |=(u=(unit [@ta @ta]) ^-((unit @ta) ?~(u ~ `+.u.u))))
   ::  build hash map from b rows keyed by b-cols values
   =/  b-map=(map (list @) (list indexed-row))
     =/  m  *(map (list @) (list indexed-row))
@@ -904,8 +906,6 @@
       ~|  "{(select-label alias.selected-column)}: column ".
           "{<name.selected-column>} not found"
       ~[(~(got by col-map) name.selected-column)]
-    selected-aggregate:ast
-      ~|("{<selected-column>} not supported" !!)
     selected-scalar:ast
       =/  rs=resolved-scalar
         ~|  "{<selected-column>} not in resolved-scalars"

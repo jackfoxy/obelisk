@@ -218,6 +218,12 @@
           (do-op +:(f.expr data-row))
   ?-  -.scalar
   ::
+    %aggregate
+      ::  a grouped query replaces its aggregates with group columns
+      ~|  "aggregate function {<function:;;(aggregate:ast scalar)>} ".
+          "is only allowed in SELECT and HAVING"
+          !!
+  ::
     %arithmetic
       %:  prepare-arithmetic  scalar
                               named-ctes

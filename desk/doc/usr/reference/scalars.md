@@ -68,7 +68,9 @@ An inline scalar function behaves exactly as if it were defined in the SCALARS c
 
 **Evaluation.** `GETUTCDATE()` returns the query time wherever it appears. Each `RAND` invocation is evaluated separately: `SELECT RAND(1, 10), RAND(1, 10)` produces two independent values.
 
-**MIN and MAX.** `MIN` and `MAX` with two arguments are scalar functions. With one argument, `MIN(col1)` and `MAX(col1)` are aggregates.
+**MIN and MAX.** `MIN` and `MAX` with two arguments are scalar functions. With one argument, `MIN(col1)` and `MAX(col1)` are aggregates (see [Aggregate Functions](aggregates.md)).
+
+**Aggregates.** In `SELECT` and `HAVING` an aggregate function may be the argument of a scalar function or an operand of arithmetic, e.g. `ROUND(AVG(pay), --2)` or `SUM(pay) / COUNT(*)`. Aggregates are not allowed in the SCALARS clause or in `WHERE`.
 
 **Not supported.** Scalar functions are not supported in `JOIN ... ON` predicates (the error is `scalar functions are not supported in this predicate`), in `INSERT` and `UPSERT` `VALUES`, in `MERGE`, or in `GROUP BY` and `ORDER BY`.
 

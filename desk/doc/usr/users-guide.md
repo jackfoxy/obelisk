@@ -233,7 +233,7 @@ SELECT col2, col1;
 ```
 
 The query may be a set operation or read a `WITH` CTE. See the
-[INSERT reference](/docs/usr/reference/dml-insert.md).
+[INSERT reference](/docs/usr/reference/dml/insert.md).
 
 Text-like literals may be written as single-quoted `@t` cords, `%`-prefixed
 `@tas` terms, or `~.`-prefixed `@ta` knots:
@@ -330,7 +330,7 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
+`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml/update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
@@ -589,7 +589,7 @@ SELECT day-name AS Day;
 ```
 Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
-Without the `ORDER BY` clause, data rows are returned in an arbitrary order. `GROUP BY` is supported by the urQL parser but not by the Obelisk runtime in the current release.
+Without the `ORDER BY` clause, data rows are returned in an arbitrary order. To summarize rows, see [GROUP BY and aggregate functions](#group-by-and-aggregate-functions).
 
 ## SCALARS
 
@@ -974,6 +974,35 @@ ORDER BY date;
 ```
 
 `ORDER BY` after a set operation (`UNION`, `EXCEPT`, ...) orders the combined result, and may only name output columns or ordinals. `TOP` is not allowed in the last query of a set operation. See [Set Operations](#set-operations).
+
+## GROUP BY and aggregate functions
+
+An aggregate function computes one value from many rows: `AVG`, `BOOL-AND`, `BOOL-OR`, `COUNT`, `MAX`, `MIN`, `STDEV`, `STDEVP`, `SUM`, `VAR`, and `VARP`. Without `GROUP BY`, a query with an aggregate summarizes all its rows in one row:
+```
+FROM adoptions
+SELECT COUNT(*) AS adoptions, SUM(adoption-fee) AS fees, MAX(adoption-date) AS latest;
+```
+
+`GROUP BY` returns one row per group of rows with equal values in its columns, and `HAVING` filters those groups as `WHERE` filters rows:
+```
+FROM adoptions
+GROUP BY species
+HAVING COUNT(*) > 1
+SELECT species, COUNT(*) AS adopted, AVG(adoption-fee) AS mean-fee
+ORDER BY adopted DESC;
+```
+
+The clauses run in order: `FROM`, `WHERE` over the rows, `GROUP BY`, `HAVING` over the groups, `SELECT`, then `ORDER BY`.
+
+Every column in the `SELECT` and `HAVING` of a grouped query must be a `GROUP BY` column or inside an aggregate function, so `SELECT *` is not allowed. `GROUP BY` names a source column, an output name of the `SELECT` (which may be a scalar, e.g. `SELECT YEAR(adoption-date) AS year ... GROUP BY year`), or a `SELECT` ordinal.
+
+Aggregates are allowed only in `SELECT` and `HAVING`, where they may be arguments of scalar functions or operands of arithmetic: `ROUND(AVG(adoption-fee), --2)`, `SUM(adoption-fee) / COUNT(*)`. An aggregate cannot be the argument of another aggregate. Order by an aggregate through its output name or ordinal. An unaliased aggregate is named `<function>-<n>` by its position, such as `count-0`.
+
+`DISTINCT` aggregates each distinct value once: `COUNT(DISTINCT species)`. `COUNT(*)` counts rows; `COUNT(<expression>)` counts the rows where the value exists.
+
+Obelisk has no nulls. A row of an outer join that matched nothing lacks the columns of the relation it did not match: aggregates skip it, except `COUNT(*)`, and rows lacking a `GROUP BY` column form a group of their own. An aggregate of no values does not exist, so it is omitted from the row, except `COUNT`, which is `0`.
+
+`BOOL-AND` and `BOOL-OR` aggregate loobeans (`@f`): `%.y` when every, or any, value is `%.y`. `AVG` and the statistics compute in `@rd`, or `@rq` for `@rq` values. `SUM` keeps the type of its values. `MIN` and `MAX` take any type, ordered as `ORDER BY` orders it. See [Aggregate Functions](/docs/usr/reference/aggregates.md) for the full reference.
 
 # Time Travel
 
