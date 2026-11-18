@@ -175,6 +175,7 @@
       =/  c=column  ;;(column col)
       =/  val  (~(got by data.row) name.c)
       ?:  =(type.c ~.t)  (trip `@t`val)
+      ?:  =(type.c ~.uc)  (slag 2 ~(rend co %$ [type.c val]))
       ~(rend co %$ [type.c val])
     %joined-row
       ?>  ?=(%qualified-column -.col)

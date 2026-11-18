@@ -34,6 +34,7 @@
 * aggregate functions AVG, BOOL-AND, BOOL-OR, COUNT, MAX, MIN, STDEV, STDEVP, SUM, VAR, VARP, with ALL and DISTINCT
 * GROUP BY and HAVING
 * loobean literals %.y and %.n; the legacy Y and N are still accepted, and are now loobeans, not column names, in predicates and scalar function arguments
+* @uc bitcoin address column type; literals 0c<address> or the bare address, verified by checksum; displayed bare
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0

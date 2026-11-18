@@ -4021,9 +4021,76 @@
                       tis
                       ==
 ++  parse-value-literal  ~+
-  ;~  pose  non-numeric-parser
+  ;~  pose  uc-literal
+            non-numeric-parser
             (sear sear-numbers numeric-characters)        :: all numeric parsers
             ==
+::
+::  bitcoin addresses, @uc
+::
+++  uc-versions
+  ::  version bytes: mainnet P2PKH and P2SH, testnet P2PKH and P2SH
+  ^-  (set @)
+  (silt `(list @)`~[0x0 0x5 0x6f 0xc4])
+++  bech32-address
+  ::  %.y when text is shaped as a bech32 (segwit) address, never @uc
+  |=  text=tape
+  ^-  ?
+  =/  lower=tape  (cass text)
+  =/  rest=(unit tape)
+    ?:  =("bcrt1" (scag 5 lower))  `(slag 5 lower)
+    ?:  ?|(=("bc1" (scag 3 lower)) =("tb1" (scag 3 lower)))
+      `(slag 3 lower)
+    ~
+  ?~  rest  %.n
+  ?&  (gte (lent u.rest) 39)
+      %+  levy  u.rest
+      |=(c=@tD ?=(^ (find ~[c] "qpzry9x8gf2tvdw0s3jn54khce6mua7l")))
+      ==
+++  base58-address
+  ::  the @uc of base58check text: 25 bytes decoded, a version byte of
+  ::  +uc-versions, and a verified checksum; else ~
+  |=  text=tape
+  ^-  (unit @uc)
+  ?.  ?&((gte (lent text) 25) (lte (lent text) 35))  ~
+  =/  decoded=(unit @)  (rust text (bass 58 (plus fem:ab)))
+  ?~  decoded  ~
+  ::  each leading 1 is a leading zero byte
+  =/  zeros=@ud
+    =/  nonzero  (find ~[%.n] (turn text |=(c=@tD =(c '1'))))
+    ?~(nonzero (lent text) u.nonzero)
+  ?.  =(25 (add zeros (met 3 u.decoded)))  ~
+  =/  payload=(unit @)  (den:fa u.decoded)
+  ?~  payload  ~
+  ?.  (~(has in uc-versions) (cut 3 [20 1] u.payload))  ~
+  `u.payload
+++  prefixed-uc
+  ::  the address of a 0c literal; an invalid address crashes
+  |=  text=tape
+  ^-  @uc
+  ?:  (bech32-address text)
+    ~|("bech32 address is not @uc: {text}" !!)
+  =/  address=(unit @uc)  (base58-address text)
+  ?~  address  ~|("invalid @uc address: 0c{text}" !!)
+  u.address
+++  bare-uc
+  ::  a bare address is @uc only when it verifies
+  |=  text=tape
+  ^-  (unit @uc)
+  ?:  (bech32-address text)
+    ~|("bech32 address is not @uc: {text}" !!)
+  (base58-address text)
+++  bare-uc-token  ~+
+  ::  a whole alphanumeric token that is a bitcoin address
+  %+  sear  bare-uc
+  ;~(sfix (plus aln) ;~(less ;~(pose dot hep) (easy ~)))
+++  uc-literal  ~+
+  ::  0c<address>, or a bare address
+  %+  stag  %uc
+  ;~  pose
+    ;~(pfix (jest '0c') (cook prefixed-uc (star aln)))
+    bare-uc-token
+  ==
 ++  insert-value-literal-leading-char
   |=  a=@
   ^-  ?
@@ -4037,7 +4104,8 @@
 ++  insert-value-default
   ;~  pose
     (cold %default (jester 'default'))
-    ;~  pose  non-numeric-parser
+    ;~  pose  uc-literal
+              non-numeric-parser
               %+  cook  |=  a=(list @t)
                             ~|  "error on numeric parser {<a>} "
                                 (scan a numeric-parser)
@@ -4230,6 +4298,7 @@
     (jest '@ta')             ::  ASCII text (knot)
     (jest '@t')              ::  UTF-8 text (cord)
     (jest '@ub')             ::  unsigned binary
+    (jest '@uc')             ::  bitcoin address
     (jest '@ud')             ::  unsigned decimal
     (jest '@uv')             ::  unsigned base32
     (jest '@uw')             ::  unsigned base64
@@ -4874,7 +4943,9 @@
     ::  <column-name>
     sym
   ==
-++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
+++  parse-qualified-column  ~+
+  ::  a bare bitcoin address is a literal, not a column
+  ;~(less bare-uc-token (cook cook-qualified-column parse-column))
 ::
 ::  predicate
 ::

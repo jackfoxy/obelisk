@@ -567,6 +567,8 @@
         [backslash (welp ~(rux at char) ~[slash])]
       ~[char]
     (weld "'" (weld escaped "'"))
+  ::  a bitcoin address displays bare, without 0c
+  ?:  =(-.value ~.uc)  (slag 2 ~(rend co %$ value))
   ~(rend co %$ value)
 ::
 ++  markdown-escape

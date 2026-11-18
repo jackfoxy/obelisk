@@ -7,8 +7,6 @@
 
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
 
-* __@uc aura__ -- Bitcoin address 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
-
 
 ## other planned functionality
 

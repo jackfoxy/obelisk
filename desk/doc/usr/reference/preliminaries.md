@@ -230,6 +230,8 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @ta  | ASCII text (knot)    | ~.foo-bar | ~.foo-bar |
 | @tas | ASCII text (term)    | %foo-bar | %foo-bar |
 | @ub  | unsigned binary      | 10.1011 | 10.1011 |
+| @uc  | bitcoin address      | 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa |
+|      |                      | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa <sup>2</sup> | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa <sup>2</sup> |
 | @ud  | unsigned decimal     | 2.222 | 2.222 |
 |      |                      | 2222 | 2222 |
 | @uv  | unsigned base32      | 0v1f.ab3ck | 0v1f.ab3ck |
@@ -238,10 +240,38 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 
  <sup>1</sup> Example of embedding single quote in @t literal.
 
+ <sup>2</sup> A bare address is `@uc` only when its checksum verifies, see Bitcoin Addresses.
+
 Text-like atom literals use their Hoon aura notation: `@t` cords are written
 in single quotes, `@ta` knots are written with `~.`, and `@tas` terms are
 written with `%`. `INSERT`, `UPSERT`, and `UPDATE` reject `@ta` and `@tas`
 atoms that do not satisfy Hoon's text sanity rules.
+
+### Bitcoin Addresses
+
+A `@uc` literal is a base58check bitcoin address, written with Hoon's `0c` prefix or bare, as wallets show it:
+
+```
+0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+```
+
+An address is 25 to 35 base58 characters that decode to 25 bytes: a version byte, a 20-byte hash, and a 4-byte checksum, the first 4 bytes of the double SHA-256 of the version byte and hash. The version byte must be one of:
+
+| Version | Network | Address type | Leading character |
+| :------ | :------ | :----------- | :---------------- |
+| `0x00` | mainnet | P2PKH | `1` |
+| `0x05` | mainnet | P2SH  | `3` |
+| `0x6f` | testnet | P2PKH | `m` or `n` |
+| `0xc4` | testnet | P2SH  | `2` |
+
+* A `0c` literal that is not a valid address crashes the command: `invalid @uc address: 0c...`.
+* A bare literal is an address only when it verifies. Otherwise it is not a `@uc`, and is read as any other literal or column name would be. A bare testnet address beginning with `m` or `n` is an address, not a column name.
+* Bech32 (segwit) addresses, `bc1...` and `tb1...`, are not `@uc` and crash the command: `bech32 address is not @uc: bc1...`.
+
+The `@uc` atom is the version byte and hash, as in Hoon. Results display the bare address. The default `@uc` is the all-zero address `1111111111111111111114oLvT2`.
+
+`@uc` is not a number: it has no arithmetic or numeric functions and no bit width. Addresses compare by equality and order by atom, which groups them by version byte. A `@uc` column may be a primary or foreign key.
 
 ## Comments
 Comment syntax in urQL differs from SQL comment syntax. urQL supports two types of comments, line comments and block comments. 
@@ -297,6 +327,7 @@ Obelisk supports the following auras (see the __Literals__ section for represent
 | @ta  | ASCII text (knot, url safe)  |
 | @tas | ASCII text (term)            |
 | @ub  | unsigned binary              |
+| @uc  | bitcoin address (base58check) |
 | @ud  | unsigned decimal             |
 | @uv  | unsigned base32              |
 | @uw  | unsigned base64              |
