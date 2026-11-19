@@ -81,7 +81,7 @@
   ?:  ?=(%.y -.r)  `this(state p.r)
   ::  if it failed, bunt the correct state type
   ::
-  %-  (slog 'old state corrupt, unable to migrate data' ~)
+  %-  (slog 'old state corrupt, unable to migrate data' p.r)
   `this(state *state-3)
 ++  on-poke
   |=  [=mark =vase]

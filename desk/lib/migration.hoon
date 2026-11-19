@@ -48,7 +48,7 @@
         tmsp.old
         namespaces.old
         tables.old
-        (upgrade-views views.old)
+        (upgrade-views name.old-db views.old)
         ==
   :*  %database
       name.old-db
@@ -61,7 +61,11 @@
       ==
 ::
 ++  upgrade-views
-  |=  old=views:state-1
+  ::  Views of database db rebuilt as current system views.  Before 1.0
+  ::  every view was a system view, and its crud-txn is of the frozen
+  ::  obelisk-ast-1, so each is built anew rather than converted.
+  ::
+  |=  [db=@tas old=views:state-1]
   ^-  views
   =/  old-views=(list [ns-rel-key:state-1 view:state-1])
     (tap:((on ns-rel-key:state-1 view:state-1) ns-rel-comp:state-1) old)
@@ -69,20 +73,26 @@
   %+  turn  old-views
   |=  [k=ns-rel-key:state-1 v=view:state-1]
   ^-  [ns-rel-key view]
-  :-  k
-  :*  %view
-      provenance.v
-      tmsp.v
-      crud-txn.v
-      column-lookup.v
-      typ-addr-lookup.v
-      columns.v
-      ordering.v
-      indices.v
-      ~
-      %.y
-      ''
-      ==
+  [k (rebuild-sys-view db k provenance.v tmsp.v)]
+::
+++  rebuild-sys-view
+  ::  the current system view k of database db
+  |=  [db=@tas k=ns-rel-key provenance=path tmsp=@da]
+  ^-  view
+  ~|  "migration: unknown view {<ns.k>}.{<rel.k>} in {<db>}"
+  ?>  =(%sys ns.k)
+  ?+  rel.k  !!
+    %databases        (sys-sys-dbs-view provenance tmsp)
+    %namespaces       (sys-namespaces-view db provenance tmsp)
+    %tables           (sys-tables-view db provenance tmsp)
+    %table-keys       (sys-table-keys-view db provenance tmsp)
+    %foreign-keys     (sys-foreign-keys-view db provenance tmsp)
+    %columns          (sys-columns-view db provenance tmsp)
+    %views            (sys-views-view db provenance tmsp)
+    %view-references  (sys-view-references-view db provenance tmsp)
+    %sys-log          (sys-sys-log-view db provenance tmsp)
+    %data-log         (sys-data-log-view db provenance tmsp)
+  ==
 ::
 ++  migrate-server-1-to-2
   ::  Add sys.foreign-keys to schema histories that predate the view.
@@ -139,7 +149,8 @@
 ++  migrate-database-0-to-1
   |=  old-db=database:oldstate
   ^-  database
-  =/  sys-1=((mop @da schema) gth)  (migrate-sys-0-to-1 sys.old-db)
+  =/  sys-1=((mop @da schema) gth)
+    (migrate-sys-0-to-1 name.old-db sys.old-db)
   :*  %database
       name.old-db
       created-provenance.old-db
@@ -151,12 +162,12 @@
       ==
 ::
 ++  migrate-sys-0-to-1
-  |=  old-sys=((mop @da schema:oldstate) gth)
+  |=  [db=@tas old-sys=((mop @da schema:oldstate) gth)]
   ^-  ((mop @da schema) gth)
   %+  gas:schema-key  *((mop @da schema) gth)
                       %+  turn  (tap:old-schema-key old-sys)
                                 |=  [kv=[@da schema:oldstate]]
-                                [-.kv (migrate-schema-0-to-1 +.kv)]
+                                [-.kv (migrate-schema-0-to-1 db +.kv)]
 ::
 ++  migrate-content-0-to-1
   |=  [sys-1=((mop @da schema) gth) old-content=((mop @da data:oldstate) gth)]
@@ -167,7 +178,7 @@
                               [-.kv (migrate-data-0-to-1 (schema-at sys-1 -.kv) +.kv)]
 ::
 ++  migrate-schema-0-to-1
-  |=  old-schema=schema:oldstate
+  |=  [db=@tas old-schema=schema:oldstate]
   ^-  schema
   :*  %schema
       provenance.old-schema
@@ -176,7 +187,7 @@
       %-  malt  %+  turn  ~(tap by tables.old-schema)
                           |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
                           [-.kv (migrate-table-0-to-1 +.kv)]
-      (upgrade-views views.old-schema)
+      (upgrade-views db views.old-schema)
       ==
 ::
 ++  migrate-data-0-to-1
