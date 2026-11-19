@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast=obelisk-ast, *server-state-1
+/-  ast=obelisk-ast, *server-state-2
 /+  *test, *sys-views, *utils
 /=  agent  /app/obelisk
 |%
@@ -138,22 +138,7 @@
 ++  db-views
     |=  [db=@tas sys-time=@da]
     ^-  (list [[@tas @tas @da] view])
-    %-  limo
-    :~  :-  [%sys %namespaces sys-time]
-            (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %tables sys-time]
-            (sys-tables-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %table-keys sys-time]
-            (sys-table-keys-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %foreign-keys sys-time]
-            (sys-foreign-keys-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %columns sys-time]
-            (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %sys-log sys-time]
-            (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %data-log sys-time]
-            (sys-data-log-view db `path`(limo `path`/test-agent) sys-time)
-        ==
+    (database-sys-views db `path`/test-agent sys-time)
 ++  sys-sys-databases-view
   |=  sys-time=@da
   =/  columns=(list column:ast)
@@ -176,6 +161,9 @@
           columns
           ~                            ::  ordering, unused
           ~
+          ~
+          %.y
+          ''
           ==
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]

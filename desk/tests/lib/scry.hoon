@@ -105,7 +105,7 @@
       !>  %-  sy
           ^-  (list @tas)
           :~  %columns  %data-log  %foreign-keys  %namespaces
-              %sys-log  %table-keys  %tables
+              %sys-log  %table-keys  %tables  %views  %view-references
           ==
     !>  ~(key by (~(got by rels) %sys))
   ::

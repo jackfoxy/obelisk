@@ -1,5 +1,5 @@
 ::
-/-  ast=obelisk-ast, *obelisk, *server-state-1
+/-  ast=obelisk-ast, *obelisk, *server-state-2
 /+  *test, *scalars, parse
 /=  agent  /app/obelisk
 /=  scry-lib  /lib/scry

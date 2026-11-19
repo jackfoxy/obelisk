@@ -1,6 +1,6 @@
 ::  Unit tests for current-state Obelisk migrations.
 ::
-/-  *server-state-1
+/-  *server-state-2
 /+  *migration, *sys-views, *test, *test-helpers, *utils
 /=  agent  /app/obelisk
 |%

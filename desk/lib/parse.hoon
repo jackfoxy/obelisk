@@ -61,6 +61,9 @@
     %:  cold  %alter-table
               ;~(plug whitespace (jester 'alter') whitespace (jester 'table'))
               ==
+    %:  cold  %alter-view
+              ;~(plug whitespace (jester 'alter') whitespace (jester 'view'))
+              ==
     %:  cold  %create-database
               ;~  plug  whitespace
                         (jester 'create')
@@ -642,9 +645,12 @@
                                                 ==
                           commands
           ==
+    %alter-view
+      =/  r=[command:ast tape]  (parse-view %alter-view q.q.command-nail)
+      $(script +.r, commands [-.r commands])
     %create-view
-      ~|  "create view error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      !!
+      =/  r=[command:ast tape]  (parse-view %create-view q.q.command-nail)
+      $(script +.r, commands [-.r commands])
     %delete
       =/  [parsed=* nail=edge]  |-
                                 =/  nail
@@ -960,17 +966,18 @@
                                 [(wonk nail) nail]
       ~|  "drop view parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
-          ?:  ?=([@ @ @ @ @ @ @] parsed)                :: force qualified view
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  [(drop-view:ast %drop-view +.parsed %.y) commands]
-            ==
-          ?:  ?=([@ @ @ @ @ @] parsed)                  :: qualified view
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  [(drop-view:ast %drop-view parsed %.n) commands]
-            ==
-          !!
+      =/  drop=drop-view:ast
+        ?:  ?=([[%force *] %as-of *] parsed)            :: force view as of
+          :^  %drop-view
+              ;;(qualified-table:ast ->.parsed)
+              %.y
+              (cook-as-of +.parsed)
+        ?:  ?=([* %as-of *] parsed)                     :: view as of
+          [%drop-view ;;(qualified-table:ast -.parsed) %.n (cook-as-of +.parsed)]
+        ?:  ?=([@ @ @ @ @ @ @] parsed)                  :: force view
+          [%drop-view ;;(qualified-table:ast +.parsed) %.y ~]
+        [%drop-view ;;(qualified-table:ast parsed) %.n ~]
+      $(script q.q.u.+3.q:nail, commands [drop commands])
     %grant
       =/  [parsed=* nail=edge]  |-
                                 =/  nail
@@ -1202,6 +1209,78 @@
 ::
 ::  parse urQL commands
 ::
+++  parse-view
+  ::  CREATE VIEW or ALTER VIEW following its keywords: the view, an
+  ::  optional AS OF, AS, then the view query.  The query is parsed with the
+  ::  view's database as the default database.  Produces the command and the
+  ::  rest of the script.
+  |=  [tag=?(%create-view %alter-view) script=tape]
+  ^-  [command:ast tape]
+  =/  header-edge=edge
+    %.  [[1 1] script]
+    ;~  plug
+      parse-qualified-3object
+      ;~(pose parse-as-of (easy ~))
+      ;~(pfix whitespace (jester 'as'))
+    ==
+  =/  header=*
+    ~|  "{(trip tag)} header:  {<`tape`(scag 100 script)>} ..."
+        (wonk header-edge)
+  =/  view=qualified-table:ast  ;;(qualified-table:ast -.header)
+  =/  as-of=(unit as-of:ast)  (cook-as-of +<.header)
+  =/  body=tape  q.q:(need q.header-edge)
+  =.  default-database  database.view
+  =/  kind-edge
+    %.  [[1 1] body]
+    ;~  pose
+      (cold %with ;~(plug whitespace (jester 'with')))
+      (cold %query ;~(plug whitespace (jester 'from')))
+      %+  cold  %query
+      ;~(plug whitespace (jester 'select') (funk "select" (easy ' ')))
+      %+  cold  %query
+      ;~(plug whitespace (jester 'scalars') (funk "scalars" (easy ' ')))
+    ==
+  ?~  q.kind-edge
+    ~|("{(trip tag)}: AS must be followed by a query" !!)
+  =/  is-with=?  =(%with p.u.q.kind-edge)
+  =/  query-script=tape  q.q.u.q.kind-edge
+  =/  query-edge=edge
+    ?:  is-with  (parse-with [[1 1] query-script])
+    (parse-query-chain [[1 1] query-script])
+  =/  parsed=*
+    ~|  "{(trip tag)} query:  {<`tape`(scag 100 body)>} ..."
+        (wonk query-edge)
+  =/  =crud-txn:ast
+    ?.  is-with  (produce-query ~ parsed)
+    ?.  =(%query +<.parsed)
+      ~|("{(trip tag)}: view body must be a query" !!)
+    (produce-query (produce-ctes -.parsed) +>.parsed)
+  =/  rest=tape  q.q:(need q.query-edge)
+  =/  text=@t  (crip (view-text (scag (sub (lent body) (lent rest)) body)))
+  :_  rest
+  ?-  tag
+    %create-view  [%create-view view text crud-txn as-of]
+    %alter-view   [%alter-view view text crud-txn as-of]
+  ==
+::
+++  view-text
+  ::  view query source without surrounding whitespace or end of command
+  |=  source=tape
+  ^-  tape
+  =/  blank=(set @t)  (silt " \0a\09\0d")
+  =/  front=tape
+    |-  ^-  tape
+    ?~  source  ~
+    ?.  (~(has in blank) i.source)  source
+    $(source t.source)
+  =/  back=tape  (flop front)
+  =/  trimmed=tape
+    |-  ^-  tape
+    ?~  back  ~
+    ?.  |((~(has in blank) i.back) =(';' i.back))  back
+    $(back t.back)
+  (flop trimmed)
+::
 ++  parse-alter-index  ~+
   =/  columns  ;~(pfix whitespace ordered-column-list)
   =/  action  ;~  pfix  whitespace
@@ -1234,7 +1313,7 @@
               parse-qualified-2-name
               ==
     ;~  pfix  ;~(plug whitespace (jester 'transfer'))
-              ;~(pfix whitespace (jester 'table'))
+              ;~(pfix whitespace ;~(pose (jester 'table') (jester 'view')))
               ==
     ;~  sfix
       ;~  pose
@@ -6498,6 +6577,7 @@
     %alter-index
     %alter-namespace
     %alter-table
+    %alter-view
     %create-database
     %create-index
     %create-namespace

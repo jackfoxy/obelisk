@@ -256,11 +256,26 @@
   |.  %-  parse:parse(default-database 'other-db')
       "ALTER NAMESPACE db.ns TRANSFER TABLE db.ns2.tAble"
 ::
-:: fail because alter namespace only accepts table transfers
+:: alter namespace accepts view transfers
+++  test-alter-namespace-14
+  =/  expected
+    :*  %alter-namespace
+        database-name='db'
+        target-namespace='ns'
+        table-or-view=%view
+        [%qualified-table ship=~ database='db' namespace='ns2' name='my-view' ~]
+        as-of=~
+        ==
+  %+  expect-eq
+    !>  ;;((list command:ast) ~[expected])
+    !>  %-  parse:parse(default-database 'other-db')
+        "ALTER NAMESPACE db.ns TRANSFER VIEW db.ns2.my-view"
+::
+:: fail on an object type other than table or view
 ++  test-fail-alter-namespace-14
   %-  expect-fail
   |.  %-  parse:parse(default-database 'other-db')
-      "ALTER NAMESPACE db.ns TRANSFER VIEW db.ns2.my-view"
+      "ALTER NAMESPACE db.ns TRANSFER INDEX db.ns2.my-view"
 ::
 ::
 :: alter table

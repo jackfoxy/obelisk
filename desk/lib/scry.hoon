@@ -21,7 +21,7 @@
 ::  an optional leading @da or @dr segment queries AS OF that time;
 ::  a @dr is a timespan back from now.bowl
 ::
-/-  ast=obelisk-ast, *server-state-1
+/-  ast=obelisk-ast, *server-state-2
 /+  *main, *utils, mip
 |_  [state=server =bowl:gall]
 ::
@@ -131,6 +131,8 @@
       %table-keys
       %foreign-keys
       %columns
+      %views
+      %view-references
       %sys-log
       %data-log
   ==

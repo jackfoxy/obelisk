@@ -1,4 +1,4 @@
-/-  ast=obelisk-ast, *server-state-1, *obelisk
+/-  ast=obelisk-ast, *server-state-2, *obelisk
 /+  *sys-views, *ddl, *crud, parse, *utils
 |_  [state=server =bowl:gall]
 ::
@@ -111,6 +111,12 @@
         cmds          t.cmds
         results       [-.r results]
       ==
+    %alter-view
+      ?.  =(our.bowl src.bowl)
+            ~|("ALTER VIEW: schema changes must be by local agent" !!)
+      ?:  query-has-run
+            ~|("ALTER VIEW: state change after query in script" !!)
+      ~|("%alter-view not implemented" !!)
     %create-database
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)
@@ -264,22 +270,7 @@
   ?:  (~(has by state) name.c)  ~|("database {<name.c>} already exists" !!)
   =/  sys-time  (set-tmsp as-of.c now.bowl)
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
-  =/  db-views
-        %-  limo  :~  :-  [%sys %namespaces sys-time]
-                          (sys-namespaces-view +<.c sap.bowl sys-time)
-                      :-  [%sys %tables sys-time]
-                          (sys-tables-view +<.c sap.bowl sys-time)
-                      :-  [%sys %table-keys sys-time]
-                          (sys-table-keys-view +<.c sap.bowl sys-time)
-                      :-  [%sys %foreign-keys sys-time]
-                          (sys-foreign-keys-view +<.c sap.bowl sys-time)
-                      :-  [%sys %columns sys-time]
-                          (sys-columns-view +<.c sap.bowl sys-time)
-                      :-  [%sys %sys-log sys-time]
-                          (sys-sys-log-view +<.c sap.bowl sys-time)
-                      :-  [%sys %data-log sys-time]
-                          (sys-data-log-view +<.c sap.bowl sys-time)
-                      ==
+  =/  db-views  (database-sys-views name.c sap.bowl sys-time)
   =/  vws=views  (gas:view-key *((mop ns-rel-key view) ns-rel-comp) db-views)
   ::
   =/  sys-db  ?:  (~(has by state) %sys)  (~(got by state) %sys)     
@@ -340,24 +331,7 @@
                                  name.c
                                  ==
   =.  name.db  new-name.c
-  =/  db-views
-        %-  limo  :~  :-  [%sys %namespaces sys-time]
-                          (sys-namespaces-view new-name.c sap.bowl sys-time)
-                      :-  [%sys %tables sys-time]
-                          (sys-tables-view new-name.c sap.bowl sys-time)
-                      :-  [%sys %table-keys sys-time]
-                          (sys-table-keys-view new-name.c sap.bowl sys-time)
-                      :-  [%sys %foreign-keys sys-time]
-                          %^  sys-foreign-keys-view  new-name.c
-                                                     sap.bowl
-                                                     sys-time
-                      :-  [%sys %columns sys-time]
-                          (sys-columns-view new-name.c sap.bowl sys-time)
-                      :-  [%sys %sys-log sys-time]
-                          (sys-sys-log-view new-name.c sap.bowl sys-time)
-                      :-  [%sys %data-log sys-time]
-                          (sys-data-log-view new-name.c sap.bowl sys-time)
-                      ==
+  =/  db-views  (database-sys-views new-name.c sap.bowl sys-time)
   =.  views.nxt-schema       (gas:view-key views.nxt-schema db-views)
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
@@ -369,7 +343,10 @@
             :~  [%sys %namespaces]
                 [%sys %tables]
                 [%sys %table-keys]
+                [%sys %foreign-keys]
                 [%sys %columns]
+                [%sys %views]
+                [%sys %view-references]
                 [%sys %sys-log]
                 [%sys %data-log]
                 ==

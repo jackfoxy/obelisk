@@ -1,6 +1,7 @@
-/-  *server-state-1, *obelisk-ast
+/-  *server-state-2, *obelisk-ast
 /+  *sys-views, *utils
 /=  oldstate  /sur/server-state-0
+/=  state-1   /sur/server-state-1
 |%
 ++  old-schema-key  ((on @da schema:oldstate) gth)
 ++  old-data-key    ((on @da data:oldstate) gth)
@@ -25,6 +26,63 @@
         (weld (database-create-events old-server) event-log.sys-db)
   ~&  "migration complete"
   (~(put by new-server) %sys sys-db)
+::
+++  upgrade-server-1
+  ::  A server of state 1 or 2 as the current server type.  Views gain the
+  ::  user-defined view fields: no references, cacheable, and no text.
+  ::
+  |=  old-server=server:state-1
+  ^-  server
+  %-  ~(run by old-server)
+  |=  old-db=database:state-1
+  ^-  database
+  =/  old-schemas=(list [@da schema:state-1])
+    (tap:((on @da schema:state-1) gth) sys.old-db)
+  =/  schemas=(list [@da schema])
+    %+  turn  old-schemas
+    |=  [time=@da old=schema:state-1]
+    ^-  [@da schema]
+    :-  time
+    :*  %schema
+        provenance.old
+        tmsp.old
+        namespaces.old
+        tables.old
+        (upgrade-views views.old)
+        ==
+  :*  %database
+      name.old-db
+      created-provenance.old-db
+      created-tmsp.old-db
+      (gas:schema-key *((mop @da schema) gth) schemas)
+      content.old-db
+      view-cache.old-db
+      event-log.old-db
+      ==
+::
+++  upgrade-views
+  |=  old=views:state-1
+  ^-  views
+  =/  old-views=(list [ns-rel-key:state-1 view:state-1])
+    (tap:((on ns-rel-key:state-1 view:state-1) ns-rel-comp:state-1) old)
+  %+  gas:view-key  *views
+  %+  turn  old-views
+  |=  [k=ns-rel-key:state-1 v=view:state-1]
+  ^-  [ns-rel-key view]
+  :-  k
+  :*  %view
+      provenance.v
+      tmsp.v
+      crud-txn.v
+      column-lookup.v
+      typ-addr-lookup.v
+      columns.v
+      ordering.v
+      indices.v
+      ~
+      %.y
+      ''
+      ==
 ::
 ++  migrate-server-1-to-2
   ::  Add sys.foreign-keys to schema histories that predate the view.
@@ -118,8 +176,8 @@
       %-  malt  %+  turn  ~(tap by tables.old-schema)
                           |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
                           [-.kv (migrate-table-0-to-1 +.kv)]
-                          views.old-schema
-                          ==
+      (upgrade-views views.old-schema)
+      ==
 ::
 ++  migrate-data-0-to-1
   |=  [schema-at-data=(unit schema) old-data=data:oldstate]
@@ -218,6 +276,9 @@
   ::  @sd, which were ordered by atom value, so negative values sorted
   ::  wrong.
   ::
+  ::  Add the user-defined view system views sys.views and
+  ::  sys.view-references, and the relation-type column of sys.columns.
+  ::
   |=  old-server=server
   ^-  server
   ~&  "migrating numeric key ordering"
@@ -251,7 +312,65 @@
       ?.  (lien key.pri-indx.u.tbl reordered-key-column)  f
       (resort-file key.pri-indx.u.tbl f)
     ==
-  db(content (gas:data-key *((mop @da data) gth) snapshots))
+  =.  db  db(content (gas:data-key *((mop @da data) gth) snapshots))
+  (add-user-view-sys-views db)
+::
+++  add-user-view-sys-views
+  ::  every schema snapshot with sys.views, sys.view-references, and the
+  ::  current sys.columns
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da schema])  (tap:schema-key sys.db)
+  =/  missing=(list @da)
+    %+  murn  snapshots
+    |=  snapshot=[@da schema]
+    ?^  (get-view [%sys %views tmsp.+.snapshot] views.+.snapshot)  ~
+    `-.snapshot
+  =/  migrated-sys=((mop @da schema) gth)
+    %+  gas:schema-key  *((mop @da schema) gth)
+    %+  turn  snapshots
+    |=  snapshot=[@da schema]
+    ^-  [@da schema]
+    [-.snapshot (upgrade-sys-views name.db +.snapshot)]
+  =/  added=(list [ns-rel-key cache])
+    %-  zing
+    %+  turn  missing
+    |=  time=@da
+    ^-  (list [ns-rel-key cache])
+    :~  [[%sys %views time] [%cache time ~]]
+        [[%sys %view-references time] [%cache time ~]]
+        ==
+  ::  sys.columns caches hold rows without relation-type
+  =/  columns-cleared=view-cache
+    %+  gas:view-cache-key  *view-cache
+    %+  turn  (tap:view-cache-key view-cache.db)
+    |=  [k=ns-rel-key c=cache]
+    ^-  [ns-rel-key cache]
+    ?.  &(=(%sys ns.k) =(%columns rel.k))  [k c]
+    [k c(content ~)]
+  db(sys migrated-sys, view-cache (gas:view-cache-key columns-cleared added))
+::
+++  upgrade-sys-views
+  |=  [database=@tas input=schema]
+  ^-  schema
+  =/  current=(list [ns-rel-key view])  (tap:view-key views.input)
+  =/  upgraded=(list [ns-rel-key view])
+    %+  turn  current
+    |=  [k=ns-rel-key v=view]
+    ^-  [ns-rel-key view]
+    ?.  &(=(%sys ns.k) =(%columns rel.k))  [k v]
+    ?:  (~(has by column-lookup.v) %relation-type)  [k v]
+    [k (sys-columns-view database provenance.v tmsp.v)]
+  =/  next-views=views  (gas:view-key *views upgraded)
+  ?^  (get-view [%sys %views tmsp.input] next-views)
+    input(views next-views)
+  =/  added=(list [ns-rel-key view])
+    :~  :-  [%sys %views tmsp.input]
+            (sys-views-view database provenance.input tmsp.input)
+        :-  [%sys %view-references tmsp.input]
+            (sys-view-references-view database provenance.input tmsp.input)
+        ==
+  input(views (gas:view-key next-views added))
 ::
 ++  reordered-key-column
   ::  %.y when key column k orders differently since state 3: a float, or

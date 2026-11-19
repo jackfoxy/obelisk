@@ -619,6 +619,7 @@
   ?-  -.command
     ?(%grant %revoke %crud-txn %truncate-table)  %.n
     ?(%alter-database %alter-index %alter-namespace %alter-table)  %.y
+    %alter-view  %.y
     ?(%create-database %create-index %create-namespace)  %.y
     ?(%create-table %create-view)  %.y
     ?(%drop-database %drop-index %drop-namespace)  %.y

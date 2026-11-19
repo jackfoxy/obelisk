@@ -408,6 +408,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=116]]
@@ -440,6 +441,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=116]]
@@ -472,6 +474,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -479,6 +482,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -486,6 +490,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -493,6 +498,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -883,6 +889,7 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%relation-type q=[p=~.tas q=%table]]
                   [p=%col-ordinal q=[p=~.ud q=3]]
                   [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=116]]
@@ -1177,6 +1184,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1184,6 +1192,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1191,6 +1200,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1223,6 +1233,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1230,6 +1241,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1237,6 +1249,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1925,6 +1938,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1932,6 +1946,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1964,6 +1979,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1971,6 +1987,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1978,6 +1995,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1985,6 +2003,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -3780,6 +3799,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -3787,6 +3807,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5274,6 +5295,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -5281,6 +5303,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5288,6 +5311,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5320,6 +5344,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -5327,6 +5352,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5334,6 +5360,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5341,6 +5368,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6864,6 +6892,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -6871,6 +6900,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6878,6 +6908,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6910,6 +6941,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -6917,6 +6949,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6924,6 +6957,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6931,6 +6965,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9411,6 +9446,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -9418,6 +9454,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9974,6 +10011,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9981,6 +10019,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]

@@ -1,4 +1,4 @@
-/-  *server-state-1, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
+/-  *server-state-2, server-state-2, server-state-1, server-state-0, *obelisk, ast=obelisk-ast
 /+  default-agent, dbug, *format, *main, *migration, *print, scry
 |%
 +$  versioned-state
@@ -13,11 +13,11 @@
   ==
 +$  state-1
   $:  %1
-      =server
+      server=server:server-state-1
   ==
 +$  state-2
   $:  %2
-      =server
+      server=server:server-state-1
   ==
 +$  state-3
   $:  %3
@@ -69,9 +69,11 @@
                   :-  %3
                   (migrate-server-2-to-3 (migrate-server-1-to-2 migrated))
                 %1
+                  =/  upgraded  (upgrade-server-1 server.old)
                   :-  %3
-                  (migrate-server-2-to-3 (migrate-server-1-to-2 server.old))
-                %2  [%3 (migrate-server-2-to-3 server.old)]
+                  (migrate-server-2-to-3 (migrate-server-1-to-2 upgraded))
+                %2
+                  [%3 (migrate-server-2-to-3 (upgrade-server-1 server.old))]
                 %3  old
                 ==
   ::  if it succeeded, use the old state
@@ -92,7 +94,7 @@
         |=  [default-database=@tas urql=tape print-results=?]
         ^-  (quip card _this)
         =/  virtualized
-              ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+              ^-  (each (pair (list cmd-result) server:server-state-2) tang)
               %-  mule
               |.
               (state-server (parse-urql default-database urql))
@@ -123,7 +125,7 @@
   ::
   %script
     =/  virtualized
-      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+      ^-  (each (pair (list cmd-result) server:server-state-2) tang)
       %-  mule
       |.
       =/  res
@@ -145,7 +147,7 @@
   ::
   %cmd-list
     =/  virtualized
-      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
+      ^-  (each (pair (list cmd-result) server:server-state-2) tang)
       %-  mule
       |.
       =/  res  (state-server cmds.act)

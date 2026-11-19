@@ -2154,8 +2154,8 @@
         database='db'  namespace='ns'
         name='name'  ~
         ==
-  =/  expected1  [%drop-view view=qt force=%.y]
-  =/  expected2  [%drop-view view=qt force=%.n]
+  =/  expected1  [%drop-view view=qt force=%.y as-of=~]
+  =/  expected2  [%drop-view view=qt force=%.n as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  %-  parse:parse(default-database 'other-db')
@@ -2171,6 +2171,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2186,6 +2187,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2201,6 +2203,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2216,6 +2219,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2231,6 +2235,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2246,6 +2251,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]

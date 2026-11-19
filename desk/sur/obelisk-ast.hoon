@@ -59,6 +59,7 @@
     alter-index
     alter-namespace
     alter-table
+    alter-view
     create-database
     create-index
     create-namespace
@@ -510,12 +511,15 @@
     as-of=(unit as-of)
     ==
 ::
-::  $create-view: persist a crud-txn as a view
+::  $create-view: persist a query crud-txn as a view; text is the source
+::  of the query following AS
 +$  create-view
   $+  create-view
   $:  %create-view
     view=qualified-table
-    crud-txn
+    text=@t
+    =crud-txn
+    as-of=(unit as-of)
     ==
 ::
 ::  drop ASTs
@@ -562,6 +566,7 @@
   $:  %drop-view
     view=qualified-table
     force=?
+    as-of=(unit as-of)
     ==
 ::
 ::  ALTER SCHEMA
@@ -603,12 +608,15 @@
     as-of=(unit as-of)
     ==
 ::
-::  $alter-view: view=qualified-table crud-txn
+::  $alter-view: replace the query of a view; text is the source of the
+::  query following AS
 +$  alter-view
   $+  alter-view
   $:  %alter-view
     view=qualified-table
+    text=@t
     =crud-txn
+    as-of=(unit as-of)
     ==
 ::
 ::  $alter-index: change an index

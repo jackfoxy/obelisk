@@ -1,6 +1,6 @@
 ::  unit tests on %obelisk library simulating pokes
 ::
-/-  *server-state-1
+/-  *server-state-2
 /+  *test-helpers, utils
 |%
 ::
