@@ -1,7 +1,8 @@
 ::  Unit testing user-defined views on a Gall agent with %obelisk.
 ::
-/-  ast=obelisk-ast
-/+  *test-helpers
+/-  ast=obelisk-ast, *server-state-2
+/+  *test-helpers, *utils
+/=  agent  /app/obelisk
 |%
 ::
 ++  setup
@@ -938,6 +939,155 @@
             'db2.dbo.big-orders'
             ~2012.5.1
             ~2012.5.1
+            ==
+      ==
+::
+::  view caches
+::
+::  agent state, as +on-save gives it
++$  agent-state  [%3 =server]
+::
+++  cache-state
+  ::  the cache entries of view db1.dbo.rel: time and whether populated
+  |=  [ag=_agent rel=@tas]
+  ^-  (set [@da ?])
+  =/  srv=server  server:!<(agent-state on-save:ag)
+  =/  db=database  (~(got by srv) %db1)
+  %-  silt
+  %+  murn  (tap:view-cache-key view-cache.db)
+  |=  [k=ns-rel-key c=cache]
+  ^-  (unit [@da ?])
+  ?.  &(=(%dbo ns.k) =(rel rel.k))  ~
+  `[time.k ?=(^ content.c)]
+::
+::  a change to its table evicts the content of the earlier cache entries
+::  of a view; time travel populates an evicted entry again
+++  test-view-cache-00
+  =|  run=@ud
+  =/  ag  (exec-agent agent run ~2012.4.30 %db1 setup)
+  =.  ag  (exec-agent ag run ~2012.5.1 %db1 create-big-orders)
+  =/  created=(set [@da ?])  (cache-state ag %big-orders)
+  =.  ag  (exec-agent ag run ~2012.5.2 %db1 "FROM big-orders SELECT *")
+  =/  read=(set [@da ?])  (cache-state ag %big-orders)
+  =.  ag
+    %:  exec-agent  ag
+                    run
+                    ~2012.5.3
+                    %db1
+                    "INSERT INTO orders VALUES (4, 'cy', 500)"
+                    ==
+  =/  changed=(set [@da ?])  (cache-state ag %big-orders)
+  =.  ag
+    %:  exec-agent  ag
+                    run
+                    ~2012.5.4
+                    %db1
+                    "FROM big-orders AS OF ~2012.5.2 SELECT *"
+                    ==
+  =/  travelled=(set [@da ?])  (cache-state ag %big-orders)
+  =/  t1=tang
+    (expect-eq !>((silt `(list [@da ?])`~[[~2012.5.1 %.n]])) !>(created))
+  =/  t2=tang
+    (expect-eq !>((silt `(list [@da ?])`~[[~2012.5.1 %.y]])) !>(read))
+  =/  t3=tang
+    %+  expect-eq  !>((silt `(list [@da ?])`~[[~2012.5.1 %.n] [~2012.5.3 %.n]]))
+                   !>(changed)
+  =/  t4=tang
+    %+  expect-eq  !>((silt `(list [@da ?])`~[[~2012.5.1 %.y] [~2012.5.3 %.n]]))
+                   !>(travelled)
+  (zing ~[t1 t2 t3 t4])
+::
+::  a view that is not cacheable keeps no cache entries
+++  test-view-cache-01
+  =|  run=@ud
+  =/  ag  (exec-agent agent run ~2012.4.30 %db1 setup)
+  =.  ag
+    %:  exec-agent  ag
+                    run
+                    ~2012.5.1
+                    %db1
+                    "CREATE VIEW day-ago AS FROM orders AS OF ~d1 SELECT *"
+                    ==
+  =.  ag  (exec-agent ag run ~2012.5.2 %db1 "FROM day-ago SELECT *")
+  (expect-eq !>(*(set [@da ?])) !>((cache-state ag %day-ago)))
+::
+::  a foreign key cascade into the table of a view refreshes the view
+++  test-view-cache-02
+  =|  run=@ud
+  =/  row
+    |=  [id=@ud parent=@ud]
+    ^-  vector:ast
+    [%vector ~[[%id [~.ud id]] [%parent-id [~.ud parent]]]]
+  %-  exec-2-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          "CREATE DATABASE db1; ".
+          "CREATE TABLE parent (id @ud) PRIMARY KEY (id); ".
+          "CREATE TABLE child (id @ud, parent-id @ud) PRIMARY KEY (id) ".
+          "FOREIGN KEY (parent-id) REFERENCES parent (id) ON DELETE CASCADE; ".
+          "INSERT INTO parent VALUES (1) (2); ".
+          "INSERT INTO child VALUES (10, 1) (11, 2);"
+      [~2012.5.1 %db1 "CREATE VIEW kids AS FROM child SELECT id, parent-id"]
+      [~2012.5.2 %db1 "DELETE FROM parent WHERE id = 1"]
+      [~2012.5.3 %db1 "FROM kids SELECT *"]
+      %:  select-result
+            ~[(row 11 2)]
+            ~2012.5.3
+            'db1.dbo.kids'
+            ~2012.5.1
+            ~2012.5.2
+            ==
+      ==
+::
+::  a view of a system view refreshes when the system view does
+++  test-view-cache-03
+  =|  run=@ud
+  =/  row
+    |=(name=@tas ^-(vector:ast [%vector ~[[%name [~.tas name]]]]))
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 "CREATE VIEW table-names AS FROM sys.tables SELECT name"]
+      [~2012.5.2 %db1 "CREATE TABLE db1..extra (id @ud) PRIMARY KEY (id)"]
+      [~2012.5.3 %db1 "FROM table-names SELECT *"]
+      %:  select-result
+            ~[(row %customers) (row %extra) (row %orders)]
+            ~2012.5.3
+            'db1.dbo.table-names'
+            ~2012.5.1
+            ~2012.5.2
+            ==
+      ==
+::
+::  GETUTCDATE, RAND, and reading a view that is not cacheable make a view
+::  not cacheable
+++  test-view-cache-04
+  =|  run=@ud
+  =/  row
+    |=  [name=@tas cacheable=?]
+    ^-  vector:ast
+    [%vector ~[[%name [~.tas name]] [%cacheable [~.f cacheable]]]]
+  %-  exec-3-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      :+  ~2012.5.1
+          %db1
+          "CREATE VIEW stamped AS FROM orders SELECT id, GETUTCDATE() AS at"
+      :+  ~2012.5.2
+          %db1
+          "CREATE VIEW lucky AS FROM orders SELECT id, RAND(1, 10) AS r"
+      [~2012.5.3 %db1 "CREATE VIEW via-stamped AS FROM stamped SELECT id"]
+      [~2012.5.4 %db1 "FROM sys.views SELECT name, cacheable"]
+      %:  select-result
+            :~  (row %stamped %.n)
+                (row %lucky %.n)
+                (row %via-stamped %.n)
+                ==
+            ~2012.5.4
+            'db1.sys.views'
+            ~2012.5.3
+            ~2012.5.3
             ==
       ==
 --
