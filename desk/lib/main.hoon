@@ -1,5 +1,5 @@
 /-  ast=obelisk-ast, *server-state-2, *obelisk
-/+  *sys-views, *ddl, *crud, parse, *utils
+/+  *sys-views, *ddl, *crud, *views, parse, *utils
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -116,7 +116,15 @@
             ~|("ALTER VIEW: schema changes must be by local agent" !!)
       ?:  query-has-run
             ~|("ALTER VIEW: state change after query in script" !!)
-      ~|("%alter-view not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-vw(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %create-database
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)
@@ -168,7 +176,15 @@
             ~|("CREATE VIEW: schema changes must be by local agent" !!)
       ?:  query-has-run
             ~|("CREATE VIEW: state change after query in script" !!)
-      ~|("%create-view not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (create-vw(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %drop-database
       ?.  =(our.bowl src.bowl)
             ~|("DROP DATABASE: database must be dropped by local agent" !!)
@@ -222,7 +238,15 @@
       ?.  =(our.bowl src.bowl)
             ~|("DROP VIEW: schema changes must be by local agent" !!)
       ?:  query-has-run  ~|("DROP VIEW: state change after query in script" !!)
-      ~|("%drop-view not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (drop-vw(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %grant
       ?.  =(our.bowl src.bowl)
             ~|("GRANT: grant permissions must be by local agent" !!)

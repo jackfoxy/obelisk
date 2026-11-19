@@ -1148,6 +1148,9 @@
     %create-table
     %alter-table
     %drop-table
+    %create-view
+    %alter-view
+    %drop-view
     %truncate-table
     %insert
     %upsert

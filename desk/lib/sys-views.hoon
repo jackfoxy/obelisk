@@ -1454,12 +1454,11 @@
   ==
 ::
 ++  user-views
-  ::  the user-defined views of a schema, those not in namespace sys,
-  ::  defined at or before time
+  ::  the user-defined views of a schema defined at or before time
   |=  [=views time=@da]
   ^-  (list [ns-rel-key view])
-  %+  skim  (tap:view-key views)
-  |=([k=ns-rel-key *] &(!=(%sys ns.k) (lte time.k time)))
+  %+  skim  (live-user-views views)
+  |=([k=ns-rel-key *] (lte time.k time))
 ::
 ++  sys-view-databases
   |=  a=database

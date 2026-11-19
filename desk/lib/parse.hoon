@@ -973,7 +973,10 @@
               %.y
               (cook-as-of +.parsed)
         ?:  ?=([* %as-of *] parsed)                     :: view as of
-          [%drop-view ;;(qualified-table:ast -.parsed) %.n (cook-as-of +.parsed)]
+          :^  %drop-view
+              ;;(qualified-table:ast -.parsed)
+              %.n
+              (cook-as-of +.parsed)
         ?:  ?=([@ @ @ @ @ @ @] parsed)                  :: force view
           [%drop-view ;;(qualified-table:ast +.parsed) %.y ~]
         [%drop-view ;;(qualified-table:ast parsed) %.n ~]

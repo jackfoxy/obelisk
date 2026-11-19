@@ -1,6 +1,9 @@
 /-  ast=obelisk-ast, *obelisk, *server-state-2
 /+  *sys-views, *utils, *predicate, *scalars, mip
-|_  [state=server =bowl:gall]
+::
+::  hidden: user-defined views, as [database namespace name], read as absent,
+::  so that the query of a view reads the table it shadows
+|_  [state=server =bowl:gall hidden=(set [@tas @tas @tas])]
 ::
 ++  license
   ::  MIT+n license
@@ -1034,9 +1037,13 @@
           ==
   ^-  full-relation
   =/  sys-time   (set-tmsp as-of now.bowl)
-  =/  vw  %+  get-view
-                [namespace.qualified-table name.qualified-table sys-time]
-                views.schema
+  =/  is-hidden=?
+    %-  ~(has in hidden)
+    [database.qualified-table namespace.qualified-table name.qualified-table]
+  =/  vw=(unit view)
+    ?:  is-hidden  ~
+    %+  get-view  [namespace.qualified-table name.qualified-table sys-time]
+                  views.schema
   ?~  vw  %:  from-table  qualified-table
                           named-ctes
                           db
@@ -1066,7 +1073,9 @@
       :~  :*  %set-table
               join
               [~ qualified-table]
-              [~ tmsp.schema]
+              ?:  =(%sys namespace.qualified-table)
+                [~ tmsp.schema]
+              [~ tmsp.vw2]
               [~ tmsp.+.r]
               columns.vw2
               predicate
@@ -1262,7 +1271,11 @@
                                                             rel.key
                                                             tmsp.vw-cache
                                                             ==
-                                !!  :: : implement view refresh for non-sys
+                          ::  user-defined views are materialized beforehand,
+                          ::  see +materialize-views in /lib/crud
+                          ~|  "view {<ns.key>}.{<rel.key>} not materialized ".
+                              "at {<time.key>}"
+                              !!
   [%.y (put-view-cache db vw-cache key) vw-cache]
 ::
 ++  reduce-ord-col

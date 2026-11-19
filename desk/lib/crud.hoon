@@ -1,6 +1,9 @@
 /-  ast=obelisk-ast, *obelisk, *server-state-2
 /+  *utils, *selections, *predicate, *scalars, mip, fmt=format
-|_  [state=server =bowl:gall]
+::
+::  hidden: user-defined views, as [database namespace name], read as absent,
+::  so that the query of a view reads the table it shadows
+|_  [state=server =bowl:gall hidden=(set [@tas @tas @tas])]
 ::
 ++  license
   ::  MIT+n license
@@ -171,6 +174,21 @@
       (~(put by state) name.db db)
 ::
 ++  do-crud-txn
+  ::  Materialize the user-defined views the crud-txn reads, run it, then
+  ::  drop the transient caches of the views that are not cacheable.
+  |=  $:  =crud-txn:ast
+          query-has-run=?
+          next-data=(map @tas @da)
+          next-schemas=(map @tas @da)
+      ==
+  ^-  [? [(map @tas @da) server (list result:ast)]]
+  =/  pre=[(list [@tas ns-rel-key]) server]  (materialize-views crud-txn)
+  =.  state  +.pre
+  =/  r=[? [(map @tas @da) server (list result:ast)]]
+    (run-crud-txn crud-txn query-has-run next-data next-schemas)
+  [-.r +<.r (drop-view-caches +>-.r -.pre) +>+.r]
+::
+++  run-crud-txn
   |=  $:  =crud-txn:ast
           query-has-run=?
           next-data=(map @tas @da)
@@ -247,6 +265,192 @@
           (do-update +.body.crud-txn named-ctes next-data next-schemas)
   ==
 ::
+::
+::  +|  user-defined views
+::
+++  materialize-views
+  ::  Populate the cache of each user-defined view the crud-txn reads, at the
+  ::  time it is read.  A view that is not cacheable gets an entry at that
+  ::  time, listed for removal once the crud-txn completes.
+  |=  =crud-txn:ast
+  ^-  [(list [@tas ns-rel-key]) server]
+  =/  refs=(list [qualified-table:ast (unit as-of:ast)])
+    (crud-txn-relations crud-txn)
+  =/  transients=(list [@tas ns-rel-key])  ~
+  |-
+  ?~  refs  [transients state]
+  =/  r=[(list [@tas ns-rel-key]) server]
+    (materialize-view -.i.refs (set-tmsp +.i.refs now.bowl))
+  %=  $
+    refs        t.refs
+    transients  (weld -.r transients)
+    state       +.r
+  ==
+::
+++  materialize-view
+  |=  [qt=qualified-table:ast time=@da]
+  ^-  [(list [@tas ns-rel-key]) server]
+  ?^  ship.qt  [~ state]
+  ?:  =(%sys namespace.qt)  [~ state]
+  ?:  (~(has in hidden) [database.qt namespace.qt name.qt])  [~ state]
+  =/  db=(unit database)  (~(get by state) database.qt)
+  ?~  db  [~ state]
+  =/  schema=(unit schema)  (schema-at-time sys.u.db time)
+  ?~  schema  [~ state]
+  =/  vw=(unit view)
+    (get-view [namespace.qt name.qt time] views.u.schema)
+  ?~  vw  [~ state]
+  ?.  cacheable.u.vw
+    =/  key=ns-rel-key  [namespace.qt name.qt time]
+    =/  r=[server (list column:ast) (list (map @tas @))]
+      (view-result database.qt namespace.qt name.qt crud-txn.u.vw time)
+    :-  ~[[database.qt key]]
+    (put-view-content -.r database.qt key +>.r)
+  =/  entry=(unit [ns-rel-key cache])
+    =/  found
+      %^  tab:view-cache-key  view-cache.u.db
+                              `[namespace.qt name.qt (add time 1)]
+                              1
+    ?~  found  ~
+    =/  k=ns-rel-key  -.i.found
+    ?.  &(=(namespace.qt ns.k) =(name.qt rel.k))  ~
+    `i.found
+  ?~  entry
+    ~|  "view {<namespace.qt>}.{<name.qt>} has no cache at {<time>}"
+        !!
+  ?^  content.+.u.entry  [~ state]
+  =/  r=[server (list column:ast) (list (map @tas @))]
+    %:  view-result  database.qt
+                     namespace.qt
+                     name.qt
+                     crud-txn.u.vw
+                     time.-.u.entry
+                     ==
+  [~ (put-view-content -.r database.qt -.u.entry +>.r)]
+::
+++  put-view-content
+  |=  [srv=server db-name=@tas key=ns-rel-key rows=(list (map @tas @))]
+  ^-  server
+  =/  db=database  (~(got by srv) db-name)
+  =/  =cache  [%cache time.key `[(lent rows) rows]]
+  =.  view-cache.db  (put:view-cache-key view-cache.db key cache)
+  (~(put by srv) db-name db)
+::
+++  drop-view-caches
+  |=  [srv=server keys=(list [@tas ns-rel-key])]
+  ^-  server
+  |-
+  ?~  keys  srv
+  =/  db=(unit database)  (~(get by srv) -.i.keys)
+  ?~  db  $(keys t.keys)
+  =/  next=database
+    u.db(view-cache +:(del:view-cache-key view-cache.u.db +.i.keys))
+  $(keys t.keys, srv (~(put by srv) -.i.keys next))
+::
+++  view-result
+  ::  The columns and rows of the query of a view, evaluated at time with
+  ::  the view hidden from its own query.
+  |=  [db=@tas ns=@tas rel=@tas =crud-txn:ast time=@da]
+  ^-  [server (list column:ast) (list (map @tas @))]
+  =.  now.bowl  time
+  =.  hidden    (~(put in hidden) [db ns rel])
+  =/  pre=[(list [@tas ns-rel-key]) server]  (materialize-views crud-txn)
+  =.  state  +.pre
+  =/  named-ctes  (named-queries ctes.crud-txn *named-ctes)
+  =/  r=[server (list result:ast)]
+    ?+  -.body.crud-txn
+          ~|("view {<ns>}.{<rel>}: view query must be a query" !!)
+      %query
+        =/  q=query:ast  +.body.crud-txn
+        =/  plan  (order-by-plan q)
+        =/  jr  (do-query -.plan named-ctes %.n)
+        =/  ordered
+          %^  order-select-results  +.plan
+                                    top.select.q
+                                    (select-results named-ctes jr)
+        [server.jr +.ordered]
+      %set-query
+        =/  sq=set-query:ast  +.body.crud-txn
+        =/  jr  (do-set-query sq named-ctes)
+        =/  ordered
+          %^  order-select-results  (set-query-sort-specs sq)
+                                    ~
+                                    (select-results named-ctes jr)
+        [server.jr +.ordered]
+    ==
+  =/  results=(list result:ast)  +.r
+  =/  relations=(list relation:ast)
+    %-  zing
+    %+  turn  results
+    |=  res=result:ast
+    ^-  (list relation:ast)
+    ?.(?=(%relations -.res) ~ +.res)
+  =/  columns=(list column:ast)  (view-columns ns rel relations)
+  =/  vectors=(list vector:ast)
+    %-  zing
+    %+  turn  +:(format-vectors:fmt [%results results])
+    |=  res=result:ast
+    ^-  (list vector:ast)
+    ?.(?=(%result-set -.res) ~ +.res)
+  =/  rows=(list (map @tas @))
+    %+  turn  vectors
+    |=  v=vector:ast
+    ^-  (map @tas @)
+    =/  cells=(list vector-cell:ast)  +.v
+    (malt (turn cells |=(c=vector-cell:ast [p.c q.q.c])))
+  [(drop-view-caches -.r -.pre) columns rows]
+::
+++  view-columns
+  ::  The columns of the result relations of the query of a view, of all
+  ::  its row types, in order of first appearance.  Each row type has
+  ::  unique column names.
+  |=  [ns=@tas rel=@tas relations=(list relation:ast)]
+  ^-  (list column:ast)
+  =/  per-relation=(list (list (list format-column)))
+    %+  turn  relations
+    |=  r=relation:ast
+    ^-  (list (list format-column))
+    %+  turn  columns.r
+    |=(f=(lest format-column) `(list format-column)`f)
+  =/  formats=(list (list format-column))  (zing per-relation)
+  =/  out=(list column:ast)  ~
+  |-
+  ?~  formats  (addr-columns (flop out))
+  =/  names=(list @tas)
+    %+  turn  i.formats
+    |=(c=format-column ?-(-.c %column name.c, %qualified-column name.c))
+  ?.  =((lent names) ~(wyt in (silt names)))
+    ~|  "view {<ns>}.{<rel>}: duplicate column names {<names>}"
+        !!
+  =/  added=(list column:ast)
+    %+  murn  i.formats
+    |=  c=format-column
+    ^-  (unit column:ast)
+    ?:  ?=(%qualified-column -.c)
+      ~|  "view {<ns>}.{<rel>}: column {<name.c>} has no type"
+          !!
+    ?:  (lien out |=(o=column:ast =(name.o name.c)))  ~
+    `c
+  $(formats t.formats, out (weld (flop added) out))
+::
+++  crud-txn-has-scalar
+  ::  whether a scalar of a query of the crud-txn, or within one, is a
+  ::  function of tags
+  |=  [tags=(set @tas) =crud-txn:ast]
+  ^-  ?
+  %+  lien  (crud-txn-queries crud-txn)
+  |=  q=query:ast
+  %+  lien  scalars.q
+  |=  s=scalar:ast
+  (node-has-tag tags `scalar-node:ast`f.s)
+::
+++  node-has-tag
+  |=  [tags=(set @tas) sn=scalar-node:ast]
+  ^-  ?
+  ?:  (~(has in tags) -.sn)  %.y
+  %+  lien  (scalar-node-children sn)
+  |=(n=scalar-node:ast ^$(sn n))
+::
 ++  simple-table-query
   ::  Recognize a direct projection of every column from one physical table.
   |=  =crud-txn:ast
@@ -282,6 +486,13 @@
     ~|  "SELECT: database {<database.qt>} doesn't exist at time {<sys-time>}"
         (get-schema [sys.u.db sys-time])
   =/  tbl-key  [namespace.qt name.qt]
+  ::  a user-defined view shadows the table
+  =/  vw=(unit view)  (get-view [namespace.qt name.qt sys-time] views.schema)
+  ?:  ?&  ?=(^ vw)
+          !=(%sys namespace.qt)
+          !(~(has in hidden) [database.qt namespace.qt name.qt])
+      ==
+    ~
   =/  tbl  (~(get by tables.schema) tbl-key)
   ?~  tbl  ~
   =/  fil  (get-content content.u.db sys-time tbl-key)
@@ -434,28 +645,19 @@
                 ==
     =.  nxt-data.txn  -.constrained
     =.  file.txn      +.constrained
+    =.  content.db.txn
+      %^  put:data-key  content.db.txn
+                        now.bowl
+                        %:  update-file  file.txn
+                                         nxt-data.txn
+                                         tbl-key.txn
+                                         key.pri-indx.table.txn
+                                         result-rowcount
+                                         ==
+    =.  view-cache.db.txn
+      (upd-view-caches state db.txn now.bowl [~ ~] op)
     :+  (~(put by next-data) database.qualified-table.ins now.bowl)
-      :: %:  upd-indices-views to do: revisit when there are views & indices
-      %+  ~(put by state)  name.db.txn
-                           %=  db.txn
-                              content
-                                %^  put:data-key
-                                      content.db.txn
-                                      now.bowl
-                                      %:  update-file  file.txn
-                                                      nxt-data.txn
-                                                      tbl-key.txn
-                                                      key.pri-indx.table.txn
-                                                      result-rowcount
-                                                      ==
-                              view-cache  %:  upd-view-caches  state
-                                                                db.txn
-                                                                now.bowl
-                                            :: to do: get list of effected views
-                                                                [~ ~]
-                                                                op
-                                                                ==
-                            ==
+      (~(put by state) name.db.txn db.txn)
       %^  result-warnings  random
                            %.y
       :~  :-  %action
@@ -990,7 +1192,9 @@
   ?:  (query-row-types f named-ctes)
     (do-row-type-query q f named-ctes)
   ?~  joins.f
-    =/  jr  (select-relation(state state, bowl bowl) q is-cte named-ctes)
+    =/  jr
+      %.  [q is-cte named-ctes]
+      select-relation(state state, bowl bowl, hidden hidden)
     ?:  is-cte  jr
     =/  selected  (normalize-selected columns.select.q)
     ?.  (selected-needs-materialization selected)
@@ -1004,7 +1208,8 @@
                                                              ==
     (mk-query-result selected named-ctes jr %.n resolved-scalars)
   ::
-  =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
+  =/  =join-return
+    (join-all(state state, bowl bowl, hidden hidden) q named-ctes)
   ?:  is-cte
     ?~  predicate.q  join-return
     =/  qualifier-lookup
@@ -1752,7 +1957,8 @@
   |=  [q=query:ast f=from:ast =named-ctes]
   ^-  join-return
   ?~  joins.f  (cte-row-type-query q f named-ctes)
-  =/  jr=join-return  (join-all(state state, bowl bowl) q named-ctes)
+  =/  jr=join-return
+    (join-all(state state, bowl bowl, hidden hidden) q named-ctes)
   =.  state  server.jr
   ?~  set-tables.jr  ~|("do-row-type-query can't get here" !!)
   =/  joined=set-table  i.set-tables.jr

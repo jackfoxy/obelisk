@@ -655,113 +655,64 @@
   (~(put by state) %sys sys-db)
 ::
 ++  upd-view-caches
+  ::  New empty view cache entries at sys-time for the system views a
+  ::  command changes, and for the cacheable user-defined views that read,
+  ::  directly or through other views, those system views or a table whose
+  ::  data changed at sys-time.
+  ::
   ::  state needed for cross-db view changes
-  |=  $:  state=server      
+  |=  $:  state=server
           db=database
           sys-time=@da
           sys-vws=(unit (list [@tas @tas]))
           caller=db-cmd:ast
           ==
   ^-  view-cache
-  ?-  caller
-    %alter-database
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %databases]
-                                    [%sys %sys-log]
-                                    ==
-    %create-database
-      (next-view-cache-keys db sys-time ~[[%sys %databases]])
-    %drop-database
-      ~|("%drop-database should implement %create-database caller" !!)
-    %create-namespace
-      (next-view-cache-keys db sys-time ~[[%sys %namespaces]])
-    %alter-namespace
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %drop-namespace
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %namespaces]
-                                    [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %create-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %alter-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %drop-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %truncate-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-    %insert
-      %^  next-view-cache-keys
-                            db
-                            sys-time
-                            %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %data-log]
-                                                    ==
-                                      (need sys-vws)
-    %upsert
-      %^  next-view-cache-keys
-                            db
-                            sys-time
-                            %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %data-log]
-                                                    ==
-                                      (need sys-vws)
-    %update
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-    %delete
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-  ==
+  =/  changed=(list [@tas @tas])
+    ?-  caller
+      %alter-database
+        ~[[%sys %databases] [%sys %sys-log]]
+      %create-database
+        ~[[%sys %databases]]
+      %drop-database
+        ~|("%drop-database should implement %create-database caller" !!)
+      %create-namespace
+        ~[[%sys %namespaces]]
+      ?(%alter-namespace %create-table %alter-table %drop-table)
+        :~  [%sys %tables]
+            [%sys %table-keys]
+            [%sys %foreign-keys]
+            [%sys %columns]
+            [%sys %sys-log]
+            [%sys %data-log]
+            ==
+      %drop-namespace
+        :~  [%sys %namespaces]
+            [%sys %tables]
+            [%sys %table-keys]
+            [%sys %foreign-keys]
+            [%sys %columns]
+            [%sys %sys-log]
+            [%sys %data-log]
+            ==
+      ?(%create-view %alter-view %drop-view)
+        :~  [%sys %columns]
+            [%sys %views]
+            [%sys %view-references]
+            [%sys %sys-log]
+            ==
+      ?(%truncate-table %update %delete)
+        ~[[%sys %tables] [%sys %data-log]]
+      ?(%insert %upsert)
+        =/  data-views=(list [@tas @tas])  ~[[%sys %tables] [%sys %data-log]]
+        (weld data-views (need sys-vws))
+    ==
+  =/  sys-changed=(list view-reference)
+    (turn changed |=([ns=@tas rel=@tas] [%view ns rel]))
+  =/  next=database  db(view-cache (next-view-cache-keys db sys-time changed))
+  %^  refresh-user-views  next
+                          sys-time
+                          (weld sys-changed (changed-tables next sys-time))
 ::
 ++  next-view-cache-keys
   |=  [db=database sys-time=@da sys-vws=(list [@tas @tas])]
@@ -771,6 +722,163 @@
         %+  turn
               sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] [%cache sys-time ~]])
+::
+++  changed-tables
+  ::  the tables whose data changed at time
+  |=  [db=database time=@da]
+  ^-  (list view-reference)
+  =/  snapshot=(unit data)  (get:data-key content.db time)
+  ?~  snapshot  ~
+  %+  murn  ~(tap by files.u.snapshot)
+  |=  [k=[@tas @tas] f=file]
+  ^-  (unit view-reference)
+  ?.  =(time tmsp.f)  ~
+  `[%table -.k +.k]
+::
+++  refresh-user-views
+  ::  An empty cache entry at time for each live cacheable user-defined view
+  ::  reading a changed relation, directly or through other views.  The
+  ::  content of the earlier entries of those views is evicted.
+  |=  [db=database time=@da changed=(list view-reference)]
+  ^-  view-cache
+  ?~  changed  view-cache.db
+  =/  latest=(unit [@da schema])  (pry:schema-key sys.db)
+  ?~  latest  view-cache.db
+  =/  stale=(set [@tas @tas])
+    %-  silt
+    %+  murn  (view-dependents views.+.u.latest changed)
+    |=  [k=ns-rel-key v=view]
+    ^-  (unit [@tas @tas])
+    ?.  cacheable.v  ~
+    `[ns.k rel.k]
+  (refresh-views view-cache.db time stale)
+::
+++  refresh-views
+  ::  An empty cache entry at time for each of keys, evicting the content
+  ::  of their earlier entries.
+  |=  [vc=view-cache time=@da keys=(set [@tas @tas])]
+  ^-  view-cache
+  ?:  =(~ keys)  vc
+  =/  entries=(list [ns-rel-key cache])  (tap:view-cache-key vc)
+  =/  evicted=(list [ns-rel-key cache])
+    %+  turn  entries
+    |=  [k=ns-rel-key c=cache]
+    ^-  [ns-rel-key cache]
+    ?.  &((~(has in keys) [ns.k rel.k]) (lth time.k time))  [k c]
+    [k c(content ~)]
+  =/  added=(list [ns-rel-key cache])
+    %+  turn  ~(tap in keys)
+    |=([ns=@tas rel=@tas] [[ns rel time] [%cache time ~]])
+  %+  gas:view-cache-key  *view-cache
+  (weld evicted added)
+::
+++  remove-user-views
+  ::  vws without the user-defined views of keys
+  |=  [vws=views keys=(set [@tas @tas])]
+  ^-  views
+  %+  gas:view-key  *views
+  %+  skip  (tap:view-key vws)
+  |=([k=ns-rel-key *] (~(has in keys) [ns.k rel.k]))
+::
+++  live-user-views
+  ::  the user-defined views of a schema, those not in namespace sys
+  |=  =views
+  ^-  (list [ns-rel-key view])
+  %+  skip  (tap:view-key views)
+  |=([k=ns-rel-key *] =(%sys ns.k))
+::
+++  view-dependents
+  ::  the live user-defined views reading any of refs, directly or through
+  ::  other views
+  |=  [=views refs=(list view-reference)]
+  ^-  (list [ns-rel-key view])
+  =/  live=(list [ns-rel-key view])  (live-user-views views)
+  =/  targets=(set view-reference)  (silt refs)
+  =/  found=(list [ns-rel-key view])  ~
+  |-
+  =/  more=(list [ns-rel-key view])
+    %+  skim  live
+    |=  [k=ns-rel-key v=view]
+    ?&  !(~(has in targets) [%view ns.k rel.k])
+        (lien references.v |=(r=view-reference (~(has in targets) r)))
+    ==
+  ?~  more  (flop found)
+  =/  more-targets=(list view-reference)
+    (turn more |=([k=ns-rel-key *] [%view ns.k rel.k]))
+  %=  $
+    targets  (~(gas in targets) more-targets)
+    found    (weld (flop more) found)
+  ==
+::
+++  schema-at-time
+  ::  the schema in effect at time
+  |=  [sys=((mop @da schema) gth) time=@da]
+  ^-  (unit schema)
+  =/  found=(unit [@da schema])
+    (pry:schema-key (lot:schema-key sys `(add time 1) ~))
+  ?~  found  ~
+  `+.u.found
+::
+++  crud-txn-queries
+  ::  every query of a crud-txn: its CTEs, its body, and an INSERT or UPSERT
+  ::  query source
+  |=  =crud-txn:ast
+  ^-  (list query:ast)
+  =/  cte-queries=(list (list query:ast))
+    %+  turn  ctes.crud-txn
+    |=  c=cte:ast
+    ^-  (list query:ast)
+    ?-  -.body.c
+      %query      ~[+.body.c]
+      %set-query  (set-query-queries +.body.c)
+    ==
+  =/  body-queries=(list query:ast)
+    ?+  -.body.crud-txn  ~
+      %query      ~[+.body.crud-txn]
+      %set-query  (set-query-queries +.body.crud-txn)
+      %insert     (insert-source-queries +.body.crud-txn)
+      %upsert     (insert-source-queries +.body.crud-txn)
+    ==
+  =/  all-cte-queries=(list query:ast)  (zing cte-queries)
+  (weld all-cte-queries body-queries)
+::
+++  set-query-queries
+  |=  sq=set-query:ast
+  ^-  (list query:ast)
+  :-  head.sq
+  (turn tail.sq |=(item=[op=set-op:ast =query:ast] query.item))
+::
+++  insert-source-queries
+  |=  ins=insert:ast
+  ^-  (list query:ast)
+  ?-  -.values.ins
+    %data       ~
+    %query      ~[+.values.ins]
+    %set-query  (set-query-queries +.values.ins)
+  ==
+::
+++  crud-txn-relations
+  ::  the tables and views a crud-txn reads, with their AS OF
+  |=  =crud-txn:ast
+  ^-  (list [qualified-table:ast (unit as-of:ast)])
+  =/  queries=(list query:ast)  (crud-txn-queries crud-txn)
+  =/  per-query=(list (list [qualified-table:ast (unit as-of:ast)]))
+    (turn queries query-relations)
+  (zing per-query)
+::
+++  query-relations
+  |=  q=query:ast
+  ^-  (list [qualified-table:ast (unit as-of:ast)])
+  ?~  from.q  ~
+  =/  f=from:ast  u.from.q
+  =/  joined=(list [qualified-table:ast (unit as-of:ast)])
+    %+  murn  joins.f
+    |=  j=joined-relation:ast
+    ^-  (unit [qualified-table:ast (unit as-of:ast)])
+    ?.  ?=(%qualified-table -.relation-id.j)  ~
+    `[relation-id.j as-of.j]
+  ?.  ?=(%qualified-table -.relation-id.f)  joined
+  [[relation-id.f as-of.f] joined]
 ::
 ++  common-txn
   ::  source-content-time is the data state time against which to apply the
