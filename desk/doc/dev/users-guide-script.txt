@@ -603,6 +603,90 @@
 "  RENAME COLUMN (task TO description), ".
 "  COLUMNS (status-code, id, description, status, owner);"
 
+# Views
+
+## CREATE VIEW
+
+=uql "CREATE DATABASE view-lab; ".
+"CREATE TABLE view-lab..orders ".
+"  (id @ud, customer @t, amount @ud) ".
+"PRIMARY KEY (id); ".
+"CREATE TABLE view-lab..customers ".
+"  (customer @t, city @t) ".
+"PRIMARY KEY (customer); ".
+"INSERT INTO view-lab..orders ".
+"VALUES (1, 'ann', 10) (2, 'bob', 250) (3, 'ann', 400); ".
+"INSERT INTO view-lab..customers ".
+"VALUES ('ann', 'paris') ('bob', 'rome');"
+
+=uql "CREATE VIEW view-lab..big-orders AS ".
+"FROM orders ".
+"WHERE amount > 100 ".
+"SELECT id, customer, amount;"
+
+=uql "FROM view-lab..big-orders ".
+"SELECT *;"
+
+=uql "CREATE VIEW view-lab..order-cities AS ".
+"FROM orders ".
+"JOIN customers ".
+"SELECT orders.id, orders.customer AS who, customers.city;"
+
+=uql "CREATE VIEW view-lab..top-orders AS ".
+"FROM orders ".
+"SELECT TOP 2 id, amount ".
+"ORDER BY amount DESC;"
+
+=uql "CREATE VIEW view-lab..ann-big AS ".
+"FROM big-orders ".
+"WHERE customer = 'ann' ".
+"SELECT id, amount;"
+
+## Shadowing a table
+
+=uql "DROP VIEW view-lab..order-cities;"
+
+=uql "CREATE VIEW view-lab..customers AS ".
+"FROM customers ".
+"WHERE city = 'paris' ".
+"SELECT customer, city;"
+
+=uql "INSERT INTO view-lab..customers ".
+"VALUES ('cy', 'oslo');"
+
+=uql "FROM view-lab..customers ".
+"SELECT *;"
+
+## ALTER VIEW
+
+=uql "ALTER VIEW view-lab..top-orders AS ".
+"FROM orders ".
+"SELECT TOP 1 id, amount ".
+"ORDER BY amount DESC;"
+
+## DROP VIEW
+
+=uql "DROP VIEW FORCE view-lab..big-orders;"
+
+=uql "DROP VIEW view-lab..customers; ".
+"FROM view-lab..customers ".
+"SELECT *;"
+
+## Views in the system views
+
+=uql "FROM view-lab.sys.views ".
+"SELECT namespace, name, cacheable, definition; ".
+"FROM view-lab.sys.view-references ".
+"SELECT *;"
+
+## Views and namespaces
+
+=uql "CREATE NAMESPACE view-lab.reports; ".
+"ALTER NAMESPACE view-lab.reports ".
+"TRANSFER VIEW view-lab..top-orders; ".
+"FROM view-lab.reports.top-orders ".
+"SELECT *;"
+
 # Parsing urQL
 
 =uql "WITH (FROM staff-assignments ".

@@ -47,16 +47,17 @@ DDL commands define databases, their data tables and other components, data mani
 |ALTER INDEX       |*not implemented*|
 |ALTER NAMESPACE   | |
 |ALTER TABLE       | |
+|ALTER VIEW        | |
 |CREATE DATABASE   | |
 |CREATE INDEX      |*not implemented*|
 |CREATE NAMESPACE  | |
 |CREATE TABLE      | |
-|CREATE VIEW       |*not implemented*|
+|CREATE VIEW       | |
 |DROP DATABASE     | |
 |DROP INDEX        |*not implemented*|
 |DROP NAMESPACE    | |
 |DROP TABLE        | |
-|DROP VIEW         |*not implemented*|
+|DROP VIEW         | |
 
 ### Data Manipulation
 | | |
@@ -1858,6 +1859,295 @@ Other table alterations populate `message` with the clause names, such as
 `ADD COLUMN; RENAME COLUMN; COLUMNS`.
 
 
+# Views
+
+A view is a named, read-only query. Query it like a table: name it in `FROM`
+or `JOIN`, with or without `AS OF`. Each time a query reads a view, the view
+produces the rows of its stored query. The complete rules are in the
+[View](/docs/usr/reference/ddl/view.md) reference.
+
+Views are not updateable. `INSERT`, `UPDATE`, `UPSERT`, `DELETE`, and
+`TRUNCATE TABLE` always act on tables.
+
+## CREATE VIEW
+
+Start with two small tables:
+
+```
+CREATE DATABASE view-lab;
+
+CREATE TABLE view-lab..orders
+  (id @ud, customer @t, amount @ud)
+PRIMARY KEY (id);
+
+CREATE TABLE view-lab..customers
+  (customer @t, city @t)
+PRIMARY KEY (customer);
+
+INSERT INTO view-lab..orders
+VALUES (1, 'ann', 10) (2, 'bob', 250) (3, 'ann', 400);
+
+INSERT INTO view-lab..customers
+VALUES ('ann', 'paris') ('bob', 'rome');
+```
+
+`AS` separates the view name from the query that defines it:
+
+```
+CREATE VIEW view-lab..big-orders AS
+FROM orders
+WHERE amount > 100
+SELECT id, customer, amount;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'CREATE VIEW %big-orders' ]
+    [ %server-time ~2024.12.12..15.02.11..5e1a ]
+    [ %schema-time ~2024.12.12..15.02.11..5e1a ]
+```
+
+In a view body, unqualified and partially qualified names default to the
+view's own database and the *dbo* namespace, not to the script's current
+database. `orders` above is `view-lab.dbo.orders`, whatever database the
+script runs in. A view body can only read relations in its own database.
+
+Query the view like any table:
+
+```
+FROM view-lab..big-orders
+SELECT *;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'SELECT' ]
+    %result-set
+      id  customer  amount
+      2  bob  250
+      3  ann  400
+    [ %server-time ~2024.12.12..15.03.40..a07c ]
+    [ %relation-name 'view-lab.dbo.big-orders' ]
+    [ %schema-time ~2024.12.12..15.02.11..5e1a ]
+    [ %data-time ~2024.12.12..15.02.11..5e1a ]
+    [ %vector-count 2 ]
+```
+
+The body can be any query: joins, `WHERE`, `GROUP BY`, common table
+expressions, scalars, and set operations.
+
+```
+CREATE VIEW view-lab..order-cities AS
+FROM orders
+JOIN customers
+SELECT orders.id, orders.customer AS who, customers.city;
+```
+
+View column names must be unique, so use aliases where two columns would
+otherwise share a name. `*` is expanded when the view is created. A column added
+to a source table later does not appear in the view.
+
+`ORDER BY` in a view determines which rows `TOP` keeps and the order of the
+view's rows. An `ORDER BY` in the query reading the view takes precedence.
+
+```
+CREATE VIEW view-lab..top-orders AS
+FROM orders
+SELECT TOP 2 id, amount
+ORDER BY amount DESC;
+```
+
+A view can read other views:
+
+```
+CREATE VIEW view-lab..ann-big AS
+FROM big-orders
+WHERE customer = 'ann'
+SELECT id, amount;
+```
+
+Views cannot be created in the *sys* namespace or on foreign ship databases.
+
+## Dependencies
+
+A view *references* every table and view named in its body. Obelisk resolves
+these names when the view is created, and records each one fully qualified as a
+table or a view. A table or view created later does not change what an existing
+view reads.
+
+While a view references them, Obelisk protects its sources:
+
+* A referenced table cannot be altered with `ALTER TABLE` or moved with
+  `ALTER NAMESPACE ... TRANSFER TABLE`. A new view cannot shadow it.
+* A referenced view cannot be altered with `ALTER VIEW` or moved with
+  `ALTER NAMESPACE ... TRANSFER VIEW`.
+* `DROP TABLE` and `DROP VIEW` are rejected unless you add `FORCE`. `FORCE`
+  also drops every view that depends on the dropped object, directly or
+  through other views.
+
+Data changes, including `TRUNCATE TABLE`, are always permitted on referenced
+tables.
+
+At this point `ALTER TABLE view-lab..orders ...` fails, because `big-orders`
+and `top-orders` read `orders`. `DROP VIEW view-lab..big-orders` fails because
+`ann-big` reads it. The error names the dependent view:
+`%big-orders used in view %dbo.%ann-big, use FORCE to DROP`.
+
+`DROP NAMESPACE` drops the views in the namespace along with its tables. It
+requires `FORCE` when a view in another namespace reads anything in it.
+
+Circular references are impossible: a view can only reference views that
+already exist, and a referenced view cannot be altered.
+
+## Shadowing a table
+
+A view may have the same name as a table in its namespace. The view then
+*shadows* the table: queries naming that relation read the view.
+
+`customers` is read by `order-cities`, so it cannot be shadowed until that view
+is gone:
+
+```
+DROP VIEW view-lab..order-cities;
+```
+
+Inside its own body, a view's name means the table it shadows. That lets a view
+present a filtered or reshaped version of the table it hides:
+
+```
+CREATE VIEW view-lab..customers AS
+FROM customers
+WHERE city = 'paris'
+SELECT customer, city;
+```
+
+Data manipulation always reaches the table:
+
+```
+INSERT INTO view-lab..customers
+VALUES ('cy', 'oslo');
+```
+
+The table now has three rows, but queries see only the view's one:
+
+```
+FROM view-lab..customers
+SELECT *;
+```
+
+Scries and subscriptions read tables and system views only, so a scry of
+`view-lab/dbo/customers` reads the table.
+
+A table can also be created under the name of an existing view, and stays
+shadowed until the view is dropped.
+
+## ALTER VIEW
+
+`ALTER VIEW` replaces the whole definition of a view. The new definition follows
+all the rules of `CREATE VIEW`.
+
+```
+ALTER VIEW view-lab..top-orders AS
+FROM orders
+SELECT TOP 1 id, amount
+ORDER BY amount DESC;
+```
+
+`ALTER VIEW view-lab..big-orders ...` would be rejected, because `ann-big` reads
+`big-orders`.
+
+## DROP VIEW
+
+```
+DROP VIEW FORCE view-lab..big-orders;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'DROP VIEW %big-orders' ]
+    [ %server-time ~2024.12.12..15.20.06..19b2 ]
+    [ %schema-time ~2024.12.12..15.20.06..19b2 ]
+    [ %message 'dropped view %dbo.%ann-big' ]
+```
+
+The result has one message for each view that `FORCE` dropped. Dropping a view
+that shadows a table makes the table visible to queries again:
+
+```
+DROP VIEW view-lab..customers;
+
+FROM view-lab..customers
+SELECT *;
+```
+
+A view name can be reused for a new view after its drop.
+
+## Views and time travel
+
+View definitions are versioned with the database schema, like table
+definitions. A dropped view is still available to queries with an `AS OF` time
+before it was dropped:
+
+```
+FROM view-lab..big-orders AS OF <timestamp-before-the-drop>
+SELECT *;
+```
+
+An `AS OF` on a view also applies to every relation in the view body that has no
+`AS OF` of its own. A relative `AS OF`, such as `AS OF ~d1`, in a view body
+counts back from that time.
+
+## Caching
+
+Views are cached like system views. A view's cache is refreshed when the view
+is created or altered, and whenever data changes in a table it depends on,
+directly or through other views. A refresh evicts the earlier cached results.
+
+Some views must be evaluated every time they are read, so they are never
+cached. A view is not cacheable when its body contains:
+
+* a relative `AS OF` time, such as `AS OF ~d1`
+* a scalar based on the current time, such as `GETUTCDATE()`
+* a random scalar, such as `RAND()`
+* a reference to a view that is not cacheable
+
+## Views in the system views
+
+Each database's `sys` namespace describes its views:
+
+* `sys.views` lists each view with whether it is cacheable and the source text
+  of its query.
+* `sys.view-references` lists the tables and views each view references.
+* `sys.columns` lists view columns alongside table columns. Its
+  `relation-type` column tells them apart.
+
+```
+FROM view-lab.sys.views
+SELECT namespace, name, cacheable, definition;
+
+FROM view-lab.sys.view-references
+SELECT *;
+```
+
+`sys.sys-log` records `create`, `alter`, and `drop` events for views.
+
+## Views and namespaces
+
+`ALTER NAMESPACE ... TRANSFER VIEW` moves a view to another namespace in the
+same database. Its references don't change.
+
+```
+CREATE NAMESPACE view-lab.reports;
+
+ALTER NAMESPACE view-lab.reports
+TRANSFER VIEW view-lab..top-orders;
+
+FROM view-lab.reports.top-orders
+SELECT *;
+```
+
+When a database is renamed with `ALTER DATABASE`, its views move with it.
+
 # Parsing urQL
 
 The urQL parser in Obelisk is separable from the rest of the system.
@@ -2217,16 +2507,6 @@ This view records the times and events that affected the state of the database d
 ### Default Ordering
 
 tmsp descending, namespace, table
-
-## sys.view-cache
-
-List views and whether their caches are populated/not populated. *not implemented*
-
-### Columns
-
-**namespace @tas**  Namespace of the view.
-
-**name @tas** View name.
 
 # APPENDIX II: Using Obelisk in a Hoon Program
 
