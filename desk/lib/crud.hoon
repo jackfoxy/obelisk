@@ -3872,14 +3872,24 @@
     %+  turn
         column-metas.jr
     |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
+  ::  the template reads only a row's kind, so with no rows a bare row of
+  ::  the kind the rows would have still gives the selected columns
+  =/  templ-row=data-row
+    ?^  rows  i.rows
+    ?:  use-joined  [%joined-row ~ ~]
+    [%indexed-row ~ ~]
   =/  out-cols
-    ?~  rows
-      (materialized-columns name check-dups columns.st)
     %-  templ-cells-columns
     :*  name
         check-dups
         %-  mk-rel-row-templ
-        [column-metas.jr selected -.rows src-map-meta resolved-scalars named-ctes]
+        :*  column-metas.jr
+            selected
+            templ-row
+            src-map-meta
+            resolved-scalars
+            named-ctes
+            ==
         ==
   =.  columns.st       out-cols
   =.  relation-id.st   ~

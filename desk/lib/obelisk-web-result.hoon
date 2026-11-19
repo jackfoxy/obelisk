@@ -44,15 +44,71 @@
     %select-relation  [%select-relation (crip (text !>(+.result)))]
   ==
 ::
+++  relation-result-set
+  ::  One table of a relation's rows: the columns of all its row types in
+  ::  select order.  A cell of a column its row's type lacks is blank.
+  |=  =relation:ast
+  ^-  result-set-dto:web
+  =/  table=table-cells:format
+    (merged-table:format =(~ relation-id.relation) relation)
+  =/  columns=(list result-column-dto:web)
+    %+  spun  `(list $%(column:ast qualified-column:ast))`heading.table
+    |=  [column=$%(column:ast qualified-column:ast) at=@ud]
+    ^-  [result-column-dto:web @ud]
+    =/  aura=@t
+      ?:  ?=(%column -.column)  type.column
+      ::  the aura of the first row holding the column
+      =/  rows=(list (list table-cell:format))  rows.table
+      |-  ^-  @t
+      ?~  rows  ''
+      =/  value=(unit dime)  q:(snag at i.rows)
+      ?^  value  p.u.value
+      $(rows t.rows)
+    [[(relation-column-name:format column) aura] +(at)]
+  =/  rows=(list (list result-cell-dto:web))
+    %+  turn  rows.table
+    |=  row=(list table-cell:format)
+    %+  turn  row
+    |=  cell=table-cell:format
+    ^-  result-cell-dto:web
+    ?~  q.cell  [p.cell '' '']
+    [p.cell p.u.q.cell (crip (render-dime:format u.q.cell))]
+  [columns rows]
+::
+++  command-results
+  ::  A command's results as dtos.  Each relation is one table, and a
+  ::  vector count following a table counts the table's rows.
+  |=  results=(list result:ast)
+  ^-  (list result-dto:web)
+  =/  count=(unit @ud)  ~
+  |-  ^-  (list result-dto:web)
+  ?~  results  ~
+  ?:  ?=(%relations -.i.results)
+    =/  relations=(list relation:ast)  +.i.results
+    =/  sets=(list result-set-dto:web)
+      ?~  relations  ~[[~ ~]]
+      (turn relations relation-result-set)
+    =/  sizes=(list @ud)
+      (turn sets |=(set=result-set-dto:web (lent rows.set)))
+    =/  dtos=(list result-dto:web)
+      (turn sets |=(set=result-set-dto:web [%result-set set]))
+    =/  rest=(list result-dto:web)
+      $(results t.results, count `(roll sizes add))
+    (weld dtos rest)
+  =/  dto=result-dto:web
+    ?:  &(?=(%vector-count -.i.results) ?=(^ count))
+      [%vector-count u.count]
+    (result-dto i.results)
+  =/  next=(unit @ud)
+    ?.  ?=(%result-set -.i.results)  count
+    `(lent +.i.results)
+  [dto $(results t.results, count next)]
+::
 ++  command-dtos
   |=  [commands=(list cmd-result:ast) index=@ud]
   ^-  (list command-dto:web)
   ?~  commands  ~
-  =/  vector=(list cmd-result:ast)
-    (format-results:format %vector ~[i.commands])
-  ?>  ?=(^ vector)
-  =/  command=cmd-result:ast  i.vector
-  :-  [index (turn +.command result-dto)]
+  :-  [index (command-results +.i.commands)]
   $(commands t.commands, index +(index))
 ::
 ++  relation-only

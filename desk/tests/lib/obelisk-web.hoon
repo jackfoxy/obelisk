@@ -2257,4 +2257,71 @@
     (expect-eq !>(422) !>((response-status (tail-cards -.web-query-out))))
     (expect-eq !>(200) !>((response-status (tail-cards -.web-parse-out))))
   ==
+::
+++  test-outer-join-result-set-77
+  ::  Rows of three row types make one table: every selected column is a
+  ::  heading, and a cell its row's type lacks is blank.
+  =/  left
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %id ~.ud 0] [%column %l-val ~.t 0]]
+  =/  both
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %l-val ~.t 0]
+        [%column %r-id ~.ud 0]
+        [%column %r-val ~.t 0]
+    ==
+  =/  right
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %r-id ~.ud 0] [%column %r-val ~.t 0]]
+  =/  row
+    |=  cells=(list [@tas @])
+    ^-  data-row:ast
+    [%indexed-row ~ (~(gas by *(map @tas @)) cells)]
+  =/  relation=relation:ast
+    :*  %relation
+        ~
+        ~[left both right]
+        ~
+        %.n
+        *(tree [(list @) (map @tas @)])
+        :~  [0 (row ~[[%id 1] [%l-val 'L1']])]
+            [1 (row ~[[%id 3] [%l-val 'L3'] [%r-id 3] [%r-val 'R3']])]
+            [2 (row ~[[%r-id 5] [%r-val 'R5']])]
+        ==
+    ==
+  =/  commands=(list command-dto:web)
+    %+  command-dtos:result-lib
+      ~[[%results ~[[%relations ~[relation]] [%vector-count 3]]]]
+    0
+  =/  command=command-dto:web  (snag 0 commands)
+  =/  result=result-dto:web  (snag 0 results.command)
+  ?>  ?=(%result-set -.result)
+  =/  table=result-set-dto:web  value.result
+  ;:  weld
+    %+  expect-eq
+      !>(~[[%id 'ud'] [%l-val 't'] [%r-id 'ud'] [%r-val 't']])
+    !>(columns.table)
+    %+  expect-eq
+      !>  :~  :~  [%id 'ud' '1']
+                  [%l-val 't' '\'L1\'']
+                  [%r-id '' '']
+                  [%r-val '' '']
+              ==
+              :~  [%id 'ud' '3']
+                  [%l-val 't' '\'L3\'']
+                  [%r-id 'ud' '3']
+                  [%r-val 't' '\'R3\'']
+              ==
+              :~  [%id '' '']
+                  [%l-val '' '']
+                  [%r-id 'ud' '5']
+                  [%r-val 't' '\'R5\'']
+              ==
+          ==
+    !>(rows.table)
+    %+  expect-eq
+      !>(`result-dto:web`[%vector-count 3])
+    !>((snag 1 results.command))
+  ==
 --

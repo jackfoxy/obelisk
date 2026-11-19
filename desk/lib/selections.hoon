@@ -1090,9 +1090,7 @@
               ==
           ==
       :-  %qualified-map-meta
-          %+  ~(put by *(map qualifier (map @tas typ-addr)))
-                qualified-table
-                typ-addr-lookup.vw2
+          (~(put by +.map-meta) qualified-table typ-addr-lookup.vw2)
       (mk-column-metas qualified-table column-metas columns.vw2)
       ==
 ::

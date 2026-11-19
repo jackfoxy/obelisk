@@ -1086,4 +1086,34 @@
       !>(escaped-output)
     !>((render-dime [~.t escaped-input]))
   ==
+::
+::  A row type whose rows are all filtered out keeps the selected columns,
+::  not the columns of its source.
+++  test-empty-row-type-selected-columns-47
+  =|  run=@ud
+  =/  query=tape
+    %-  zing
+    :~  "INSERT INTO same-a VALUES (3, 'three'); "
+        "INSERT INTO same-b VALUES (1, 'one'); "
+        "FROM same-a A LEFT JOIN same-b B ON A.id = B.id "
+        "WHERE NOT EXISTS B.label "
+        "SELECT A.id, A.label AS a-label, B.label AS b-label"
+        ==
+  =/  relation  (raw-relation (poke-script run %raw query))
+  =/  names=(set (list @tas))
+    %-  silt
+    %+  turn  columns.relation
+    |=  format=(lest $%(column:ast qualified-column:ast))
+    ^-  (list @tas)
+    (turn format relation-column-name)
+  ;:  weld
+    %+  expect-eq
+      !>  %-  silt
+          `(list (list @tas))`~[~[%id %a-label %b-label] ~[%id %a-label]]
+    !>(names)
+  ::
+    %+  expect-eq
+      !>(1)
+    !>((lent data-rows.relation))
+  ==
 --
