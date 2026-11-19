@@ -1,12 +1,7 @@
 # Roadmap
 
 
-##  V1.0
-
-* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
-
-
-## other planned functionality
+##  planned functionality
 
 *  Who will build the first database with agent-ai inside? Meaning I can put an agent call into my select statement? Bonus if you can write self repairing queries.
     https://x.com/rickasaurus/status/2100686628406641103
@@ -15,8 +10,13 @@
 
     Self-repairing query too. Should be fairly straight forward prompt generation, given every schema and data state is immutable and persistent
     https://x.com/foxyjackfox/status/2100723391468822881
+
+
+* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
    
 * __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs. (possibly in V1.0)
+
+* __Scalar INSERT__ -- allow scalar function in insert
 
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 

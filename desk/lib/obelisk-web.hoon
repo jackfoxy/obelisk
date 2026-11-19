@@ -718,6 +718,9 @@
      language left, urui's file actions and view toggle right */
   .editor-pane > .pane-header .pane-actions { flex: 1; }
 
+  /* the heading's text is muted; its enabled buttons are not */
+  .editor-pane > .pane-header button { color: var(--ink); }
+
   .pane-actions {
     align-items: center;
     display: flex;

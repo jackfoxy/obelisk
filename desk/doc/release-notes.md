@@ -1,41 +1,27 @@
 # Releases
 
-## next-release
-* ORDER BY, by output name, column (selected or not), or ordinal, ordered by aura
-* SELECT TOP n, requires ORDER BY to be a total ordering of the result
-* warning when ORDER BY is not a total ordering of the result set
-* TOP in CTEs and in set operation queries before the last
-* ordered results of several row types format as one table with empty cells
-* INSERT and UPSERT from a query, set operation query, or CTE
-* system views ordered by aura
-* inline scalars directly without SCALARS clause entry
-* VERSION() scalar added, returns %obelisk version
-* DIVIDED BY and DIVIDED BY WITH REMAINDER set operations
-* fix set operations comparing rows by source primary key instead of data
+## v1.0.0
+
+* user-defined views: in most cased views become cached for faster results
 * LEFT JOIN, RIGHT JOIN, OUTER JOIN
+* GROUP BY and HAVING
+* aggregate functions AVG, BOOL-AND, BOOL-OR, COUNT, MAX, MIN, STDEV, STDEVP, SUM, VAR, VARP
+* ORDER BY
+* SELECT TOP n
+* INSERT and UPSERT from a query
+* DIVIDED BY and DIVIDED BY WITH REMAINDER set operations
 * EXISTS, NOT EXISTS, EQUIV, NOT EQUIV predicates
-* COALESCE tests existence
-* fix SCALARS clause arithmetic led by IF, CASE, or COALESCE, or using %
-* fix arithmetic operands and scalars named end-*
-* @rh, @rs, @rq arithmetic and numeric functions; float results keep their aura
-* @rh and @rq literals
-* predicates compare @rh, @rs, @rq as floats
+* inline scalars directly without SCALARS clause entry
+* VERSION() returns %obelisk version
+* @rh, @rs, @rq arithmetic, numeric functions, and predicates compare
 * @ub, @ux, @uv, @uw, @sb, @sx, @sv, @sw arithmetic and numeric functions, as @ud and @sd
-* @uv literals, dotted form 0v1f.ab3ck
 * predicates compare @sb, @sx, @sv, @sw as signed
 * sized integer column types, e.g. @udD, @sdD, @uxF; values and results must fit the bit width
-* fix a column named e, pi, tau, or phi read as the constant in arithmetic
 * mixed numeric arithmetic, functions, and comparison: operands convert to their common type, float > signed > unsigned, widest float and bit width
 * comparisons, IN, simple CASE, and JOIN ON across numeric types compare exact values
 * negative exponents: x ^ -y is 1 / x ^ y; an integer base with a negative literal or non-literal signed exponent gives @rd
-* fix simple CASE not matching a sized target to an unsized WHEN value
-* fix a signed literal (--5, -3) in SCALARS arithmetic or a CASE WHEN, THEN, or ELSE value read as operators
-* primary keys on @rh, @rs, @rq, @sb, @sv, @sw, @sx, and sized signed auras order by value; state migration re-sorts existing tables
-* aggregate functions AVG, BOOL-AND, BOOL-OR, COUNT, MAX, MIN, STDEV, STDEVP, SUM, VAR, VARP, with ALL and DISTINCT
-* GROUP BY and HAVING
-* loobean literals %.y and %.n; the legacy Y and N are still accepted, and are now loobeans, not column names, in predicates and scalar function arguments
+* loobean literals %.y and %.n; the legacy Y and N are still accepted
 * @uc bitcoin address column type; literals 0c<address> or the bare address, verified by checksum; displayed bare
-* user-defined views: CREATE VIEW, ALTER VIEW, DROP VIEW, ALTER NAMESPACE TRANSFER VIEW; cached, may shadow tables; system views sys.views and sys.view-references; sys.columns relation-type column
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0
