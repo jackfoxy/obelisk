@@ -64,12 +64,13 @@ namespace `<namespace>` already exists
 
 ## ALTER NAMESPACE
 
-Transfer an existing user `<table>` to another `<namespace>`.
+Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
 
 ```
 <alter-namespace> ::=
   ALTER NAMESPACE [ <database>. ] <namespace>
-    TRANSFER TABLE [ <db-qualifier> ] <table>
+    TRANSFER { TABLE [ <db-qualifier> ] <table>
+             | VIEW [ <db-qualifier> ] <view> }
     [ <as-of> ]
 ```
 
@@ -78,10 +79,10 @@ Transfer an existing user `<table>` to another `<namespace>`.
 **`<namespace>`**
 Name of the target namespace into which the object is to be transferred. 
 
-**`TABLE`**
+**`TABLE | VIEW`**
 Indicates the type of the target object.
 
-**`<table>`**
+**`<table> | <view>`**
 Name of the object to be transferred to the target namespace.
 
 **`<as-of>`**
@@ -104,6 +105,10 @@ This command mutates the state of the Obelisk agent.
 
 `ALTER NAMESPACE ... TRANSFER TABLE` may move a table between namespaces in the same database, or between namespaces in different user databases. When the transferred table participates in any foreign key (as parent or child), cross-database transfer is rejected; in that case the source table's database and the target namespace's database must match. Foreign-key references involving the transferred table remain valid and are updated to the table's new namespace-qualified identity.
 
+A table or view referenced by any live view cannot be transferred. See [View](view.md).
+
+`ALTER NAMESPACE ... TRANSFER VIEW` moves a view between namespaces of the same database only. The view's references are unchanged. A view cannot be transferred into a namespace where it would shadow a table referenced by any live view.
+
 Objects cannot be transferred in or out of database *sys*.
 
 Objects cannot be transferred in or out of namespace *sys*.
@@ -111,6 +116,7 @@ Objects cannot be transferred in or out of namespace *sys*.
 ### Produced Metadata
 
 action: ALTER NAMESPACE TRANSFER TABLE <table>
+action: ALTER NAMESPACE TRANSFER VIEW <view>
 server-time: <timestamp>
 schema-time: <timestamp>
 data-time: <timestamp>
@@ -125,10 +131,16 @@ namespace `<namespace>` does not exist
 alter namespace state change after query in script
 `<table>` does not exist
 `<table>` already exists in target namespace
+`<table>` used in `<view>`
+`<view>` does not exist
+`<view>` already exists in target namespace
+`<view>` used in `<view>`
+`<view>` would shadow `<table>` used in `<view>`
+view cannot be transferred to another database
 
 ## DROP NAMESPACE
 
-Deletes a `<namespace>` and all tables in that namespace.
+Deletes a `<namespace>` and all tables and views in that namespace.
 
 ```
 <drop-namespace> ::= 
@@ -139,7 +151,7 @@ Deletes a `<namespace>` and all tables in that namespace.
 ### Arguments
 
 **`FORCE`**
-Optionally force deletion of `<namespace>`, dropping all tables associated with the namespace.
+Optionally force deletion of `<namespace>`, dropping all tables and views associated with the namespace, and all views outside the namespace that reference them.
 
 **`<namespace>`**
 The name of `<namespace>` to delete.
@@ -167,6 +179,8 @@ Without `FORCE`, the namespace can be dropped only when all tables in the namesp
 
 Foreign keys wholly contained within the dropped namespace do not block a non-`FORCE` drop, provided the involved tables are empty. Foreign keys where only the child table is in the dropped namespace also do not block a non-`FORCE` drop, provided the child table is empty.
 
+Views in the namespace are always dropped with it. Without `FORCE`, the drop is rejected when a live view outside the namespace references a table or view inside it. With `FORCE`, those outside views are dropped too, along with every view referencing them. See [View](view.md).
+
 With `FORCE`, all tables in the namespace are dropped regardless of row counts or foreign-key participation. Foreign-key metadata is cleaned up for all affected surviving tables:
 
 - if parent and child are both dropped, both sides are removed with the tables
@@ -184,7 +198,7 @@ server-time: <timestamp>
 schema-time: <timestamp>
 data-time: <timestamp>
 
-The result also includes a message for each table dropped by the namespace drop.
+The result also includes a message for each table and view dropped by the namespace drop.
 
 ### Exceptions
 
@@ -198,5 +212,6 @@ namespace `<namespace>` cannot be dropped
 `<namespace>` has populated tables and `FORCE` was not specified
 `<namespace>` would orphan foreign keys and `FORCE` was not specified
 `<namespace>` has populated tables and would orphan foreign keys, and `FORCE` was not specified
+`<namespace>` objects used in `<view>`, use `FORCE` to `DROP`
 
 When the drop would orphan foreign keys, the error message names at least one affected foreign key relationship. If more than one relationship would be orphaned, the message also includes the total count.

@@ -36,7 +36,7 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Reading and/or updating data on foreign ships is permissible if the ship's pilot has granted permission. Cross database joins are allowed, but cross ship joins are not. (Not yet implemented in Obelisk.)
 
-* Views cannot be defined on foreign databases.
+* Views cannot be defined on foreign ship databases, and a view may only reference relations in its own database.
 
 * Queries can operate on previous database states (schema versions and persisted data) through the the AS OF clause.)
 
@@ -155,7 +155,7 @@ Each simple row type is itself a set defined by its component columns (and liter
 
 The order of rows may be determined in the `<query>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
 
-When a `<view>`  and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored.
+When a `<view>` and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored. The exceptions are data manipulation commands, which always resolve to `<table>`; the body of the shadowing `<view>`, where its own name resolves to `<table>`; and scries, which read only tables and system views. See [View](ddl/view.md).
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 

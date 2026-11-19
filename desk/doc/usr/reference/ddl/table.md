@@ -111,6 +111,8 @@ For a multi-row `INSERT` into a table with a self-referential foreign key, rows 
 
 Self-referential foreign keys are allowed. Cyclic foreign-key dependencies are allowed only when all actions in the cycle are `RESTRICT`; cascading actions in cycles are rejected.
 
+A table created with the name of an existing view in the same namespace is shadowed by that view. See [View](view.md).
+
 ### Produced Metadata
 
 message: CREATE TABLE <name>
@@ -275,6 +277,8 @@ For a multi-row `INSERT` into a table with a self-referential foreign key, rows 
 
 Self-referential foreign keys are allowed. Cyclic foreign-key dependencies are allowed only when all actions in the cycle are `RESTRICT`; cascading actions in cycles are rejected.
 
+`ALTER TABLE` is rejected when the table is referenced by any live view. See [View](view.md).
+
 ### Produced Metadata
 
 Schema timestamp
@@ -302,6 +306,7 @@ alter table COLUMNS does not alter existing canonical order
 alter table COLUMNS does not include every column
 alter table PRIMARY KEY is not unique over existing data
 alter table PRIMARY KEY does not alter existing key
+`<table>` used in `<view>`
 
 
 ## DROP TABLE
@@ -349,6 +354,8 @@ Timestamp of table deletion. Defaults to `NOW` (current time). When specified, t
 This command mutates the state of the Obelisk agent.
 
 Cannot drop if used in a view or foreign key, unless `FORCE` is specified, resulting in cascading object drops. Affected views and foreign keys dropped.
+
+With `FORCE`, every live view referencing the table, directly or through other views, is dropped. See [View](view.md).
 
 Without `FORCE`, `DROP TABLE` is rejected if the table is referenced by, or contains, any foreign key. With `FORCE`, all foreign keys that reference the table and all foreign keys defined by the table are dropped. If the table is both parent and child, both incoming and outgoing foreign-key constraints are removed.
 

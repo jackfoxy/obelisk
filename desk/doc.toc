@@ -11,6 +11,7 @@
       /database/md                Database
       /namespace/md               Namespace
       /table/md                   Table
+      /view/md                    View
       /index/md                   Index
     /dml                        Data Manipulation Language
       /insert/md                  Insert

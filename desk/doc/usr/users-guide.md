@@ -1904,6 +1904,10 @@ FROM <relation> [ <as-of> ] SELECT { * | <column> [ ,...n ] }
 Every read runs through the same security processing as a poked command, so
 reads by foreign ships are rejected.
 
+Only tables and system views can be read this way. User-defined views are not
+readable by scry, and do not shadow tables: a path naming a table shadowed by a
+view reads the table.
+
 Scries use care `%x`. From the dojo (or `.^` in any hoon program) the path
 ends with the output mark, always `noun`:
 
@@ -2093,13 +2097,15 @@ SELECT parent-namespace, parent-table, child-namespace, child-table,
 
 ## sys.columns
 
-Lists table columns.
+Lists table and view columns.
 
 ### Columns
 
-**namespace @tas**  Namespace of the table.
+**namespace @tas**  Namespace of the table or view.
 
-**name @tas** Table name.
+**name @tas** Table or view name.
+
+**relation-type @tas** `table` or `view`.
 
 **col-ordinal @ud** Ordinal of column in table's canonical ordering.
 
@@ -2110,6 +2116,48 @@ Lists table columns.
 ### Default Ordering
 
 namespace, name, col-ordinal
+
+## sys.views
+
+Lists user-defined views.
+
+### Columns
+
+**namespace @tas** Namespace of view.
+
+**name @tas** View name.
+
+**agent @ta** Provenance path for the view schema state.
+
+**tmsp @da** Timestamp of view schema state.
+
+**cacheable @f** Whether the view results are cached. See the View reference.
+
+**definition @t** Source text of the view query.
+
+### Default Ordering
+
+namespace, name
+
+## sys.view-references
+
+Lists the tables and views each user-defined view references.
+
+### Columns
+
+**namespace @tas** Namespace of view.
+
+**name @tas** View name.
+
+**ref-namespace @tas** Namespace of the referenced table or view.
+
+**ref-name @tas** Referenced table or view name.
+
+**ref-type @tas** `table` or `view`.
+
+### Default Ordering
+
+namespace, name, ref-namespace, ref-name
 
 ## sys.sys-log
 
@@ -2125,7 +2173,7 @@ in schema views such as `sys.tables`.
 
 **action @tas** Event action, such as `create` or `drop`.
 
-**component @tas** Event component, such as `database`, `namespace`, or `table`.
+**component @tas** Event component, such as `database`, `namespace`, `table`, or `view`.
 
 **database @tas** Database affected by the event, when applicable.
 
