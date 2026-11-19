@@ -479,6 +479,7 @@
     :~  :*  %vector
             :~  [%namespace [%tas %public]]
                 [%name [%tas %widgets]]
+                [%relation-type [%tas %table]]
                 [%col-ordinal [%ud 2]]
                 [%col-name [%tas %id]]
                 [%col-type [%ta %ud]]
@@ -487,6 +488,17 @@
         :*  %vector
             :~  [%namespace [%tas %public]]
                 [%name [%tas %widgets]]
+                [%relation-type [%tas %table]]
+                [%col-ordinal [%ud 1]]
+                [%col-name [%tas %label]]
+                [%col-type [%ta %t]]
+            ==
+        ==
+        ::  a view shadowing the table
+        :*  %vector
+            :~  [%namespace [%tas %public]]
+                [%name [%tas %widgets]]
+                [%relation-type [%tas %view]]
                 [%col-ordinal [%ud 1]]
                 [%col-name [%tas %label]]
                 [%col-type [%ta %t]]
@@ -1479,6 +1491,7 @@
   =/  public=namespace-dto:web  (snag 0 namespaces.alpha)
   =/  sys-namespace=namespace-dto:web  (snag 1 namespaces.alpha)
   =/  widgets=relation-dto:web  (snag 0 relations.public)
+  =/  widgets-view=relation-dto:web  (snag 1 relations.public)
   =/  label=column-dto:web  (snag 0 columns.widgets)
   =/  id=column-dto:web  (snag 1 columns.widgets)
   =/  foreign-key=foreign-key-dto:web  (snag 0 foreign-keys.widgets)
@@ -1492,6 +1505,8 @@
         %sys-log
         %table-keys
         %tables
+        %view-references
+        %views
     ==
   =/  system-relations=(list @tas)
     %+  turn  relations.system-namespace
@@ -1514,6 +1529,12 @@
     %+  expect-eq
       !>(~[%label %id])
     !>((turn columns.widgets |=(column=column-dto:web name.column)))
+    %+  expect-eq
+      !>(~[[%widgets %table] [%widgets %view]])
+    !>((turn relations.public |=(r=relation-dto:web [name.r kind.r])))
+    %+  expect-eq
+      !>(~[%label])
+    !>((turn columns.widgets-view |=(column=column-dto:web name.column)))
     (expect-eq !>("''") !>((trip bunt.label)))
     (expect-eq !>("0") !>((trip bunt.id)))
     (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
@@ -1529,7 +1550,7 @@
               on-update=%cascade
           ==
     !>(foreign-key)
-    (expect-eq !>(7) !>((lent relations.sys-namespace)))
+    (expect-eq !>(9) !>((lent relations.sys-namespace)))
     %+  expect-eq
       !>(expected-views)
     !>((turn relations.sys-namespace |=(r=relation-dto:web name.r)))

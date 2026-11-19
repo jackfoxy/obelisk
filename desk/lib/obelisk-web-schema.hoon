@@ -75,7 +75,8 @@
   ^-  tape
   %+  weld  "FROM "
   %+  weld  (trip database)
-  ".sys.columns SELECT namespace, name, col-ordinal, col-name, col-type;"
+  ".sys.columns SELECT namespace, name, relation-type, col-ordinal, ".
+  "col-name, col-type;"
 ::
 ++  foreign-keys-query
   |=  database=@tas
@@ -214,24 +215,31 @@
   $(vectors t.vectors, rows [row rows])
 ::
 ++  column-rows
+  ::  Table and view column rows, apart: a view may shadow a table of the
+  ::  same name.
   |=  vectors=(list vector:ast)
-  ^-  (unit (list column-row))
-  =/  rows=(list column-row)  ~
+  ^-  (unit [tables=(list column-row) views=(list column-row)])
+  =/  tables=(list column-row)  ~
+  =/  views=(list column-row)  ~
   |-
-  ?~  vectors  `rows
+  ?~  vectors  `[tables views]
   =/  namespace=(unit @tas)  (vector-tas %namespace i.vectors)
   =/  table=(unit @tas)  (vector-tas %name i.vectors)
+  =/  kind=(unit @tas)  (vector-tas %relation-type i.vectors)
   =/  ordinal=(unit @ud)  (vector-ud %col-ordinal i.vectors)
   =/  column=(unit @tas)  (vector-tas %col-name i.vectors)
   =/  aura=(unit @ta)  (vector-ta %col-type i.vectors)
   ?~  namespace  ~
   ?~  table  ~
+  ?~  kind  ~
   ?~  ordinal  ~
   ?~  column  ~
   ?~  aura  ~
   =/  row=column-row
     [u.namespace u.table u.ordinal u.column u.aura]
-  $(vectors t.vectors, rows [row rows])
+  ?:  =(%view u.kind)
+    $(vectors t.vectors, views [row views])
+  $(vectors t.vectors, tables [row tables])
 ::
 ++  foreign-key-rows
   |=  vectors=(list vector:ast)
@@ -401,6 +409,23 @@
       foreign-key-lte
   ==
 ::
+++  view-relations
+  ::  the user-defined views of a namespace
+  |=  [database=@tas namespace=@tas views=column-index]
+  ^-  (list relation-dto:web)
+  %+  murn  ~(tap by views)
+  |=  [key=relation-key rows=(list column-row)]
+  ^-  (unit relation-dto:web)
+  ?.  =(namespace namespace.key)  ~
+  :-  ~
+  :*  database
+      namespace
+      table.key
+      %view
+      (table-columns namespace table.key *key-index views)
+      ~
+  ==
+::
 ++  make-column
   |=  [ordinal=@ud name=@tas aura=@ta]
   ^-  column-dto:web
@@ -461,9 +486,25 @@
       %^  make-view  database  %columns
       :~  (make-column 1 %namespace %tas)
           (make-column 2 %name %tas)
-          (make-column 3 %col-ordinal %ud)
-          (make-column 4 %col-name %tas)
-          (make-column 5 %col-type %ta)
+          (make-column 3 %relation-type %tas)
+          (make-column 4 %col-ordinal %ud)
+          (make-column 5 %col-name %tas)
+          (make-column 6 %col-type %ta)
+      ==
+      %^  make-view  database  %views
+      :~  (make-column 1 %namespace %tas)
+          (make-column 2 %name %tas)
+          (make-column 3 %agent %ta)
+          (make-column 4 %tmsp %da)
+          (make-column 5 %cacheable %f)
+          (make-column 6 %definition %t)
+      ==
+      %^  make-view  database  %view-references
+      :~  (make-column 1 %namespace %tas)
+          (make-column 2 %name %tas)
+          (make-column 3 %ref-namespace %tas)
+          (make-column 4 %ref-name %tas)
+          (make-column 5 %ref-type %tas)
       ==
       %^  make-view  database  %sys-log
       :~  (make-column 1 %tmsp %da)
@@ -494,16 +535,20 @@
           tables=table-index
           keys=key-index
           columns=column-index
+          views=column-index
           foreign-keys=foreign-key-index
       ==
   ^-  (list namespace-dto:web)
   %+  turn  namespaces
   |=  namespace=@tas
-  =/  views=(list relation-dto:web)
+  =/  system=(list relation-dto:web)
     ?:(=(%sys namespace) (system-views database) ~)
-  =/  relations=(list relation-dto:web)
-    %+  weld  views
+  =/  user-views=(list relation-dto:web)
+    (view-relations database namespace views)
+  =/  table-dtos=(list relation-dto:web)
     (table-relations database namespace tables keys columns foreign-keys)
+  =/  relations=(list relation-dto:web)
+    :(weld system user-views table-dtos)
   [namespace (sort relations relation-lte)]
 ::
 ++  database-dto
@@ -513,6 +558,7 @@
           tables=table-index
           keys=key-index
           columns=column-index
+          views=column-index
           foreign-keys=foreign-key-index
       ==
   ^-  database-dto:web
@@ -523,7 +569,14 @@
     ==
   :*  database
       =(database default-database)
-      (namespace-dtos database namespaces tables keys columns foreign-keys)
+      %:  namespace-dtos  database
+                          namespaces
+                          tables
+                          keys
+                          columns
+                          views
+                          foreign-keys
+      ==
   ==
 ::
 ++  build-databases
@@ -545,6 +598,7 @@
         ~
         *table-index
         *key-index
+        *column-index
         *column-index
         *foreign-key-index
       ==
@@ -571,7 +625,7 @@
     (namespace-rows u.namespaces-vectors)
   =/  tables=(unit (list table-row))  (table-rows u.tables-vectors)
   =/  keys=(unit (list key-row))  (key-rows u.keys-vectors)
-  =/  columns=(unit (list column-row))
+  =/  columns=(unit [tables=(list column-row) views=(list column-row)])
     (column-rows u.columns-vectors)
   =/  foreign-keys=(unit (list foreign-key-row))
     (foreign-key-rows u.foreign-key-vectors)
@@ -590,7 +644,8 @@
       u.namespaces
       (index-tables u.tables)
       (index-keys u.keys)
-      (index-columns u.columns)
+      (index-columns tables.u.columns)
+      (index-columns views.u.columns)
       (index-foreign-keys u.foreign-keys)
     ==
   `[node u.rest]
