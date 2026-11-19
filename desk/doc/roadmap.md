@@ -1,32 +1,14 @@
 # Roadmap
 
-
 ##  planned functionality
-
-*  Who will build the first database with agent-ai inside? Meaning I can put an agent call into my select statement? Bonus if you can write self repairing queries.
-    https://x.com/rickasaurus/status/2100686628406641103
-
-    Don't know, but I do know I'm adding it to the Obelisk roadmap.
-
-    Self-repairing query too. Should be fairly straight forward prompt generation, given every schema and data state is immutable and persistent
-    https://x.com/foxyjackfox/status/2100723391468822881
-
-
-* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
-   
-* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs. (possibly in V1.0)
-
-* __Scalar INSERT__ -- allow scalar function in insert
 
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
-* __Additional system views__ -- security, views, etc.
-
-* __Support column cells and/or jammed nouns__ -- currently only aura-typed atoms supported.
+* __Support cell column and/or jammed nouns__ -- currently only aura-typed atoms supported.
 
 * __Regex__ -- predicate matching and scalar support
 
-* __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will. %hawk/%oxal compatibility via path?.
+* __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. 
 
 * __Stored procedures__ -- Parameterized queries, to be designed (TBD). Possibly urQL + inlined hoon...who knows.
 
@@ -41,6 +23,20 @@
 * __Pivoting__ -- similar to SQL.
 
 * __Windowing__ -- and windowing functions, similar to SQL.
+
+* __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
+   
+* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs. (possibly in V1.0)
+
+* __Scalar INSERT__ -- allow scalar function in insert
+
+*  Who will build the first database with agent-ai inside? Meaning I can put an agent call into my select statement? Bonus if you can write self repairing queries.
+    https://x.com/rickasaurus/status/2100686628406641103
+
+    Don't know, but I do know I'm adding it to the Obelisk roadmap.
+
+    Self-repairing query too. Should be fairly straight forward prompt generation, given every schema and data state is immutable and persistent
+    https://x.com/foxyjackfox/status/2100723391468822881
 
 * __MERGE__ -- a much maligned SQL command that could be better implemented in urQL/%obelisk. (cf. Merge document, which is incomplete)
 
