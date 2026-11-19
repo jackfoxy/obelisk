@@ -810,6 +810,37 @@
     found    (weld (flop more) found)
   ==
 ::
+++  rename-view-databases
+  ::  the schemas of sys, their user-defined view queries reading database
+  ::  new rather than old
+  |=  [sys=((mop @da schema) gth) old=@tas new=@tas]
+  ^-  ((mop @da schema) gth)
+  %+  gas:schema-key  *((mop @da schema) gth)
+  %+  turn  (tap:schema-key sys)
+  |=  [t=@da s=schema]
+  ^-  [@da schema]
+  [t s(views (rename-views-database views.s old new))]
+::
+++  rename-views-database
+  |=  [vws=views old=@tas new=@tas]
+  ^-  views
+  %+  gas:view-key  *views
+  %+  turn  (tap:view-key vws)
+  |=  [k=ns-rel-key v=view]
+  ^-  [ns-rel-key view]
+  ?:  =(%sys ns.k)  [k v]
+  =/  renamed  (rename-qualified-database crud-txn.v old new)
+  [k v(crud-txn ;;(crud-txn:ast renamed))]
+::
+++  rename-qualified-database
+  ::  n with each local qualified-table of database old in database new
+  |=  [n=* old=@tas new=@tas]
+  ^-  *
+  ?@  n  n
+  ?:  ?&(?=([%qualified-table ~ @ @ @ *] n) =(old +>-.n))
+    n(+>- new)
+  [$(n -.n) $(n +.n)]
+::
 ++  schema-at-time
   ::  the schema in effect at time
   |=  [sys=((mop @da schema) gth) time=@da]

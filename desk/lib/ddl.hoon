@@ -106,8 +106,8 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  ?:  !=(%table table-or-view.a)
-    ~|("ALTER NAMESPACE: only table transfers are implemented" !!)
+  ?:  =(%view table-or-view.a)
+    (transfer-view a next-schemas next-data)
   =/  src=qualified-table:ast  qualified-table.a
   ?:  =(%sys database.src)
     ~|("ALTER NAMESPACE: cannot transfer table out of %sys database" !!)
@@ -148,6 +148,12 @@
         ~|  "ALTER NAMESPACE: table {<namespace.src>}.{<name.src>} ".
             "does not exist"
         (~(got by tables.src-schema) src-key)
+  =/  users=(list [@tas @tas])
+    (dependent-views views.src-schema ~[[%table src-key]])
+  ?^  users
+    ~|  "ALTER NAMESPACE: table {<namespace.src>}.{<name.src>} used in ".
+        "view {<-.i.users>}.{<+.i.users>}"
+        !!
   ?:  (~(has by tables.tgt-schema) tgt-key)
     ~|  "ALTER NAMESPACE: table {<target-namespace.a>}.{<name.src>} ".
         "already exists"
@@ -331,6 +337,27 @@
             !!
       ~
     ~
+  =/  ns-views=(list [@tas @tas])
+    %+  murn  (live-user-views views.nxt-schema)
+    |=  [k=ns-rel-key *]
+    ^-  (unit [@tas @tas])
+    ?.(=(name.d ns.k) ~ `[ns.k rel.k])
+  =/  ns-refs=(list view-reference)
+    %+  weld
+      ^-  (list view-reference)
+      (turn table-keys |=(k=[@tas @tas] [%table k]))
+    ^-  (list view-reference)
+    (turn ns-views |=(k=[@tas @tas] [%view k]))
+  =/  outside=(list [@tas @tas])
+    %+  skip  (dependent-views views.nxt-schema ns-refs)
+    |=(k=[@tas @tas] =(name.d -.k))
+  ?:  &(?=(^ outside) !force.d)
+    ~|  "DROP NAMESPACE: namespace {<name.d>} objects used in view ".
+        "{<-.i.outside>}.{<+.i.outside>}, use FORCE to DROP"
+        !!
+  =/  dropped-views=(list [@tas @tas])  (weld ns-views outside)
+  =.  views.nxt-schema
+    (remove-user-views views.nxt-schema (silt dropped-views))
   =/  cleaned=[tables files]
         %:  remove-namespace-table-fks  name.d
                                         table-keys
@@ -374,8 +401,19 @@
                                          sap.bowl
                                          event-log.db
                                          ==
+  =.  event-log.db
+    %:  drop-view-events  database-name.d
+                          dropped-views
+                          sys-time
+                          sap.bowl
+                          event-log.db
+                          ==
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-namespace)
+  =?  view-cache.db  ?=(^ dropped-views)
+    (next-view-cache-keys db sys-time dropped-view-sys-views)
   =.  state          (update-sys state sys-time)
+  =/  table-messages=(list result:ast)
+    (drop-namespace-table-messages table-keys)
   =/  result-meta=(list result:ast)
         %+  weld
           ^-  (list result:ast)
@@ -384,7 +422,7 @@
               [%schema-time sys-time]
               [%data-time sys-time]
               ==
-          (drop-namespace-table-messages table-keys)
+          (weld table-messages (drop-view-messages dropped-views))
   :^  :-  %results
           result-meta
       (~(put by next-schemas) database-name.d sys-time)
@@ -542,6 +580,12 @@
         ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
             "{<namespace.qualified-table.a>}"
         (~(got by tables.nxt-schema) src-key)
+  =/  users=(list [@tas @tas])
+    (dependent-views views.nxt-schema ~[[%table src-key]])
+  ?^  users
+    ~|  "ALTER TABLE: {<name.qualified-table.a>} used in view ".
+        "{<-.i.users>}.{<+.i.users>}"
+        !!
   =/  fil=file
         ~|  "ALTER TABLE: {<name.qualified-table.a>} does not exist in ".
             "{<namespace.qualified-table.a>}"
@@ -820,6 +864,13 @@
               ==
           ==
     ~|("DROP TABLE: {<+.tbl-key>} used in FOREIGN KEY, use FORCE to DROP" !!)
+  =/  users=(list [@tas @tas])
+    (dependent-views views.nxt-schema ~[[%table tbl-key]])
+  ?:  &(?=(^ users) !force.d)
+    ~|  "DROP TABLE: {<+.tbl-key>} used in view ".
+        "{<-.i.users>}.{<+.i.users>}, use FORCE to DROP"
+        !!
+  =.  views.nxt-schema  (remove-user-views views.nxt-schema (silt users))
   ::
   =/  cleaned=[tables files]
         ?:  force.d
@@ -866,25 +917,170 @@
                             ~
                             ==
                         event-log.db
+  =.  event-log.db
+    %:  drop-view-events  database.qualified-table.d
+                          users
+                          sys-time
+                          sap.bowl
+                          event-log.db
+                          ==
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-table)
+  =?  view-cache.db  ?=(^ users)
+    (next-view-cache-keys db sys-time dropped-view-sys-views)
   =.  state          (update-sys state sys-time)
   ::
   :^  ?:  (gth rowcount.dropped-file 0)
         :-  %results
+            %+  weld
+              ^-  (list result:ast)
+              :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
+                  [%server-time now.bowl]
+                  [%schema-time sys-time]
+                  [%data-time sys-time]
+                  [%vector-count rowcount.dropped-file]
+                  ==
+            (drop-view-messages users)
+      :-  %results
+          %+  weld
+            ^-  (list result:ast)
             :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
                 [%server-time now.bowl]
                 [%schema-time sys-time]
-                [%data-time sys-time]
-                [%vector-count rowcount.dropped-file]
                 ==
-      :-  %results
-          :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
-              [%server-time now.bowl]
-              [%schema-time sys-time]
-              ==
+          (drop-view-messages users)
       (~(put by next-schemas) database.qualified-table.d sys-time)
       (~(put by next-data) database.qualified-table.d sys-time)
       (~(put by state) name.db db)
+::
+++  transfer-view
+  ::  ALTER NAMESPACE ... TRANSFER VIEW: move a view to another namespace of
+  ::  its database.  Its references are unchanged.
+  |=  $:  a=alter-namespace:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  =/  src=qualified-table:ast  qualified-table.a
+  ?.  =(database.src database-name.a)
+    ~|("ALTER NAMESPACE: view cannot be transferred to another database" !!)
+  ?:  |(=(%sys namespace.src) =(%sys target-namespace.a))
+    ~|("ALTER NAMESPACE: cannot transfer view in or out of %sys namespace" !!)
+  =/  db=database
+    ~|  "ALTER NAMESPACE: database {<database.src>} does not exist"
+        (~(got by state) database.src)
+  =/  sys-time=@da  (set-tmsp as-of.a now.bowl)
+  =/  nxt-schema=schema
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of schema time out of order"
+        (get-next-schema sys.db next-schemas sys-time database.src)
+  =/  nxt-data=data
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of content time out of order"
+        (get-next-data content.db next-data sys-time database.src)
+  ?.  (~(has by namespaces.nxt-schema) target-namespace.a)
+    ~|  "ALTER NAMESPACE: namespace {<target-namespace.a>} does not exist"
+        !!
+  =/  src-key=[@tas @tas]  [namespace.src name.src]
+  =/  tgt-key=[@tas @tas]  [target-namespace.a name.src]
+  =/  vw=view
+    ~|  "ALTER NAMESPACE: view {<namespace.src>}.{<name.src>} does not exist"
+        (need (get-view [-.src-key +.src-key sys-time] views.nxt-schema))
+  ?^  (get-view [-.tgt-key +.tgt-key sys-time] views.nxt-schema)
+    ~|  "ALTER NAMESPACE: view {<target-namespace.a>}.{<name.src>} ".
+        "already exists"
+        !!
+  =/  users=(list [@tas @tas])
+    (dependent-views views.nxt-schema ~[[%view src-key]])
+  ?^  users
+    ~|  "ALTER NAMESPACE: view {<namespace.src>}.{<name.src>} used in ".
+        "view {<-.i.users>}.{<+.i.users>}"
+        !!
+  =/  shadowers=(list [@tas @tas])
+    ?.  (~(has by tables.nxt-schema) tgt-key)  ~
+    (dependent-views views.nxt-schema ~[[%table tgt-key]])
+  ?^  shadowers
+    ~|  "ALTER NAMESPACE: view {<name.src>} would shadow table ".
+        "{<target-namespace.a>}.{<name.src>} used in view ".
+        "{<-.i.shadowers>}.{<+.i.shadowers>}"
+        !!
+  =.  tmsp.vw        sys-time
+  =.  provenance.vw  sap.bowl
+  =.  views.nxt-schema
+    %^  put:view-key  (remove-user-views views.nxt-schema (silt ~[src-key]))
+                      [-.tgt-key +.tgt-key sys-time]
+                      vw
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  =.  sys.db  (put:schema-key sys.db sys-time nxt-schema)
+  =.  event-log.db
+    :-  :*  %sys-log-event
+            sys-time
+            sap.bowl
+            %alter
+            %view
+            database.src
+            `namespace.src
+            `name.src
+            `database.src
+            `target-namespace.a
+            `name.src
+            ~
+            ==
+        event-log.db
+  =.  view-cache.db  (upd-view-caches state db sys-time ~ %alter-view)
+  =?  view-cache.db  cacheable.vw
+    (refresh-views view-cache.db sys-time (silt ~[tgt-key]))
+  =.  state  (update-sys (~(put by state) database.src db) sys-time)
+  :^  :-  %results
+          :~  [%action (crip "ALTER NAMESPACE TRANSFER VIEW {<name.src>}")]
+              [%server-time now.bowl]
+              [%schema-time sys-time]
+              ==
+      (~(put by next-schemas) database.src sys-time)
+      next-data
+      state
+::
+++  dependent-views
+  ::  the live user-defined views reading any of refs, directly or through
+  ::  other views
+  |=  [vws=views refs=(list view-reference)]
+  ^-  (list [@tas @tas])
+  (turn (view-dependents vws refs) |=([k=ns-rel-key *] [ns.k rel.k]))
+::
+++  dropped-view-sys-views
+  ^-  (list [@tas @tas])
+  ~[[%sys %views] [%sys %view-references] [%sys %columns]]
+::
+++  drop-view-events
+  |=  $:  db-name=@tas
+          keys=(list [@tas @tas])
+          sys-time=@da
+          provenance=path
+          log=(list sys-log-event)
+          ==
+  ^-  (list sys-log-event)
+  %+  weld
+    %+  turn  (flop keys)
+    |=  key=[@tas @tas]
+    ^-  sys-log-event
+    :*  %sys-log-event
+        sys-time
+        provenance
+        %drop
+        %view
+        db-name
+        `-.key
+        `+.key
+        ~
+        ~
+        ~
+        ~
+        ==
+  log
+::
+++  drop-view-messages
+  |=  keys=(list [@tas @tas])
+  ^-  (list result:ast)
+  %+  turn  keys
+  |=(key=[@tas @tas] [%message (crip "dropped view {<-.key>}.{<+.key>}")])
 ::
 ++  map-insert
   |*  [m=(map) key=* value=*]

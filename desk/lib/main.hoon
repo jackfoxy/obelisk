@@ -355,6 +355,9 @@
                                  name.c
                                  ==
   =.  name.db  new-name.c
+  =.  sys.db   (rename-view-databases sys.db name.c new-name.c)
+  =.  views.nxt-schema
+    (rename-views-database views.nxt-schema name.c new-name.c)
   =/  db-views  (database-sys-views new-name.c sap.bowl sys-time)
   =.  views.nxt-schema       (gas:view-key views.nxt-schema db-views)
   =.  tmsp.nxt-schema        sys-time

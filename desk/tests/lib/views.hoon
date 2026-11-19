@@ -705,4 +705,239 @@
       [~2012.5.3 %db1 "ALTER VIEW big-orders AS FROM orders SELECT *"]
       'ALTER VIEW: %big-orders used in view %dbo.%ann-big'
       ==
+::
+::  dependencies of tables and namespaces
+::
+++  setup-ns2
+  "CREATE NAMESPACE db1.ns2; ".
+  "CREATE TABLE db1.ns2.items (id @ud) PRIMARY KEY (id);"
+::
+::  a table read by a view cannot be altered
+++  test-fail-alter-table-view-00
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER TABLE orders ADD COLUMN (note @t)"]
+      'ALTER TABLE: %orders used in view %dbo.%big-orders'
+      ==
+::
+::  a table read only by a dropped view can be altered
+++  test-alter-table-view-00
+  =|  run=@ud
+  =/  row
+    |=(name=@tas ^-(vector:ast [%vector ~[[%col-name [~.tas name]]]]))
+  %-  exec-3-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "DROP VIEW big-orders"]
+      [~2012.5.3 %db1 "ALTER TABLE orders ADD COLUMN (note @t)"]
+      [~2012.5.4 %db1 "FROM sys.columns WHERE name = 'orders' SELECT col-name"]
+      %:  select-result
+            ~[(row %id) (row %customer) (row %amount) (row %note)]
+            ~2012.5.4
+            'db1.sys.columns'
+            ~2012.5.3
+            ~2012.5.3
+            ==
+      ==
+::
+::  a table read by a view cannot be dropped without FORCE
+++  test-fail-drop-table-view-00
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 "CREATE VIEW v AS FROM ns2.items SELECT *"]
+      [~2012.5.2 %db1 "DROP TABLE ns2.items"]
+      'DROP TABLE: %items used in view %dbo.%v, use FORCE to DROP'
+      ==
+::
+::  DROP TABLE FORCE drops the views reading the table
+++  test-drop-table-view-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 create-ann-big]
+      [~2012.5.3 %db1 "DROP TABLE FORCE orders"]
+      :-  %results
+          :~  [%action 'DROP TABLE %orders']
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.5.3]
+              [%data-time ~2012.5.3]
+              [%vector-count 3]
+              [%message 'dropped view %dbo.%big-orders']
+              [%message 'dropped view %dbo.%ann-big']
+              ==
+      ==
+::
+++  test-fail-drop-table-view-01
+  =|  run=@ud
+  %-  failon-4
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 create-ann-big]
+      [~2012.5.3 %db1 "DROP TABLE FORCE orders"]
+      [~2012.5.4 %db1 "FROM ann-big SELECT *"]
+      'SELECT: table %db1.%dbo.%ann-big does not exist'
+      ==
+::
+::  a table read by a view cannot be transferred
+++  test-fail-transfer-table-view-00
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER NAMESPACE ns2 TRANSFER TABLE orders"]
+      'ALTER NAMESPACE: table %dbo.%orders used in view %dbo.%big-orders'
+      ==
+::
+::  TRANSFER VIEW
+++  test-transfer-view-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER NAMESPACE ns2 TRANSFER VIEW big-orders"]
+      [~2012.5.3 %db1 "FROM ns2.big-orders SELECT *"]
+      %:  select-result
+            ~[(order-row 2 'bob' 250) (order-row 3 'ann' 400)]
+            ~2012.5.3
+            'db1.ns2.big-orders'
+            ~2012.5.2
+            ~2012.5.2
+            ==
+      ==
+::
+::  a transferred view is no longer in its former namespace
+++  test-fail-transfer-view-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER NAMESPACE ns2 TRANSFER VIEW big-orders"]
+      [~2012.5.3 %db1 "FROM big-orders SELECT *"]
+      'SELECT: table %db1.%dbo.%big-orders does not exist'
+      ==
+::
+::  a view read by a view cannot be transferred
+++  test-fail-transfer-view-01
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 create-ann-big]
+      [~2012.5.3 %db1 "ALTER NAMESPACE ns2 TRANSFER VIEW big-orders"]
+      'ALTER NAMESPACE: view %dbo.%big-orders used in view %dbo.%ann-big'
+      ==
+::
+++  test-fail-transfer-view-02
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "CREATE VIEW ns2.big-orders AS FROM orders SELECT *"]
+      [~2012.5.3 %db1 "ALTER NAMESPACE ns2 TRANSFER VIEW big-orders"]
+      'ALTER NAMESPACE: view %ns2.%big-orders already exists'
+      ==
+::
+++  test-fail-transfer-view-03
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER NAMESPACE db2.ns2 TRANSFER VIEW db1..big-orders"]
+      'ALTER NAMESPACE: view cannot be transferred to another database'
+      ==
+::
+::  a view cannot be transferred to shadow a table read by a view
+++  test-fail-transfer-view-04
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 "CREATE VIEW reads-items AS FROM ns2.items SELECT *"]
+      [~2012.5.2 %db1 "CREATE VIEW items AS FROM orders SELECT id"]
+      [~2012.5.3 %db1 "ALTER NAMESPACE ns2 TRANSFER VIEW items"]
+      %-  crip
+      "ALTER NAMESPACE: view %items would shadow table %ns2.%items used in ".
+      "view %dbo.%reads-items"
+      ==
+::
+::  DROP NAMESPACE drops the views of the namespace
+++  test-drop-namespace-view-00
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %db1 (weld setup "CREATE NAMESPACE db1.ns2;")]
+      [~2012.5.1 %db1 "CREATE VIEW ns2.v AS FROM orders SELECT id"]
+      [~2012.5.2 %db1 "DROP NAMESPACE ns2"]
+      :-  %results
+          :~  [%action 'DROP NAMESPACE %ns2']
+              [%server-time ~2012.5.2]
+              [%schema-time ~2012.5.2]
+              [%data-time ~2012.5.2]
+              [%message 'dropped view %ns2.%v']
+              ==
+      ==
+::
+::  a namespace whose objects a view outside it reads needs FORCE
+++  test-fail-drop-namespace-view-00
+  =|  run=@ud
+  %-  failon-2
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 "CREATE VIEW v AS FROM ns2.items SELECT *"]
+      [~2012.5.2 %db1 "DROP NAMESPACE ns2"]
+      %-  crip
+      "DROP NAMESPACE: namespace %ns2 objects used in view %dbo.%v, ".
+      "use FORCE to DROP"
+      ==
+::
+::  DROP NAMESPACE FORCE drops the views outside it reading its objects
+++  test-drop-namespace-view-01
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %db1 (weld setup setup-ns2)]
+      [~2012.5.1 %db1 "CREATE VIEW v AS FROM ns2.items SELECT *"]
+      [~2012.5.2 %db1 "DROP NAMESPACE FORCE ns2"]
+      :-  %results
+          :~  [%action 'DROP NAMESPACE %ns2']
+              [%server-time ~2012.5.2]
+              [%schema-time ~2012.5.2]
+              [%data-time ~2012.5.2]
+              [%message 'DROP TABLE %ns2.%items']
+              [%message 'dropped view %dbo.%v']
+              ==
+      ==
+::
+::  ALTER DATABASE renames the database the views read
+++  test-alter-database-view-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      [~2012.5.1 %db1 create-big-orders]
+      [~2012.5.2 %db1 "ALTER DATABASE db1 RENAME TO db2"]
+      [~2012.5.3 %db2 "FROM big-orders SELECT *"]
+      %:  select-result
+            ~[(order-row 2 'bob' 250) (order-row 3 'ann' 400)]
+            ~2012.5.3
+            'db2.dbo.big-orders'
+            ~2012.5.1
+            ~2012.5.1
+            ==
+      ==
 --
