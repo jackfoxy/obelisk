@@ -180,7 +180,11 @@
     ?~  columns  "*"
     (zing (join ", " (turn columns trip)))
   =/  source=tape  "{(trip db)}.{(trip ns)}.{(trip rel)}"
-  (run-query db "FROM {source}{(as-of-tape as-of)} SELECT {select}")
+  ::  scries read tables and system views; a user-defined view is absent
+  =/  hidden=(set [@tas @tas @tas])
+    ?:(=(%sys ns) ~ (silt ~[[db ns rel]]))
+  %+  run-query  hidden
+  [db "FROM {source}{(as-of-tape as-of)} SELECT {select}"]
 ::
 ++  as-of-tape
   |=  as-of=(unit @da)
@@ -191,10 +195,11 @@
 ++  run-query
   ::  parse and execute a single query, extracting its relation;
   ::  +process-cmds applies the same security as poked commands
-  |=  [db=@tas urql=tape]
+  |=  [hidden=(set [@tas @tas @tas]) db=@tas urql=tape]
   ^-  relation:ast
   =/  r=[results=(list cmd-result:ast) =server]
-    (process-cmds(state state, bowl bowl) (parse-urql db urql))
+    %.  (parse-urql db urql)
+    process-cmds(state state, bowl bowl, hidden hidden)
   ~|  "scry: query returned no relation: {urql}"
   ?~  results.r  !!
   =/  rs=(list result:ast)  +.i.results.r

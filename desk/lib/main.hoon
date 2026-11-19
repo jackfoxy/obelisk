@@ -1,6 +1,8 @@
 /-  ast=obelisk-ast, *server-state-2, *obelisk
 /+  *sys-views, *ddl, *crud, *views, parse, *utils
-|_  [state=server =bowl:gall]
+::
+::  hidden: user-defined views, as [database namespace name], read as absent
+|_  [state=server =bowl:gall hidden=(set [@tas @tas @tas])]
 ::
 ++  license
   ::  MIT+n license
@@ -257,7 +259,7 @@
       ~|("%revoke not implemented" !!)
     %crud-txn
       =/  r=[? [(map @tas @da) server (list result:ast)]]
-            %:  do-crud-txn(state state, bowl bowl)  i.cmds
+            %:  do-crud-txn(state state, bowl bowl, hidden hidden)  i.cmds
                                                       query-has-run
                                                       next-data
                                                       next-schemas

@@ -3,8 +3,6 @@
 
 ##  V1.0
 
-* __Views__ -- views are cached queries and can shadow user-defined tables.
-
 * __path column type__ -- support path and pith types. (Is path the same as @ta? What about pith?)
 
 

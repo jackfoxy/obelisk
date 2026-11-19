@@ -35,6 +35,7 @@
 * GROUP BY and HAVING
 * loobean literals %.y and %.n; the legacy Y and N are still accepted, and are now loobeans, not column names, in predicates and scalar function arguments
 * @uc bitcoin address column type; literals 0c<address> or the bare address, verified by checksum; displayed bare
+* user-defined views: CREATE VIEW, ALTER VIEW, DROP VIEW, ALTER NAMESPACE TRANSFER VIEW; cached, may shadow tables; system views sys.views and sys.view-references; sys.columns relation-type column
 
 ## v0.9.4-beta
 * standardize UI on urui v2.0
