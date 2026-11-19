@@ -349,6 +349,12 @@
 " AND A.species = D.species ".
 "SELECT A.name, A.species, D.adopter-email;"
 
+=uql "FROM adoptions D ".
+"OUTER JOIN vaccinations V ".
+"  ON D.name = V.name ".
+" AND D.species = V.species ".
+"SELECT D.name AS adopted, D.adopter-email, V.name AS vaccinated, V.vaccine;"
+
 ### Testing existence
 
 =uql "FROM animals A ".

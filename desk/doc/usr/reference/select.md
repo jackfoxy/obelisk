@@ -202,6 +202,8 @@ When a `FROM` clause contains an outer join, joins are performed in the order wr
 
 `SELECT` returns only the values that exist in a row. A selected column, `<alias>.*`, or scalar whose value does not exist in a row is omitted from that row. A row in which no selected value exists is omitted from the result.
 
+The `<row-type>`s of a result are those the joins produce, before `WHERE`. A `<row-type>` whose rows `WHERE` removes keeps its selected columns. A selected column found in no `<row-type>` the joins produced, such as a column of a `<relation>` that matched nothing, is not part of the result. A one-table display of the result matches columns across `<row-type>`s by output name, so give selected columns of the same name from different `<relation>`s distinct names with `AS`.
+
 `CROSS JOIN` is a cartesian join of two tables.
 
 **`<as-of>`**
@@ -235,7 +237,7 @@ Orders the rows of the result. Each `ORDER BY` column is ascending unless follow
 
 * `<column-alias>` -- an output column name of the `SELECT`. An output name takes precedence over a source column of the same name.
 * `<qualified-column>` -- any column of the `FROM` relations, selected or not. An unqualified column name found in more than one joined relation must be qualified.
-* `<column-ordinal>` -- the 1-based position of an output column, counting the columns of `*` and `<alias>.*`.
+* `<column-ordinal>` -- the 1-based position of an output column, counting the columns of `*` and `<alias>.*`. An ordinal cannot order the rows of several `<row-type>`s; order them by column name. A `<row-type>` whose rows `WHERE` removes still counts.
 
 Rows are ordered by the aura of each column: `@t`, `@ta`, and `@tas` alphabetically ignoring case, with lower case first among otherwise equal values; `@rd`, `@rs`, `@rh`, and `@rq` as floating point numbers; signed auras (`@s...`) as signed numbers; other auras by atom value.
 
@@ -271,7 +273,7 @@ A column, or a scalar computed from one, does not exist in a row from an outer j
 
 `ANY` *not implemented.*
 
-When applied in an equality or inequality operation `<cte-column>` must be in a CTE that returned one and only one row.
+When applied in an equality or inequality operation `<cte-column>` must be in a CTE that returned one and only one row. A `<cte-column>` in the `SELECT` list must likewise be in a CTE that returned one and only one row, even when the query returns no rows.
 
 ```
 <binary-op> ::=

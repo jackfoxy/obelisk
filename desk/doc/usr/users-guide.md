@@ -26,7 +26,10 @@ scripts and result exports are `%txt` files in the desk's Clay namespace under
 are supported. Unsaved editor state, pane sizes, schema expansion, and the
 current output are retained only for the browser session.
 
-Query results are displayed in command order. Result sets of 800 rows or more
+Query results are displayed in command order. A result of several row types
+(from an outer join or a set operation) is one table whose header holds every
+column of its row types; a column absent from a row's type is an empty cell.
+Result sets of 800 rows or more
 are paged in groups of 500, while Copy and Save Results still include every
 row. Save Results supports comma-separated, tab-separated, space-separated,
 Markdown, HTML, text, JSON, `%wain`, `%manx`, `%vector`, and `%raw` formats.
@@ -943,6 +946,8 @@ Because a result set has no duplicate rows, rows that look alike are one row. `S
 
 Obelisk has no nulls. A row from an outer join that lacks an `ORDER BY` column sorts after all other rows ascending, and before them descending.
 
+A column ordinal cannot order the rows of several row types: order them by column name. A row type whose rows `WHERE` removes still counts.
+
 ### SELECT TOP
 
 `SELECT TOP n` returns the first `n` rows in `ORDER BY` order. The three most recent leap days:
@@ -1307,6 +1312,18 @@ SELECT A.name, A.species, D.adopter-email;
 This returns every animal. Adopted animals carry their adopter's email.
 
 Obelisk has no nulls. A row that found no match simply has no columns from the object it did not match, so the unadopted animals above are returned with only `name` and `species`. The result holds rows of more than one row type, just as a `UNION` can. A row in which none of the selected values exist is left out of the result.
+
+The row types of a result are those the joins produce, before `WHERE`. A row type whose rows `WHERE` removes keeps its selected columns. A selected column found in no row type the joins produced, such as a column of a relation that matched nothing, is not part of the result.
+
+A display of the result as one table, such as the web interface, matches columns across row types by output name. Give selected columns of the same name from different relations distinct names with `AS`:
+
+```
+FROM adoptions D
+OUTER JOIN vaccinations V
+  ON D.name = V.name
+ AND D.species = V.species
+SELECT D.name AS adopted, D.adopter-email, V.name AS vaccinated, V.vaccine;
+```
 
 ### Testing existence
 
@@ -2628,7 +2645,11 @@ The mark for the poke is always `%obelisk-action`.
 Ordered output with multiple schemas (for example ORDER BY over an outer join)
 keeps row order in one table whose header holds the columns of every schema;
 a column absent from a row's schema is an empty cell (`null` in `%json`).
-`%vector` and `%raw` keep each row's own schema.
+Columns are matched across schemas by output name. Unordered output with
+multiple schemas is one table per schema; a schema whose rows `WHERE` removed
+is an empty table under its selected columns. `%vector` and `%raw` keep each
+row's own schema. The web interface shows every result as one table, as for
+ordered output.
 
 ## Result molds
 
