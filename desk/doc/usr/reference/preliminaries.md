@@ -32,11 +32,11 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 
 * Predicates can reference CTEs for certain use cases.
 
-* Relational division is supported with a DIVIDED BY operator. (parsed but not yet implemented in the Obelisk runtime)
+* Relational division is supported with the DIVIDED BY and DIVIDED BY WITH REMAINDER operators.
 
 * Reading and/or updating data on foreign ships is permissible if the ship's pilot has granted permission. Cross database joins are allowed, but cross ship joins are not. (Not yet implemented in Obelisk.)
 
-* Views cannot be defined on foreign databases.
+* Views cannot be defined on foreign ship databases, and a view may only reference relations in its own database.
 
 * Queries can operate on previous database states (schema versions and persisted data) through the the AS OF clause.)
 
@@ -80,7 +80,10 @@ it.
 | `%raw` | Unformatted `%relations`, preserving column schemas and schema-indexed data rows. |
 
 Formatted results produce one table or row block for each column schema.
-Ordered output with multiple column schemas is not implemented. `%parse` does
+Ordered output with multiple column schemas is one table holding the columns
+of every schema, in row order; a column absent from a row's schema is an
+empty cell (`null` in `%json`). `%vector` and `%raw` keep each row's own
+schema. `%parse` does
 not accept a result format. `%test` is reserved for Obelisk's test code; the
 legacy `%tape`, `%tape-print`, and `%commands` actions are deprecated.
 
@@ -152,7 +155,7 @@ Each simple row type is itself a set defined by its component columns (and liter
 
 The order of rows may be determined in the `<query>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
 
-When a `<view>`  and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored.
+When a `<view>` and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored. The exceptions are data manipulation commands, which always resolve to `<table>`; the body of the shadowing `<view>`, where its own name resolves to `<table>`; and scries, which read only tables and system views. See [View](ddl/view.md).
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
@@ -181,7 +184,7 @@ Specifying **\<as-of>** overrides setting the schema and/or content timestamps i
 
 ## Literals
 
-urQL supports most aura types implemented in Urbit as literals for the INSERT and UPSERT commands, SELECT statement, and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT and UPSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
+urQL supports most aura types implemented in Urbit as literals for the INSERT and UPSERT commands, SELECT statement, and predicates. The *loobean* literals are Urbit's `%.y` and `%.n`. The legacy literals `Y` and `N` (either case) are also accepted; in predicates and scalar function arguments a bare `Y` or `N` is the loobean literal, so a column named `y` or `n` must be qualified there, e.g. `T1.y`. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT and UPSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
 
 Column types (auras) not supported for INSERT can only be inserted into tables through the API.
 
@@ -204,16 +207,16 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 |      |                      | d71.h19.m26 |  |
 |      |                      | d71.h19 |  |
 |      |                      | d71 |  |
-| @f   | loobean              | y, n, Y, N | Y, N |
+| @f   | loobean              | %.y, %.n (legacy y, n, Y, N) | %.y, %.n (legacy Y, N) |
 | @if  | IPv4 address         | .195.198.143.90 | .195.198.143.90 |
 | @is  | IPv6 address         | .0.0.0.0.0.1c.c3c6.8f5a | .0.0.0.0.0.1c.c3c6.8f5a |
 | @p   | ship name            | ~sampel-palnet | ~sampel-palnet |
 |      |                      | sampel-palnet  |  |
 | @q   | phonemic base        | **not supported** | **not supported** |
-| @rh  | half float (16b)     | **not supported** | **not supported** |
+| @rh  | half float (16b)     | .\~\~3.14, .~~-3.14 | .\~\~3.14, .~~-3.14 |
 | @rs  | single float (32b)   | .3.14, .-3.14 | .3.14, .-3.14 |
 | @rd  | double float (64b)   | \.\~3.14, .~-3.14 | \.\~3.14, .~-3.14 |
-| @rq  | quad float (128b)    | **not supported** | **not supported** |
+| @rq  | quad float (128b)    | .\~\~\~3.14, .~~~-3.14 | .\~\~\~3.14, .~~~-3.14 |
 | @sb  | signed binary        | --0b10.0000 | --0b10.0000 |
 |      |                      | -0b10.0000 | -0b10.0000 |
 | @sd  | signed decimal       | --20, -20 | --20, -20 |
@@ -227,18 +230,48 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 | @ta  | ASCII text (knot)    | ~.foo-bar | ~.foo-bar |
 | @tas | ASCII text (term)    | %foo-bar | %foo-bar |
 | @ub  | unsigned binary      | 10.1011 | 10.1011 |
+| @uc  | bitcoin address      | 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa | 0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa |
+|      |                      | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa <sup>2</sup> | 1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa <sup>2</sup> |
 | @ud  | unsigned decimal     | 2.222 | 2.222 |
 |      |                      | 2222 | 2222 |
-| @uv  | unsigned base32      | **not supported** | **not supported** |
+| @uv  | unsigned base32      | 0v1f.ab3ck | 0v1f.ab3ck |
 | @uw  | unsigned base64      | e2O.l4Xpm | **not supported** |
 | @ux  | unsigned hexadecimal | 0x12.6401 | 0x12.6401 |
 
  <sup>1</sup> Example of embedding single quote in @t literal.
 
+ <sup>2</sup> A bare address is `@uc` only when its checksum verifies, see Bitcoin Addresses.
+
 Text-like atom literals use their Hoon aura notation: `@t` cords are written
 in single quotes, `@ta` knots are written with `~.`, and `@tas` terms are
 written with `%`. `INSERT`, `UPSERT`, and `UPDATE` reject `@ta` and `@tas`
 atoms that do not satisfy Hoon's text sanity rules.
+
+### Bitcoin Addresses
+
+A `@uc` literal is a base58check bitcoin address, written with Hoon's `0c` prefix or bare, as wallets show it:
+
+```
+0c1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa
+```
+
+An address is 25 to 35 base58 characters that decode to 25 bytes: a version byte, a 20-byte hash, and a 4-byte checksum, the first 4 bytes of the double SHA-256 of the version byte and hash. The version byte must be one of:
+
+| Version | Network | Address type | Leading character |
+| :------ | :------ | :----------- | :---------------- |
+| `0x00` | mainnet | P2PKH | `1` |
+| `0x05` | mainnet | P2SH  | `3` |
+| `0x6f` | testnet | P2PKH | `m` or `n` |
+| `0xc4` | testnet | P2SH  | `2` |
+
+* A `0c` literal that is not a valid address crashes the command: `invalid @uc address: 0c...`.
+* A bare literal is an address only when it verifies. Otherwise it is not a `@uc`, and is read as any other literal or column name would be. A bare testnet address beginning with `m` or `n` is an address, not a column name.
+* Bech32 (segwit) addresses, `bc1...` and `tb1...`, are not `@uc` and crash the command: `bech32 address is not @uc: bc1...`.
+
+The `@uc` atom is the version byte and hash, as in Hoon. Results display the bare address. The default `@uc` is the all-zero address `1111111111111111111114oLvT2`.
+
+`@uc` is not a number: it has no arithmetic or numeric functions and no bit width. Addresses compare by equality and order by atom, which groups them by version byte. A `@uc` column may be a primary or foreign key.
 
 ## Comments
 Comment syntax in urQL differs from SQL comment syntax. urQL supports two types of comments, line comments and block comments. 
@@ -294,10 +327,19 @@ Obelisk supports the following auras (see the __Literals__ section for represent
 | @ta  | ASCII text (knot, url safe)  |
 | @tas | ASCII text (term)            |
 | @ub  | unsigned binary              |
+| @uc  | bitcoin address (base58check) |
 | @ud  | unsigned decimal             |
 | @uv  | unsigned base32              |
 | @uw  | unsigned base64              |
 | @ux  | unsigned hexadecimal         |
+
+An integer aura (`@ub`, `@ud`, `@uv`, `@uw`, `@ux`, `@sb`, `@sd`, `@sv`, `@sw`, `@sx`) may take a bit-width letter `A` through `J`, for 2^0 through 2^9 bits: `@udD` is an 8-bit unsigned decimal (0 to 255), `@sdD` an 8-bit signed decimal (-128 to 127), `@uxF` a 32-bit unsigned hexadecimal.
+
+| Letter | A | B | C | D | E | F | G | H | I | J |
+| :----- | - | - | - | - | - | - | - | - | - | - |
+| Bits   | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 | 256 | 512 |
+
+A sized aura and its unsized base are compatible: `INSERT`, `UPSERT`, and `UPDATE` take a literal of the base aura, predicates compare the two, and arithmetic or functions combining them produce the sized aura. Arithmetic or functions combining two widths, such as `@udD` and `@udE`, produce the larger width; `INSERT`, `UPSERT`, and `UPDATE` do not take a value of another width. A value that does not fit the width crashes the command: on `INSERT`, `UPSERT`, `UPDATE`, `ALTER COLUMN` of existing values, and on any arithmetic or function result. See Mixed Numeric Types in [Scalars](scalars.md#mixed-numeric-types) for combining numeric types.
 
 Columns are typed by an aura and indexed by name.
 ```
@@ -319,7 +361,7 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 <table-type> ::= (list <row-type>)
 ```
-A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
+A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. Each key column orders by its aura, as `ORDER BY` does: text alphabetically, floating-point auras as floating-point numbers, signed auras as signed numbers, and other auras by atom value. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
 Rows from `<view>`s, `<cte>`s, and output from `<query>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 

@@ -35,6 +35,7 @@
       (index-tables:schema-lib tables.rows)
       (index-keys:schema-lib keys.rows)
       (index-columns:schema-lib columns.rows)
+      *column-index:schema-lib
       *foreign-key-index:schema-lib
     ==
   ?>  ?=(^ namespaces.database)
@@ -71,6 +72,7 @@
       (index-tables:schema-lib ~[[%public %children]])
       *key-index:schema-lib
       (index-columns:schema-lib ~[[%public %children 1 %parent-id %ud]])
+      *column-index:schema-lib
       (index-foreign-keys:schema-lib ~[foreign-key])
     ==
   ?>  ?=(^ namespaces.database)

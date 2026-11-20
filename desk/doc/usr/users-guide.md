@@ -26,7 +26,10 @@ scripts and result exports are `%txt` files in the desk's Clay namespace under
 are supported. Unsaved editor state, pane sizes, schema expansion, and the
 current output are retained only for the browser session.
 
-Query results are displayed in command order. Result sets of 800 rows or more
+Query results are displayed in command order. A result of several row types
+(from an outer join or a set operation) is one table whose header holds every
+column of its row types; a column absent from a row's type is an empty cell.
+Result sets of 800 rows or more
 are paged in groups of 500, while Copy and Save Results still include every
 row. Save Results supports comma-separated, tab-separated, space-separated,
 Markdown, HTML, text, JSON, `%wain`, `%manx`, `%vector`, and `%raw` formats.
@@ -47,16 +50,17 @@ DDL commands define databases, their data tables and other components, data mani
 |ALTER INDEX       |*not implemented*|
 |ALTER NAMESPACE   | |
 |ALTER TABLE       | |
+|ALTER VIEW        | |
 |CREATE DATABASE   | |
 |CREATE INDEX      |*not implemented*|
 |CREATE NAMESPACE  | |
 |CREATE TABLE      | |
-|CREATE VIEW       |*not implemented*|
+|CREATE VIEW       | |
 |DROP DATABASE     | |
 |DROP INDEX        |*not implemented*|
 |DROP NAMESPACE    | |
 |DROP TABLE        | |
-|DROP VIEW         |*not implemented*|
+|DROP VIEW         | |
 
 ### Data Manipulation
 | | |
@@ -223,6 +227,18 @@ If the data in the `INSERT` command has columns ordered in the same order as the
 
 Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column.
 
+`INSERT` and `UPSERT` also take their rows from a query instead of `VALUES`.
+The query's output columns match the target columns by position and aura:
+
+```
+UPSERT INTO my-table-1 (col2, col1)
+FROM my-table-2 WHERE col3 > 1
+SELECT col2, col1;
+```
+
+The query may be a set operation or read a `WITH` CTE. See the
+[INSERT reference](/docs/usr/reference/dml/insert.md).
+
 Text-like literals may be written as single-quoted `@t` cords, `%`-prefixed
 `@tas` terms, or `~.`-prefixed `@ta` knots:
 
@@ -318,7 +334,7 @@ SET col3=DEFAULT;
 
 **Advanced features**
 
-`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml-update.md) for full syntax and examples.
+`UPDATE`, like `DELETE`, supports `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses. `INSERT`, `UPSERT`, and `TRUNCATE TABLE` have separate syntax. See the [UPDATE reference](/docs/usr/reference/dml/update.md) for full syntax and examples.
 
 ## TRUNCATE TABLE
 
@@ -363,9 +379,9 @@ Attempting to drop the still-populated `my-table-2` without `FORCE` results in a
 DROP TABLE FORCE my-table-2;
 ```
 
-# Referential Integrity
+# Relational Integrity
 
-Referential integrity keeps relationships between tables valid. A foreign key
+Relational integrity keeps relationships between tables valid. A foreign key
 declares that values in a child table must match the primary key of a parent
 table, and Obelisk enforces that rule when rows are inserted, updated, deleted,
 or truncated. This lets you model normalized data, where facts are stored once
@@ -577,7 +593,7 @@ SELECT day-name AS Day;
 ```
 Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
-Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order. `GROUP BY`, `ORDER BY`, and `TOP` are supported by the urQL parser but not by the Obelisk runtime in the current release.
+Without the `ORDER BY` clause, data rows are returned in an arbitrary order. To summarize rows, see [GROUP BY and aggregate functions](#group-by-and-aggregate-functions).
 
 ## SCALARS
 
@@ -600,7 +616,7 @@ Scalar function categories:
 - **Arithmetic**
   - `col1 + col2 * 3 END`
   - must end with `END`
-  - supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd` data auras
+  - supports `+`, `-`, `*`, `/`, `%`, `^` on the integer auras `@ub`, `@ud`, `@uv`, `@uw`, `@ux`, `@sb`, `@sd`, `@sv`, `@sw`, `@sx` and the float auras `@rh`, `@rs`, `@rd`, `@rq`, in any mix (see [Mixed arithmetic](#mixed-arithmetic)); `%` is integer only
 
 - **DateTime**
   - `GETUTCDATE()`
@@ -659,13 +675,59 @@ Scalar function categories:
   - `QUOTESTRING(<string-expression> [ , <string-expression>, <string-expression> ])`
   - `STUFF(<string-expression>, <numeric-expression>, <numeric-expression>, <string-expression>)`
 
+- **System**
+  - `VERSION()` — the Obelisk version from `desk.docket-0`, e.g. `'0.9.4'`
+
 A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/usr/reference/scalars.md) for full documentation.
+
+### Inline scalar functions
+
+Any scalar function can also be written in place, without a `SCALARS` definition, in `SELECT`, in `WHERE` predicates of queries, `UPDATE`, and `DELETE`, and in `UPDATE` `SET` values.
+
+```
+FROM adoptions
+WHERE YEAR(adoption-date) = 2024
+SELECT name, UPPER(species) AS species, adoption-fee * 2;
+```
+
+Inline arithmetic takes no `END`. An inline scalar function in `SELECT` without `AS` is named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list, so `adoption-fee * 2` above is the column `scalar-2`. Each inline invocation is evaluated on its own: two `RAND(1, 10)` calls produce independent values, while `GETUTCDATE()` is always the query time. Define a scalar in `SCALARS` when the same expression is used more than once. Scalar functions are not valid in `JOIN ... ON` predicates.
+
+### Mixed arithmetic
+
+Arithmetic, comparisons, and functions accept values of different numeric types. Every operation has one deterministic result type, the *common type* of its operands, and every operand converts to it before the operation.
+
+The common type is the most granular of the operand types: floating point over signed integer over unsigned integer.
+
+- Two floating-point types produce the wider: `@rq`, then `@rd`, `@rs`, `@rh`.
+- An integer and a floating-point type produce the floating-point type, but at least `@rd`: `@ud` with `@rh` or `@rs` produces `@rd`.
+- A signed and an unsigned integer produce a signed integer.
+- Integers of the same notation keep it (`@ux` and `@sx` produce `@sx`); integers of different notations produce decimal (`@ux` and `@ud` produce `@ud`).
+- A sized integer keeps its width with an unsized one (`@udD` and `@ud` produce `@udD`, `@udD` and `@sd` produce `@sdD`); two widths produce the larger (`@udD` and `@udE` produce `@udE`).
+- A numeric type never combines with a non-numeric type.
+
+A floating-point type widens exactly and an unsigned integer converts to signed exactly. An integer converts to a floating-point type exactly up to that type's precision (2^53 for `@rd`), and otherwise rounds. A value must fit a sized result type: `@udD` 200 converted to `@sdD` (-128 to 127) crashes the command.
+
+`^` keeps the type of its base, except that a floating-point exponent produces the common type; with an integer base, a negative literal exponent or a signed exponent that is not a literal produces `@rd`, even for `@sd ^ @sd` (`x ^ -y` is `1 / x ^ y`), and a non-negative signed literal exponent makes an unsigned base signed. `%` on a floating-point type crashes.
+
+Functions of one argument compute in their argument's type. `MAX`, `MIN`, `RAND`, and the branches of `IF`, `CASE`, and `COALESCE` convert to their common type. `ATAN2` computes in the common floating-point type, or `@rd` for two integers.
+
+Comparisons (`=`, `<>`, `<`, `>`, `<=`, `>=`, `BETWEEN`, `IN`, simple `CASE` `WHEN` values, and `JOIN ... ON`) compare numeric values of different types by their exact values: `--2 = .~~2` is true, and `9.007.199.254.740.993 > .~9007199254740992` is true even though the integer converted to `@rd` would be equal.
+
+```
+FROM readings
+WHERE count > .~2.5
+SELECT count + offset, count * .~1.5, MAX(count, offset);
+```
+
+With `count` an `@ud` and `offset` an `@sd`, `count + offset` and `MAX(count, offset)` are `@sd` and `count * .~1.5` is `@rd`.
+
+`INSERT`, `UPSERT`, and `UPDATE` values are not converted: a value must have the column's type or its sized or unsized base. Set operations, foreign keys, and natural joins also require identical types. See [Mixed Numeric Types](/docs/usr/reference/scalars.md#mixed-numeric-types) for the full rules.
 
 ## WHERE clause
 
 As with SQL, you can filter query results with a `WHERE` clause. In a query with a `FROM` clause, column references in the predicate must use unqualified column names or the table alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates — always assign and use an alias when disambiguation is needed.
 
-`SCALARS` defined in the same query and CTE columns are also valid in predicates.
+`SCALARS` defined in the same query, inline scalar functions, and CTE columns are also valid in predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'Thursday'
@@ -769,6 +831,184 @@ FROM adoptions
 WHERE species IN target-species.species
 SELECT name, species, adoption-date, adoption-fee;
 ```
+
+## ORDER BY
+
+`ORDER BY` comes last in a query, after `SELECT`. Each `ORDER BY` column is ascending unless followed by `DESC`; `ASC` may be written but is the default.
+
+Leap days in the calendar, latest first:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY date DESC;
+```
+```
+  date  day-name
+  ~2048.2.29  Saturday
+  ~2044.2.29  Monday
+  ~2040.2.29  Wednesday
+  ~2036.2.29  Friday
+  ...
+  ~1992.2.29  Saturday
+```
+
+Several columns order the rows by the first column, then by the second among rows equal on the first, and so on. Text auras (`@t`, `@ta`, `@tas`) sort alphabetically ignoring case; numbers and dates sort by value.
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY day-name, date DESC;
+```
+```
+  date  day-name
+  ~2036.2.29  Friday
+  ~2008.2.29  Friday
+  ~2044.2.29  Monday
+  ~2016.2.29  Monday
+  ~2048.2.29  Saturday
+  ~2020.2.29  Saturday
+  ~1992.2.29  Saturday
+  ~2032.2.29  Sunday
+  ...
+  ~2012.2.29  Wednesday
+```
+
+### What an ORDER BY column may name
+
+An `ORDER BY` column may be any of three things:
+
+1. **An output column name** -- a selected column, or the alias given with `AS`. When an alias matches a source column name, the alias wins.
+2. **A source column** -- any column of the `FROM` and `JOIN` relations, *whether or not it is selected*. In a join, a column name found in more than one relation must be qualified with its alias, e.g. `T2.label`.
+3. **A column ordinal** -- a number giving the position of a column in the `SELECT` list.
+
+Ordering by a column that is not selected:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT day-name
+ORDER BY year;
+```
+
+Ordering by an alias:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date AS Leap-Day, day-name
+ORDER BY leap-day DESC;
+```
+
+### Column ordinals
+
+A column ordinal is a shorthand for "the *n*th output column." Ordinals are 1-based: `1` is the first column of the `SELECT` list, `2` the second, and so on. This query returns the same rows in the same order as the `ORDER BY day-name, date DESC` example above:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY 2, 1 DESC;
+```
+
+`*` and `<alias>.*` count as all the columns they expand to, in the table's column order. `reference.calendar` has the columns `date, year, month, month-name, day, day-name, day-of-year, weekday, year-week`, so in
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT *
+ORDER BY 6, 1 DESC;
+```
+`6` is `day-name` and `1` is `date`.
+
+An ordinal must be 1 or greater and no greater than the number of output columns; otherwise the query fails, e.g. `ORDER BY: column ordinal 10 exceeds the selected columns`.
+
+Ordinals are convenient, but they silently change meaning when the `SELECT` list changes -- and with `SELECT *`, when `ALTER TABLE` changes the table's columns. Prefer names in production scripts.
+
+### Ties and the non-deterministic warning
+
+When the `ORDER BY` columns do not distinguish every returned row, the order among the tied rows is undefined, and the result is preceded by a warning:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT date, day-name
+ORDER BY day-name;
+```
+```
+%obelisk-result:
+  %results
+    [ %message 'warning: result set order is partial and non-deterministic' ]
+    [ %action 'SELECT' ]
+    %result-set
+    ...
+```
+Several leap days fall on the same day of the week. Adding `date` as a second `ORDER BY` column makes the order total and removes the warning.
+
+Because a result set has no duplicate rows, rows that look alike are one row. `SELECT day-name ORDER BY day-name` returns seven distinct rows and so is totally ordered.
+
+### Outer joins
+
+Obelisk has no nulls. A row from an outer join that lacks an `ORDER BY` column sorts after all other rows ascending, and before them descending.
+
+A column ordinal cannot order the rows of several row types: order them by column name. A row type whose rows `WHERE` removes still counts.
+
+### SELECT TOP
+
+`SELECT TOP n` returns the first `n` rows in `ORDER BY` order. The three most recent leap days:
+```
+FROM reference.calendar
+WHERE month-name = 'February' AND day = 29
+SELECT TOP 3 date, day-name
+ORDER BY date DESC;
+```
+```
+  date  day-name
+  ~2048.2.29  Saturday
+  ~2044.2.29  Monday
+  ~2040.2.29  Wednesday
+```
+
+`TOP` requires `ORDER BY`, and the order must be total: if two returned rows tie on the `ORDER BY` columns the query fails rather than pick arbitrarily among them. `ORDER BY day-name` with `TOP 3` above would fail with `TOP 3: ORDER BY is not a total ordering of the result`. If `n` exceeds the number of rows, all rows are returned.
+
+### ORDER BY with CTEs and set operations
+
+`ORDER BY` orders the final result only. In a CTE, or in a query other than the last of a set operation, `ORDER BY` is ignored unless paired with `TOP`, where it selects which rows are kept:
+```
+WITH (FROM reference.calendar
+      WHERE month-name = 'February' AND day = 29
+      SELECT TOP 3 date, day-name
+      ORDER BY date DESC) AS recent-leap-days
+FROM recent-leap-days
+SELECT date, day-name
+ORDER BY date;
+```
+
+`ORDER BY` after a set operation (`UNION`, `EXCEPT`, ...) orders the combined result, and may only name output columns or ordinals. `TOP` is not allowed in the last query of a set operation. See [Set Operations](#set-operations).
+
+## GROUP BY and aggregate functions
+
+An aggregate function computes one value from many rows: `AVG`, `BOOL-AND`, `BOOL-OR`, `COUNT`, `MAX`, `MIN`, `STDEV`, `STDEVP`, `SUM`, `VAR`, and `VARP`. Without `GROUP BY`, a query with an aggregate summarizes all its rows in one row:
+```
+FROM adoptions
+SELECT COUNT(*) AS adoptions, SUM(adoption-fee) AS fees, MAX(adoption-date) AS latest;
+```
+
+`GROUP BY` returns one row per group of rows with equal values in its columns, and `HAVING` filters those groups as `WHERE` filters rows:
+```
+FROM adoptions
+GROUP BY species
+HAVING COUNT(*) > 1
+SELECT species, COUNT(*) AS adopted, AVG(adoption-fee) AS mean-fee
+ORDER BY adopted DESC;
+```
+
+The clauses run in order: `FROM`, `WHERE` over the rows, `GROUP BY`, `HAVING` over the groups, `SELECT`, then `ORDER BY`.
+
+Every column in the `SELECT` and `HAVING` of a grouped query must be a `GROUP BY` column or inside an aggregate function, so `SELECT *` is not allowed. `GROUP BY` names a source column, an output name of the `SELECT` (which may be a scalar, e.g. `SELECT YEAR(adoption-date) AS year ... GROUP BY year`), or a `SELECT` ordinal.
+
+Aggregates are allowed only in `SELECT` and `HAVING`, where they may be arguments of scalar functions or operands of arithmetic: `ROUND(AVG(adoption-fee), --2)`, `SUM(adoption-fee) / COUNT(*)`. An aggregate cannot be the argument of another aggregate. Order by an aggregate through its output name or ordinal. An unaliased aggregate is named `<function>-<n>` by its position, such as `count-0`.
+
+`DISTINCT` aggregates each distinct value once: `COUNT(DISTINCT species)`. `COUNT(*)` counts rows; `COUNT(<expression>)` counts the rows where the value exists.
+
+Obelisk has no nulls. A row of an outer join that matched nothing lacks the columns of the relation it did not match: aggregates skip it, except `COUNT(*)`, and rows lacking a `GROUP BY` column form a group of their own. An aggregate of no values does not exist, so it is omitted from the row, except `COUNT`, which is `0`.
+
+`BOOL-AND` and `BOOL-OR` aggregate loobeans (`@f`): `%.y` when every, or any, value is `%.y`. `AVG` and the statistics compute in `@rd`, or `@rq` for `@rq` values. `SUM` keeps the type of its values. `MIN` and `MAX` take any type, ordered as `ORDER BY` orders it. See [Aggregate Functions](/docs/usr/reference/aggregates.md) for the full reference.
 
 # Time Travel
 
@@ -1057,7 +1297,93 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 ## Outer Joins
 
-While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, they are not supported by the Obelisk runtime in the current release. Some outer-join-style questions can be rewritten with `UNION`, regular `JOIN`, and `CROSS JOIN` filtered by a `WHERE` predicate, but this is not a complete substitute for runtime outer joins.
+An outer join keeps rows that find no match. `LEFT JOIN` keeps the unmatched rows of everything joined so far (the left side), `RIGHT JOIN` keeps the unmatched rows of the newly joined object (the right side), and `OUTER JOIN` keeps both.
+
+Outer joins take the same join conditions as `JOIN`: a natural join without `ON`, or an `ON` predicate of column equalities joined by `AND`.
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+SELECT A.name, A.species, D.adopter-email;
+```
+
+This returns every animal. Adopted animals carry their adopter's email.
+
+Obelisk has no nulls. A row that found no match simply has no columns from the object it did not match, so the unadopted animals above are returned with only `name` and `species`. The result holds rows of more than one row type, just as a `UNION` can. A row in which none of the selected values exist is left out of the result.
+
+The row types of a result are those the joins produce, before `WHERE`. A row type whose rows `WHERE` removes keeps its selected columns. A selected column found in no row type the joins produced, such as a column of a relation that matched nothing, is not part of the result.
+
+A display of the result as one table, such as the web interface, matches columns across row types by output name. Give selected columns of the same name from different relations distinct names with `AS`:
+
+```
+FROM adoptions D
+OUTER JOIN vaccinations V
+  ON D.name = V.name
+ AND D.species = V.species
+SELECT D.name AS adopted, D.adopter-email, V.name AS vaccinated, V.vaccine;
+```
+
+### Testing existence
+
+`EXISTS` tests whether a column exists in a row. `NOT EXISTS` turns a `LEFT JOIN` into a list of the unmatched rows:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+WHERE NOT EXISTS D.adopter-email
+SELECT A.name, A.species;
+```
+
+This returns the animals that have not been adopted.
+
+Any comparison with a column that does not exist is false. `NOT` negates as usual:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+WHERE NOT D.adoption-fee > 75
+SELECT A.name, A.species;
+```
+
+This returns the animals adopted for a fee of 75 or less, and the animals not adopted at all.
+
+`EQUIV` is like `=`, except that it is also true when neither side exists. `NOT EQUIV` is its negation.
+
+### COALESCE
+
+`COALESCE` returns the first of its arguments that exists:
+
+```
+FROM animals A
+LEFT JOIN adoptions D
+  ON A.name = D.name
+ AND A.species = D.species
+SCALARS adopted-on COALESCE(D.adoption-date, A.admission-date)
+SELECT A.name, A.species, adopted-on;
+```
+
+When none of its arguments exist, the result of `COALESCE` does not exist. Any other scalar function or arithmetic over a column that does not exist also does not exist.
+
+### Join order
+
+A missing column never matches a later join. Here staff assignments are matched to persons, and their vaccinations, if any, are joined on the staff email:
+
+```
+FROM staff-assignments S
+JOIN persons P
+  ON S.email = P.email
+LEFT JOIN vaccinations V
+  ON S.email = V.email
+SELECT P.first-name, P.last-name, S.role, V.name, V.vaccine;
+```
+
+When a `FROM` clause contains an outer join, joins are performed in the order written. Otherwise `CROSS JOIN`s are performed last.
 
 # SET OPERATIONS
 
@@ -1073,13 +1399,17 @@ WHERE <predicate>
 SELECT <columns>;
 ```
 
-The supported set operations are `UNION`, `EXCEPT`, and `INTERSECT`.
+A query in a set operation needs a `FROM` clause unless its `SELECT` is entirely literals, which produces one row.
+
+The supported set operations are `UNION`, `EXCEPT`, `INTERSECT`, `DIVIDED BY`, and `DIVIDED BY WITH REMAINDER`.
 
 `UNION` returns rows from either side. Exact duplicate rows appear once.
 
 `EXCEPT` starts with the rows on the left and removes any rows that also appear on the right.
 
 `INTERSECT` returns only rows that appear on both sides.
+
+`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` perform relational division. They return the left-side values that are paired with every row on the right side.
 
 The operations are evaluated left-to-right. This matters when they are chained:
 
@@ -1216,6 +1546,123 @@ If either side of an `INTERSECT` is empty, the result is empty.
 
 `UNION` with an empty side returns the non-empty side. These empty-set rules are often useful when a `WHERE` predicate happens to match no rows.
 
+## DIVIDED BY WITH REMAINDER
+
+Relational division answers questions containing "all": which animals received *all* of these vaccines? The left query is the dividend and the right query is the divisor. Divisor columns are matched to dividend columns by name and aura. The remaining dividend columns form the quotient.
+
+```
+FROM vaccinations
+WHERE species = 'Rabbit'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Rabbit'
+SELECT vaccine;
+```
+
+The divisor `vaccine` matches the dividend `vaccine`, so the quotient is `name`. This returns the rabbits that received every rabbit vaccine: Humphrey.
+
+`WITH REMAINDER` allows a quotient row to be paired with values that are not in the divisor. Here the divisor holds only two dog vaccines:
+
+```
+FROM vaccinations
+WHERE species = 'Dog'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Dog'
+  AND vaccine IN ('Adenovirus', 'Rabies')
+SELECT vaccine;
+```
+
+This returns Aspen, Benny, Dolly, and Odin. Aspen is also vaccinated against Distemper Virus, which is the remainder.
+
+## DIVIDED BY
+
+`DIVIDED BY` without `WITH REMAINDER` is exact division. A quotient row is returned only when the values it is paired with are exactly the divisor rows, no more and no fewer.
+
+```
+FROM vaccinations
+WHERE species = 'Dog'
+SELECT name, vaccine
+DIVIDED BY
+FROM reference.species-vaccines
+WHERE species = 'Dog'
+  AND vaccine IN ('Adenovirus', 'Rabies')
+SELECT vaccine;
+```
+
+This returns Benny, Dolly, and Odin. Aspen is excluded because of its Distemper Virus vaccination.
+
+The divisor may have more than one column, in any order. The quotient keeps the dividend's column order:
+
+```
+FROM vaccinations
+SELECT name, species, vaccine
+DIVIDED BY WITH REMAINDER
+FROM reference.species-vaccines
+WHERE species = 'Rabbit'
+SELECT vaccine, species;
+```
+
+The quotient is `name`.
+
+A `SELECT` of only literals is a one-row divisor or dividend:
+
+```
+FROM vaccinations
+SELECT name, vaccine
+DIVIDED BY
+SELECT 'Rabies' AS vaccine;
+```
+
+This returns the animals vaccinated against Rabies and nothing else.
+
+Empty operands:
+
+* An empty dividend returns an empty result.
+* An empty divisor returns every distinct quotient row for `DIVIDED BY WITH REMAINDER`, because every row is trivially paired with all of nothing. `DIVIDED BY` returns an empty result.
+
+If a dividend or divisor contains more than one row type, each dividend row type is divided separately by each divisor row type whose column names it contains.
+
+Division crashes when:
+
+* a divisor column does not exist in the dividend,
+* a column has a different aura on each side,
+* the divisor covers every dividend column, or
+* an operand has duplicate output column names.
+
+For example:
+
+```
+FROM vaccinations
+SELECT name, vaccine
+DIVIDED BY
+FROM reference.species-vaccines
+SELECT species;
+```
+
+```
+SET-QUERY DIVIDED BY: divisor columns ~[%species] not in dividend
+```
+
+The quotient becomes the left side of any following set operation:
+
+```
+FROM vaccinations
+WHERE species = 'Rabbit'
+SELECT name, vaccine
+DIVIDED BY WITH REMAINDER
+FROM vaccinations
+WHERE name = 'Bon bon'
+SELECT vaccine
+EXCEPT
+FROM adoptions
+SELECT name;
+```
+
+This returns the rabbits vaccinated against at least everything Bon bon received, leaving out the rabbits that have been adopted: Bon bon. (Humphrey is adopted.)
+
 ## Set Operations in CTEs
 
 Set operations can be used inside `WITH` CTEs, and outer queries can select from those CTEs like any other CTE.
@@ -1246,7 +1693,6 @@ SELECT email;
 
 The metadata returned with a set operation includes the underlying real source tables used by all operands. Internal CTE names are not reported as source relations.
 
-`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` are parsed but are not implemented for execution.
 
 
 # Commenting urQL
@@ -1339,7 +1785,7 @@ namespaces in the same database. Tables cannot be moved into or out of the
 
 `ALTER TABLE` changes one table. It can rename the table, reorder columns,
 change the primary key, add columns, drop columns, rename columns, and change a
-column aura. Foreign-key behavior is covered in the `Referential Integrity`
+column aura. Foreign-key behavior is covered in the `Relational Integrity`
 section; alteration syntax is in the `ALTER TABLE` reference.
 
 Foreign-key participation constrains some table alterations. A primary key
@@ -1430,6 +1876,295 @@ Other table alterations populate `message` with the clause names, such as
 `ADD COLUMN; RENAME COLUMN; COLUMNS`.
 
 
+# Views
+
+A view is a named, read-only query. Query it like a table: name it in `FROM`
+or `JOIN`, with or without `AS OF`. Each time a query reads a view, the view
+produces the rows of its stored query. The complete rules are in the
+[View](/docs/usr/reference/ddl/view.md) reference.
+
+Views are not updateable. `INSERT`, `UPDATE`, `UPSERT`, `DELETE`, and
+`TRUNCATE TABLE` always act on tables.
+
+## CREATE VIEW
+
+Start with two small tables:
+
+```
+CREATE DATABASE view-lab;
+
+CREATE TABLE view-lab..orders
+  (id @ud, customer @t, amount @ud)
+PRIMARY KEY (id);
+
+CREATE TABLE view-lab..customers
+  (customer @t, city @t)
+PRIMARY KEY (customer);
+
+INSERT INTO view-lab..orders
+VALUES (1, 'ann', 10) (2, 'bob', 250) (3, 'ann', 400);
+
+INSERT INTO view-lab..customers
+VALUES ('ann', 'paris') ('bob', 'rome');
+```
+
+`AS` separates the view name from the query that defines it:
+
+```
+CREATE VIEW view-lab..big-orders AS
+FROM orders
+WHERE amount > 100
+SELECT id, customer, amount;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'CREATE VIEW %big-orders' ]
+    [ %server-time ~2024.12.12..15.02.11..5e1a ]
+    [ %schema-time ~2024.12.12..15.02.11..5e1a ]
+```
+
+In a view body, unqualified and partially qualified names default to the
+view's own database and the *dbo* namespace, not to the script's current
+database. `orders` above is `view-lab.dbo.orders`, whatever database the
+script runs in. A view body can only read relations in its own database.
+
+Query the view like any table:
+
+```
+FROM view-lab..big-orders
+SELECT *;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'SELECT' ]
+    %result-set
+      id  customer  amount
+      2  bob  250
+      3  ann  400
+    [ %server-time ~2024.12.12..15.03.40..a07c ]
+    [ %relation-name 'view-lab.dbo.big-orders' ]
+    [ %schema-time ~2024.12.12..15.02.11..5e1a ]
+    [ %data-time ~2024.12.12..15.02.11..5e1a ]
+    [ %vector-count 2 ]
+```
+
+The body can be any query: joins, `WHERE`, `GROUP BY`, common table
+expressions, scalars, and set operations.
+
+```
+CREATE VIEW view-lab..order-cities AS
+FROM orders
+JOIN customers
+SELECT orders.id, orders.customer AS who, customers.city;
+```
+
+View column names must be unique, so use aliases where two columns would
+otherwise share a name. `*` is expanded when the view is created. A column added
+to a source table later does not appear in the view.
+
+`ORDER BY` in a view determines which rows `TOP` keeps and the order of the
+view's rows. An `ORDER BY` in the query reading the view takes precedence.
+
+```
+CREATE VIEW view-lab..top-orders AS
+FROM orders
+SELECT TOP 2 id, amount
+ORDER BY amount DESC;
+```
+
+A view can read other views:
+
+```
+CREATE VIEW view-lab..ann-big AS
+FROM big-orders
+WHERE customer = 'ann'
+SELECT id, amount;
+```
+
+Views cannot be created in the *sys* namespace or on foreign ship databases.
+
+## Dependencies
+
+A view *references* every table and view named in its body. Obelisk resolves
+these names when the view is created, and records each one fully qualified as a
+table or a view. A table or view created later does not change what an existing
+view reads.
+
+While a view references them, Obelisk protects its sources:
+
+* A referenced table cannot be altered with `ALTER TABLE` or moved with
+  `ALTER NAMESPACE ... TRANSFER TABLE`. A new view cannot shadow it.
+* A referenced view cannot be altered with `ALTER VIEW` or moved with
+  `ALTER NAMESPACE ... TRANSFER VIEW`.
+* `DROP TABLE` and `DROP VIEW` are rejected unless you add `FORCE`. `FORCE`
+  also drops every view that depends on the dropped object, directly or
+  through other views.
+
+Data changes, including `TRUNCATE TABLE`, are always permitted on referenced
+tables.
+
+At this point `ALTER TABLE view-lab..orders ...` fails, because `big-orders`
+and `top-orders` read `orders`. `DROP VIEW view-lab..big-orders` fails because
+`ann-big` reads it. The error names the dependent view:
+`%big-orders used in view %dbo.%ann-big, use FORCE to DROP`.
+
+`DROP NAMESPACE` drops the views in the namespace along with its tables. It
+requires `FORCE` when a view in another namespace reads anything in it.
+
+Circular references are impossible: a view can only reference views that
+already exist, and a referenced view cannot be altered.
+
+## Shadowing a table
+
+A view may have the same name as a table in its namespace. The view then
+*shadows* the table: queries naming that relation read the view.
+
+`customers` is read by `order-cities`, so it cannot be shadowed until that view
+is gone:
+
+```
+DROP VIEW view-lab..order-cities;
+```
+
+Inside its own body, a view's name means the table it shadows. That lets a view
+present a filtered or reshaped version of the table it hides:
+
+```
+CREATE VIEW view-lab..customers AS
+FROM customers
+WHERE city = 'paris'
+SELECT customer, city;
+```
+
+Data manipulation always reaches the table:
+
+```
+INSERT INTO view-lab..customers
+VALUES ('cy', 'oslo');
+```
+
+The table now has three rows, but queries see only the view's one:
+
+```
+FROM view-lab..customers
+SELECT *;
+```
+
+Scries and subscriptions read tables and system views only, so a scry of
+`view-lab/dbo/customers` reads the table.
+
+A table can also be created under the name of an existing view, and stays
+shadowed until the view is dropped.
+
+## ALTER VIEW
+
+`ALTER VIEW` replaces the whole definition of a view. The new definition follows
+all the rules of `CREATE VIEW`.
+
+```
+ALTER VIEW view-lab..top-orders AS
+FROM orders
+SELECT TOP 1 id, amount
+ORDER BY amount DESC;
+```
+
+`ALTER VIEW view-lab..big-orders ...` would be rejected, because `ann-big` reads
+`big-orders`.
+
+## DROP VIEW
+
+```
+DROP VIEW FORCE view-lab..big-orders;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'DROP VIEW %big-orders' ]
+    [ %server-time ~2024.12.12..15.20.06..19b2 ]
+    [ %schema-time ~2024.12.12..15.20.06..19b2 ]
+    [ %message 'dropped view %dbo.%ann-big' ]
+```
+
+The result has one message for each view that `FORCE` dropped. Dropping a view
+that shadows a table makes the table visible to queries again:
+
+```
+DROP VIEW view-lab..customers;
+
+FROM view-lab..customers
+SELECT *;
+```
+
+A view name can be reused for a new view after its drop.
+
+## Views and time travel
+
+View definitions are versioned with the database schema, like table
+definitions. A dropped view is still available to queries with an `AS OF` time
+before it was dropped:
+
+```
+FROM view-lab..big-orders AS OF <timestamp-before-the-drop>
+SELECT *;
+```
+
+An `AS OF` on a view also applies to every relation in the view body that has no
+`AS OF` of its own. A relative `AS OF`, such as `AS OF ~d1`, in a view body
+counts back from that time.
+
+## Caching
+
+Views are cached like system views. A view's cache is refreshed when the view
+is created or altered, and whenever data changes in a table it depends on,
+directly or through other views. A refresh evicts the earlier cached results.
+
+Some views must be evaluated every time they are read, so they are never
+cached. A view is not cacheable when its body contains:
+
+* a relative `AS OF` time, such as `AS OF ~d1`
+* a scalar based on the current time, such as `GETUTCDATE()`
+* a random scalar, such as `RAND()`
+* a reference to a view that is not cacheable
+
+## Views in the system views
+
+Each database's `sys` namespace describes its views:
+
+* `sys.views` lists each view with whether it is cacheable and the source text
+  of its query.
+* `sys.view-references` lists the tables and views each view references.
+* `sys.columns` lists view columns alongside table columns. Its
+  `relation-type` column tells them apart.
+
+```
+FROM view-lab.sys.views
+SELECT namespace, name, cacheable, definition;
+
+FROM view-lab.sys.view-references
+SELECT *;
+```
+
+`sys.sys-log` records `create`, `alter`, and `drop` events for views.
+
+## Views and namespaces
+
+`ALTER NAMESPACE ... TRANSFER VIEW` moves a view to another namespace in the
+same database. Its references don't change.
+
+```
+CREATE NAMESPACE view-lab.reports;
+
+ALTER NAMESPACE view-lab.reports
+TRANSFER VIEW view-lab..top-orders;
+
+FROM view-lab.reports.top-orders
+SELECT *;
+```
+
+When a database is renamed with `ALTER DATABASE`, its views move with it.
+
 # Parsing urQL
 
 The urQL parser in Obelisk is separable from the rest of the system.
@@ -1475,6 +2210,10 @@ FROM <relation> [ <as-of> ] SELECT { * | <column> [ ,...n ] }
 
 Every read runs through the same security processing as a poked command, so
 reads by foreign ships are rejected.
+
+Only tables and system views can be read this way. User-defined views are not
+readable by scry, and do not shadow tables: a path naming a table shadowed by a
+view reads the table.
 
 Scries use care `%x`. From the dojo (or `.^` in any hoon program) the path
 ends with the output mark, always `noun`:
@@ -1665,13 +2404,15 @@ SELECT parent-namespace, parent-table, child-namespace, child-table,
 
 ## sys.columns
 
-Lists table columns.
+Lists table and view columns.
 
 ### Columns
 
-**namespace @tas**  Namespace of the table.
+**namespace @tas**  Namespace of the table or view.
 
-**name @tas** Table name.
+**name @tas** Table or view name.
+
+**relation-type @tas** `table` or `view`.
 
 **col-ordinal @ud** Ordinal of column in table's canonical ordering.
 
@@ -1682,6 +2423,48 @@ Lists table columns.
 ### Default Ordering
 
 namespace, name, col-ordinal
+
+## sys.views
+
+Lists user-defined views.
+
+### Columns
+
+**namespace @tas** Namespace of view.
+
+**name @tas** View name.
+
+**agent @ta** Provenance path for the view schema state.
+
+**tmsp @da** Timestamp of view schema state.
+
+**cacheable @f** Whether the view results are cached. See the View reference.
+
+**definition @t** Source text of the view query.
+
+### Default Ordering
+
+namespace, name
+
+## sys.view-references
+
+Lists the tables and views each user-defined view references.
+
+### Columns
+
+**namespace @tas** Namespace of view.
+
+**name @tas** View name.
+
+**ref-namespace @tas** Namespace of the referenced table or view.
+
+**ref-name @tas** Referenced table or view name.
+
+**ref-type @tas** `table` or `view`.
+
+### Default Ordering
+
+namespace, name, ref-namespace, ref-name
 
 ## sys.sys-log
 
@@ -1697,7 +2480,7 @@ in schema views such as `sys.tables`.
 
 **action @tas** Event action, such as `create` or `drop`.
 
-**component @tas** Event component, such as `database`, `namespace`, or `table`.
+**component @tas** Event component, such as `database`, `namespace`, `table`, or `view`.
 
 **database @tas** Database affected by the event, when applicable.
 
@@ -1741,16 +2524,6 @@ This view records the times and events that affected the state of the database d
 ### Default Ordering
 
 tmsp descending, namespace, table
-
-## sys.view-cache
-
-List views and whether their caches are populated/not populated. *not implemented*
-
-### Columns
-
-**namespace @tas**  Namespace of the view.
-
-**name @tas** View name.
 
 # APPENDIX II: Using Obelisk in a Hoon Program
 
@@ -1869,7 +2642,14 @@ The mark for the poke is always `%obelisk-action`.
   list of column schemas, and each data row carries the zero-based index of its
   schema.
 
-Ordered output with multiple schemas is not implemented for formatted results.
+Ordered output with multiple schemas (for example ORDER BY over an outer join)
+keeps row order in one table whose header holds the columns of every schema;
+a column absent from a row's schema is an empty cell (`null` in `%json`).
+Columns are matched across schemas by output name. Unordered output with
+multiple schemas is one table per schema; a schema whose rows `WHERE` removed
+is an empty table under its selected columns. `%vector` and `%raw` keep each
+row's own schema. The web interface shows every result as one table, as for
+ordered output.
 
 ## Result molds
 

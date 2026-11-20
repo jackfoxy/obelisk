@@ -479,6 +479,7 @@
     :~  :*  %vector
             :~  [%namespace [%tas %public]]
                 [%name [%tas %widgets]]
+                [%relation-type [%tas %table]]
                 [%col-ordinal [%ud 2]]
                 [%col-name [%tas %id]]
                 [%col-type [%ta %ud]]
@@ -487,6 +488,17 @@
         :*  %vector
             :~  [%namespace [%tas %public]]
                 [%name [%tas %widgets]]
+                [%relation-type [%tas %table]]
+                [%col-ordinal [%ud 1]]
+                [%col-name [%tas %label]]
+                [%col-type [%ta %t]]
+            ==
+        ==
+        ::  a view shadowing the table
+        :*  %vector
+            :~  [%namespace [%tas %public]]
+                [%name [%tas %widgets]]
+                [%relation-type [%tas %view]]
                 [%col-ordinal [%ud 1]]
                 [%col-name [%tas %label]]
                 [%col-type [%ta %t]]
@@ -1479,6 +1491,7 @@
   =/  public=namespace-dto:web  (snag 0 namespaces.alpha)
   =/  sys-namespace=namespace-dto:web  (snag 1 namespaces.alpha)
   =/  widgets=relation-dto:web  (snag 0 relations.public)
+  =/  widgets-view=relation-dto:web  (snag 1 relations.public)
   =/  label=column-dto:web  (snag 0 columns.widgets)
   =/  id=column-dto:web  (snag 1 columns.widgets)
   =/  foreign-key=foreign-key-dto:web  (snag 0 foreign-keys.widgets)
@@ -1492,6 +1505,8 @@
         %sys-log
         %table-keys
         %tables
+        %view-references
+        %views
     ==
   =/  system-relations=(list @tas)
     %+  turn  relations.system-namespace
@@ -1514,6 +1529,12 @@
     %+  expect-eq
       !>(~[%label %id])
     !>((turn columns.widgets |=(column=column-dto:web name.column)))
+    %+  expect-eq
+      !>(~[[%widgets %table] [%widgets %view]])
+    !>((turn relations.public |=(r=relation-dto:web [name.r kind.r])))
+    %+  expect-eq
+      !>(~[%label])
+    !>((turn columns.widgets-view |=(column=column-dto:web name.column)))
     (expect-eq !>("''") !>((trip bunt.label)))
     (expect-eq !>("0") !>((trip bunt.id)))
     (expect-eq !>("~2000.1.1") !>((trip bunt.date)))
@@ -1529,7 +1550,7 @@
               on-update=%cascade
           ==
     !>(foreign-key)
-    (expect-eq !>(7) !>((lent relations.sys-namespace)))
+    (expect-eq !>(9) !>((lent relations.sys-namespace)))
     %+  expect-eq
       !>(expected-views)
     !>((turn relations.sys-namespace |=(r=relation-dto:web name.r)))
@@ -1915,7 +1936,7 @@
     (expect !>(?=(^ (find "docs-llm-button" html))))
     (expect !>(?=(^ (find "Reference" html))))
     (expect !>(?=(^ (find "Users Guide" html))))
-    (expect !>(?=(^ (find "Roadmap" html))))
+    (expect !>(?=(~ (find "Roadmap" html))))
     (expect !>(?=(^ (find "id=\"script-copy\"" html))))
     (expect !>(?=(^ (find "Copy results" html))))
     (expect !>(?=(^ (find "id=\"output-fullscreen\"" html))))
@@ -1927,7 +1948,7 @@
     (expect !>(?=(^ (find "developer-help-links" html))))
     (expect !>(?=(~ (find "dev-menu-toggle" html))))
     (expect !>(?=(^ (find "API/AST" html))))
-    (expect !>(?=(^ (find "urQL LLM" html))))
+    (expect !>(?=(^ (find "urQL LLM Skill" html))))
     (expect !>(?=(^ (find "Sample urQL" html))))
     (expect !>(?=(^ (find "Benchmarks" html))))
     (expect !>(?=(^ (find ship html))))
@@ -2256,5 +2277,72 @@
   ;:  weld
     (expect-eq !>(422) !>((response-status (tail-cards -.web-query-out))))
     (expect-eq !>(200) !>((response-status (tail-cards -.web-parse-out))))
+  ==
+::
+++  test-outer-join-result-set-77
+  ::  Rows of three row types make one table: every selected column is a
+  ::  heading, and a cell its row's type lacks is blank.
+  =/  left
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %id ~.ud 0] [%column %l-val ~.t 0]]
+  =/  both
+    ^-  (lest $%(column:ast qualified-column:ast))
+    :~  [%column %id ~.ud 0]
+        [%column %l-val ~.t 0]
+        [%column %r-id ~.ud 0]
+        [%column %r-val ~.t 0]
+    ==
+  =/  right
+    ^-  (lest $%(column:ast qualified-column:ast))
+    ~[[%column %r-id ~.ud 0] [%column %r-val ~.t 0]]
+  =/  row
+    |=  cells=(list [@tas @])
+    ^-  data-row:ast
+    [%indexed-row ~ (~(gas by *(map @tas @)) cells)]
+  =/  relation=relation:ast
+    :*  %relation
+        ~
+        ~[left both right]
+        ~
+        %.n
+        *(tree [(list @) (map @tas @)])
+        :~  [0 (row ~[[%id 1] [%l-val 'L1']])]
+            [1 (row ~[[%id 3] [%l-val 'L3'] [%r-id 3] [%r-val 'R3']])]
+            [2 (row ~[[%r-id 5] [%r-val 'R5']])]
+        ==
+    ==
+  =/  commands=(list command-dto:web)
+    %+  command-dtos:result-lib
+      ~[[%results ~[[%relations ~[relation]] [%vector-count 3]]]]
+    0
+  =/  command=command-dto:web  (snag 0 commands)
+  =/  result=result-dto:web  (snag 0 results.command)
+  ?>  ?=(%result-set -.result)
+  =/  table=result-set-dto:web  value.result
+  ;:  weld
+    %+  expect-eq
+      !>(~[[%id 'ud'] [%l-val 't'] [%r-id 'ud'] [%r-val 't']])
+    !>(columns.table)
+    %+  expect-eq
+      !>  :~  :~  [%id 'ud' '1']
+                  [%l-val 't' '\'L1\'']
+                  [%r-id '' '']
+                  [%r-val '' '']
+              ==
+              :~  [%id 'ud' '3']
+                  [%l-val 't' '\'L3\'']
+                  [%r-id 'ud' '3']
+                  [%r-val 't' '\'R3\'']
+              ==
+              :~  [%id '' '']
+                  [%l-val '' '']
+                  [%r-id 'ud' '5']
+                  [%r-val 't' '\'R5\'']
+              ==
+          ==
+    !>(rows.table)
+    %+  expect-eq
+      !>(`result-dto:web`[%vector-count 3])
+    !>((snag 1 results.command))
   ==
 --

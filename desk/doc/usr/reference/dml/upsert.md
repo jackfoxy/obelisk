@@ -5,9 +5,12 @@ primary key.
 
 ```
 <upsert> ::=
+  [ WITH [ <common-table-expression> [ ,...n ] ] ]
   UPSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
-    VALUES (<scalar-node> [ ,...n ] ) [ ...n ]
+    { VALUES (<scalar-node> [ ,...n ] ) [ ...n ] | <query> }
+
+<common-table-expression> ::= ( <query> ) [ AS ] <name>
 ```
 
 ## Example
@@ -35,6 +38,11 @@ in the `<table>`'s data rows. If not specified row values must be in the
 Row(s) of literal values to upsert into target. Source auras must match target
 columnwise.
 
+**`<query>`**
+A query or set operation query whose rows are upserted into target, as in
+[`INSERT`](/docs/usr/reference/dml/insert.md). Output columns match target
+columns by position and aura.
+
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to
 perform the UPSERT operation. The resulting content timestamp will be `NOW`
@@ -60,8 +68,11 @@ This command mutates the state of the Obelisk agent.
 `INSERT`, it does not fail when a row has an existing primary key. The existing
 row is replaced by the new row.
 
-If a single `UPSERT` command contains multiple rows for the same primary key,
-the last row takes precedence.
+If a single `UPSERT` command contains multiple `VALUES` rows for the same
+primary key, the last row takes precedence. Query rows have no order, so two
+query rows with the same primary key fail.
+
+`UPSERT` from `<query>` follows the rules of `INSERT` from `<query>`.
 
 The `DEFAULT` keyword may be used instead of a value to specify the column
 type's bunt (default) value.

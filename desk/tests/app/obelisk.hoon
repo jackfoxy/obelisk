@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast=obelisk-ast, *server-state-1
+/-  ast=obelisk-ast, *server-state-2
 /+  *test, *sys-views, *utils
 /=  agent  /app/obelisk
 |%
@@ -16,7 +16,7 @@
 ::
 ::  Build a reference state mold
 +$  state
-  $:  %2
+  $:  %3
       =server
       ==
 --
@@ -138,29 +138,7 @@
 ++  db-views
     |=  [db=@tas sys-time=@da]
     ^-  (list [[@tas @tas @da] view])
-    %-  limo
-    :~  :-  [%sys %namespaces sys-time]
-            %-  apply-ordering
-                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %tables sys-time]
-            %-  apply-ordering
-                (sys-tables-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %table-keys sys-time]
-            %-  apply-ordering
-                (sys-table-keys-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %foreign-keys sys-time]
-            %-  apply-ordering
-                (sys-foreign-keys-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %columns sys-time]
-            %-  apply-ordering
-                (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %sys-log sys-time]
-            %-  apply-ordering
-                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time)
-        :-  [%sys %data-log sys-time]
-            %-  apply-ordering
-                (sys-data-log-view db `path`(limo `path`/test-agent) sys-time)
-        ==
+    (database-sys-views db `path`/test-agent sys-time)
 ++  sys-sys-databases-view
   |=  sys-time=@da
   =/  columns=(list column:ast)
@@ -181,11 +159,11 @@
           (malt (spun columns mk-col-lu-data))
           (mk-unqualified-typ-addr-lookup columns)
           columns
-          :~  [aor=%.y ascending=%.y offset=0]
-              [aor=%.n ascending=%.y offset=2]
-              [aor=%.n ascending=%.y offset=5]
-              ==
+          ~                            ::  ordering, unused
           ~
+          ~
+          %.y
+          ''
           ==
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]

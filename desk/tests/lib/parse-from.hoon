@@ -12,7 +12,6 @@
 ::
 ::  SELECT
 ::
-++  select-top-10-all   [%select top=[~ 10] columns=~[[%all %all]]]
 ++  select-all-columns  [%select top=~ columns=~[[%all %all]]]
 ::
 ::  TABLE SET
@@ -291,7 +290,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-ns1
@@ -301,7 +300,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-db2
@@ -311,7 +310,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-db2-ns1
@@ -321,7 +320,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-nec-db2
@@ -331,7 +330,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-nec-db2-ns1
@@ -341,7 +340,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo
@@ -351,7 +350,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-ns1
@@ -361,7 +360,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-db2
@@ -371,7 +370,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-db2-ns1
@@ -381,7 +380,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-nec-db2
@@ -391,7 +390,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-nec-db2-ns1
@@ -401,7 +400,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar
@@ -411,7 +410,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-ns1
@@ -421,7 +420,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-db2
@@ -431,7 +430,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-db2-ns1
@@ -441,7 +440,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-nec-db2
@@ -451,7 +450,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-nec-db2-ns1
@@ -462,7 +461,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased
@@ -472,7 +471,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-ns1
@@ -482,7 +481,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-db2
@@ -492,7 +491,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-db2-ns1
@@ -506,7 +505,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-nec-db2
@@ -520,7 +519,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-nec-db2-ns1
@@ -534,7 +533,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] columns=~[[%all %all]]]
+      [%select top=~ columns=~[[%all %all]]]
       order-by=~
       ==
 ::
@@ -1128,7 +1127,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased
@@ -1139,7 +1138,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all 
+      select-all-columns 
       ~      ::order-by
       ==
 ++  simple-from-join-bar
@@ -1150,7 +1149,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-ns1
@@ -1165,7 +1164,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-db2
@@ -1180,7 +1179,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-db2-ns1
@@ -1195,7 +1194,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-nec-db2
@@ -1210,7 +1209,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-nec-db2-ns1
@@ -1225,7 +1224,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased
@@ -1240,7 +1239,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased-ns1
@@ -1255,7 +1254,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased-db2
@@ -1270,7 +1269,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased-db2-ns1
@@ -1285,7 +1284,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased-nec-db2
@@ -1300,7 +1299,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-aliased-nec-db2-ns1
@@ -1315,7 +1314,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased
@@ -1330,7 +1329,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased-ns1
@@ -1345,7 +1344,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased-db2
@@ -1360,7 +1359,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased-db2-ns1
@@ -1375,7 +1374,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased-nec-db2
@@ -1390,7 +1389,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-aliased-nec-db2-ns1
@@ -1405,7 +1404,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz
@@ -1416,7 +1415,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz-ns1
@@ -1431,7 +1430,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz-db2
@@ -1446,7 +1445,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz-db2-ns1
@@ -1461,7 +1460,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz-nec-db2
@@ -1476,7 +1475,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-join-bar-baz-nec-db2-ns1
@@ -1491,7 +1490,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 
@@ -1507,7 +1506,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-baz-ns1
@@ -1522,7 +1521,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-baz-db2
@@ -1537,7 +1536,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-baz-db2-ns1
@@ -1552,7 +1551,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-baz-nec-db2
@@ -1567,7 +1566,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-join-bar-baz-nec-db2-ns1
@@ -1582,7 +1581,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      select-top-10-all
+      select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-cross-join-bar
@@ -1799,32 +1798,32 @@
 ++  test-join-01
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT *")
 ::
 ::  from ns1.foo (un-aliased)
 ++  test-join-02
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-ns1]]]
-    !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT *")
 ::
 ::  from db2..foo (un-aliased)
 ++  test-join-03
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-db2]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2..foo SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM db2..foo SELECT *")
 ::
 ::  from db2.ns1.foo (un-aliased)
 ++  test-join-04
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-db2-ns1]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT *")
 ::
 ::  from ~nec.db2..foo (un-aliased)
 ++  test-join-05
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2..foo SELECT TOP 10 *"
+              "FROM ~nec.db2..foo SELECT *"
 
 ::
 ::  from ~nec.db2.ns1.foo (un-aliased)
@@ -1832,40 +1831,40 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2.ns1.foo SELECT TOP 10 *"
+              "FROM ~nec.db2.ns1.foo SELECT *"
 ::
 ::  from foo (aliased)
 ++  test-join-07
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo F1 SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM foo F1 SELECT *")
 ::
 ::  from ns1.foo (aliased)
 ++  test-join-08
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ns1.foo F1 SELECT TOP 10 *"
+              "FROM ns1.foo F1 SELECT *"
 ::
 ::  from db2..foo (aliased)
 ++  test-join-09
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-db2]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT *")
 ::
 ::  from db2.ns1.foo (aliased)
 ++  test-join-10
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM db2.ns1.foo F1 SELECT TOP 10 *"
+              "FROM db2.ns1.foo F1 SELECT *"
 ::
 ::  from ~nec.db2..foo (aliased)
 ++  test-join-11
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2..foo F1 SELECT TOP 10 *"
+              "FROM ~nec.db2..foo F1 SELECT *"
 
 ::
 ::  from ~nec.db2.ns1.foo (aliased)
@@ -1873,41 +1872,41 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2.ns1.foo F1 SELECT TOP 10 *"
+              "FROM ~nec.db2.ns1.foo F1 SELECT *"
 ::
 ::  from foo (aliased as)
 ++  test-join-13
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT TOP 10 *")
+    !>  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT *")
 ::
 ::  from ns1.foo (aliased as)
 ++  test-join-14
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ns1.foo as F1 SELECT TOP 10 *"
+              "FROM ns1.foo as F1 SELECT *"
 ::
 ::  from db2..foo (aliased as)
 ++  test-join-15
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-db2]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM db2..foo As F1 SELECT TOP 10 *"
+              "FROM db2..foo As F1 SELECT *"
 ::
 ::  from db2.ns1.foo (aliased as)
 ++  test-join-16
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM db2.ns1.foo aS F1 SELECT TOP 10 *"
+              "FROM db2.ns1.foo aS F1 SELECT *"
 ::
 ::  from ~nec.db2..foo (aliased as)
 ++  test-join-17
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2..foo AS F1 SELECT TOP 10 *"
+              "FROM ~nec.db2..foo AS F1 SELECT *"
 
 ::
 ::  from ~nec.db2.ns1.foo (aliased as)
@@ -1915,42 +1914,42 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query aliased-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ~nec.db2.ns1.foo AS F1 SELECT TOP 10 *"
+              "FROM ~nec.db2.ns1.foo AS F1 SELECT *"
 ::
 ::  from foo (un-aliased) join bar (un-aliased)
 ++  test-join-19
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM foo join bar on 1 = 1 SELECT TOP 10 *"
+            "FROM foo join bar on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (un-aliased)
 ++  test-join-20
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM ns1.foo join ns1.bar on 1 = 1 SELECT TOP 10 *"
+            "FROM ns1.foo join ns1.bar on 1 = 1 SELECT *"
 ::
 ::  from db2..foo (un-aliased) db2..join bar (un-aliased)
 ++  test-join-21
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-db2]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2..foo join db2..bar on 1 = 1 SELECT TOP 10 *"
+            "FROM db2..foo join db2..bar on 1 = 1 SELECT *"
 ::
 ::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (un-aliased)
 ++  test-join-22
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2.ns1.foo join db2.ns1.bar on 1 = 1 SELECT TOP 10 *"
+            "FROM db2.ns1.foo join db2.ns1.bar on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (un-aliased)
 ++  test-join-23
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM ~nec.db2..foo join ~nec.db2..bar on 1 = 1 SELECT TOP 10 *"
+            "FROM ~nec.db2..foo join ~nec.db2..bar on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (un-aliased)
 ++  test-join-24
@@ -1958,7 +1957,7 @@
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-nec-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 
 ::
 ::  from foo (un-aliased) join bar (aliased)
@@ -1966,35 +1965,35 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM foo join bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM foo join bar b1 on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (aliased)
 ++  test-join-26
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM ns1.foo join ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM ns1.foo join ns1.bar b1 on 1 = 1 SELECT *"
 ::
 ::  from db2..foo (un-aliased) join db2..bar (aliased)
 ++  test-join-27
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2..foo join db2..bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM db2..foo join db2..bar b1 on 1 = 1 SELECT *"
 ::
 ::  from db2.ns1.foo (un-aliased) db2.ns1.join bar (aliased)
 ++  test-join-28
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2.ns1.foo join db2.ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM db2.ns1.foo join db2.ns1.bar b1 on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased)
 ++  test-join-29
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM ~nec.db2..foo join ~nec.db2..bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM ~nec.db2..foo join ~nec.db2..bar b1 on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (aliased)
 ++  test-join-30
@@ -2005,35 +2004,35 @@
             ==
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar b1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from foo (un-aliased) join bar (aliased as)
 ++  test-join-31
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM foo join bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM foo join bar  as  b1 on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (aliased as)
 ++  test-join-32
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM ns1.foo join ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM ns1.foo join ns1.bar  as  b1 on 1 = 1 SELECT *"
 ::
 ::  from db2..foo (un-aliased) join db2..bar (aliased as)
 ++  test-join-33
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2..foo join db2..bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM db2..foo join db2..bar  as  b1 on 1 = 1 SELECT *"
 ::
 ::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (aliased as)
 ++  test-join-34
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM db2.ns1.foo join db2.ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM db2.ns1.foo join db2.ns1.bar  as  b1 on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased as)
 ++  test-join-35
@@ -2041,7 +2040,7 @@
     !>  ~[[%crud-txn ctes=~ body=[%query simple-from-foo-join-bar-aliased-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2..foo join ~nec.db2..bar  as  b1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (aliased as)
 ++  test-join-36
@@ -2052,7 +2051,7 @@
             ==
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar  as  b1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from foo (aliased lower case) join bar (aliased as)
 ++  test-join-37
@@ -2069,13 +2068,13 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] columns=~[[%all %all]]]
+                            [%select top=~ columns=~[[%all %all]]]
                             order-by=~
                             ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM foo f1 join bar b1 on 1 = 1 SELECT TOP 10 *"
+            "FROM foo f1 join bar b1 on 1 = 1 SELECT *"
 ::
 ::  from foo (un-aliased) join bar (un-aliased) left join baz (un-aliased)
 ++  test-join-38
@@ -2110,13 +2109,13 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] columns=~[[%all %all]]]
+                            [%select top=~ columns=~[[%all %all]]]
                             order-by=~
                             ==
   %+  expect-eq
     !>   ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-            "FROM foo join bar on 1 = 1 left join baz on 1 = 1 SELECT TOP 10 *"
+            "FROM foo join bar on 1 = 1 left join baz on 1 = 1 SELECT *"
 ::
 ::  from foo (aliased) join bar (aliased) left join baz (aliased)
 ++  test-join-39
@@ -2157,14 +2156,14 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] columns=~[[%all %all]]]
+                            [%select top=~ columns=~[[%all %all]]]
                             order-by=~
                             ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo f1 join bar as B1 on 1 = 1 ".
-            "left join baz b2 on 1 = 1 SELECT TOP 10 *"
+            "left join baz b2 on 1 = 1 SELECT *"
 ::
 ::  from foo as (aliased) cross join bar (aliased)
 ++  test-join-40
@@ -2310,6 +2309,181 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo as y join bar x SELECT *"
 ::
+::  outer joins
+::
+++  baz-unaliased
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='baz' alias=~]
+::
+++  from-foo-with-joins
+  |=  [rel=qualified-table joins=(list joined-relation)]
+  ^-  crud-txn
+  :+  %crud-txn
+      ctes=~
+      :-  %query
+          :*  %query
+              [~ [%from relation-id=rel as-of=~ joins=joins]]
+              scalars=~
+              predicate=~
+              group-by=~
+              having=~
+              select=select-all-columns
+              order-by=~
+              ==
+::
+::  natural LEFT JOIN
+++  test-join-45
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo left join bar SELECT *"
+::
+::  natural RIGHT JOIN
+++  test-join-46
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo RIGHT JOIN bar SELECT *"
+::
+::  natural OUTER JOIN
+++  test-join-47
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo Outer Join bar SELECT *"
+::
+::  natural RIGHT JOIN, aliased
+++  test-join-48
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-alias-x ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-alias-y joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo as y right join bar x SELECT *"
+::
+::  natural OUTER JOIN AS OF
+++  test-join-49
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased [~ [%da ~2000.1.1]] ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo OUTER JOIN bar AS OF ~2000.1.1 SELECT *"
+::
+::  LEFT JOIN ON, aliased
+++  test-join-50
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-alias-x ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-alias-y joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo as y left join bar x on 1 = 1 SELECT *"
+::
+::  RIGHT JOIN ON
+++  test-join-51
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %right-join bar-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo RIGHT JOIN bar ON 1 = 1 SELECT *"
+::
+::  OUTER JOIN ON
+++  test-join-52
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %outer-join bar-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo OUTER JOIN bar ON 1 = 1 SELECT *"
+::
+::  outer join keywords separated by several whitespace characters
+++  test-join-53
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %left-join bar-unaliased ~ ~]
+        [%joined-relation %right-join baz-unaliased ~ one-eq-1]
+        [%joined-relation %outer-join bar-unaliased ~ ~]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo LEFT  \0a JOIN bar ".
+            "RIGHT\0aJOIN baz ON 1 = 1 ".
+            "OUTER \09 JOIN bar SELECT *"
+::
+::  every join type in one FROM
+++  test-join-54
+  =/  joins=(list joined-relation)
+    :~  [%joined-relation %join bar-unaliased ~ ~]
+        [%joined-relation %left-join baz-unaliased ~ ~]
+        [%joined-relation %right-join bar-unaliased ~ one-eq-1]
+        [%joined-relation %outer-join baz-unaliased ~ ~]
+        [%joined-relation %cross-join bar-unaliased ~ ~]
+        [%joined-relation %left-join baz-unaliased ~ one-eq-1]
+        ==
+  %+  expect-eq
+    !>  ~[(from-foo-with-joins foo-table joins)]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo JOIN bar LEFT JOIN baz RIGHT JOIN bar ON 1 = 1 ".
+            "OUTER JOIN baz CROSS JOIN bar LEFT JOIN baz ON 1 = 1 ".
+            "SELECT *"
+::
+::  fail: no whitespace between LEFT and JOIN
+++  test-fail-join-00
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo LEFTJOIN bar SELECT *")
+::
+::  fail: no whitespace between RIGHT and JOIN
+++  test-fail-join-01
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo RIGHTJOIN bar SELECT *")
+::
+::  fail: no whitespace between OUTER and JOIN
+++  test-fail-join-02
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo OUTERJOIN bar SELECT *")
+::
+::  fail: LEFT OUTER JOIN is not urQL
+++  test-fail-join-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo LEFT OUTER JOIN bar SELECT *"
+::
+::  fail: RIGHT OUTER JOIN is not urQL
+++  test-fail-join-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo RIGHT OUTER JOIN bar SELECT *"
+::
+::  fail: FULL OUTER JOIN is not urQL
+++  test-fail-join-05
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo FULL OUTER JOIN bar SELECT *"
+::
+::  fail: LEFT without JOIN
+++  test-fail-join-06
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo LEFT bar SELECT *")
+::
+::  fail: OUTER JOIN without relation
+++  test-fail-join-07
+  %-  expect-fail
+  |.  (parse:parse(default-database 'db1') "FROM foo OUTER JOIN SELECT *")
+::
 ::  AS OF queries
 ::
 ::  from foo %now (un-aliased)
@@ -2317,28 +2491,28 @@
   %+  expect-eq
       !>  (expected [simple-from [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo aS Of Now SELECT TOP 10 *"
+              "FROM foo aS Of Now SELECT *"
 ::
 ::  from foo %now (aliased)
 ++  test-as-of-02
   %+  expect-eq
       !>  (expected [simple-from-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo AS OF NOW F1 SELECT TOP 10 *"
+              "FROM foo AS OF NOW F1 SELECT *"
 ::
 ::  from foo %now (aliased as)
 ++  test-as-of-03
   %+  expect-eq
       !>  (expected [simple-from-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo AS OF NOW as F1 SELECT TOP 10 *"
+              "FROM foo AS OF NOW as F1 SELECT *"
 ::
 ::  from foo %now (un-aliased) join bar %now (un-aliased)
 ++  test-as-of-04
   %+  expect-eq
       !>  (expected [simple-from-join-bar [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW join bar AS OF NOW on 1 = 1 SELECT TOP 10 *"
+            "FROM foo AS OF NOW join bar AS OF NOW on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo %now (un-aliased) join ns1.bar %now (un-aliased)
 ++  test-as-of-05
@@ -2346,7 +2520,7 @@
       !>  (expected [simple-from-join-bar-ns1 [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
             "FROM ns1.foo AS OF NOW join ns1.bar AS OF NOW on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from db2..foo %now (un-aliased) join db2..bar %now (un-aliased)
 ++  test-as-of-06
@@ -2354,7 +2528,7 @@
       !>  (expected [simple-from-join-bar-db2 [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
             "FROM db2..foo AS OF NOW join db2..bar AS OF NOW on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from db2.ns1.foo %now (un-aliased) join db2.ns1.bar %now (un-aliased)
 ++  test-as-of-07
@@ -2362,7 +2536,7 @@
       !>  (expected [simple-from-join-bar-db2-ns1 [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
             "FROM db2.ns1.foo AS OF NOW join db2.ns1.bar AS OF NOW on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from ~nec.db2..foo %now (un-aliased) join ~nec.db2..bar %now (un-aliased)
 ++  test-as-of-08
@@ -2370,7 +2544,7 @@
       !>  (expected [simple-from-join-bar-nec-db2 [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2..foo AS OF NOW join ~nec.db2..bar AS OF NOW ".
-            "on 1 = 1 SELECT TOP 10 *"
+            "on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo %now (un-aliased)
 ::       join ~nec.db2.ns1.bar %now (un-aliased)
@@ -2380,14 +2554,14 @@
               [simple-from-join-bar-nec-db2-ns1 [%as-of-offset 0 %seconds]]
       !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo AS OF NOW join ~nec.db2.ns1.bar AS OF NOW ".
-            "on 1 = 1 SELECT TOP 10 *"
+            "on 1 = 1 SELECT *"
 ::
 ::  from foo %now (un-aliased) join bar %now (aliased)
 ++  test-as-of-10
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW join bar AS OF NOW B1 on 1 = 1 SELECT TOP 10 *"
+            "FROM foo AS OF NOW join bar AS OF NOW B1 on 1 = 1 SELECT *"
 ::
 ::  from foo %now (un-aliased) join bar %now (aliased as)
 ++  test-as-of-11
@@ -2395,7 +2569,7 @@
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF NOW join bar AS OF NOW  as  B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo %now (aliased) join bar %now (aliased as)
 ++  test-as-of-12
@@ -2404,7 +2578,7 @@
               [simple-from-aliased-join-bar-aliased [%as-of-offset 0 %seconds]]
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF NOW F1 join bar AS OF NOW B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from ns1.foo %now (aliased) join ns1.bar %now (aliased as)
 ++  test-as-of-13
@@ -2414,7 +2588,7 @@
                   [%as-of-offset 0 %seconds]
       !>  %-  parse:parse(default-database 'db1')
               "FROM ns1.foo AS OF NOW F1 join ns1.bar AS OF NOW B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from db2..foo %now (aliased) join db2..bar %now (aliased as)
 ++  test-as-of-14
@@ -2424,7 +2598,7 @@
                   [%as-of-offset 0 %seconds]
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2..foo AS OF NOW F1 join db2..bar AS OF NOW B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from db2.ns1.foo %now (aliased) join db2.ns1.bar %now (aliased as)
 ++  test-as-of-15
@@ -2434,7 +2608,7 @@
                   [%as-of-offset 0 %seconds]
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2.ns1.foo AS OF NOW F1 join db2.ns1.bar AS OF NOW B1 ".
-              "on 1 = 1 SELECT TOP 10 *"
+              "on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo %now (aliased) join ~nec.db2..bar %now (aliased as)
 ++  test-as-of-16
@@ -2445,7 +2619,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo AS OF NOW F1 ".
               "join ~nec.db2..bar AS OF NOW B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo %now (aliased) join ~nec.db2.ns1.bar %now (aliased as)
 ++  test-as-of-17
@@ -2456,7 +2630,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2.ns1.foo AS OF NOW F1 ".
               "join ~nec.db2.ns1.bar AS OF NOW B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo %now (un-aliased) join bar %now (un-aliased)
 ::                             left join baz %now (un-aliased)
@@ -2466,7 +2640,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF NOW ".
               "left join bar AS OF NOW on 1 = 1 ".
-              "join baz AS OF NOW on 1 = 1 SELECT TOP 10 *"
+              "join baz AS OF NOW on 1 = 1 SELECT *"
 ::
 ::  from foo %now (aliased) join bar %now (aliased) left join baz %now (aliased)
 ++  test-as-of-19
@@ -2476,7 +2650,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF NOW F1 ".
               "join bar AS OF NOW as B1 on 1 = 1 ".
-              "left join baz AS OF NOW b2 on 1 = 1 SELECT TOP 10 *"
+              "left join baz AS OF NOW b2 on 1 = 1 SELECT *"
 ::
 ::  from foo %now as (aliased) cross join bar %now (aliased)
 ++  test-as-of-20
@@ -2504,21 +2678,21 @@
   %+  expect-eq
       !>  (expected [simple-from [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As oF 2 miNutes AgO SELECT TOP 10 *"
+              "FROM foo As oF 2 miNutes AgO SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (aliased)
 ++  test-as-of-24
   %+  expect-eq
       !>  (expected [simple-from-aliased [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo AS OF 2 minutes AGO F1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO F1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (aliased as)
 ++  test-as-of-25
   %+  expect-eq
       !>  (expected [simple-from-aliased [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo AS OF 2 minutes AGO as F1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO as F1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::  join bar as-of 2 minutes ago (un-aliased)
@@ -2527,7 +2701,7 @@
       !>  (expected [simple-from-join-bar [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO ".
-              "join bar AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join bar AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::  join bar as-of 2 minutes ago (aliased)
@@ -2536,7 +2710,7 @@
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO ".
-              "join bar AS OF 2 minutes AGO B1 on 1 = 1 SELECT TOP 10 *"
+              "join bar AS OF 2 minutes AGO B1 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::  join bar as-of 2 minutes ago (aliased as)
@@ -2546,7 +2720,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO ".
               "join bar AS OF 2 minutes AGO  as  B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (aliased) 
 ::  join bar as-of 2 minutes ago (aliased as)
@@ -2557,7 +2731,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO F1 ".
               "join bar AS OF 2 minutes AGO B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::                             join bar as-of 2 minutes ago (un-aliased)
@@ -2568,7 +2742,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO ".
               "left join bar AS OF 2 minutes AGO on 1 = 1 ".
-              "join baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join baz AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo as-of 2 minutes ago (un-aliased) 
 ::       join ns1.bar as-of 2 minutes ago (un-aliased)
@@ -2579,7 +2753,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM ns1.foo AS OF 2 minutes AGO ".
               "left join ns1.bar AS OF 2 minutes AGO on 1 = 1 ".
-              "join ns1.baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join ns1.baz AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from db2..foo as-of 2 minutes ago (un-aliased) 
 ::       join db2..bar as-of 2 minutes ago (un-aliased)
@@ -2590,7 +2764,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2..foo AS OF 2 minutes AGO ".
               "left join db2..bar AS OF 2 minutes AGO on 1 = 1 ".
-              "join db2..baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join db2..baz AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from db2.ns1.foo as-of 2 minutes ago (un-aliased) 
 ::       join db2.ns1.bar as-of 2 minutes ago (un-aliased)
@@ -2602,7 +2776,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2.ns1.foo AS OF 2 minutes AGO ".
               "left join db2.ns1.bar AS OF 2 minutes AGO on 1 = 1 ".
-              "join db2.ns1.baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join db2.ns1.baz AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo as-of 2 minutes ago (un-aliased) 
 ::       join ~nec.db2..bar as-of 2 minutes ago (un-aliased)
@@ -2614,7 +2788,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo AS OF 2 minutes AGO ".
               "left join ~nec.db2..bar AS OF 2 minutes AGO on 1 = 1 ".
-              "join ~nec.db2..baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "join ~nec.db2..baz AS OF 2 minutes AGO on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo as-of 2 minutes ago (un-aliased) 
 ::       join ~nec.db2.ns1.bar as-of 2 minutes ago (un-aliased)
@@ -2627,7 +2801,7 @@
               "FROM ~nec.db2.ns1.foo AS OF 2 minutes AGO ".
               "left join ~nec.db2.ns1.bar AS OF 2 minutes AGO on 1 = 1 ".
               "join ~nec.db2.ns1.baz AS OF 2 minutes AGO on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (aliased) 
 ::                             join bar as-of 2 minutes ago (aliased) 
@@ -2639,7 +2813,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo AS OF 2 minutes AGO F1 ".
               "join bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
-              "left join baz AS OF 2 minutes AGO b2 on 1 = 1 SELECT TOP 10 *"
+              "left join baz AS OF 2 minutes AGO b2 on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo as-of 2 minutes ago (aliased) 
 ::                             join ns1.bar as-of 2 minutes ago (aliased) 
@@ -2652,7 +2826,7 @@
               "FROM  ns1.foo AS OF 2 minutes AGO F1 ".
               "join  ns1.bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
               "left join  ns1.baz AS OF 2 minutes AGO b2 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from db2..foo as-of 2 minutes ago (aliased) 
 ::                             join db2..bar as-of 2 minutes ago (aliased) 
@@ -2665,7 +2839,7 @@
               "FROM db2..foo AS OF 2 minutes AGO F1 ".
               "join db2..bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
               "left join db2..baz AS OF 2 minutes AGO b2 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from db2.ns1.foo as-of 2 minutes ago (aliased) 
 ::       join db2.ns1.bar as-of 2 minutes ago (aliased) 
@@ -2679,7 +2853,7 @@
               "FROM db2.ns1.foo AS OF 2 minutes AGO F1 ".
               "join db2.ns1.bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
               "left join db2.ns1.baz AS OF 2 minutes AGO b2 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from ~nec.db2..foo as-of 2 minutes ago (aliased) 
 ::       join ~nec.db2..bar as-of 2 minutes ago (aliased) 
@@ -2693,7 +2867,7 @@
               "FROM ~nec.db2..foo AS OF 2 minutes AGO F1 ".
               "join ~nec.db2..bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
               "left join ~nec.db2..baz AS OF 2 minutes AGO b2 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo as-of 2 minutes ago (aliased) 
 ::       join ~nec.db2.ns1.bar as-of 2 minutes ago (aliased) 
@@ -2707,7 +2881,7 @@
               "FROM ~nec.db2.ns1.foo AS OF 2 minutes AGO F1 ".
               "join ~nec.db2.ns1.bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
               "left join ~nec.db2.ns1.baz AS OF 2 minutes AGO b2 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of 2 minutes ago as (aliased) 
 ::  cross join bar 4as-of 2 minutes ago (aliased)
@@ -2740,21 +2914,21 @@
   %+  expect-eq
       !>  (expected [simple-from [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~2000.1.1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased)
 ++  test-as-of-46
   %+  expect-eq
       !>  (expected [simple-from-aliased [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~2000.1.1 F1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 F1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased as)
 ++  test-as-of-47
   %+  expect-eq
       !>  (expected [simple-from-aliased [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~2000.1.1 as F1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 as F1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::  join bar as-of ~2000.1.1 (un-aliased)
@@ -2763,7 +2937,7 @@
       !>  (expected [simple-from-join-bar [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~2000.1.1 ".
-              "join bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from ns1.foo as-of ~2000.1.1 (un-aliased) 
 ::  join ns1.bar as-of ~2000.1.1 (un-aliased)
@@ -2772,7 +2946,7 @@
       !>  (expected [simple-from-join-bar-ns1 [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM ns1.foo As Of ~2000.1.1 ".
-              "join ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from db2..foo as-of ~2000.1.1 (un-aliased) 
 ::  join db2..bar as-of ~2000.1.1 (un-aliased)
@@ -2781,7 +2955,7 @@
       !>  (expected [simple-from-join-bar-db2 [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2..foo As Of ~2000.1.1 ".
-              "join db2..bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join db2..bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from db2.ns1.foo as-of ~2000.1.1 (un-aliased) 
 ::  join db2.ns1.bar as-of ~2000.1.1 (un-aliased)
@@ -2790,7 +2964,7 @@
       !>  (expected [simple-from-join-bar-db2-ns1 [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM db2.ns1.foo As Of ~2000.1.1 ".
-              "join db2.ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join db2.ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2..foo as-of ~2000.1.1 (un-aliased) 
 ::  join ~nec.db2..bar as-of ~2000.1.1 (un-aliased)
@@ -2799,7 +2973,7 @@
       !>  (expected [simple-from-join-bar-nec-db2 [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo As Of ~2000.1.1 ".
-              "join ~nec.db2..bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join ~nec.db2..bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from ~nec.db2.ns1.foo as-of ~2000.1.1 (un-aliased) 
 ::  join ~nec.db2.ns1.bar as-of ~2000.1.1 (un-aliased)
@@ -2808,7 +2982,7 @@
       !>  (expected [simple-from-join-bar-nec-db2-ns1 [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2.ns1.foo As Of ~2000.1.1 ".
-              "join ~nec.db2.ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join ~nec.db2.ns1.bar As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::  join bar as-of ~2000.1.1 (aliased)
@@ -2817,7 +2991,7 @@
       !>  (expected [simple-from-join-bar-aliased [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~2000.1.1 ".
-              "join bar As Of ~2000.1.1 B1 on 1 = 1 SELECT TOP 10 *"
+              "join bar As Of ~2000.1.1 B1 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::  join bar as-of ~2000.1.1 (aliased as)
@@ -2827,7 +3001,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~2000.1.1 ".
               "join bar As Of ~2000.1.1  as  B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased) 
 ::  join bar as-of ~2000.1.1 (aliased as)
@@ -2837,7 +3011,7 @@
               [simple-from-aliased-join-bar-aliased [%da ~2000.1.1]]
       !>  %-  parse:parse(default-database 'db1')
             "FROM foo As Of ~2000.1.1 F1 join bar As Of ~2000.1.1 B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+            "SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::                             join bar as-of ~2000.1.1 (un-aliased)
@@ -2848,7 +3022,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~2000.1.1 ".
               "left join bar As Of ~2000.1.1 on 1 = 1 ".
-              "join baz As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "join baz As Of ~2000.1.1 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased) 
 ::                             join bar as-of ~2000.1.1 (aliased) 
@@ -2860,7 +3034,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~2000.1.1 F1 ".
               "join bar As Of ~2000.1.1 as B1 on 1 = 1 ".
-              "left join baz As Of ~2000.1.1 b2 on 1 = 1 SELECT TOP 10 *"
+              "left join baz As Of ~2000.1.1 b2 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 as (aliased) 
 ::  cross join bar as-of ~2000.1.1 (aliased)
@@ -2937,21 +3111,21 @@
   %+  expect-eq
       !>  (expected [simple-from [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~h5.m30.s12 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased)
 ++  test-as-of-68
   %+  expect-eq
       !>  (expected [simple-from-aliased [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~h5.m30.s12 F1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 F1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased as)
 ++  test-as-of-69
   %+  expect-eq
       !>  (expected [simple-from-aliased [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~h5.m30.s12 as F1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 as F1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::  join bar as-of ~h5.m30.s12 (un-aliased)
@@ -2960,7 +3134,7 @@
       !>  (expected [simple-from-join-bar [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 ".
-              "join bar As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
+              "join bar As Of ~h5.m30.s12 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased)
@@ -2969,7 +3143,7 @@
       !>  (expected [simple-from-join-bar-aliased [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 ".
-              "join bar As Of ~h5.m30.s12 B1 on 1 = 1 SELECT TOP 10 *"
+              "join bar As Of ~h5.m30.s12 B1 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased as)
@@ -2979,7 +3153,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 ".
               "join bar As Of ~h5.m30.s12  as  B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+              "SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased as)
@@ -2989,7 +3163,7 @@
               [simple-from-aliased-join-bar-aliased [%dr ~h5.m30.s12]]
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 F1 join bar As Of ~h5.m30.s12 B1 ".
-              "on 1 = 1 SELECT TOP 10 *"
+              "on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::                             join bar as-of ~h5.m30.s12 (un-aliased)
@@ -3000,7 +3174,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 ".
               "left join bar As Of ~h5.m30.s12 on 1 = 1 ".
-              "join baz As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
+              "join baz As Of ~h5.m30.s12 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased) 
 ::                             join bar as-of ~h5.m30.s12 (aliased) 
@@ -3012,7 +3186,7 @@
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo As Of ~h5.m30.s12 F1 ".
               "join bar As Of ~h5.m30.s12 as B1 on 1 = 1 ".
-              "left join baz As Of ~h5.m30.s12 b2 on 1 = 1 SELECT TOP 10 *"
+              "left join baz As Of ~h5.m30.s12 b2 on 1 = 1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 as (aliased) 
 ::  cross join bar as-of ~h5.m30.s12 (aliased)
@@ -3182,5 +3356,36 @@
              "left join bar                        on 1 = 1 ".
              "join      foo AS OF 2 minutes AGO    on 1 = 1 ".
              "SELECT *"
-
+::
+::  from foo as-of date, leading zeros and no leading zeros
+++  test-as-of-da-00
+  =/  exp  (expected [simple-from [%da ~2000.1.1]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of ~2000.01.01 SELECT *; ".
+              "FROM foo As Of ~2000.1.1 SELECT *"
+::
+::  from foo as-of date-time join bar as-of date-time,
+::  leading zeros and no leading zeros
+++  test-as-of-da-01
+  =/  exp  (expected [simple-from-join-bar [%da ~2000.1.1..1.2.3]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of ~2000.01.01..01.02.03 ".
+              "join bar As Of ~2000.01.01..01.02.03 on 1 = 1 ".
+              "SELECT *; ".
+              "FROM foo As Of ~2000.1.1..1.2.3 ".
+              "join bar As Of ~2000.1.1..1.2.3 on 1 = 1 ".
+              "SELECT *"
+::
+::  from foo as-of date without ~, leading zeros and no leading zeros
+++  test-as-of-da-02
+  =/  exp  (expected [simple-from [%da ~2000.1.1]])
+  %+  expect-eq
+      !>  (weld exp exp)
+      !>  %-  parse:parse(default-database 'db1')
+              "FROM foo As Of 2000.01.01 SELECT *; ".
+              "FROM foo As Of 2000.1.1 SELECT *"
 --

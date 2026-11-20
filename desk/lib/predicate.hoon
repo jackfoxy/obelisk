@@ -1,4 +1,4 @@
-/-  *obelisk-ast, *obelisk, *server-state-1
+/-  *obelisk-ast, *obelisk, *server-state-2
 /+  *utils, mip   :: *mip does not build
 |%
 ::
@@ -144,11 +144,45 @@
                                                     resolved-scalars
                                                     ==
       (bake (cury not ll) data-row)
-    %exists
-      ~|("%exists not implemented" !!)
-    %not-exists
-      ~|("%not-exists not implemented" !!)
+    ?(%exists %not-exists)
+      ::  a query's own column exists in every row of a single row type;
+      ::  rows of several row types have EXISTS settled per row type
+      =/  exists=?  (datum-exists n.l.p map-meta named-ctes)
+      =/  result=?  ?:(=(%exists n.p) exists !exists)
+      |=(data-row result)
     ==
+::
+++  datum-exists
+  ::  EXISTS of a column (which must be a column of the query) or of a CTE
+  ::  column (whether the CTE returns any rows)
+  |=  [d=predicate-component:ast =map-meta =named-ctes]
+  ^-  ?
+  ?:  ?=(cte-column:ast d)
+    =/  cte-fr  ~|  "CTE {<cte.d>} does not exist"
+                (~(got by named-ctes) cte.d)
+    =/  tables  set-tables.cte-fr
+    |-
+    ?~  tables  %.n
+    ?^  relation-id.i.tables  %.n
+    ?:  (gth rowcount.i.tables 0)  %.y
+    $(tables t.tables)
+  ?:  ?=(qualified-column:ast d)
+    ?:  ?-  -.map-meta
+          %qualified-map-meta    (~(has bi:mip +.map-meta) qualifier.d name.d)
+          %unqualified-map-meta  (~(has by +.map-meta) name.d)
+        ==
+      %.y
+    ~|("column {<name.d>} does not exist" !!)
+  ?.  ?=(unqualified-column:ast d)  ~|("EXISTS requires a column" !!)
+  =/  found=?
+    ?-  -.map-meta
+      %unqualified-map-meta  (~(has by +.map-meta) name.d)
+      %qualified-map-meta
+        %+  lien  ~(val by +.map-meta)
+        |=(m=(map @tas typ-addr) (~(has by m) name.d))
+    ==
+  ?:  found  %.y
+  ~|("column {<name.d>} does not exist" !!)
 :: 
 ++  prepare-binary-op
   |=  $:  p=predicate:ast
@@ -167,7 +201,8 @@
     %eq
       =/  l=datum:ast  (get-datum n.l.p)
       =/  r=datum:ast  (get-datum n.r.p)
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %eq
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -189,71 +224,18 @@
                                  named-ctes
                                  resolved-scalars
                                  ==
-    %equiv
-      :: to do: the commented code tests for existence in the wrong place
-      ::        it needs to take place at run time and row-by-row
-      ::    fix when outer joins implemented 
-      ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(dime n.l.p)  n.l.p
-      ::             ~|("prepare-binary-op can't get here" !!)
-      ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(qualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(scalar-name:ast n.r.p)   n.r.p
-      ::             ?:  ?=(dime n.r.p)   n.r.p
-      ::             ~|("prepare-binary-op can't get here" !!::)
-      ::=/  l-exists=?  ?:  ?=(dime l)  %.y
-      ::                (~(has by map-meta) name.l)
-      ::=/  r-exists=?  ?:  ?=(dime r)  %.y
-      ::                (~(has by map-meta) name.r)
-      ::::
-      ::?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-      ::  ?:  &(?!(l-exists) ?!(r-exists))  always-true
-      ::  ?.  &(l-exists r-exists)  always-false
-      ::  ?:  %+  types-match  -:(~(got by map-meta) [qualifier.l name.l])
-      ::                    -:(~(got by map-meta) [qualifier.r name.r])
-      ::    %+  bake  %+  cury
-      ::                  %+  cury  (cury eq-col-col [qualifier.l name.l])
-      ::                            [qualifier.r name.r]
-      ::                  -:(~(got by map-meta) [qualifier.l name.l])
-      ::              data-row
-      ::  ~|  "comparing columns of different auras: ".
-      ::      "{<name.l>} {<name.r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(qualified-column:ast l) ?=(dime r))
-      ::  ?.  l-exists  always-false
-      ::  ?:  (types-match -:(~(got by map-meta) [qualifier.l name.l]) -.r)
-      ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.r) [qualifier.l name.l]) -.r)
-      ::          data-row
-      ::  ~|  "comparing column and literal of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(dime l) ?=(qualified-column:ast r))
-      ::  ?.  r-exists  always-false
-      ::  ?:  (types-match -.l -:(~(got by map-meta) [qualifier.r name.r]))
-      ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.l) [qualifier.r name.r]) -.l)
-      ::          data-row
-      ::  ~|  "comparing column and literal of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::?:  &(?=(dime l) ?=(dime r))
-      ::  ?:  (types-match -.l -.r)
-      ::    %+  bake  (cury (cury (cury eq-lit-lit +.l) +.r) -.l)
-      ::              data-row
-      ::  ~|  "comparing column literals of different auras: ".
-      ::      "{<l>} {<r>}"
-      ::      !!
-      ::::
-      ::~|("prepare-binary-op can't get here" !!)
-      ~|("%equiv not implemented" !!)
-    %not-equiv
-      ~|("%not-equiv not implemented" !!)
+    ?(%equiv %not-equiv)
+      ::  operands of a single row type exist, so EQUIV is =; rows of several
+      ::  row types have absent operands settled per row type
+      =/  eq=$-(data-row ?)
+        %:  prepare-binary-op  p(n %eq)
+                               map-meta
+                               qualifier-lookup
+                               named-ctes
+                               resolved-scalars
+                               ==
+      ?:  =(%equiv n.p)  eq
+      (bake (cury not eq) data-row)
     %in
       %:  prepare-common-list  p
                                map-meta
@@ -335,6 +317,24 @@
     ?.  (types-match typ p.r)
       ~|("type of IN list incorrect, should be {<typ>}" !!)
     raw
+  =/  list-typ=@ta
+    ?:  ?=(cte-column:ast n.r.p)
+      =/  cte-fr  (~(got by named-ctes) cte.n.r.p)
+      =<  type
+      %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p ~]  name.n.r.p
+    ?:(?=(value-literals n.r.p) p.n.r.p typ)
+  ::  a list of another number system compares exactly by value
+  ?:  (mixed-numbers typ list-typ)
+    =/  get=$-(data-row @)
+      =<  +
+      %-  need
+      (datum-reader (get-datum n.l.p) map-meta named-ctes resolved-scalars)
+    =/  negate  =(%not-in n.p)
+    |=  c=data-row
+    ^-  ?
+    =/  v  (get c)
+    =/  hit  (lien in-list |=(w=@ =(%eq (num-cmp typ v list-typ w))))
+    ?:(negate ?!(hit) hit)
   ::  cte-column on left: resolve single scalar (requires 1-row cte),
   ::  check against list
   ?:  ?=(cte-column:ast n.l.p)
@@ -932,10 +932,38 @@
         !!
   ~|("prepare-unqualified can't get here" !!)
 ::
+++  datum-reader
+  ::  aura and per-row value of datum d; ~ when d is a column not in
+  ::  map-meta
+  |=  [d=datum:ast =map-meta =named-ctes =resolved-scalars]
+  ^-  (unit [@ta $-(data-row @)])
+  ?:  ?=(scalar-name:ast d)
+    =/  rs  (resolve-scalar-name d resolved-scalars)
+    ?:  ?=(dime rs)  `[p.rs |=(data-row q.rs)]
+    `[type.rs |=(c=data-row q:(f.rs c))]
+  ?:  ?=(cte-column:ast d)
+    =/  dl=dime  (resolve-cte-column d named-ctes)
+    `[p.dl |=(data-row q.dl)]
+  ?:  ?=(dime d)  `[p.d |=(data-row q.d)]
+  =/  ta=(unit typ-addr)
+    ?:  ?=(%qualified-map-meta -.map-meta)
+      ?.  ?=(qualified-column:ast d)  ~
+      (~(get bi:mip +.map-meta) qualifier.d name.d)
+    (~(get by +.map-meta) (col-name d))
+  ?~  ta  ~
+  =/  addr  addr.u.ta
+  :+  ~  type.u.ta
+  |=  c=data-row
+  =/  x  .*(data.c [%0 addr])
+  ?@(x x ;;(@ +.x))
+::
 ++  apply-datum-op
-  ::  dispatch to prepare-qualified 
+  ::  dispatch to prepare-qualified
   ::  or prepare-unqualified based on map-meta tag
-  |=  $:  l=datum:ast
+  ::
+  ::  operands of different number systems compare exactly by value
+  |=  $:  op=?(%eq inequality-op)
+          l=datum:ast
           r=datum:ast
           =map-meta
           =qualifier-lookup
@@ -947,6 +975,25 @@
           lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
+  =/  lr  (datum-reader l map-meta named-ctes resolved-scalars)
+  =/  rr  (datum-reader r map-meta named-ctes resolved-scalars)
+  ?:  ?&  ?=(^ lr)
+          ?=(^ rr)
+          (mixed-numbers -.u.lr -.u.rr)
+          ==
+    =/  [lt=@ta lget=$-(data-row @)]  u.lr
+    =/  [rt=@ta rget=$-(data-row @)]  u.rr
+    |=  c=data-row
+    ^-  ?
+    =/  o  (num-cmp lt (lget c) rt (rget c))
+    ?-  op
+      %eq   =(%eq o)
+      %neq  ?!(=(%eq o))
+      %gt   =(%gt o)
+      %gte  |(=(%gt o) =(%eq o))
+      %lt   =(%lt o)
+      %lte  |(=(%lt o) =(%eq o))
+    ==
   ?:  ?=(%qualified-map-meta -.map-meta)
     %:  prepare-qualified  l
                            r
@@ -982,7 +1029,8 @@
   ^-  $-(data-row ?)
   ?-  p
     %neq
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %neq
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -994,7 +1042,8 @@
                           neq-lit-col
                           ==
     %gt
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %gt
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1006,7 +1055,8 @@
                           gt-lit-col
                           ==
     %gte
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %gte
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1018,7 +1068,8 @@
                           gte-lit-col
                           ==
     %lt
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %lt
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1030,7 +1081,8 @@
                           lt-lit-col
                           ==
     %lte
-      %:  apply-datum-op  l
+      %:  apply-datum-op  %lte
+                          l
                           r
                           map-meta
                           qualifier-lookup
@@ -1067,7 +1119,7 @@
 ++  types-match
   |=  [l=@ta r=@ta]
   ^-  ?
-  ?|  =(l r)
+  ?|  ?=(^ (common-aura l r))
       ?&  =(l ~.t) 
           |(=(r ~.ta) =(r ~.tas))
           ==
@@ -1088,8 +1140,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`xv)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`xv)
+  ?:  ?=(float-systems typ)  (float-equ typ a xv)
   =(a xv)
 ::
 ++  eq-col-lit
@@ -1097,8 +1148,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`b)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`b)
+  ?:  ?=(float-systems typ)  (float-equ typ xv b)
   =(xv b)
 ::
 ++  eq-col-col
@@ -1108,15 +1158,13 @@
   =/  y  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
   =/  yv  ?@(y y ;;(@ +.y))
-  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`yv)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`yv)
+  ?:  ?=(float-systems typ)  (float-equ typ xv yv)
   ?@(x =(x y) =(xv yv))
 ::
 ++  eq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
-  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`b)
-  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`b)
+  ?:  ?=(float-systems typ)  (float-equ typ a b)
   =(a b)
 ::
 ::  neq
@@ -1126,8 +1174,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`xv))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`xv))
+  ?:  ?=(float-systems typ)  !(float-equ typ a xv)
   ?!(=(a xv))
 ::
 ++  neq-col-lit
@@ -1135,8 +1182,7 @@
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  xv  ?@(x x ;;(@ +.x))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`b))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`b))
+  ?:  ?=(float-systems typ)  !(float-equ typ xv b)
   ?!(=(xv b))
 ::
 ++  neq-col-col
@@ -1146,15 +1192,13 @@
   =/  y  .*(data.c [%0 b])
   =/  xv  ?@(x x ;;(@ +.x))
   =/  yv  ?@(y y ;;(@ +.y))
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`yv))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`yv))
+  ?:  ?=(float-systems typ)  !(float-equ typ xv yv)
   ?@(x ?!(=(x y)) ?!(=(xv yv)))
 ::
 ++  neq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
-  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`b))
-  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`b))
+  ?:  ?=(float-systems typ)  !(float-equ typ a b)
   ?!(=(a b))
 ::
 ::  gt
@@ -1166,8 +1210,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`a)
-  ?:  =(typ ~.rd)  (gth:rd a ?@(x x ;;(@ +.x)))
-  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
+  ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) a)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
   (gth a ?@(x x ;;(@ +.x)))
 ::
 ++  gt-col-lit
@@ -1177,8 +1221,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha `@t`b ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (gth:rd ?@(x x ;;(@ +.x)) b)
-  ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
+  ?:  ?=(float-systems typ)  (float-lth typ b ?@(x x ;;(@ +.x)))
+  ?:  (signed-aura typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
   (gth ?@(x x ;;(@ +.x)) b)
 ::
 ++  gt-col-col
@@ -1190,14 +1234,14 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gth:rd x ;;(@ y))
-    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
+    ?:  ?=(float-systems typ)  (float-lth typ ;;(@ y) x)
+    ?:  (signed-aura typ)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
     (gth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))
-  ?:  =(typ ~.rd)  (gth:rd ;;(@ +.x) ;;(@ +.y))
-  ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
+  ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.y) ;;(@ +.x))
+  ?:  (signed-aura typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
   (gth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gt-lit-lit
@@ -1206,8 +1250,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha b a)
-  ?:  =(typ ~.rd)  (gth:rd a b)
-  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) --1)
+  ?:  ?=(float-systems typ)  (float-lth typ b a)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`b) --1)
   (gth a b)
 ::
 ::  gte
@@ -1218,8 +1262,8 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) a)
-  ?:  =(typ ~.rd)  (gte:rd a ?@(x x ;;(@ +.x)))
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
+  ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) a)
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
   (gte a ?@(x x ;;(@ +.x)))
 ::
 ++  gte-col-lit
@@ -1228,8 +1272,8 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (gte:rd ?@(x x ;;(@ +.x)) b)
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
+  ?:  ?=(float-systems typ)  (float-lte typ b ?@(x x ;;(@ +.x)))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
   (gte ?@(x x ;;(@ +.x)) b)
 ::
 ++  gte-col-col
@@ -1240,13 +1284,13 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gte:rd x ;;(@ y))
-    ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
+    ?:  ?=(float-systems typ)  (float-lte typ ;;(@ y) x)
+    ?:  (signed-aura typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
     (gte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.y) `@t`;;(@ +.x))
-  ?:  =(typ ~.rd)  (gte:rd ;;(@ +.x) ;;(@ +.y))
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
+  ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.y) ;;(@ +.x))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
   (gte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gte-lit-lit
@@ -1254,8 +1298,8 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`b `@t`a)
-  ?:  =(typ ~.rd)  (gte:rd a b)
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) -1))
+  ?:  ?=(float-systems typ)  (float-lte typ b a)
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`b) -1))
   (gte a b)
 ::
 ::  lt
@@ -1267,8 +1311,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (lth:rd a ?@(x x ;;(@ +.x)))
-  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
+  ?:  ?=(float-systems typ)  (float-lth typ a ?@(x x ;;(@ +.x)))
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
   (lth a ?@(x x ;;(@ +.x)))
 ::
 ++  lt-col-lit
@@ -1278,8 +1322,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`b)
-  ?:  =(typ ~.rd)  (lth:rd ?@(x x ;;(@ +.x)) b)
-  ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
+  ?:  ?=(float-systems typ)  (float-lth typ ?@(x x ;;(@ +.x)) b)
+  ?:  (signed-aura typ)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
   (lth ?@(x x ;;(@ +.x)) b)
 ::
 ++  lt-col-col
@@ -1291,14 +1335,14 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`x `@t`;;(@ y))
-    ?:  =(typ ~.rd)  (lth:rd x ;;(@ y))
-    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
+    ?:  ?=(float-systems typ)  (float-lth typ x ;;(@ y))
+    ?:  (signed-aura typ)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
     (lth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
-  ?:  =(typ ~.rd)  (lth:rd ;;(@ +.x) ;;(@ +.y))
-  ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
+  ?:  ?=(float-systems typ)  (float-lth typ ;;(@ +.x) ;;(@ +.y))
+  ?:  (signed-aura typ)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
   (lth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lt-lit-lit
@@ -1307,8 +1351,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha `@t`a `@t`b)
-  ?:  =(typ ~.rd)  (lth:rd a b)
-  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) -1)
+  ?:  ?=(float-systems typ)  (float-lth typ a b)
+  ?:  (signed-aura typ)  =((cmp:si `@s`a `@s`b) -1)
   (lth a b)
 ::
 ::  lte
@@ -1319,8 +1363,8 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
-  ?:  =(typ ~.rd)  (lte:rd a ?@(x x ;;(@ +.x)))
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
+  ?:  ?=(float-systems typ)  (float-lte typ a ?@(x x ;;(@ +.x)))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
   (lte a ?@(x x ;;(@ +.x)))
 ::
 ++  lte-col-lit
@@ -1329,8 +1373,8 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) b)
-  ?:  =(typ ~.rd)  (lte:rd ?@(x x ;;(@ +.x)) b)
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
+  ?:  ?=(float-systems typ)  (float-lte typ ?@(x x ;;(@ +.x)) b)
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
   (lte ?@(x x ;;(@ +.x)) b)
 ::
 ++  lte-col-col
@@ -1341,13 +1385,13 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`x `@t`;;(@ y))
-    ?:  =(typ ~.rd)  (lte:rd x ;;(@ y))
-    ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
+    ?:  ?=(float-systems typ)  (float-lte typ x ;;(@ y))
+    ?:  (signed-aura typ)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
     (lte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
-  ?:  =(typ ~.rd)  (lte:rd ;;(@ +.x) ;;(@ +.y))
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
+  ?:  ?=(float-systems typ)  (float-lte typ ;;(@ +.x) ;;(@ +.y))
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
   (lte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lte-lit-lit
@@ -1355,8 +1399,8 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a `@t`b)
-  ?:  =(typ ~.rd)  (lte:rd a b)
-  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) --1))
+  ?:  ?=(float-systems typ)  (float-lte typ a b)
+  ?:  (signed-aura typ)  ?!(=((cmp:si `@s`a `@s`b) --1))
   (lte a b)
 ::
 ::  in
@@ -1367,8 +1411,7 @@
   |-
   ?~  b  %.n
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ a -.b)
     =(a -.b)
   ?:  match  %.y
   $(b +.b)
@@ -1381,8 +1424,7 @@
   |-
   ?~  b  %.n
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ val -.b)
     =(val -.b)
   ?:  match  %.y
   $(b +.b)
@@ -1395,8 +1437,7 @@
   |-
   ?~  b  %.y
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ a -.b)
     =(a -.b)
   ?:  match  %.n
   $(b +.b)
@@ -1409,8 +1450,7 @@
   |-
   ?~  b  %.y
   =/  match
-    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
-    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    ?:  ?=(float-systems typ)  (float-equ typ val -.b)
     =(val -.b)
   ?:  match  %.n
   $(b +.b)

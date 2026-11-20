@@ -1,28 +1,32 @@
-/keyboard-shortcuts/md      Keyboard Shortcuts
-/ace-keys/md                Ace Editor Keys
-/modal-keys/md              Dialog Keys
-/key-policy/md              Key Policy
+/keyboard                   Keyboard Shortcuts
+  /obelisk-keys/md          Obelisk Keys
+  /ace-keys/md              Ace Editor Keys
+  /modal-keys/md            Dialog Keys
+  /key-policy/md            Key Policy
 /usr                        User Docs
   /users-guide/md             Users Guide
-  /reference                  Reference
+  /reference                  urQL Reference
     /preliminaries/md           Preliminaries
     /ddl                        Data Definition Language
       /database/md                Database
       /namespace/md               Namespace
       /table/md                   Table
+      /view/md                    View
       /index/md                   Index
     /dml                        Data Manipulation Language
       /insert/md                  Insert
       /update/md                  Update
       /upsert/md                  Upsert
       /delete/md                  Delete
-      /truncate-table/md          Truncate Table DML
+      /truncate-table/md          Truncate Table
     /select/md                  Select
     /scry/md                    Scries and Subscriptions
     /scalars/md                 Scalars
+    /aggregates/md              Aggregate Functions
     /security-permissions/md    Security Permissions
 /dev                        Developer Docs
   /performance/md             Performance
+  /obelisk-web-parity/md      Obelisk Web Parity
   /users-guide-script/txt     Users Guide Scripts
 /release-notes/md          Release Notes
 /roadmap/md                Obelisk roadmap

@@ -105,7 +105,7 @@
       !>  %-  sy
           ^-  (list @tas)
           :~  %columns  %data-log  %foreign-keys  %namespaces
-              %sys-log  %table-keys  %tables
+              %sys-log  %table-keys  %tables  %views  %view-references
           ==
     !>  ~(key by (~(got by rels) %sys))
   ::
@@ -223,4 +223,36 @@
   =/  ag  (exec-agent agent run ~2012.4.30 %db1 setup)
   %-  expect-fail
   |.  (~(on-watch ag (bowl run ~2012.5.1)) /obelisk/no-such-db)
+::
+::  a user-defined view does not shadow a table for scries
+++  test-scry-shadowed-table-13
+  =|  run=@ud
+  %-  scry-rows-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %+  weld  setup
+          "; CREATE VIEW my-table AS FROM my-table WHERE col2 > 1 SELECT *"
+      [~2012.5.1 /x/obelisk/db1/dbo/my-table]
+      rows-2
+  ==
+::
+::  a user-defined view cannot be scried, nor is it in its namespace
+++  test-scry-view-14
+  =|  run=@ud
+  =/  uql  (weld setup "; CREATE VIEW v AS FROM my-table SELECT *")
+  =/  ag  (exec-agent agent run ~2012.4.30 %db1 uql)
+  =/  res  (~(on-peek ag (bowl run ~2012.5.1)) /x/obelisk/db1/dbo)
+  =/  rels  ;;((map @tas relation:ast) (scry-noun res))
+  =/  names=tang
+    %+  expect-eq
+      !>  (sy `(list @tas)`~[%my-table])
+    !>  ~(key by rels)
+  =/  bad=tang
+    %-  scry-bad-paths-0-n
+    :*  run
+        [~2012.4.30 %db1 uql]
+        [~2012.5.1 ~[/x/obelisk/db1/dbo/v]]
+    ==
+  (weld names bad)
 --

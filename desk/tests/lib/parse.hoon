@@ -121,10 +121,69 @@
     !>  %-  parse:parse(default-database 'dummy')
         "create database my-db as of ~2026.12.04"
 ::
+:: as of date with single digit month and day
+++  test-create-database-da-00
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2026.7.4]]]]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2026.7.4"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-database-da-01
+  =/  expected
+    [%create-database name='my-db' as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]]
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'dummy')
+        "create database my-db as of ~2023.01.05..07.05.09..1ef5; ".
+        "create database my-db as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database name is not a term
 ++  test-fail-create-database-01
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
+::
+:: fail when month is zero
+++  test-fail-create-database-da-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.00.4"
+::
+:: fail when day is zero
+++  test-fail-create-database-da-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.00"
+::
+:: fail when month is 13
+++  test-fail-create-database-da-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.13.4"
+::
+:: fail when month has two leading zeros
+++  test-fail-create-database-da-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.007.4"
+::
+:: fail when day has two leading zeros
+++  test-fail-create-database-da-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.004"
+::
+:: fail when zero-padded day has three digits
+++  test-fail-create-database-da-05
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.7.014"
+::
+:: fail when zero-padded month has three digits
+++  test-fail-create-database-da-06
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'dummy')
+          "create database my-db as of ~2026.012.4"
 ::
 :: create index
 ::
@@ -456,6 +515,19 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
         "create namespace db2.ns1 as of 4 years ago"
+::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-namespace-da-00
+  =/  expected
+    :*  %create-namespace  database-name='db1'
+        name='ns1'
+        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "create namespace ns1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "create namespace ns1 as of ~2023.1.5..7.5.9..1ef5"
 ::
 :: fail when database qualifier is not a term
 ++  test-fail-create-namespace-20
@@ -1091,6 +1163,37 @@
         "references fk-table (col20) ".
         "on delete restrict on update restrict"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-create-table-da-00
+  =/  expected
+    :*  %create-table
+        :*  %qualified-table  ship=~
+            database='db1'  namespace='ns1'
+            name='my-table'  ~
+            ==
+        :~  [%column name='col1' type=%t addr=0]
+            [%column name='col2' type=%p addr=0]
+            [%column name='col3' type=%ud addr=0]
+            ==
+        :~  [%ordered-column name='col1' ascending=%.y]
+            [%ordered-column name='col2' ascending=%.y]
+            ==
+        ~
+        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  =/  urql
+    "create table ns1.my-table ".
+    "(col1 @t,col2 @p,col3 @ud) ".
+    "primary key (col1,col2) ".
+    "as of ~2023.01.05..07.05.09..1ef5; ".
+    "create table ns1.my-table ".
+    "(col1 @t,col2 @p,col3 @ud) ".
+    "primary key (col1,col2) ".
+    "as of ~2023.1.5..7.5.9..1ef5"
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
 :: fail when no action keyword used (retired)
 ++  test-fail-create-table-18
   =/  urql
@@ -1484,6 +1587,28 @@
             "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
             "delete from foo where foo=bar"
 ::
+:: as of date-time and predicate date literal,
+:: leading zeros and no leading zeros
+++  test-delete-da-00
+  =/  pred  [%eq [column-foo ~ ~] [[%da ~2024.1.5] ~ ~]]
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.1.5..7.5.9..1ef5]]
+                        pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "delete from foo as of ~2023.01.05..07.05.09..1ef5 ".
+            "where foo = ~2024.01.05; ".
+            "delete from foo as of ~2023.1.5..7.5.9..1ef5 ".
+            "where foo = ~2024.1.5"
+::
 :: drop database
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, force db.name, name
@@ -1754,6 +1879,19 @@
         "drop namespace force db1.ns1 ".
         "as of 15 minutes ago"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-drop-namespace-da-00
+  =/  expected
+    :*  %drop-namespace  database-name='other-db'
+        name='ns1'  force=%.n
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'other-db')
+        "drop namespace ns1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "drop namespace ns1 as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database qualifier is not a term
 ++  test-fail-drop-namespace-15
   %-  expect-fail
@@ -1970,6 +2108,23 @@
     !>  %-  parse:parse(default-database 'other-db')
         "drop table name as of 10 weeks ago"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-drop-table-da-00
+  =/  expected
+    :*  %drop-table
+        :*  %qualified-table  ship=~
+            database='db'  namespace='dbo'
+            name='name'  ~
+            ==
+        force=%.y
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'other-db')
+        "drop table force db..name as of ~2023.01.05..07.05.09..1ef5; ".
+        "drop table force db..name as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database qualifier is not a term
 ++  test-fail-drop-table-13
   %-  expect-fail
@@ -1999,8 +2154,8 @@
         database='db'  namespace='ns'
         name='name'  ~
         ==
-  =/  expected1  [%drop-view view=qt force=%.y]
-  =/  expected2  [%drop-view view=qt force=%.n]
+  =/  expected1  [%drop-view view=qt force=%.y as-of=~]
+  =/  expected2  [%drop-view view=qt force=%.n as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  %-  parse:parse(default-database 'other-db')
@@ -2016,6 +2171,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2031,6 +2187,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2046,6 +2203,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2061,6 +2219,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2076,6 +2235,7 @@
             name='name'  ~
             ==
         force=%.y
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2091,6 +2251,7 @@
             name='name'  ~
             ==
         force=%.n
+        as-of=~
         ==
   %+  expect-eq
     !>  ~[expected]
@@ -2251,6 +2412,22 @@
     !>  %-  parse:parse(default-database 'db1')
         "truncate table tbl1 as of 4 seconds ago"
 ::
+:: as of date-time, leading zeros and no leading zeros
+++  test-truncate-table-da-00
+  =/  expected
+    :*  %truncate-table
+        :*  %qualified-table  ship=~
+            database=%db1  namespace='dbo'
+            name='tbl1'  ~
+            ==
+        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+        ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "truncate table tbl1 as of ~2023.01.05..07.05.09..1ef5; ".
+        "truncate table tbl1 as of ~2023.1.5..7.5.9..1ef5"
+::
 :: fail when database qualifier is not a term
 ++  test-fail-truncate-table-01
   %-  expect-fail
@@ -2358,34 +2535,6 @@
       [%all %all]
       [%all-object qualifier=qt2]
       ==
-++  aggregates
-  =/  agg-col
-    :*  %qualified-column
-        :*  %qualified-table  ship=~
-            database='UNKNOWN'
-            namespace='COLUMN-OR-CTE'
-            name='foobar'  ~
-            ==
-        column='foobar'  alias=~
-        ==
-  :~  column-foo
-      :*  %selected-aggregate
-          [%aggregate function='count' source=column-foo]
-          alias=[~ 'CountFoo']
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='count' source=column-bar]
-          alias=~
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='sum' source=column-bar]
-          alias=~
-          ==
-      :*  %selected-aggregate
-          [%aggregate function='sum' source=agg-col]
-          alias=[~ 'foobar']
-          ==
-      ==
 ++  from-t1
   =/  qt
     :*  %qualified-table  ship=~
@@ -2459,57 +2608,33 @@
   |.  %-  parse:parse(default-database 'db1')
       "select ~.bad!"
 ::
-::  star select top, trailing whitespace
-++  test-select-02
+::  fail star select top, trailing whitespace: TOP requires ORDER BY
+++  test-fail-select-top-02
   =/  select  "select top 10   * "
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top
-++  test-select-03
+::  fail star select top: TOP requires ORDER BY
+++  test-fail-select-top-03
   =/  select  "select top 10 *"
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top, trailing whitespace
-++  test-select-04
+::  fail star select top, trailing whitespace: TOP requires ORDER BY
+++  test-fail-select-top-04
   =/  select  "select top 10   * "
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
-::  star select top
-++  test-select-05
+::  fail star select top: TOP requires ORDER BY
+++  test-fail-select-top-05
   =/  select  "select top 10   *"
-  =/  query
-    :*  %query  ~  scalars=~  ~
-        group-by=~  having=~
-        [%select top=[~ 10] columns=~[[%all %all]]]
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
-    !>  (parse:parse(default-database 'db1') select)
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') select)
 ::
 ::  star select, trailing whitespace
 ++  test-select-06
@@ -2540,7 +2665,7 @@
   =/  select  "FROM ns.table JOIN table-alias ".
               "JOIN db.dbo.table T1 select top 10 ".
               " x1, db1.ns.table.col1, table-alias.name, db..table.col2, ".
-              "T1.foo, 1, ~zod, 'cord'"
+              "T1.foo, 1, ~zod, 'cord' order by x1"
   =/  qt-ns-table
     :*  %qualified-table  ship=~
         database='db1'  namespace='ns'
@@ -2592,7 +2717,7 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=my-columns]
-        ~
+        ~[[%ordering-column [%unqualified-column 'x1' ~] %.y]]
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2601,7 +2726,8 @@
 ::  from foo select top, simple columns, trailing space, no internal space
 ++  test-select-09
   =/  select  "from foo T1 join db.ns.foo select top 10  ".
-              "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' "
+              "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' ".
+              "order by 1 desc,t1.name"
   =/  from  :-  ~
                 :^  %from
                     relation-id=foo-table-t1
@@ -2648,7 +2774,11 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=my-columns]
-        ~
+        :~  [%ordering-column 1 %.n]
+            :+  %ordering-column
+                [%qualified-column qt-foo-t1 'name' ~]
+                %.y
+            ==
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2710,7 +2840,8 @@
   =/  select  "FROM ns.table JOIN table-alias ".
               "JOIN db.dbo.table select  top 10  ".
               "x1 as foo,db.ns.table.col1 as foo2,table-alias.name as bar,".
-              "db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3"
+              "db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3 ".
+              "ORDER BY foo DESC"
   =/  qt-from
     :*  %qualified-table  ship=~
         database='db1'  namespace='ns'
@@ -2749,7 +2880,7 @@
     :*  %query  from  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=aliased-columns-1]
-        ~
+        ~[[%ordering-column [%unqualified-column 'foo' ~] %.n]]
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
@@ -2770,37 +2901,25 @@
 ::::
 ::::  , top, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-13
-  =/  select  "from t1 T1 select top 10  db..t1.*,foo as foobar,bar,*,T1.*"
+  =/  select  "from t1 T1 select top 10  db..t1.*,foo as foobar,bar,*,T1.* ".
+              "order by T1.bar asc, 12"
+  =/  qt
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='t1'  alias=[~ 'T1']
+        ==
   =/  query
     :*  %query  from-t1  scalars=~  ~
         group-by=~  having=~
         [%select top=[~ 10] columns=mixed-all]
-        ~
+        :~  [%ordering-column [%qualified-column qt 'bar' ~] %.y]
+            [%ordering-column 12 %.y]
+            ==
         ==
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 
-::::  to do: revive tests when group by implemented 
-::::
-::::  mixed aggregates
-::++  test-select-14
-::  =/  select  "FROM tbl1 ".
-::              "JOIN tbl2 ".
-::              "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
-::  %+  expect-eq
-::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ columns=aggregates] ~]]]]
-::    !>  (parse:parse(default-database 'db1') select)
-::::
-::::  , top, mixed aggregates, no whitespace
-::++  test-select-15
-::  =/  select  "FROM tbl1 ".
-::              "JOIN tbl2 ".
-::              "select top 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
-::  %+  expect-eq
-::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] columns=aggregates] ~]]]]
-::    !>  (parse:parse(default-database 'db1') select)
-::
 :: fail top, no top parameter, trailing whitespace
 ++  test-fail-select-16
     =/  select  "select top   * "
@@ -2857,8 +2976,14 @@
         database='db'  namespace='ns'
         name='table'  alias=~
         ==
+  ::  T1 is not a FROM alias, so it names a table of the default database
+  =/  t1
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='T1'  alias=~
+        ==
   :~  [%qualified-column qualifier=qt column='col' alias=~]
-      [%unqualified-column name='foo' alias=[~ 'T1']]
+      [%qualified-column qualifier=t1 column='foo' alias=~]
       3
       4
       ==
@@ -2869,7 +2994,13 @@
         name='table'  alias=~
         ==
   =/  qc  [%qualified-column qualifier=qt column='col' alias=~]
-  =/  uc  [%unqualified-column name='foo' alias=[~ 'T1']]
+  ::  T1 is not a FROM alias, so it names a table of the default database
+  =/  t1
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='T1'  alias=~
+        ==
+  =/  uc  [%qualified-column qualifier=t1 column='foo' alias=~]
   :~  [%ordering-column qc ascending=%.y]
       [%ordering-column uc ascending=%.n]
       [%ordering-column 3 ascending=%.y]
@@ -2925,6 +3056,99 @@
   %+  expect-eq
     !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
+::
+::  order by FROM alias resolves to the aliased relation
+++  test-order-by-03
+  =/  select  "from foo F1 select * order by f1.col desc"
+  =/  qt
+    :*  %qualified-table  ship=~
+        database='db1'  namespace='dbo'
+        name='foo'  alias=[~ 'F1']
+        ==
+  =/  query
+    :*  %query
+        [~ [%from relation-id=qt as-of=~ joins=~]]
+        scalars=~
+        predicate=~  group-by=~
+        having=~
+        select=select-all-columns
+        ~[[%ordering-column [%qualified-column qt 'col' ~] %.n]]
+        ==
+  %+  expect-eq
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
+    !>  (parse:parse(default-database 'db1') select)
+::
+::  order by of the last query of a set query orders the combined result;
+::  an earlier query may have TOP with its own order by
+++  test-order-by-04
+  =/  select  "FROM foo SELECT TOP 2 * ORDER BY 1 UNION ".
+              "FROM bar SELECT * ORDER BY col DESC, 2"
+  =/  head-q
+    :*  %query  from-foo  scalars=~
+        predicate=~  group-by=~
+        having=~
+        [%select top=[~ 2] columns=~[[%all %all]]]
+        ~[[%ordering-column 1 %.y]]
+        ==
+  =/  tail-q
+    :*  %query  from-bar  scalars=~
+        predicate=~  group-by=~
+        having=~
+        select-all-columns
+        :~  [%ordering-column [%unqualified-column 'col' ~] %.n]
+            [%ordering-column 2 %.y]
+            ==
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=head-q
+            tail=~[[op=%union query=tail-q]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') select)
+::
+::  fail TOP without ORDER BY
+++  test-fail-order-by-00
+  %+  expect-fail-message
+    'TOP requires ORDER BY'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 2 *")
+::
+::  fail TOP 0
+++  test-fail-order-by-01
+  %+  expect-fail-message
+    'TOP must be 1 or greater'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT TOP 0 * ORDER BY 1"
+::
+::  fail column ordinal 0
+++  test-fail-order-by-02
+  %+  expect-fail-message
+    'ORDER BY: column ordinal must be 1 or greater'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT a ORDER BY 0")
+::
+::  fail column ordinal beyond the selected columns
+++  test-fail-order-by-03
+  %+  expect-fail-message
+    'ORDER BY: column ordinal 3 exceeds the selected columns'
+  |.  (parse:parse(default-database 'db1') "FROM foo SELECT a, b ORDER BY 3")
+::
+::  fail TOP on the last query of a set query
+++  test-fail-order-by-04
+  %+  expect-fail-message
+    'TOP is not allowed on the last query of a set operation'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * UNION FROM bar SELECT TOP 2 * ORDER BY 1"
+::
+::  fail qualified ORDER BY column of a set query
+++  test-fail-order-by-05
+  %+  expect-fail-message
+    'ORDER BY of a set operation must name an output column or ordinal'
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * UNION FROM bar B1 SELECT * ORDER BY B1.col"
 ::
 :: update
 ::
@@ -3462,6 +3686,56 @@
             "with (select *) as t1 ".
             "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
             "update foo set col1='hello' where 1 = 1 and col2 = 4"
+::
+:: as of date-time, set date literals, and predicate date literal,
+:: leading zeros and no leading zeros
+++  test-update-da-00
+  =/  pred  [%eq [upd-col2 ~ ~] [[%da ~2024.1.5] ~ ~]]
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.1.5..7.5.9..1ef5]]
+                        :-  columns=~[upd-col2 upd-col1]
+                            :~  [value-type=%da value=~2024.1.5..7.5.9]
+                                [value-type=%da value=~2024.1.5]
+                                ==
+                        predicate=pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of ~2023.01.05..07.05.09..1ef5 ".
+            "set col1=~2024.01.05, col2=~2024.01.05..07.05.09 ".
+            "where col2 = ~2024.01.05; ".
+            "update foo as of ~2023.1.5..7.5.9..1ef5 ".
+            "set col1=~2024.1.5, col2=~2024.1.5..7.5.9 ".
+            "where col2 = ~2024.1.5"
+::
+:: selected date literals, leading zeros and no leading zeros
+++  test-select-da-00
+  =/  query
+    :*  %query  from=~  scalars=~
+        predicate=~  group-by=~  having=~
+        :+  %select
+            top=~
+            :~  [%selected-value value=[p=~.da q=~2024.1.5] alias=~]
+                :*  %selected-value
+                    value=[p=~.da q=~2024.1.5..7.5.9]
+                    alias=~
+                    ==
+                ==
+        order-by=~
+        ==
+  =/  expected  [%crud-txn ctes=~ body=[%query query]]
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "select ~2024.01.05, ~2024.01.05..07.05.09; ".
+            "select ~2024.1.5, ~2024.1.5..7.5.9"
 ::
 :: merge
 ::
@@ -4153,6 +4427,370 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
             "WITH (FROM foo SELECT * UNION FROM bar SELECT *) AS u1 FROM u1 SELECT *"
+::  DIVIDED BY: lower case, extra whitespace and newline between keywords
+++  test-set-op-divided-by-01
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divided-by query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * divided  \0a by\0aFROM bar SELECT *"
+::  DIVIDED BY WITH REMAINDER: mixed case, extra whitespace, newlines
+++  test-set-op-divide-with-remainder-01
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divide-with-remainder query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * Divided\0aBy   wITh\0a  ReMainder ".
+            "FROM bar SELECT *"
+::  DIVIDED BY with column lists on dividend and divisor
+++  test-set-op-divided-by-02
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divided-by query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 DIVIDED BY FROM bar SELECT col2"
+::  DIVIDED BY WITH REMAINDER with column lists on dividend and divisor
+++  test-set-op-divide-with-remainder-02
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divide-with-remainder query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 ".
+            "DIVIDED BY WITH REMAINDER FROM bar SELECT col2"
+::  DIVIDED BY a literal-only divisor without FROM
+++  test-set-op-divided-by-03
+  =/  dividend
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%unqualified-column name=%col1 alias=~]
+                [%unqualified-column name=%col2 alias=~]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        ~
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            ~[[%selected-value [value-type=%t value='a'] alias=[~ %col2]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divided-by query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT col1, col2 DIVIDED BY SELECT 'a' AS col2"
+::  literal-only dividend without FROM DIVIDED BY WITH REMAINDER
+++  test-set-op-divide-with-remainder-03
+  =/  dividend
+    :*  %query
+        ~
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  [%selected-value [value-type=%t value='a'] alias=[~ %col1]]
+                [%selected-value [value-type=%t value='b'] alias=[~ %col2]]
+                ==
+        ~
+        ==
+  =/  divisor
+    :*  %query
+        from-bar
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ ~[[%unqualified-column name=%col2 alias=~]]]
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=dividend
+            tail=~[[op=%divide-with-remainder query=divisor]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "SELECT 'a' AS col1, 'b' AS col2 ".
+            "DIVIDED BY WITH REMAINDER FROM bar SELECT col2"
+::  chain: q1 DIVIDED BY q2 UNION q3
+++  test-set-op-chain-03
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divided-by query=bar-set-query]
+                [op=%union query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY FROM bar SELECT * ".
+            "UNION FROM baz SELECT *"
+::  chain: q1 EXCEPT q2 DIVIDED BY WITH REMAINDER q3
+++  test-set-op-chain-04
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%except query=bar-set-query]
+                [op=%divide-with-remainder query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * EXCEPT FROM bar SELECT * ".
+            "DIVIDED BY WITH REMAINDER FROM baz SELECT *"
+::  chain: q1 DIVIDED BY WITH REMAINDER q2 DIVIDED BY q3
+++  test-set-op-chain-05
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divide-with-remainder query=bar-set-query]
+                [op=%divided-by query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY WITH REMAINDER FROM bar SELECT * ".
+            "DIVIDED BY FROM baz SELECT *"
+::  chain: q1 DIVIDED BY q2 INTERSECT q3 DIVIDED BY WITH REMAINDER q1
+++  test-set-op-chain-06
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%divided-by query=bar-set-query]
+                [op=%intersect query=baz-set-query]
+                [op=%divide-with-remainder query=foo-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * DIVIDED BY FROM bar SELECT * ".
+            "INTERSECT FROM baz SELECT * ".
+            "DIVIDED BY WITH REMAINDER FROM foo SELECT *"
+::  CTE with DIVIDED BY body
+++  test-set-op-cte-divided-by-00
+  =/  cte-body=cte-body:ast
+    :-  %set-query
+    :*  %set-query
+        head=foo-set-query
+        tail=~[[op=%divided-by query=bar-set-query]]
+        ==
+  =/  outer-q
+    :*  %query
+        [~ [%from relation-id=[%cte-name 'q1' ~] as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        select-all-columns
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~[[%cte name='q1' body=cte-body]]
+        body=[%query outer-q]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM foo SELECT * DIVIDED BY FROM bar SELECT *) AS q1 ".
+            "FROM q1 SELECT *"
+::  CTE with DIVIDED BY WITH REMAINDER body
+++  test-set-op-cte-divide-with-remainder-00
+  =/  cte-body=cte-body:ast
+    :-  %set-query
+    :*  %set-query
+        head=foo-set-query
+        tail=~[[op=%divide-with-remainder query=bar-set-query]]
+        ==
+  =/  outer-q
+    :*  %query
+        [~ [%from relation-id=[%cte-name 'q1' ~] as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        select-all-columns
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~[[%cte name='q1' body=cte-body]]
+        body=[%query outer-q]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM foo SELECT * DIVIDED BY WITH REMAINDER ".
+            "FROM bar SELECT *) AS q1 ".
+            "FROM q1 SELECT *"
+::
+::  fail: DIVIDED without BY
+++  test-fail-set-op-divided-by-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED FROM bar SELECT *"
+::
+::  fail: no whitespace between DIVIDED and BY
+++  test-fail-set-op-divided-by-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDEDBY FROM bar SELECT *"
+::
+::  fail: DIVIDED BY without divisor query
+++  test-fail-set-op-divided-by-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY"
+::
+::  fail: BY without DIVIDED
+++  test-fail-set-op-divided-by-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * BY FROM bar SELECT *"
+::
+::  fail: REMAINDER without WITH
+++  test-fail-set-op-divide-with-remainder-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY REMAINDER FROM bar SELECT *"
+::
+::  fail: WITH without REMAINDER
+++  test-fail-set-op-divide-with-remainder-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITH FROM bar SELECT *"
+::
+::  fail: no whitespace between WITH and REMAINDER
+++  test-fail-set-op-divide-with-remainder-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITHREMAINDER FROM bar SELECT *"
+::
+::  fail: DIVIDED BY WITH REMAINDER without divisor query
+++  test-fail-set-op-divide-with-remainder-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * DIVIDED BY WITH REMAINDER"
+::
+::  fail: WITH REMAINDER without DIVIDED BY
+++  test-fail-set-op-divide-with-remainder-04
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo SELECT * WITH REMAINDER FROM bar SELECT *"
 ::
 :: fail: cte name conflicts with from alias (case-insensitive)
 ++  test-fail-cte-alias-conflict-00

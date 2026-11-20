@@ -1,4 +1,4 @@
-/-  *obelisk-ast, *server-state-1
+/-  *obelisk-ast, *server-state-2
 /+  *mip
 ^?
 |%
@@ -53,6 +53,25 @@
     indexed-rows=(list indexed-row)
     joined-rows=(list joined-row)
     ==
+::
+::  $row-type-prune: what one row type of a query's rows holds.  shape gives
+::  all of the query's columns, those of the row type (here), and the
+::  relations of unqualified column names; by-name matches columns by name
+::  alone, for a single source; tables are the relations present (~ for a
+::  single source).
++$  row-type-prune
+  $+  row-type-prune
+  $:  by-name=?
+      $=  shape
+      $:  all=(set [qualified-table @tas])
+          here=(set [qualified-table @tas])
+          lookup=qualifier-lookup
+          ==
+      tables=(unit (set qualified-table))
+      ==
+::
+::  $set-op-row: set operation row, identified by row type and data
++$  set-op-row  $+(set-op-row [columns=(list column) =indexed-row])
 ::
 +$  column-meta
   $+  column-meta
@@ -110,6 +129,23 @@
                          ==
 ::
 +$  resolved-scalars  (map @tas resolved-scalar)
+::
+::  $sort-key: an ORDER BY column of a result relation, by output column
+::  name or by 1-based position among the shown output columns
++$  sort-key  $%([%name name=@tas] [%ordinal ordinal=@ud])
++$  sort-spec  $+(sort-spec [key=sort-key ascending=?])
+::
+::  $sort-row: a result row with its ORDER BY key and its shown identity
++$  sort-row
+  $+  sort-row
+  $:  key=(list (unit [p=@ta q=@]))
+      ident=[format=@ud values=(list (unit [p=@ta q=@]))]
+      =data-row
+      ==
+::
++$  format-column  $%(column qualified-column)
++$  relation-format  (lest format-column)
++$  format-value  [col=format-column value=(unit [p=@ta q=@])]
 ::
 ::  template for selected column from qualified-column objects
 +$  templ-cell

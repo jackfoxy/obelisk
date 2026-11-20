@@ -1,12 +1,12 @@
 # SCALAR FUNCTIONS
 
-Scalar functions are introduced by name (@tas) in the optional SCALARS clause following the FROM clause.
+Scalar functions are invoked inline, wherever a value is expected (see [Inline Scalar Functions](#inline-scalar-functions)), or introduced by name (@tas) in the optional SCALARS clause following the FROM clause.
 
 `[ SCALARS {<name> <scalar-function>} [ ...n ]]`
 
 Scalars operate on the current row's data, as well as selected Common Table Expression data elements (see below).
 
-Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definitions may reference prior scalars by name.
+Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definitions may reference prior scalars by name. Name a scalar in the SCALARS clause when the same expression is used more than once.
 
 ```
 <scalar-function> ::=
@@ -22,6 +22,7 @@ Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definit
   | <datetime-function>
   | <mathematical-function>
   | <string-function>
+  | <system-function>
 ```
 
 ```
@@ -35,6 +36,44 @@ Reference scalars by name in SELECT and WHERE clauses. Subsequent scalar definit
 
 When referencing <cte-column> the Common Table Expression must have returned one and only one row, making the reference to a singleton datum.
 
+## Inline Scalar Functions
+
+Any `<scalar-function>` can be written in place, without a SCALARS definition, in:
+
+- the `SELECT` clause, with or without `AS <column-alias>`
+- `WHERE` predicates of queries, `UPDATE`, and `DELETE`
+- `UPDATE` `SET` values
+- the predicates of `IF` and searched `CASE`, including inside SCALARS definitions
+
+```
+SELECT GETUTCDATE()
+
+FROM adoptions
+WHERE YEAR(adoption-date) = 2024
+  AND LEN(name) > 3
+SELECT UPPER(name) AS name, species, adoption-fee * 2
+
+UPDATE adoptions
+SET adoption-fee = adoption-fee + 5
+WHERE LOWER(species) = 'cat'
+```
+
+An inline scalar function behaves exactly as if it were defined in the SCALARS clause and referenced by name. It may reference columns, CTE columns, scalars defined in the SCALARS clause, and nest other scalar functions, e.g. `LEN(TRIM(name))`.
+
+**Column names.** An inline scalar function in `SELECT` without `AS` is named `scalar-<n>`, where `<n>` is its zero-based position in the `SELECT` list, just as an unaliased literal is named `literal-<n>`. `SELECT 1, ABS(-1)` produces columns `literal-0` and `scalar-1`.
+
+**Arithmetic.** Inline arithmetic takes no `END` keyword; it ends at the first token that is not an arithmetic operator. Within the SCALARS clause arithmetic still terminates with `END`. A function, `IF`, `CASE`, or `COALESCE` followed by an operator is an operand of the arithmetic, e.g. `ABS(col1) + 1`.
+
+**Constants.** An inline constant standing alone must be written as a function: `PI()`, `TAU()`, `E()`, `PHI()`. The bare forms `PI`, `TAU`, `E`, and `PHI` are allowed only as arithmetic operands and function arguments (`2 * PI`, `SIN(PI)`), so a column named `e` or `pi` is still read as a column. In the SCALARS clause the bare forms may also stand alone. Wherever a constant appears, a column of the same name in the `FROM` relations takes precedence, including over `PI()`.
+
+**Evaluation.** `GETUTCDATE()` returns the query time wherever it appears. Each `RAND` invocation is evaluated separately: `SELECT RAND(1, 10), RAND(1, 10)` produces two independent values.
+
+**MIN and MAX.** `MIN` and `MAX` with two arguments are scalar functions. With one argument, `MIN(col1)` and `MAX(col1)` are aggregates (see [Aggregate Functions](aggregates.md)).
+
+**Aggregates.** In `SELECT` and `HAVING` an aggregate function may be the argument of a scalar function or an operand of arithmetic, e.g. `ROUND(AVG(pay), --2)` or `SUM(pay) / COUNT(*)`. Aggregates are not allowed in the SCALARS clause or in `WHERE`.
+
+**Not supported.** Scalar functions are not supported in `JOIN ... ON` predicates (the error is `scalar functions are not supported in this predicate`), in `INSERT` and `UPSERT` `VALUES`, in `MERGE`, or in `GROUP BY` and `ORDER BY`.
+
 ## Control Flow Functions
 
 ### IF-THEN-ELSE
@@ -46,9 +85,9 @@ IF <predicate> THEN <scalar-node>
                ELSE <scalar-node> ENDIF
 ```
 
-The `ELSE` clause is required. The `THEN` and `ELSE` expressions must be the same type.
+The `ELSE` clause is required. The `THEN` and `ELSE` expressions must be the same type, or numeric types, which convert to their common type (see [Mixed Numeric Types](#mixed-numeric-types)).
 
-Accepted types: any, provided `THEN` and `ELSE` expressions share the same type.
+Accepted types: any, provided `THEN` and `ELSE` expressions share the same type or are all numeric.
 
 Example:
 ```
@@ -84,7 +123,7 @@ The expected boolean (or loobean) logic applies to each predicate. The first bra
 
 In both forms, `ELSE` is optional. If no `WHEN` branch matches and no `ELSE` clause is present, the query crashes with an informative message.
 
-Accepted types: any, provided all `THEN` and `ELSE` expressions share the same type.
+Accepted types: any, provided all `THEN` and `ELSE` expressions share the same type or are all numeric, converting to their common type. In the simple form, numeric `WHEN` values match the leading expression by value, across numeric types (see [Mixed Numeric Types](#mixed-numeric-types)).
 
 Examples:
 ```
@@ -105,11 +144,11 @@ END
 
 ### COALESCE
 
-`COALESCE` returns the first `<scalar-node>` in the list that exists. Non-existence occurs when a selected `<scalar-node>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows.
+`COALESCE` returns the first `<scalar-node>` in the list that exists. Non-existence occurs when a selected `<scalar-node>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows. When no `<scalar-node>` in the list exists, the result does not exist.
 
-All expressions must share the same type.
+All expressions must share the same type, or be numeric types, which convert to their common type (see [Mixed Numeric Types](#mixed-numeric-types)).
 
-NOTE: until outer joins are implemented `COALESCE` is a useless function. 
+Any other scalar function or arithmetic with an operand that does not exist also does not exist. `IF` and `CASE` do not exist when any of their result branches does not exist; a condition comparing a value that does not exist is false.
 
 ## Arithmetic Operations
 
@@ -119,24 +158,47 @@ NOTE: until outer joins are implemented `COALESCE` is a useless function.
   <scalar-node> <arithmetic-op> <scalar-node>
   | ( <arithmetic> )
   | <arithmetic> <arithmetic-op> <arithmetic>
-  END
+  [ END ]
 ```
 
-Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules. Arithmetic scalars must terminate with the END keyword.
+Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules. Arithmetic defined in the SCALARS clause must terminate with the END keyword. Inline arithmetic takes no END (see [Inline Scalar Functions](#inline-scalar-functions)).
 
-`<scalar-node>` must evaluate to a `<numeric-expression>`, `@ud`, `@sd`, or `@rd`.
+`<scalar-node>` must evaluate to a `<numeric-expression>` of a numeric type.
 
 ### Accepted Types
 
-All arithmetic operators accept `@ud`, `@sd`, and `@rd`. Both scalar-nodes must be the same type. The result is the same type as the inputs.
+All arithmetic operators accept the numeric types:
 
-**Exception:** `%` (modulo) does not support `@rd`; it accepts only `@ud` and `@sd`.
+| Kind | Types |
+|------|-------|
+| unsigned integer | `@ub` (binary), `@ud` (decimal), `@uv` (base32), `@uw` (base64), `@ux` (hexadecimal) |
+| signed integer | `@sb`, `@sd`, `@sv`, `@sw`, `@sx` |
+| floating-point | `@rh` (half), `@rs` (single), `@rd` (double), `@rq` (quad precision) |
+
+The scalar-nodes may be of any numeric types. Operands of one type produce that type, except for `^` with a signed exponent; operands of different types convert to their common type, which is the result type (see [Mixed Numeric Types](#mixed-numeric-types)). Every unsigned integer type computes like `@ud` and every signed integer type like `@sd`; the type only sets how a value is written.
+
+A sized integer type, such as `@udD` (8 bits), combined with its unsized base produces the sized type; a result that does not fit the width crashes. See Column Types in [Preliminaries](preliminaries.md).
+
+**Exceptions:**
+- `%` (modulo) on a floating-point type crashes with "remainder not implemented".
+- The exponent of `^` may be any numeric type, and the result type follows its own rule (see [Mixed Numeric Types](#mixed-numeric-types)). A floating-point result computes in its own precision. An integer result computes in `@rd` and truncates, so results beyond 2^53 lose precision. `x ^ -y` is `1 / x ^ y`; a zero base with a negative exponent is division by zero.
+
+Floating-point operations round toward zero. A numeric type with a non-numeric type, such as `@ud + @t`, is a number system conflict. Unsigned subtraction below zero and division by zero crash.
 
 ### Important Syntax Requirements
 
-**Whitespace around operators:** Operators require whitespace before the next operand (scalar-node). For example, `1+1` is invalid, but `1+ 1` or `1 + 1` are valid.
+**Whitespace around operators:** An operator directly following a numeric literal requires whitespace before it, otherwise the operator is read as part of the literal. For example, `1+1` is invalid, but `1 +1` and `1 + 1` are valid. After a column name or a closing parenthesis no whitespace is needed (`col1*2`), except before `-`, which a column name absorbs (`col1-2` is the column `col1-2`).
 
-**Float literal notation:** Floating-point literals use Hoon double-precision (`@rd`) notation with a leading `~.` after the dot. For example, `0.1` must be written as `.~0.1`, and `3.14` as `.~3.14`.
+**Float literal notation:** Floating-point literals use Hoon notation. A bare decimal such as `3.14` is not a float literal.
+
+| Type | Literal |
+|------|---------|
+| `@rh` | `.~~3.14` |
+| `@rs` | `.3.14` |
+| `@rd` | `.~3.14` |
+| `@rq` | `.~~~3.14` |
+
+Integer literals of the other types also use Hoon notation, for example `0x1f` (`@ux`), `0v1f.ab3ck` (`@uv`, dotted every five digits), `--0x1f` and `-0x1f` (`@sx`). See Literals in [Preliminaries](preliminaries.md).
 
 ### Operator Precedence and Associativity
 
@@ -172,6 +234,86 @@ YEAR(~2023.6.20) - MONTH(~2023.6.20)  :: datetime functions in arithmetic
 10 - 5 - 2      :: left-associative: (10 - 5) - 2 = 5 - 2 = 3
 8 / 4 / 2       :: left-associative: (8 / 4) / 2 = 2 / 2 = 1
 10 % 3          :: modulo: remainder of 10 / 3 = 1
+```
+
+## Mixed Numeric Types
+
+Arithmetic, comparisons, and functions accept operands of different numeric types. Each operation follows one deterministic path to its result type, and every operand converts to that type before the operation.
+
+### Common type
+
+The common type of two numeric types is the most granular of them: floating point over signed integer over unsigned integer.
+
+| Operands | Common type | Example |
+|----------|-------------|---------|
+| the same type | that type | `@ux` and `@ux` → `@ux` |
+| two floating-point types | the wider: `@rq` > `@rd` > `@rs` > `@rh` | `@rh` and `@rs` → `@rs` |
+| an integer and a floating-point type | the floating-point type, at least `@rd` | `@ud` and `@rq` → `@rq`; `@sd` and `@rh` → `@rd` |
+| a signed and an unsigned integer | signed | `@ud` and `@sd` → `@sd` |
+| integers of the same notation | that notation | `@ux` and `@sx` → `@sx` |
+| integers of different notations | decimal | `@ux` and `@ud` → `@ud`; `@ub` and `@uv` → `@ud`; `@sx` and `@ud` → `@sd` |
+| a sized and an unsized integer | the sized width | `@udD` and `@ud` → `@udD`; `@udD` and `@sd` → `@sdD` |
+| two sized integers | the larger width | `@udD` and `@udE` → `@udE` |
+
+An integer with `@rh` or `@rs` produces `@rd`, because those types cannot hold most integers exactly. A numeric type never combines with a non-numeric type, and a non-numeric type combines only with itself.
+
+The common type of more than two operands, such as the branches of `CASE`, is the common type of each operand in turn; the order does not change it.
+
+### Conversion
+
+Before an operation each operand converts to the result type.
+
+* A floating-point type widens to a wider one exactly.
+* An unsigned integer converts to a signed integer exactly.
+* An integer converts to a floating-point type exactly when the type can hold it, and otherwise rounds: `@rd` holds every integer up to 2^53.
+* A value converting to a sized type must fit its width, otherwise the command crashes: `@udD` 200 converts to `@sdD`, which holds -128 to 127, so `@udD 200 + @sd -3` crashes with `--200 exceeds @sdD`.
+
+The result of an operation must also fit a sized result type.
+
+### Arithmetic
+
+`+`, `-`, `*`, `/`, and `%` produce the common type of their operands.
+
+The result of `^` takes the type of its base, with these exceptions, applied in order:
+
+1. A floating-point exponent produces the common type: `2 ^ .~0.5` is `@rd`, `.~~2 ^ .~3` is `@rd`.
+2. A floating-point base with an integer exponent keeps the base's type: `.~~1.5 ^ 2` is `@rh`.
+3. An integer base with a signed exponent that is a negative literal, or that is not a literal (a column, scalar, or expression), produces `@rd`: `2 ^ -3` is `.~0.125`. The result type is fixed before any row is read, so a signed exponent that might be negative produces `@rd` even when the base and exponent share a type: `@sd ^ @sd` column is `@rd`.
+4. An unsigned base with a signed exponent literal of zero or more becomes signed, keeping its notation and width: `@ux ^ --2` is `@sx`.
+
+The exponent is not converted to the result type; only its value is used.
+
+### Functions
+
+* Functions of one argument (`ABS`, `CEILING`, `DEGREES`, `FLOOR`, `LOG`, `ROUND`, `SIGN`, `SQRT`, and the trigonometric functions) compute in the type of their argument, as documented for each; a result used in further arithmetic converts like any operand.
+* `MAX`, `MIN`, and `RAND` convert both arguments to their common type.
+* `ATAN2` computes in the common type of its arguments when that is a floating-point type, else in `@rd`.
+* `IF`, `CASE`, and `COALESCE` convert every result branch to the common type of the branches.
+
+### Comparison
+
+Comparisons of numeric values of different types (`=`, `<>`, `<`, `>`, `<=`, `>=`, `BETWEEN`, `IN`, `NOT IN`, the `WHEN` values of a simple `CASE`, and `JOIN ... ON` equality) compare the exact values, without converting either one:
+
+* `--2 = .~~2` is true.
+* `9.007.199.254.740.993 > .~9007199254740992` is true, although the integer converted to `@rd` would equal the float.
+* `.~0` equals `.~-0`.
+* A NaN equals nothing: every comparison with it is false except `<>`.
+
+### Not converted
+
+`INSERT`, `UPSERT`, and `UPDATE` values must have the column's type or its sized or unsized base; they are not converted. Set operations and foreign keys require identical types, and a natural join matches columns of the same name and aura.
+
+### Examples
+
+```
+5 + -3                  :: @ud, @sd → --2 (@sd)
+-3 * .~2.5              :: @sd, @rd → .~-7.5 (@rd)
+5 + .~~1.5              :: @ud, @rh → .~6.5 (@rd)
+.~~1.5 * .~~~0.25       :: @rh, @rq → .~~~0.375 (@rq)
+0x10 + 5                :: @ux, @ud → 21 (@ud)
+0x10 + -3               :: @ux, @sd → --13 (@sd)
+0x10 ^ -1               :: negative exponent → .~0.0625 (@rd)
+5 ^ --2                 :: @ud base, signed exponent → --25 (@sd)
 ```
 
 ## DateTime Functions
@@ -368,13 +510,14 @@ SUBTRACT-TIME(~d10, ~d3)
 
 **ABS(** `<numeric-expression>` **)** returns the absolute value of a numeric expression.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
 ```
 ABS(-42)      :: @sd → returns --42
 ABS(.~-3.7)   :: @rd → returns .~3.7
+ABS(.~~-1.5)  :: @rh → returns .~~1.5
 ABS(5)        :: @ud → returns 5
 ```
 
@@ -382,8 +525,8 @@ ABS(5)        :: @ud → returns 5
 
 **LOG(** `<numeric-expression>` **)** returns the natural logarithm (base *e*) of a numeric expression. Crashes on zero or negative input.
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: `@rd`
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
@@ -399,9 +542,9 @@ LOG(1)
 
 ---
 
-**FLOOR(** `<numeric-expression>` **)** returns the largest integer value less than or equal to the expression. For `@sd` and `@ud` inputs (which have no fractional part), returns the value unchanged.
+**FLOOR(** `<numeric-expression>` **)** returns the largest integer value less than or equal to the expression. For integer inputs (which have no fractional part), returns the value unchanged.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -413,9 +556,9 @@ FLOOR(5)       :: @ud → returns 5
 
 ---
 
-**CEILING(** `<numeric-expression>` **)** returns the smallest integer value greater than or equal to the expression. For `@sd` and `@ud` inputs, returns the value unchanged.
+**CEILING(** `<numeric-expression>` **)** returns the smallest integer value greater than or equal to the expression. For integer inputs, returns the value unchanged.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -429,12 +572,12 @@ CEILING(5)      :: @ud → returns 5
 
 **ROUND(** `<numeric-expression>` **,** `<numeric-expression>` **)** rounds a numeric value. Uses round-half-up (ties round toward +infinity).
 
-Parameters: `@ud`, `@sd`, or `@rd` (value); `@ud` or `@sd` (length)
+Parameters: any numeric type (value); any integer type (length)
 Returns: same type as first parameter
 
 The `length` parameter controls rounding position:
-- **Positive length** (or `@ud`): rounds to that many decimal places. For `@sd` and `@ud` inputs this is a no-op since they have no fractional part.
-- **Negative length** (`@sd` only): rounds to the nearest 10^|length| before the decimal point.
+- **Positive length** (or an unsigned length): rounds to that many decimal places. For integer inputs this is a no-op since they have no fractional part.
+- **Negative length** (signed length only): rounds to the nearest 10^|length| before the decimal point.
 
 Examples:
 ```
@@ -451,7 +594,7 @@ ROUND(--1235, -1)    :: @sd, rounds to nearest 10 → --1240
 
 **SIGN(** `<numeric-expression>` **)** returns -1, 0, or 1 depending on the sign of the expression.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
@@ -469,54 +612,57 @@ SIGN(0)       :: @ud → returns 0
 
 **SQRT(** `<numeric-expression>` **)** returns the square root of a numeric expression. Crashes on negative input.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
 ```
 SQRT(.~16.0)  :: @rd → returns .~4.0
+SQRT(.~~~2.25) :: @rq → returns .~~~1.5
 SQRT(16)      :: @ud → returns 4
 SQRT(--9)     :: @sd → returns --3
 ```
 
 ---
 
-**MAX(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the larger of two numeric values. Both arguments must be the same type.
+**MAX(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the larger of two numeric values.
 
-Parameter: `@ud`, `@sd`, or `@rd` (both must match)
-Returns: same type as inputs
+Parameter: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
 MAX(3, 5)           :: @ud → returns 5
 MAX(.~3.5, .~2.1)   :: @rd → returns .~3.5
 MAX(--10, -5)       :: @sd → returns --10
+MAX(3, .~2.5)       :: @ud, @rd → returns .~3
 ```
 
 ---
 
-**MIN(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the smaller of two numeric values. Both arguments must be the same type.
+**MIN(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the smaller of two numeric values.
 
-Parameter: `@ud`, `@sd`, or `@rd` (both must match)
-Returns: same type as inputs
+Parameter: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
 MIN(3, 5)           :: @ud → returns 3
 MIN(.~3.5, .~2.1)   :: @rd → returns .~2.1
 MIN(--10, -5)       :: @sd → returns -5
+MIN(3, -5)          :: @ud, @sd → returns -5
 ```
 
 ---
 
-**RAND(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns a random integer in the range [low, high], inclusive on both ends. Both arguments must be the same numeric type and high must be greater than low.
+**RAND(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns a random integer in the range [low, high], inclusive on both ends. The arguments may be of any numeric types, which convert to their common type, and high must be greater than low.
 
-For `@rd` inputs, fractional parts are adjusted so the effective range uses whole numbers: the low bound is rounded down (floor) and the high bound is rounded up (ceiling). The result is always a whole number value within the adjusted range.
+For floating-point inputs, fractional parts are adjusted so the effective range uses whole numbers: the low bound is rounded down (floor) and the high bound is rounded up (ceiling). The result is always a whole number value within the adjusted range.
 
 NOTE: Invoking `RAND` is the only instance of a `SELECT` command in Obelisk producing a result set that is not deterministic. Obelisk produces the following warning message: "warning: results are non-deterministic".
 
-Parameters: `@ud`, `@sd`, or `@rd` (both must match)
-Returns: same type as inputs
+Parameters: any numeric types
+Returns: the common type of the inputs (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Examples:
 ```
@@ -529,47 +675,49 @@ RAND(.~1.5, .~10.8)    :: @rd → returns a random whole number from .~1.0 to .~
 
 **DEGREES(** `<numeric-expression>` **)** converts radians to degrees.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: same type as input
 
 Examples:
 ```
 DEGREES(PI)          :: returns 180 (@ud)
 DEGREES(.~3.14159)   :: returns approximately .~180.0
+DEGREES(.~~1)        :: @rh → returns .~~57.28
 ```
 
 ---
 
 **SIN(** `<numeric-expression>` **)** returns the sine of an angle in radians.
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
 SIN(.~0.0)       :: returns .~0.0
-SIN(PI / 2)      :: @ud → returns 1
+SIN(.~~0.5)      :: @rh → returns .~~0.4792
+SIN(1)           :: @ud → returns .~0.8414709848078961
 ```
 
 ---
 
 **COS(** `<numeric-expression>` **)** returns the cosine of an angle in radians.
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Examples:
 ```
 COS(.~0.0)    :: returns .~1.0
-COS(PI)       :: @ud → returns -1 (as @sd)
+COS(.0.5)     :: @rs → returns .0.87758243
 ```
 
 ---
 
 **TAN(** `<numeric-expression>` **)** returns the tangent of an angle in radians.
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -580,8 +728,8 @@ TAN(.~0.0)    :: returns .~0.0
 
 **ASIN(** `<numeric-expression>` **)** returns the arcsine of a value, in radians. Input must be in the range [-1, 1].
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -592,8 +740,8 @@ ASIN(.~1.0)    :: returns approximately .~1.5707963 (π/2)
 
 **ACOS(** `<numeric-expression>` **)** returns the arccosine of a value, in radians. Input must be in the range [-1, 1].
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -604,8 +752,8 @@ ACOS(.~1.0)    :: returns .~0.0
 
 **ATAN(** `<numeric-expression>` **)** returns the arctangent of a value, in radians.
 
-Parameter: `@ud`, `@sd`, or `@rd`
-Returns: same type as input
+Parameter: any numeric type
+Returns: same floating-point type as input; `@rd` for integers
 
 Example:
 ```
@@ -614,10 +762,10 @@ ATAN(.~1.0)    :: returns approximately .~0.7853982 (π/4)
 
 ---
 
-**ATAN2(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the angle (in radians) whose tangent is the quotient of the two arguments. The first argument is the y-coordinate and the second is the x-coordinate. Both must be the same numeric type.
+**ATAN2(** `<numeric-expression>` **,** `<numeric-expression>` **)** returns the angle (in radians) whose tangent is the quotient of the two arguments. The first argument is the y-coordinate and the second is the x-coordinate.
 
-Parameters: `@ud`, `@sd`, or `@rd` (y); same type (x)
-Returns: `@rd`
+Parameters: any numeric types (y and x)
+Returns: the common type of the arguments when it is a floating-point type, else `@rd` (see [Mixed Numeric Types](#mixed-numeric-types))
 
 Example:
 ```
@@ -865,7 +1013,7 @@ REVERSE('hello')
 
 **STRING(** `<numeric-expression>` **)** converts a numeric value to its string representation.
 
-Parameter: `@ud`, `@sd`, or `@rd`
+Parameter: any numeric type
 Returns: `@t`
 
 Examples:
@@ -944,3 +1092,22 @@ STUFF('hello', 2, 3, 'ELL')
 ```
 
 ---
+
+## System Functions
+
+```
+<system-function> ::=
+  VERSION ( )
+```
+
+---
+
+**VERSION()** returns the Obelisk version, the `version` of the desk's `desk.docket-0`, as `<major>.<minor>.<patch>`. It is fixed when the desk is built.
+
+Returns: `@t`
+
+Example:
+```
+SELECT VERSION()
+:: returns '0.9.4'
+```

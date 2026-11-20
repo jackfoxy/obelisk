@@ -61,6 +61,9 @@
     %:  cold  %alter-table
               ;~(plug whitespace (jester 'alter') whitespace (jester 'table'))
               ==
+    %:  cold  %alter-view
+              ;~(plug whitespace (jester 'alter') whitespace (jester 'view'))
+              ==
     %:  cold  %create-database
               ;~  plug  whitespace
                         (jester 'create')
@@ -642,9 +645,12 @@
                                                 ==
                           commands
           ==
+    %alter-view
+      =/  r=[command:ast tape]  (parse-view %alter-view q.q.command-nail)
+      $(script +.r, commands [-.r commands])
     %create-view
-      ~|  "create view error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      !!
+      =/  r=[command:ast tape]  (parse-view %create-view q.q.command-nail)
+      $(script +.r, commands [-.r commands])
     %delete
       =/  [parsed=* nail=edge]  |-
                                 =/  nail
@@ -960,17 +966,21 @@
                                 [(wonk nail) nail]
       ~|  "drop view parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
-          ?:  ?=([@ @ @ @ @ @ @] parsed)                :: force qualified view
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  [(drop-view:ast %drop-view +.parsed %.y) commands]
-            ==
-          ?:  ?=([@ @ @ @ @ @] parsed)                  :: qualified view
-            %=  $
-              script    q.q.u.+3.q:nail
-              commands  [(drop-view:ast %drop-view parsed %.n) commands]
-            ==
-          !!
+      =/  drop=drop-view:ast
+        ?:  ?=([[%force *] %as-of *] parsed)            :: force view as of
+          :^  %drop-view
+              ;;(qualified-table:ast ->.parsed)
+              %.y
+              (cook-as-of +.parsed)
+        ?:  ?=([* %as-of *] parsed)                     :: view as of
+          :^  %drop-view
+              ;;(qualified-table:ast -.parsed)
+              %.n
+              (cook-as-of +.parsed)
+        ?:  ?=([@ @ @ @ @ @ @] parsed)                  :: force view
+          [%drop-view ;;(qualified-table:ast +.parsed) %.y ~]
+        [%drop-view ;;(qualified-table:ast parsed) %.n ~]
+      $(script q.q.u.+3.q:nail, commands [drop commands])
     %grant
       =/  [parsed=* nail=edge]  |-
                                 =/  nail
@@ -1006,7 +1016,7 @@
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  ins
             ::~>  %bout.[0 %parse-produce-insert]
-            (produce-insert %insert parsed)
+            (produce-insert %insert ~ parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
@@ -1023,7 +1033,7 @@
                                 [(wonk nail) nail]
       ~|  "upsert parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  ups  (produce-insert %upsert parsed)
+      =/  ups  (produce-insert %upsert ~ parsed)
       %=  $
         script    q.q.u.+3.q:nail
         commands  :-  (crud-txn:ast %crud-txn ~ [%upsert ups])
@@ -1163,24 +1173,18 @@
                             commands
             ==
           ?:  =(+<.parsed %insert)
+            =/  ctes=(list cte:ast)  (produce-ctes -.parsed)
+            =/  ins  (produce-insert %insert ctes +>.parsed)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  crud-txn:ast  %crud-txn
-                                              (produce-ctes -.parsed)
-                                              :-  %insert
-                                                  (produce-insert %insert +>.parsed)
-                                              ==
-                            commands
+              commands  [(crud-txn:ast %crud-txn ctes [%insert ins]) commands]
             ==
           ?:  =(+<.parsed %upsert)
+            =/  ctes=(list cte:ast)  (produce-ctes -.parsed)
+            =/  ins  (produce-insert %upsert ctes +>.parsed)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  crud-txn:ast  %crud-txn
-                                              (produce-ctes -.parsed)
-                                              :-  %upsert
-                                                  (produce-insert %upsert +>.parsed)
-                                              ==
-                            commands
+              commands  [(crud-txn:ast %crud-txn ctes [%upsert ins]) commands]
             ==
           ?:  =(+<.parsed %merge)
             %=  $
@@ -1207,6 +1211,78 @@
   ==
 ::
 ::  parse urQL commands
+::
+++  parse-view
+  ::  CREATE VIEW or ALTER VIEW following its keywords: the view, an
+  ::  optional AS OF, AS, then the view query.  The query is parsed with the
+  ::  view's database as the default database.  Produces the command and the
+  ::  rest of the script.
+  |=  [tag=?(%create-view %alter-view) script=tape]
+  ^-  [command:ast tape]
+  =/  header-edge=edge
+    %.  [[1 1] script]
+    ;~  plug
+      parse-qualified-3object
+      ;~(pose parse-as-of (easy ~))
+      ;~(pfix whitespace (jester 'as'))
+    ==
+  =/  header=*
+    ~|  "{(trip tag)} header:  {<`tape`(scag 100 script)>} ..."
+        (wonk header-edge)
+  =/  view=qualified-table:ast  ;;(qualified-table:ast -.header)
+  =/  as-of=(unit as-of:ast)  (cook-as-of +<.header)
+  =/  body=tape  q.q:(need q.header-edge)
+  =.  default-database  database.view
+  =/  kind-edge
+    %.  [[1 1] body]
+    ;~  pose
+      (cold %with ;~(plug whitespace (jester 'with')))
+      (cold %query ;~(plug whitespace (jester 'from')))
+      %+  cold  %query
+      ;~(plug whitespace (jester 'select') (funk "select" (easy ' ')))
+      %+  cold  %query
+      ;~(plug whitespace (jester 'scalars') (funk "scalars" (easy ' ')))
+    ==
+  ?~  q.kind-edge
+    ~|("{(trip tag)}: AS must be followed by a query" !!)
+  =/  is-with=?  =(%with p.u.q.kind-edge)
+  =/  query-script=tape  q.q.u.q.kind-edge
+  =/  query-edge=edge
+    ?:  is-with  (parse-with [[1 1] query-script])
+    (parse-query-chain [[1 1] query-script])
+  =/  parsed=*
+    ~|  "{(trip tag)} query:  {<`tape`(scag 100 body)>} ..."
+        (wonk query-edge)
+  =/  =crud-txn:ast
+    ?.  is-with  (produce-query ~ parsed)
+    ?.  =(%query +<.parsed)
+      ~|("{(trip tag)}: view body must be a query" !!)
+    (produce-query (produce-ctes -.parsed) +>.parsed)
+  =/  rest=tape  q.q:(need q.query-edge)
+  =/  text=@t  (crip (view-text (scag (sub (lent body) (lent rest)) body)))
+  :_  rest
+  ?-  tag
+    %create-view  [%create-view view text crud-txn as-of]
+    %alter-view   [%alter-view view text crud-txn as-of]
+  ==
+::
+++  view-text
+  ::  view query source without surrounding whitespace or end of command
+  |=  source=tape
+  ^-  tape
+  =/  blank=(set @t)  (silt " \0a\09\0d")
+  =/  front=tape
+    |-  ^-  tape
+    ?~  source  ~
+    ?.  (~(has in blank) i.source)  source
+    $(source t.source)
+  =/  back=tape  (flop front)
+  =/  trimmed=tape
+    |-  ^-  tape
+    ?~  back  ~
+    ?.  |((~(has in blank) i.back) =(';' i.back))  back
+    $(back t.back)
+  (flop trimmed)
 ::
 ++  parse-alter-index  ~+
   =/  columns  ;~(pfix whitespace ordered-column-list)
@@ -1240,7 +1316,7 @@
               parse-qualified-2-name
               ==
     ;~  pfix  ;~(plug whitespace (jester 'transfer'))
-              ;~(pfix whitespace (jester 'table'))
+              ;~(pfix whitespace ;~(pose (jester 'table') (jester 'view')))
               ==
     ;~  sfix
       ;~  pose
@@ -1551,20 +1627,40 @@
             (stag %table parse-qualified-3object)
             ==
 ++  parse-insert  ~+
-  ;~  plug
+  ;~  pose
     ;~  plug
-      ;~(pfix whitespace parse-qualified-table)
-      ;~(pose parse-as-of (easy ~))
-      ;~  pose
-        ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-        ;~(pfix whitespace (jester 'values'))
-        ==
-      ;~  pfix
-        whitespace
-        (more whitespace (ifix [pal par] (more com parse-insert-value)))
-        ==
+      ;~  plug
+        ;~(pfix whitespace parse-qualified-table)
+        ;~(pose parse-as-of (easy ~))
+        ;~  pose
+          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
+          ;~(pfix whitespace (jester 'values'))
+          ==
+        ;~  pfix
+          whitespace
+          (more whitespace (ifix [pal par] (more com parse-insert-value)))
+          ==
+      ==
+      end-or-next-command
     ==
-    end-or-next-command
+    ::  query source; each query of the chain ends its own command
+    ;~  plug
+      ;~  plug
+        ;~(pfix whitespace parse-qualified-table)
+        ;~(pose parse-as-of (easy ~))
+        ;~(pose face-list (easy ~))
+        %+  stag  %query-source
+        ;~  pfix  whitespace
+          ;~  pose
+            ;~(pfix (jester 'from') parse-query-chain)
+            ;~  pfix  (peek ;~(pose (jester 'select') (jester 'scalars')))
+                      parse-query-chain
+                      ==
+            ==
+          ==
+      ==
+      (easy ~)
+    ==
   ==
 ++  parse-query  ~+
   ;~  pose
@@ -1575,15 +1671,16 @@
   ;~  pose
     %:  cold  %divide-with-remainder
               ;~  plug  (jester 'divided')
-                        whitespace
+                        required-whitespace
                         (jester 'by')
-                        whitespace
+                        required-whitespace
                         (jester 'with')
-                        whitespace
+                        required-whitespace
                         (jester 'remainder')
               ==
     ==
-    (cold %divided-by ;~(plug (jester 'divided') whitespace (jester 'by')))
+    %+  cold  %divided-by
+    ;~(plug (jester 'divided') required-whitespace (jester 'by'))
     (cold %union (jester 'union'))
     (cold %except (jester 'except'))
     (cold %intersect (jester 'intersect'))
@@ -1612,6 +1709,7 @@
       (easy ~)
     ==
     ;~(pose parse-group-by (easy ~))
+    ;~(pose parse-having (easy ~))
     parse-select
     ;~(pose parse-order-by (easy ~))
     end-or-next-command
@@ -1809,6 +1907,7 @@
         ;~  pfix
             whitespace
             ;~  pose  (cold %default (jester 'default'))
+                      parse-inline-scalar
                       parse-qualified-column
                       parse-value-literal
                       ==
@@ -2019,7 +2118,7 @@
               acc
                 [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
             ==
-          [%set-query [%set-query head=head-q tail=tail]]
+          [%set-query (validate-set-query [%set-query head=head-q tail=tail])]
     %=  $
       a  +.a
       ctes  [(cte:ast %cte ->+>.a body) ctes]
@@ -2036,9 +2135,16 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
-  =/  scalar-map=(map @tas scalar-function:ast)
+  =/  user-map=(map @tas scalar-function:ast)
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
-  =.  a  [-.a +>.a]
+  =/  ex  (extract-inline +>.a ~ (lent scalars))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                scalars
+                                [~ user-map cte-map cte-col-map]
+  =.  scalars  -.inl
+  =/  scalar-map=(map @tas scalar-function:ast)  +.inl
+  =.  a  [-.a raw.ex]
   ?:  ?=([* %where * %end-command ~] a)
     %:  crud-txn:ast  %crud-txn
                       ctes
@@ -2139,12 +2245,27 @@
   [%qualified-column obj name.a alias.a]
 ::
 ++  produce-insert
-  |=  [op=?(%insert %upsert) a=*]
+  |=  [op=?(%insert %upsert) ctes=(list cte:ast) a=*]
   ~+
   ^-  insert:ast
   =/  table  -<.a
   =/  c      ->.a
   ::
+  ?:  ?=([* * %query-source *] c)    :: insert rows of a query
+    =/  as-of=*  -.c
+    =/  source  body:(produce-query ctes +>+.c)
+    %:  insert:ast  op
+                    table
+                    ?:  ?=([%as-of %now] as-of)  ~
+                    ?:  ?=([%as-of @ @] as-of)  [~ +.as-of]
+                    ?:  ?=([%as-of @ @ @] as-of)
+                      [~ [%as-of-offset +<.as-of +>-.as-of]]
+                    ~
+                    ?~(+<.c ~ `;;((list @tas) +<.c))
+                    ?:  ?=(%query -.source)  source
+                    ?:  ?=(%set-query -.source)  source
+                    ~|("Cannot parse insert/upsert query source {<a>}" !!)
+                    ==
   ?:  ?=([~ %values *] c)            :: insert rows
     %:  insert:ast  op
                     table
@@ -2412,6 +2533,9 @@
     ?^  conflict
       ~|  "FROM alias conflicts with CTE name: {<(need conflict)>}"
       !!
+    =/  top=(unit @ud)  ?~(select ~ top.u.select)
+    ?:  ?&(?=(^ top) =(0 u.top))  ~|("TOP must be 1 or greater" !!)
+    ?:  ?&(?=(^ top) =(~ order-by))  ~|("TOP requires ORDER BY" !!)
     :*  %query
         ?~  from  ~
           `(finalize-predicates (need from) alias-map cte-map cte-col-map)
@@ -2423,8 +2547,14 @@
                                   cte-map
                                   cte-col-map
                                   ==
-        group-by
-        having
+        (produce-group-by group-by alias-map cte-map)
+        ?~  having  ~
+          %:  finalize-predicate  having
+                                  alias-map
+                                  scalar-map
+                                  cte-map
+                                  cte-col-map
+                                  ==
         (need select)
         order-by
         ==
@@ -2435,20 +2565,62 @@
       scalars   produced-scalars
       scalar-map  (mk-scalar-map produced-scalars)
     ==
-  ?:  =(-<.a %where)        %=  $
-                              a          +.a
-                              predicate  %-  produce-predicate
-                                             (predicate-list ->.a)
-                            ==
+  ?:  =(-<.a %where)
+    =/  ex  (extract-inline ->.a ~ (lent scalars))
+    =/  inl
+      %^  produce-inline-scalars  found.ex
+                                  scalars
+                                  [alias-map scalar-map cte-map cte-col-map]
+    %=  $
+      a           +.a
+      scalars     -.inl
+      scalar-map  +.inl
+      predicate   (produce-predicate (predicate-list raw.ex))
+    ==
+  ?:  =(-<.a %having)
+    =/  ag  (extract-aggregates ->.a ~ (lent scalars))
+    =/  agg
+      %^  produce-aggregate-scalars  found.ag
+                                     scalars
+                                     [alias-map scalar-map cte-map cte-col-map]
+    =/  ex  (extract-inline raw.ag ~ (lent -.agg))
+    =/  inl
+      %^  produce-inline-scalars  found.ex
+                                  -.agg
+                                  [alias-map +.agg cte-map cte-col-map]
+    %=  $
+      a           +.a
+      scalars     -.inl
+      scalar-map  +.inl
+      having      (produce-predicate (predicate-list raw.ex))
+    ==
   ?:  =(-<.a %select)
     ~|  "make-query produce-select: {<->.a>}"
+    =/  ag
+      (extract-aggregates (alias-select-inline ->.a) ~ (lent scalars))
+    =/  agg
+      %^  produce-aggregate-scalars  found.ag
+                                     scalars
+                                     [alias-map scalar-map cte-map cte-col-map]
+    =/  ex  (extract-inline raw.ag ~ (lent -.agg))
+    =/  inl
+      %^  produce-inline-scalars  found.ex
+                                  -.agg
+                                  [alias-map +.agg cte-map cte-col-map]
     %=  $
-      a  +.a
+      a           +.a
+      scalars     -.inl
+      scalar-map  +.inl
       select
-        `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map)
+        `(produce-select raw.ex from alias-map +.inl cte-map cte-col-map)
     ==
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
-  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
+  ?:  =(-<.a %order-by)
+    %=  $
+      a  +.a
+      order-by
+        (produce-order-by (order-by-list ->.a) select alias-map cte-map)
+    ==
   ?:  =(-<-.a %qualified-table)
     ~|  "make-query produce-from qualified-table: {<-.a>}"
     =/  f  (produce-from -.a)
@@ -2483,7 +2655,91 @@
       raw-tail  +.raw-tail
       acc       [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
     ==
-  (crud-txn:ast %crud-txn ctes [%set-query [%set-query head=head-q tail=tail]])
+  %^  crud-txn:ast  %crud-txn
+                    ctes
+  [%set-query (validate-set-query [%set-query head=head-q tail=tail])]
+::
+++  validate-set-query
+  ::  The ORDER BY of the last query of a set query orders the combined
+  ::  result, so it names output columns, and that query has no TOP.
+  |=  sq=set-query:ast
+  ^-  set-query:ast
+  =/  last=query:ast  ?~(tail.sq head.sq query:(rear tail.sq))
+  ?^  top.select.last
+    ~|("TOP is not allowed on the last query of a set operation" !!)
+  =/  qualified
+    %+  lien  order-by.last
+    |=(oc=ordering-column:ast ?=(qualified-column:ast column.oc))
+  ?:  qualified
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  sq
+::
+++  produce-order-by
+  ::  Resolve ORDER BY columns as SELECT columns are resolved: an
+  ::  <alias>.<column> names a FROM relation or CTE.  A bare name, an output
+  ::  name or a source column, is resolved at run time.
+  |=  $:  order-by=(list ordering-column:ast)
+          select=(unit select:ast)
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          ==
+  ^-  (list ordering-column:ast)
+  =/  all-columns=?
+    ?~  select  %.n
+    %+  lien  columns.u.select
+    |=(s=selected-column:ast ?=(?(%all %all-object) -.s))
+  %+  turn  order-by
+  |=  oc=ordering-column:ast
+  ^-  ordering-column:ast
+  =/  column  column.oc
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    ?:  ?|(all-columns =(~ select))  oc
+    ?.  (gth column (lent columns:(need select)))  oc
+    ~|  "ORDER BY: column ordinal {<column>} exceeds the selected columns"
+        !!
+  oc(column (resolve-column-alias column alias-map cte-map))
+::
+++  resolve-column-alias
+  ::  an <alias>.<column> as the column of the FROM relation or CTE the
+  ::  alias names, else of the table so named in the default database
+  |=  $:  column=$%(qualified-column:ast unqualified-column:ast)
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          ==
+  ^-  $%(qualified-column:ast unqualified-column:ast)
+  ?:  ?=(qualified-column:ast column)  column
+  ?~  alias.column  column
+  =/  tbl=@t  u.alias.column
+  =/  resolved  (~(get by alias-map) (fold-key tbl))
+  ?^  resolved
+    =/  qt  u.resolved
+    =?  qt  (~(has by cte-map) name.qt)  qt(database %cte, namespace %cte)
+    [%qualified-column qt name.column ~]
+  =/  cte  (~(get by cte-map) (fold-key tbl))
+  ?^  cte
+    [%qualified-column [%qualified-table ~ %cte %cte u.cte ~] name.column ~]
+  =/  qt=qualified-table:ast
+    [%qualified-table ~ default-database 'dbo' tbl ~]
+  [%qualified-column qt name.column ~]
+::
+++  produce-group-by
+  ::  Resolve GROUP BY columns as ORDER BY columns are resolved.  A bare
+  ::  name, a source column or an output name, and an ordinal are resolved
+  ::  at run time.
+  |=  $:  group-by=(list grouping-column:ast)
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          ==
+  ^-  (list grouping-column:ast)
+  %+  turn  group-by
+  |=  column=grouping-column:ast
+  ^-  grouping-column:ast
+  ?@  column
+    ?.  =(0 column)  column
+    ~|("GROUP BY: column ordinal must be 1 or greater" !!)
+  (resolve-column-alias column alias-map cte-map)
 ::
 ++  produce-from
   |=  a=*
@@ -2556,23 +2812,25 @@
               joined-relations
         raw-joined-relations  +.raw-joined-relations
       ==
-  ::natural join
-  ?:  ?|  ?=  [%join [%qualified-table (unit @p) @ @ @ (unit @t)]]
+  ::natural join, inner or outer
+  ?:  ?|  ?=  $:  ?(%join %left-join %right-join %outer-join)
+                  [%qualified-table (unit @p) @ @ @ (unit @t)]
+                  ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       %as-of-offset
                       *
                       ==
                   ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       [%da @]
                       ==
                   ==
               raw-join
-          ?=  $:  %join
+          ?=  $:  ?(%join %left-join %right-join %outer-join)
                   $:  [%qualified-table (unit @p) @ @ @ (unit @t)]
                       [%dr @]
                       ==
@@ -2583,9 +2841,9 @@
       joined-relations
         :-
           :*  %joined-relation
-            %join
+            ;;(join-type:ast -.raw-join)
             ::  object
-            ?:  ?=  $:  %join
+            ?:  ?=  $:  ?(%join %left-join %right-join %outer-join)
                         [%qualified-table (unit @p) @ @ @ (unit @t)]
                         ==
                     raw-join
@@ -2835,6 +3093,8 @@
     (cook-and-finalize-builtin-scalar-fn raw-scalar-body aliases)
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
+  ::  inline scalars inside a definition's predicates are defined just
+  ::  before that definition
   |=  $:  raw-scalars=*
           table-aliases=(map @t qualified-table:ast)
           cte-map=(map @tas @tas)
@@ -2842,33 +3102,156 @@
           ==
   ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
+  =/  out  *(list scalar:ast)
   =/  scalar-map  *(map @tas scalar-function:ast)
-  =/  finalized-scalars
-    ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
-    |-
-    ^-  (list scalar:ast)
-    ?~  scalars
-      ~
-    =/  parsed-scalar  -.scalars
-    =/  scalar-name=@tas
-          ?@  -.parsed-scalar
-            `@tas`-.parsed-scalar
-          ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
-    =/  fn-name  (@tas +<.parsed-scalar)
-    =/  raw-body  +>.parsed-scalar
-    ?:  (~(has by scalar-map) scalar-name)
-      ~|("there is already a scalar named {<scalar-name>}" !!)
-    =/  scalar-function
-      %^  produce-scalar-fn  fn-name
-                             raw-body
-                             [table-aliases scalar-map cte-map cte-col-map]
-    =/  scalar  [%scalar name=scalar-name scalar=scalar-function]
-      :-  scalar
-      %=  $
-        scalar-map  (~(put by scalar-map) scalar-name scalar-function)
-        scalars     +.scalars
-      ==
-  finalized-scalars
+  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
+  |-
+  ^-  (list scalar:ast)
+  ?~  scalars  out
+  =/  parsed-scalar  -.scalars
+  =/  scalar-name=@tas
+        ?@  -.parsed-scalar
+          `@tas`-.parsed-scalar
+        ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
+  ?:  (~(has by scalar-map) scalar-name)
+    ~|("there is already a scalar named {<scalar-name>}" !!)
+  =/  ex  (extract-inline +.parsed-scalar ~ (lent out))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                out
+                                [table-aliases scalar-map cte-map cte-col-map]
+  =/  body  ;;(raw-scalar-fn raw.ex)
+  =/  scalar-function
+    %^  produce-scalar-fn  -.body
+                           +.body
+                           [table-aliases +.inl cte-map cte-col-map]
+  %=  $
+    out         (snoc -.inl [%scalar name=scalar-name f=scalar-function])
+    scalar-map  (~(put by +.inl) scalar-name scalar-function)
+    scalars     +.scalars
+  ==
+::
+++  inline-scalar-name
+  ::  the dot keeps generated names out of the user identifier space
+  |=  i=@ud
+  ^-  @tas
+  (@tas (crip "inline.{<i>}"))
+::
+++  extract-inline
+  ::  replace each raw inline scalar in a raw parse noun with a reference to
+  ::  a generated scalar name, innermost first
+  ::
+  ::  found is newest first; its oldest entry is named base, so produced in
+  ::  order and appended to a scalar list of length base, each name is its
+  ::  index in that list
+  |=  [raw=* found=(list [@tas *]) base=@ud]
+  ^-  [raw=* found=(list [@tas *])]
+  ?@  raw  [raw found]
+  ?:  ?=([%'inline:scalar' *] raw)
+    =/  inner  $(raw +.raw)
+    =/  name  (inline-scalar-name (add base (lent found.inner)))
+    [[%unqualified-column name ~] [[name raw.inner] found.inner]]
+  =/  hed  $(raw -.raw)
+  =/  tal  $(raw +.raw, found found.hed)
+  [[raw.hed raw.tal] found.tal]
+::
+++  aggregate-scalar-name
+  ::  the dot keeps generated names out of the user identifier space
+  |=  i=@ud
+  ^-  @tas
+  (@tas (crip "aggregate.{<i>}"))
+::
+++  extract-aggregates
+  ::  replace each raw aggregate in a raw parse noun with a reference to a
+  ::  generated scalar name, named as +extract-inline names inline scalars
+  |=  [raw=* found=(list [@tas *]) base=@ud]
+  ^-  [raw=* found=(list [@tas *])]
+  ?@  raw  [raw found]
+  ?:  ?=([%'inline:aggregate' @ *] raw)
+    ?:  (has-aggregate +>+.raw)
+      ~|  "an aggregate function cannot be the argument of an aggregate ".
+          "function"
+          !!
+    =/  name  (aggregate-scalar-name (add base (lent found)))
+    [[%unqualified-column name ~] [[name raw] found]]
+  =/  hed  $(raw -.raw)
+  =/  tal  $(raw +.raw, found found.hed)
+  [[raw.hed raw.tal] found.tal]
+::
+++  has-aggregate
+  |=  raw=*
+  ^-  ?
+  ?@  raw  %.n
+  ?:  ?=([%'inline:aggregate' *] raw)  %.y
+  |($(raw -.raw) $(raw +.raw))
+::
+++  produce-aggregate-scalars
+  ::  append scalars of extracted aggregates, in definition order
+  |=  $:  found=(list [@tas *])
+          scalars=(list scalar:ast)
+          aliases=alias-maps
+          ==
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  =/  defs  (flop found)
+  |-
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  ?~  defs  [scalars scalar.aliases]
+  =/  raw  +.i.defs
+  =/  function  ;;(aggregate-function:ast +<.raw)
+  =/  distinct  ;;(? +>-.raw)
+  =/  argument  +>+.raw
+  =/  f=scalar-function:ast
+    ?.  =(%star argument)
+      :^  %aggregate
+          function
+          distinct
+          `(finalize-scalar-node (cook-scalar-node argument) aliases)
+    ?.  =(%count function)
+      ~|("{(cuss (trip function))}(*) is not allowed, only COUNT(*)" !!)
+    [%aggregate function distinct ~]
+  %=  $
+    defs            t.defs
+    scalars         (snoc scalars [%scalar name=-.i.defs f=f])
+    scalar.aliases  (~(put by scalar.aliases) -.i.defs f)
+  ==
+::
+++  alias-select-inline
+  ::  name each unaliased inline scalar in a raw SELECT list by its
+  ::  position, as unaliased literals are named literal-<i>, and each
+  ::  unaliased aggregate <function>-<i>
+  |=  raw=*
+  ^-  *
+  ?:  ?=([%top @ *] raw)
+    [%top +<.raw $(raw +>.raw)]
+  =/  items  ;;((list *) raw)
+  =/  i  0
+  |-  ^-  (list *)
+  ?~  items  ~
+  :_  $(items t.items, i +(i))
+  ?:  ?=([%'inline:aggregate' @ *] i.items)
+    [i.items %as (crip "{(trip +<.i.items)}-{<i>}")]
+  ?.  ?=([%'inline:scalar' *] i.items)  i.items
+  [i.items %as (crip "scalar-{<i>}")]
+::
+++  produce-inline-scalars
+  ::  append scalars extracted from inline invocations, in definition order
+  |=  $:  found=(list [@tas *])
+          scalars=(list scalar:ast)
+          aliases=alias-maps
+          ==
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  =/  defs  (flop found)
+  |-
+  ^-  [(list scalar:ast) (map @tas scalar-function:ast)]
+  ?~  defs  [scalars scalar.aliases]
+  =/  raw-fn  ;;(raw-scalar-fn +.i.defs)
+  =/  f=scalar-function:ast  (produce-scalar-fn -.raw-fn +.raw-fn aliases)
+  %=  $
+    defs            t.defs
+    scalars         (snoc scalars [%scalar name=-.i.defs f=f])
+    scalar.aliases  (~(put by scalar.aliases) -.i.defs f)
+  ==
+::
 ++  finalize-predicate
   |=  $:  p=predicate:ast
           alias-map=(map @t qualified-table:ast)
@@ -2928,8 +3311,6 @@
     dime:ast
       a
     value-literals:ast
-      a
-    aggregate:ast
       a
     cte-column:ast
       a
@@ -3033,8 +3414,6 @@
         selected  t.selected
         cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
       ==
-    ?:  ?=(selected-aggregate:ast sc)
-      ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
     ?:  ?=(selected-value:ast sc)
       ?~  alias.sc
         %=  $
@@ -3148,30 +3527,6 @@
           a        +.a
         ==
       ==
-    ?:  ?=(select-mold-1 -.a)
-      %=  $
-        columns
-          :-  %^  selected-aggregate:ast
-                    %selected-aggregate
-                    :+  %aggregate
-                        (aggregate-name -<+<.a)
-                        [%qualified-column -<+>+<.a -<+>+>-.a -<+>+>+.a]
-                    `->+.a
-              columns
-        a        +.a
-      ==
-    ?:  ?=(select-mold-2 -.a)
-      %=  $
-        columns
-          :-  %^  selected-aggregate:ast
-                    %selected-aggregate
-                    :+  %aggregate
-                        (aggregate-name ->-.a)
-                        [%qualified-column ->+>-.a ->+>+<.a ->+>+>.a]
-                    ~
-          columns
-        a        +.a
-      ==
     ?:  ?=([%all-columns %qualified-table (unit @p) @ @ @ (unit @t)] -.a)
       %=  $
         columns
@@ -3270,9 +3625,16 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
-  =/  scalar-map=(map @tas scalar-function:ast)
+  =/  user-map=(map @tas scalar-function:ast)
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
-  =/  b  +>.a
+  =/  ex  (extract-inline +>.a ~ (lent scalars))
+  =/  inl
+    %^  produce-inline-scalars  found.ex
+                                scalars
+                                [~ user-map cte-map cte-col-map]
+  =.  scalars  -.inl
+  =/  scalar-map=(map @tas scalar-function:ast)  +.inl
+  =/  b  raw.ex
   ?:  ?=([%set * ~] b)
     %:  crud-txn:ast  %crud-txn
                       ctes
@@ -3436,6 +3798,7 @@
 ::  parser rules and helpers
 ::
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
+++  required-whitespace  ~+  (plus ;~(pose gah (just '\09') (just '\0d')))
 ::
 ++  peek
   |*  sef=rule
@@ -3599,6 +3962,12 @@
     (fail tub)
   $(p.tub (lust i.q.tub p.tub), q.tub t.q.tub, daf (rsh 3 daf))
 ::
+++  keyword
+  ::  match a cord, case agnostic, that is not the prefix of a longer name:
+  ::  'end' does not match the start of end-date
+  |=  daf=@t
+  ;~(sfix (jester daf) ;~(less ;~(pose low hig nud hep) (easy ~)))
+::
 ::  qualified objects, usually table or view
 ::  maximally qualified by @p.database.namespace
 ::  minimally qualified by namespace
@@ -3681,10 +4050,13 @@
     (stag %ud (full dem:ag))                      :: formatted @ud
     (stag %ud (full dim:ag))                   :: unformatted @ud, no leading 0s
     ;~(pfix dot (stag %rs (full royl-rs:so)))     :: @rs
-    ;~(pfix dot (stag %rd (full royl-rd:so)))                  :: @rd
+    ;~(pfix dot (stag %rq (full royl-rq:so)))     :: @rq
+    ;~(pfix dot (stag %rh (full royl-rh:so)))     :: @rh
+    ;~(pfix dot (stag %rd (full royl-rd:so)))     :: @rd
     (full tash:so)                                :: @sd or @sx
     (stag %ub (full bay:ag))                     :: formatted @ub, no leading 0s
     (stag %ux ;~(pfix (jest '0x') (full hex:ag))) :: formatted @ux
+    (stag %uv ;~(pfix (jest '0v') (full viz:ag))) :: formatted @uv
     (stag %uw (full wiz:ag))                   :: formatted @uw base-64 unsigned
   ==
 ++  non-numeric-parser  ~+
@@ -3731,9 +4103,76 @@
                       tis
                       ==
 ++  parse-value-literal  ~+
-  ;~  pose  non-numeric-parser
+  ;~  pose  uc-literal
+            non-numeric-parser
             (sear sear-numbers numeric-characters)        :: all numeric parsers
             ==
+::
+::  bitcoin addresses, @uc
+::
+++  uc-versions
+  ::  version bytes: mainnet P2PKH and P2SH, testnet P2PKH and P2SH
+  ^-  (set @)
+  (silt `(list @)`~[0x0 0x5 0x6f 0xc4])
+++  bech32-address
+  ::  %.y when text is shaped as a bech32 (segwit) address, never @uc
+  |=  text=tape
+  ^-  ?
+  =/  lower=tape  (cass text)
+  =/  rest=(unit tape)
+    ?:  =("bcrt1" (scag 5 lower))  `(slag 5 lower)
+    ?:  ?|(=("bc1" (scag 3 lower)) =("tb1" (scag 3 lower)))
+      `(slag 3 lower)
+    ~
+  ?~  rest  %.n
+  ?&  (gte (lent u.rest) 39)
+      %+  levy  u.rest
+      |=(c=@tD ?=(^ (find ~[c] "qpzry9x8gf2tvdw0s3jn54khce6mua7l")))
+      ==
+++  base58-address
+  ::  the @uc of base58check text: 25 bytes decoded, a version byte of
+  ::  +uc-versions, and a verified checksum; else ~
+  |=  text=tape
+  ^-  (unit @uc)
+  ?.  ?&((gte (lent text) 25) (lte (lent text) 35))  ~
+  =/  decoded=(unit @)  (rust text (bass 58 (plus fem:ab)))
+  ?~  decoded  ~
+  ::  each leading 1 is a leading zero byte
+  =/  zeros=@ud
+    =/  nonzero  (find ~[%.n] (turn text |=(c=@tD =(c '1'))))
+    ?~(nonzero (lent text) u.nonzero)
+  ?.  =(25 (add zeros (met 3 u.decoded)))  ~
+  =/  payload=(unit @)  (den:fa u.decoded)
+  ?~  payload  ~
+  ?.  (~(has in uc-versions) (cut 3 [20 1] u.payload))  ~
+  `u.payload
+++  prefixed-uc
+  ::  the address of a 0c literal; an invalid address crashes
+  |=  text=tape
+  ^-  @uc
+  ?:  (bech32-address text)
+    ~|("bech32 address is not @uc: {text}" !!)
+  =/  address=(unit @uc)  (base58-address text)
+  ?~  address  ~|("invalid @uc address: 0c{text}" !!)
+  u.address
+++  bare-uc
+  ::  a bare address is @uc only when it verifies
+  |=  text=tape
+  ^-  (unit @uc)
+  ?:  (bech32-address text)
+    ~|("bech32 address is not @uc: {text}" !!)
+  (base58-address text)
+++  bare-uc-token  ~+
+  ::  a whole alphanumeric token that is a bitcoin address
+  %+  sear  bare-uc
+  ;~(sfix (plus aln) ;~(less ;~(pose dot hep) (easy ~)))
+++  uc-literal  ~+
+  ::  0c<address>, or a bare address
+  %+  stag  %uc
+  ;~  pose
+    ;~(pfix (jest '0c') (cook prefixed-uc (star aln)))
+    bare-uc-token
+  ==
 ++  insert-value-literal-leading-char
   |=  a=@
   ^-  ?
@@ -3747,7 +4186,8 @@
 ++  insert-value-default
   ;~  pose
     (cold %default (jester 'default'))
-    ;~  pose  non-numeric-parser
+    ;~  pose  uc-literal
+              non-numeric-parser
               %+  cook  |=  a=(list @t)
                             ~|  "error on numeric parser {<a>} "
                                 (scan a numeric-parser)
@@ -3803,11 +4243,15 @@
 ::  used for various commands
 ::
 ++  cook-column
+  ::  [name aura] or [name [aura size-letter]]; only integer auras are sized
   |=  a=*
-    ?.  ?=([@ @] [a])  ~|("cannot parse column  {<a>}" !!)
-    ?@  +.a
-      [%column -.a (crip (slag 1 (trip +.a))) 0]
-    ~|("cannot parse column  {<a>}" !!)
+  ?:  ?=([@ @] a)
+    [%column -.a (crip (slag 1 (trip +.a))) 0]
+  ?.  ?=([@ @ @] a)  ~|("cannot parse column  {<a>}" !!)
+  =/  base=@ta  (crip (slag 1 (trip +<.a)))
+  ?.  ?=(?(signed-systems:ast unsigned-systems:ast) base)
+    ~|("bit width applies only to integer auras, not @{(trip base)}" !!)
+  [%column -.a (cat 3 base +>.a) 0]
 ++  cook-ordered-column
   |=  a=*
     ?@  a
@@ -3872,7 +4316,12 @@
   ?:  =(normalized 'n')  `|
   ~
 ++  parse-loobean-literal  ~+
-  (sear sear-loobean mixed-case-symbol)
+  ::  %.y and %.n, or the legacy Y and N, either case
+  ;~  pose
+    (cold %.y (jest '%.y'))
+    (cold %.n (jest '%.n'))
+    (sear sear-loobean mixed-case-symbol)
+  ==
 ++  parse-alias  ~+  ;~(pfix whitespace alias)
 ++  parse-face  ~+  ;~(pfix whitespace sym)
 ++  face-list  ~+
@@ -3931,6 +4380,7 @@
     (jest '@ta')             ::  ASCII text (knot)
     (jest '@t')              ::  UTF-8 text (cord)
     (jest '@ub')             ::  unsigned binary
+    (jest '@uc')             ::  bitcoin address
     (jest '@ud')             ::  unsigned decimal
     (jest '@uv')             ::  unsigned base32
     (jest '@uw')             ::  unsigned base64
@@ -3980,10 +4430,6 @@
       ==
     ==
   ==
-++  aggregate-name
-  |=  name=@t
-  ^-  @t
-  (crip (cass (trip name)))
 ++  column-defintion-list
   =/  column-definition  ;~  plug
     sym
@@ -4113,6 +4559,8 @@
     (parse-scalar-param-default tub)
   ?:  (literal-leading-char i.q.rest)
     (parse-value-literal rest)
+  =/  loobean  (standalone-loobean rest)
+  ?^  q.loobean  loobean
   (parse-scalar-param-default tub)
 ++  parse-cord-param  ~+
   ::  accepts column ref or single-quoted cord literal only
@@ -4163,6 +4611,16 @@
       =('-' a)
       &((gte a '0') (lte a '9'))
   ==
+++  standalone-loobean
+  ::  Y or N, alone, as a loobean literal before a column of the name;
+  ::  Y.col names a column of the relation aliased Y
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  ((stag %f parse-loobean-literal) tub)
+  ?~  q.parsed  parsed
+  =/  tail=tape  q.q.u.q.parsed
+  ?:  ?&(?=(^ tail) =('.' i.tail))  (fail tub)
+  parsed
 ++  parse-datum-for-predicate-default
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
@@ -4178,49 +4636,9 @@
     (parse-datum-for-predicate-default tub)
   ?:  (predicate-literal-leading-char i.q.rest)
     (parse-value-literal rest)
+  =/  loobean  (standalone-loobean rest)
+  ?^  q.loobean  loobean
   (parse-datum-for-predicate-default tub)
-++  cook-aggregate
-  |=  parsed=*
-  [%aggregate -.parsed +.parsed]
-++  parse-aggregate
-  ;~  pose
-    %:  cook  cook-aggregate
-              ;~  pfix
-                whitespace
-                ;~  plug
-                  ;~(sfix parse-alias pal)
-                  ;~(sfix get-datum-for-predicate par)
-                ==
-              ==
-    ==
-    %:  cook  cook-aggregate
-              ;~  plug
-                ;~(sfix parse-alias pal)
-                ;~(sfix get-datum-for-predicate par)
-              ==
-    ==
-  ==
-++  cook-selected-aggregate
-  |=  parsed=*
-  [%selected-aggregate -.parsed +.parsed]
-++  parse-selected-aggregate
-  ;~  pose
-    %:  cook  cook-selected-aggregate
-              ;~  pfix
-                whitespace
-                ;~  plug
-                  ;~(sfix parse-alias pal)
-                  ;~(sfix get-scalar-param par)
-                ==
-              ==
-    ==
-    %:  cook  cook-selected-aggregate
-              ;~  plug
-                ;~(sfix parse-alias pal)
-                ;~(sfix get-scalar-param par)
-              ==
-    ==
-  ==
 ::
 ::  indices
 ::
@@ -4398,12 +4816,14 @@
     ;~(plug (jester 'where') whitespace)
     ;~(plug (jester 'scalars') whitespace)
     ;~(plug (jester 'group') whitespace)
+    ;~(plug (jester 'having') whitespace)
     ;~(plug (jester 'select') whitespace)
     ;~(plug (jester 'join') whitespace)
     ;~(plug (jester 'left') whitespace)
     ;~(plug (jester 'right') whitespace)
     ;~(plug (jester 'outer') whitespace)
     ;~(plug (jester 'cross') whitespace)
+    ;~(plug (jester 'full') whitespace)
     ;~(plug (jester 'on') whitespace)
     ;~(plug (jester 'as') whitespace)
   ==
@@ -4437,18 +4857,12 @@
   ;~  pfix  whitespace
     ;~  pose
       (cold %join (jester 'join'))
-      (cold %left-join ;~(plug (jester 'left') whitespace (jester 'join')))
-      (cold %right-join ;~(plug (jester 'right') whitespace (jester 'join')))
-      %:  cold  %outer-join-all
-                ;~  plug
-                  (jester 'outer')
-                  whitespace
-                  (jester 'join')
-                  whitespace
-                  (jester 'all')
-                ==
-      ==
-      (cold %outer-join ;~(plug (jester 'outer') whitespace (jester 'join')))
+      %+  cold  %left-join
+      ;~(plug (jester 'left') required-whitespace (jester 'join'))
+      %+  cold  %right-join
+      ;~(plug (jester 'right') required-whitespace (jester 'join'))
+      %+  cold  %outer-join
+      ;~(plug (jester 'outer') required-whitespace (jester 'join'))
     ==
   ==
 ++  build-query-object  ~+
@@ -4517,12 +4931,7 @@
     (cook build-query-object query-object)
   ==
 ++  parse-natural-join  ~+
-  ;~  plug
-    ;~  pfix  whitespace
-      (cold %join (jester 'join'))
-    ==
-    parse-query-object
-  ==
+  ;~(plug parse-join-type parse-query-object)
 ++  parse-join-obj  ~+
   ;~  plug
     parse-join-type
@@ -4616,7 +5025,9 @@
     ::  <column-name>
     sym
   ==
-++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
+++  parse-qualified-column  ~+
+  ::  a bare bitcoin address is a literal, not a column
+  ;~(less bare-uc-token (cook cook-qualified-column parse-column))
 ::
 ::  predicate
 ::
@@ -4675,20 +5086,11 @@
     $(new-list [i=`dime`-.a t=new-list], a +.a)
   ?:  ?=(value-literals:ast -.a)
     $(new-list [i=`value-literals:ast`-.a t=new-list], a +.a)
-  ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(qualified-column:ast ->+.a))
-    %=  $
-      new-list
-        :-  [%aggregate (aggregate-name ->-.a) `qualified-column:ast`->+.a]
-            new-list
-      a  +.a
-    ==
-  ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(unqualified-column:ast ->+.a))
-    %=  $
-      new-list
-        :-  [%aggregate (aggregate-name ->-.a) `unqualified-column:ast`->+.a]
-            new-list
-      a  +.a
-    ==
+  ?:  ?=([%'inline:aggregate' *] -.a)
+    ~|("aggregate functions are only allowed in SELECT and HAVING" !!)
+  ::  inline scalars are extracted before predicate-list wherever supported
+  ?:  ?=([%'inline:scalar' *] -.a)
+    ~|("scalar functions are not supported in this predicate" !!)
   ~|("problem with predicate noun:  {<a>}" !!)
 ++  predicate-stop  ~+
   ;~  pose
@@ -4697,17 +5099,39 @@
     ;~(plug whitespace (jester 'where') whitespace)
     ;~(plug whitespace (jester 'when') whitespace)
     ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'as') whitespace)
+    ::  AS must be a whole word, else ASIN(...) would end the predicate
+    ;~(plug whitespace (jester 'as') ;~(pose gah (just '\09') (just '\0d')))
     ;~(plug whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'left') whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'right') whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'outer') whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'then') whitespace)
     ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
+    ;~(plug whitespace (jester 'having') whitespace)
+  ==
+++  predicate-keyword  ~+
+  ::  keyword operators read as @uw literals by the numeric parser, so an
+  ::  inline scalar must not start with one: AND %x = y is not AND % x
+  ;~  plug
+    ;~  pose
+      (jester 'and')
+      (jester 'or')
+      (jester 'not')
+      (jester 'in')
+      (jester 'between')
+      (jester 'exists')
+      (jester 'any')
+      (jester 'all')
+      (jester 'equiv')
+    ==
+    ;~(pose gah (just '\09') (just '\0d') pal)
   ==
 ++  predicate-part  ~+
+  ::  inline scalars precede a lone aggregate, which an inline scalar may
+  ::  hold as an operand
   ;~  pose
-    parse-aggregate
+    ;~(pfix whitespace ;~(less predicate-keyword parse-inline-scalar))
+    ;~(pfix whitespace parse-inline-aggregate)
     value-literal-list
     ;~(pose ;~(pfix whitespace parse-operator) parse-operator)
     parse-datum-for-predicate
@@ -4716,8 +5140,8 @@
   (star ;~(less predicate-stop predicate-part))
 ::
 ++  produce-predicate
-  ::  when not qualified by () right conjunction takes precedence and "or"
-  ::  takes precedence over "and"
+  ::  when not qualified by () "and" binds tighter than "or", and equal
+  ::  conjunctions group left to right, so the rightmost is the root
   ::
   ::  1=1 and 1=3 (false)
   ::       /\
@@ -4815,8 +5239,6 @@
     unqualified-column:ast
       [-.parsed ~ ~]
     dime
-      [-.parsed ~ ~]
-    aggregate:ast
       [-.parsed ~ ~]
     value-literals:ast
       [-.parsed ~ ~]
@@ -5013,6 +5435,9 @@
   ?:  =(%getutcdate fn-name)
     ^-  getutcdate:ast
       [%getutcdate ~]
+  ?:  =(%version fn-name)
+    ^-  version:ast
+      [%version ~]
   ::  unary builtin functions
   ?:  =(%day fn-name)
     [%day (finalize-param raw-scalar-body aliases)]
@@ -5212,6 +5637,7 @@
   ;~  pose
     (cold %subtract-time (jester 'subtract-time'))
     (cold %getutcdate (jester %getutcdate))
+    (cold %version (jester %version))
     (cold %add-time (jester 'add-time'))
     (cold %degrees (jester %degrees))
     (cold %ceiling (jester %ceiling))
@@ -5264,12 +5690,15 @@
   |=  tub=nail
   ^-  (like *)
   =/  constant-follow
+    ::  end of input and ; allow a constant to end an inline expression
     ;~  pose
       gah
       (just '\09')
       (just '\0d')
       par
       com
+      mic
+      (cold ' ' (full (easy ~)))
     ==
   =/  parsed
     %+  cook
@@ -5324,6 +5753,7 @@
   ?+  fn-name
     (fail tub)
     %getutcdate  ((stag %no-params (parse-no-params ~)) tub)
+    %version     ((stag %no-params (parse-no-params ~)) tub)
     %e           ((stag %no-params (parse-no-params ~)) tub)
     %phi         ((stag %no-params (parse-no-params ~)) tub)
     %pi          ((stag %no-params (parse-no-params ~)) tub)
@@ -5408,6 +5838,9 @@
 ++  cook-scalar-node
   |=  parsed=*
   ^-  scalar-node-helper
+  ::  SELECT and HAVING extract their aggregates before cooking
+  ?:  ?=([%'inline:aggregate' *] parsed)
+    ~|("aggregate functions are only allowed in SELECT and HAVING" !!)
   ?:  ?=(scalar-param parsed)
     parsed
   ?:  ?=([%unqualified-column *] parsed)
@@ -5447,6 +5880,7 @@
     parse-coalesce
     parse-standalone-builtin-scalar-fn
     parse-builtin-scalar-fn
+    parse-inline-aggregate
     parse-builtin-scalar-constant
     parse-scalar-param
   ==
@@ -5724,6 +6158,8 @@
   |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast scalar-node:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast scalar-node:ast))
+    ?:  ?=([%'inline:aggregate' *] -.ops)
+      ~|("aggregate functions are only allowed in SELECT and HAVING" !!)
     ?:  ?=(scalar-param -.ops)
       [(finalize-scalar-param -.ops aliases) ~ ~]
     ?:  ?=(raw-scalar-fn -.ops)
@@ -5763,68 +6199,45 @@
         (tree-to-arithmetic r.op-tree)
   ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ::
-++  arithmetic-token-core
-  ;~  pose
-    (cold %end (jester 'end'))
-    (cold %pal pal)
-    (cold %par par)
-    (cold %lus lus)
-    (cold %hep hep)
-    (cold %tar tar)
-    (cold %fas fas)
-    (cold %cen cen)
-    (cold %ket ket)
-    ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
-    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    parse-coalesce
-    parse-builtin-scalar-fn
-    parse-builtin-scalar-constant
-    parse-scalar-param
-  ==
-++  arithmetic-token
-  ;~  pose
-    ;~(pfix whitespace arithmetic-token-core)
-    arithmetic-token-core
-  ==
-::
 ++  parse-arithmetic
+  ::  operands alternate with operators, so a signed literal operand such
+  ::  as --5 or -3 is not read as operators
   ;~  plug
     (easy %arithmetic)
-    ;~  sfix
-      %-  star
-        ;~(less scalar-stop arithmetic-token)
-      ;~(pfix whitespace (jester 'end'))
-    ==
+    ;~(sfix inline-arithmetic-tokens ;~(pfix whitespace (keyword 'end')))
   ==
 ::
 ++  arithmetic-continuation
   ;~  pose
-    ;~(pfix whitespace (jester 'end'))
+    ;~(pfix whitespace (keyword 'end'))
     ;~(pfix whitespace lus)
     ;~(pfix whitespace hep)
     ;~(pfix whitespace tar)
     ;~(pfix whitespace fas)
+    ;~(pfix whitespace cen)
     ;~(pfix whitespace ket)
-    (jester 'end')
+    (keyword 'end')
     lus
     hep
     tar
     fas
+    cen
     ket
   ==
 ::
-++  parse-standalone-builtin-scalar-fn
+++  standalone
+  ::  a scalar not followed by an arithmetic operator or END: when one
+  ::  follows, the scalar is an operand and arithmetic parses it
+  |*  sef=rule
   |=  tub=nail
   ^-  (like *)
-  =/  parsed  (parse-builtin-scalar-fn tub)
-  ?~  q.parsed
-    parsed
-  =/  rest  q.u.q.parsed
-  =/  continuation  (arithmetic-continuation rest)
-  ?.  ?=(^ q.continuation)
-    parsed
+  =/  parsed  (sef tub)
+  ?~  q.parsed  parsed
+  =/  continuation  (arithmetic-continuation q.u.q.parsed)
+  ?.  ?=(^ q.continuation)  parsed
   (fail tub)
+::
+++  parse-standalone-builtin-scalar-fn  (standalone parse-builtin-scalar-fn)
 ::
 ++  raw-arithmetic-has-operator
   |=  raw-body=*
@@ -5846,18 +6259,10 @@
     parsed
   (fail tub)
 ::
-++  case-scalar-stop
-  ;~  pose
-    ;~(plug whitespace (jester 'when') whitespace)
-    ;~(plug whitespace (jester 'else') whitespace)
-    ;~(plug whitespace (jester 'end') whitespace)
-  ==
 ++  parse-case-branch-arithmetic
-  ;~  plug
-    (easy %arithmetic)
-    %-  star
-      ;~(less case-scalar-stop arithmetic-token)
-  ==
+  ::  a WHEN, THEN, or ELSE value; the keyword after it is not an operator,
+  ::  so the operand-operator alternation ends there
+  ;~(plug (easy %arithmetic) inline-arithmetic-tokens)
 ++  parse-case-branch-scalar-node-arithmetic
   |=  tub=nail
   ^-  (like *)
@@ -5874,16 +6279,109 @@
     parse-scalar-node
   ==
 ::
-++  scalar-stop
-  ;~  pose
-    ;~(plug whitespace (jester 'where') whitespace)
-    ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'else') whitespace)
-    ;~(plug whitespace (jester 'endif') whitespace)
-    ;~(plug whitespace (jester 'end') whitespace)
-  ==
 ++  parse-scalar-body
+  ::  IF, CASE, COALESCE, or a function followed by an arithmetic operator
+  ::  is the leading operand of arithmetic
   ;~  pose
+    (standalone ;~(plug (cold %if (jester 'if')) parse-if))
+    %-  standalone
+    ;~  pfix
+      (jester 'case')
+      ;~  pose
+        (stag %simple-case parse-simple-case)
+        (stag %searched-case parse-searched-case)
+      ==
+    ==
+    (standalone parse-coalesce)
+    parse-standalone-builtin-scalar-fn
+    parse-scalar-node-arithmetic
+    parse-builtin-scalar-constant
+    parse-arithmetic
+    parse-builtin-scalar-fn
+  ==
+++  scalar-body  ;~(pfix whitespace parse-scalar-body)
+::
+::  inline scalars: scalar functions invoked in place, outside SCALARS
+::
+++  inline-arithmetic-op
+  ;~  pose
+    (cold %lus lus)
+    (cold %hep hep)
+    (cold %tar tar)
+    (cold %fas fas)
+    (cold %cen cen)
+    (cold %ket ket)
+  ==
+::
+++  inline-arithmetic-operand
+  ::  one operand as raw arithmetic tokens; a parenthesized operand nests
+  ::  a whole expression between %pal and %par
+  ::
+  ::  a gate so the recursive rule is built only when applied
+  |=  tub=nail
+  ^-  (like (list *))
+  %.  tub
+  ;~  pfix
+    whitespace
+    ;~  pose
+      %+  cook  |=(a=(list *) `(list *)`[%pal (snoc a %par)])
+      ;~  pfix  pal
+                ;~(sfix inline-arithmetic-tokens ;~(plug whitespace par))
+                ==
+      %+  cook  |=(a=* `(list *)`~[a])
+      ;~  pose
+        ;~(plug (cold %if (jester 'if')) parse-if)
+        ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+        ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
+        parse-coalesce
+        parse-builtin-scalar-fn
+        parse-inline-aggregate
+        parse-builtin-scalar-constant
+        parse-scalar-param
+      ==
+    ==
+  ==
+::
+++  inline-arithmetic-tokens
+  ::  operand followed by any number of operator-operand pairs, flattened
+  %+  cook
+    |=  [first=(list *) rest=(list [@ (list *)])]
+    ^-  (list *)
+    =/  pairs=(list (list *))
+      (turn rest |=([op=@ b=(list *)] `(list *)`[op b]))
+    =/  tail=(list *)  (zing pairs)
+    (weld first tail)
+  ;~  plug
+    inline-arithmetic-operand
+    %-  star
+    ;~(plug ;~(pfix whitespace inline-arithmetic-op) inline-arithmetic-operand)
+  ==
+::
+++  parse-inline-arithmetic
+  ::  arithmetic without the END terminator; requires an operator
+  ::
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (inline-arithmetic-tokens tub)
+  ?~  q.parsed  parsed
+  ?.  (raw-arithmetic-has-operator p.u.q.parsed)  (fail tub)
+  [p.parsed `[[%arithmetic p.u.q.parsed] q.u.q.parsed]]
+::
+++  parse-inline-scalar
+  ::  produces [%'inline:scalar' raw-scalar-fn]; the colon keeps the tag out
+  ::  of the identifier space, so a raw-noun walk cannot mistake a column
+  ::
+  ::  arithmetic is tried first so a function or IF/CASE/COALESCE leading an
+  ::  arithmetic expression is not taken alone; bare constants (PI) are only
+  ::  operands, so a column named e or pi still parses as a column
+  ::
+  ::  a gate so the recursion through predicates is built only when applied
+  |=  tub=nail
+  ^-  (like *)
+  %.  tub
+  %+  stag  %'inline:scalar'
+  ;~  pose
+    parse-inline-arithmetic
     ;~(plug (cold %if (jester 'if')) parse-if)
     ;~  pfix
       (jester 'case')
@@ -5893,13 +6391,9 @@
       ==
     ==
     parse-coalesce
-    parse-standalone-builtin-scalar-fn
-    parse-scalar-node-arithmetic
-    parse-builtin-scalar-constant
-    parse-arithmetic
     parse-builtin-scalar-fn
   ==
-++  scalar-body  ;~(pfix whitespace parse-scalar-body)
+::
 ++  parse-scalar
   ;~  plug
       ;~(pfix whitespace sym)   :: scalar name
@@ -5907,12 +6401,13 @@
   ==
 ++  query-scalar-stop
   ;~  pose
-    ;~(plug whitespace (jester 'delete') whitespace)
-    ;~(plug whitespace (jester 'update') whitespace)
-    ;~(plug whitespace (jester 'where') whitespace)
-    ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
-    ;~(plug whitespace (jester 'select') whitespace)
-    ;~(plug whitespace (jester 'order') whitespace (jester 'by') whitespace)
+    ;~(plug whitespace (keyword 'delete') whitespace)
+    ;~(plug whitespace (keyword 'update') whitespace)
+    ;~(plug whitespace (keyword 'where') whitespace)
+    ;~(plug whitespace (keyword 'group') whitespace (keyword 'by') whitespace)
+    ;~(plug whitespace (keyword 'having') whitespace)
+    ;~(plug whitespace (keyword 'select') whitespace)
+    ;~(plug whitespace (keyword 'order') whitespace (keyword 'by') whitespace)
   ==
 ++  parse-scalars
   ;~  plug
@@ -5931,11 +6426,17 @@
       ;~(pfix whitespace alias)
     ==
     ;~  plug
-      ;~(sfix parse-selected-aggregate whitespace)
+      ;~(sfix parse-inline-scalar whitespace)
       (cold %as (jester 'as'))
       ;~(pfix whitespace alias)
     ==
-    parse-selected-aggregate
+    parse-inline-scalar
+    ;~  plug
+      ;~(sfix parse-inline-aggregate whitespace)
+      (cold %as (jester 'as'))
+      ;~(pfix whitespace alias)
+    ==
+    parse-inline-aggregate
     (stag %all-columns ;~(sfix parse-alias ;~(plug dot tar)))
     (stag %all-columns ;~(sfix parse-qualified-table ;~(plug dot tar)))
     ;~  plug
@@ -5983,6 +6484,59 @@
     %+  more  com
               (ifix [whitespace whitespace] ;~(pose parse-qualified-column dem))
   ==
+++  parse-having
+  ;~  pfix
+    whitespace
+    ;~(plug (cold %having (jester 'having')) parse-predicate)
+  ==
+::
+::  aggregates
+::
+++  aggregate-function-name
+  ;~  pose
+    (cold %avg (jester 'avg'))
+    (cold %bool-and (jester 'bool-and'))
+    (cold %bool-or (jester 'bool-or'))
+    (cold %count (jester 'count'))
+    (cold %max (jester 'max'))
+    (cold %min (jester 'min'))
+    (cold %stdevp (jester 'stdevp'))
+    (cold %stdev (jester 'stdev'))
+    (cold %sum (jester 'sum'))
+    (cold %varp (jester 'varp'))
+    (cold %var (jester 'var'))
+  ==
+++  parse-inline-aggregate
+  ::  produces [%'inline:aggregate' function distinct argument]; argument
+  ::  is %star for COUNT(*).  Two-argument MIN and MAX are scalar functions,
+  ::  parsed before this.
+  ::
+  ::  a gate so the recursion through scalar nodes is built only when applied
+  |=  tub=nail
+  ^-  (like *)
+  %.  tub
+  %+  stag  %'inline:aggregate'
+  ;~  plug
+    aggregate-function-name
+    ;~  pfix
+      ;~(plug whitespace pal whitespace)
+      ;~  sfix
+        ;~  pose
+          ;~(plug (easy %.n) (cold %star tar))
+          ;~  plug
+            ;~  pose
+              (cold %.y ;~(plug (jester 'distinct') required-whitespace))
+              (cold %.n ;~(plug (jester 'all') required-whitespace))
+              (easy %.n)
+            ==
+            parse-case-branch-scalar-node
+          ==
+        ==
+        ;~(plug whitespace par)
+      ==
+    ==
+  ==
+::
 ++  cook-ordering-column
   |=  parsed=*
   ?:  ?=(qualified-column:ast parsed)
@@ -6026,6 +6580,7 @@
     %alter-index
     %alter-namespace
     %alter-table
+    %alter-view
     %create-database
     %create-index
     %create-namespace
@@ -6063,28 +6618,6 @@
     cmpnt=(unit raw-pred-cmpnt)
     cmpnt-displ=@
     the-list=(list raw-pred-cmpnt)
-  ==
-+$  select-mold-1
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-table (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
-    %as
-    @
-  ==
-+$  select-mold-2
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-table (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
   ==
 +$  raw-scalar-fn
   $%  [%if *]

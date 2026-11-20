@@ -1,5 +1,28 @@
 # Releases
 
+## v1.0.0
+
+* user-defined views: in most cased views become cached for faster results
+* LEFT JOIN, RIGHT JOIN, OUTER JOIN
+* GROUP BY and HAVING
+* aggregate functions AVG, BOOL-AND, BOOL-OR, COUNT, MAX, MIN, STDEV, STDEVP, SUM, VAR, VARP
+* ORDER BY
+* SELECT TOP n
+* INSERT and UPSERT from a query
+* DIVIDED BY and DIVIDED BY WITH REMAINDER set operations
+* EXISTS, NOT EXISTS, EQUIV, NOT EQUIV predicates
+* inline scalars directly without SCALARS clause entry
+* VERSION() returns %obelisk version
+* @rh, @rs, @rq arithmetic, numeric functions, and predicates compare
+* @ub, @ux, @uv, @uw, @sb, @sx, @sv, @sw arithmetic and numeric functions, as @ud and @sd
+* predicates compare @sb, @sx, @sv, @sw as signed
+* sized integer column types, e.g. @udD, @sdD, @uxF; values and results must fit the bit width
+* mixed numeric arithmetic, functions, and comparison: operands convert to their common type, float > signed > unsigned, widest float and bit width
+* comparisons, IN, simple CASE, and JOIN ON across numeric types compare exact values
+* negative exponents: x ^ -y is 1 / x ^ y; an integer base with a negative literal or non-literal signed exponent gives @rd
+* loobean literals %.y and %.n; the legacy Y and N are still accepted
+* @uc bitcoin address column type; literals 0c<address> or the bare address, verified by checksum; displayed bare
+
 ## v0.9.4-beta
 * standardize UI on urui v2.0
 
@@ -35,7 +58,7 @@
 * ALTER NAMESPACE
 * ALTER TABLE
 * DROP NAMESPACE
-* Foreign Key Referential Integrity
+* Foreign Key Relational Integrity
 * sys.foreign-keys view
 * full @ta and @tas aura support
 * action %tape executes silently, %tape-print prints to dojo

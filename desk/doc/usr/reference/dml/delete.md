@@ -27,7 +27,7 @@ WHERE col1 = 'tomorrow';
 The target of the `DELETE` operation.
 
 **`<predicate>`**
-Any valid `<predicate>`, including predicates on CTEs and/or scalar names determining rows to delete.
+Any valid `<predicate>`, including predicates on CTEs, scalar names, and inline scalar functions (e.g. `WHERE LEN(col1) > 10`) determining rows to delete. See [inline scalar functions](../scalars.md#inline-scalar-functions).
 
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the DELETE operation. The resulting content timestamp will be `NOW` (current server time) and all other rows of the newly current table content will be from the `<as-of>` state.

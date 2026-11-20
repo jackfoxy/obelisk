@@ -144,10 +144,6 @@
       ~
       ~
 ++  value-literals   [[%value-literals %ud '3;2;1'] ~ ~]
-++  aggregate-count-foobar
-  :+  %aggregate
-      function='count'
-      [%unqualified-column name='foobar' alias=~]
 ++  literal-10           [[%ud 10] ~ ~]
 ::
 ::  re-used simple predicates
@@ -1342,71 +1338,25 @@
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
 ::
-::  aggregate inequality
-++  test-predicate-33
-  =/  select  "from foo where  count( foobar )  > 10 select * "
-  =/  pred=(tree predicate-component:ast)
-        [%gt [aggregate-count-foobar ~ ~] literal-10]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+::  aggregates are not allowed in WHERE
+++  test-fail-predicate-33
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where  count( foobar )  > 10 select * "
 ::
-::  aggregate inequality, no whitespace
-++  test-predicate-34
-  =/  select  "from foo where count(foobar) > 10 select *"
-  =/  pred=(tree predicate-component:ast)
-        [%gt [aggregate-count-foobar ~ ~] literal-10]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+++  test-fail-predicate-34
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where count(foobar) > 10 select *"
 ::
-::  aggregate equality
-++  test-predicate-35
-  =/  select  "from foo where bar = count(foobar) select *"
-  =/  pred=(tree predicate-component:ast)
-        [%eq bar [aggregate-count-foobar ~ ~]]
-  =/  expected
-        :+  %crud-txn
-            ctes=~
-            :-  %query
-                :*  %query
-                    from-foo
-                    scalars=~
-                    pred
-                    group-by=~
-                    having=~
-                    select-all-columns
-                    order-by=~
-                    ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') select)
+::  an aggregate in an inline scalar of WHERE
+++  test-fail-predicate-35
+  %+  expect-fail-message
+    'aggregate functions are only allowed in SELECT and HAVING'
+  |.  %-  parse:parse(default-database 'db1')
+          "from foo where bar = ABS(SUM(foobar)) select *"
 ::
 ::  complext predicate, bug test
 ++  test-predicate-36
@@ -2558,4 +2508,202 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
+::
+::  @da predicate literals, leading zeros and no leading zeros
+::
+++  date-1        [[%da ~2024.1.5] ~ ~]
+++  date-2        [[%da ~2024.2.6] ~ ~]
+++  date-time-1   [[%da ~2024.1.5..7.5.9] ~ ~]
+++  from-foo-where
+  |=  pred=(tree predicate-component:ast)
+  :+  %crud-txn
+      ctes=~
+      :-  %query
+          :*  %query
+              from-foo
+              scalars=~
+              pred
+              group-by=~
+              having=~
+              select-all-columns
+              order-by=~
+              ==
+::
+::  the legacy Y and N alone are loobean literals, before a column of the
+::  name
+++  test-predicate-loobean-00
+  =/  expected
+    %-  from-foo-where
+    :+  %or
+      [%eq foo [[%f %.y] ~ ~]]
+    [%neq [[%f %.n] ~ ~] foo]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = Y OR n <> foo SELECT *"
+::
+::  %.y and %.n are loobean literals
+++  test-predicate-loobean-02
+  =/  expected
+    %-  from-foo-where
+    :+  %or
+      [%eq foo [[%f %.y] ~ ~]]
+    [%neq [[%f %.n] ~ ~] foo]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = %.y OR %.n <> foo SELECT *"
+::
+::  Y.foo is the column foo of the relation aliased Y
+++  test-predicate-loobean-01
+  =/  qt=qualified-table:ast
+    [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' `'Y']
+  =/  pred=(tree predicate-component:ast)
+    [%eq [[%qualified-column qt 'foo' ~] ~ ~] [[%f %.y] ~ ~]]
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %query
+            :*  %query
+                [~ [%from relation-id=qt as-of=~ joins=~]]
+                scalars=~
+                pred
+                group-by=~
+                having=~
+                select-all-columns
+                order-by=~
+                ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo Y WHERE Y.foo = Y SELECT *"
+::
+::
+::  <column> = <date>
+++  test-predicate-da-00
+  =/  expected  (from-foo-where [%eq foo date-1])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo = ~2024.01.05 SELECT *; ".
+            "FROM foo WHERE foo = ~2024.1.5 SELECT *"
+::
+::  <date-time> < <column>
+++  test-predicate-da-01
+  =/  expected  (from-foo-where [%lt date-time-1 foo])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE ~2024.01.05..07.05.09 < foo SELECT *; ".
+            "FROM foo WHERE ~2024.1.5..7.5.9 < foo SELECT *"
+::
+::  <column> > <date-time>
+++  test-predicate-da-02
+  =/  expected  (from-foo-where [%gt foo date-time-1])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo > ~2024.01.05..07.05.09 SELECT *; ".
+            "FROM foo WHERE foo > ~2024.1.5..7.5.9 SELECT *"
+::
+::  <column> BETWEEN <date> AND <date>
+++  test-predicate-da-03
+  =/  expected
+    (from-foo-where [%between [%gte foo date-1] [%lte foo date-2]])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo BETWEEN ~2024.01.05 AND ~2024.02.06 ".
+            "SELECT *; ".
+            "FROM foo WHERE foo BETWEEN ~2024.1.5 AND ~2024.2.6 SELECT *"
+::
+::  <column> IN (<date>, <date>)
+++  test-predicate-da-04
+  =/  literals
+    %-  crip
+    (weld (weld (a-co:co ~2024.2.6) ";") (a-co:co ~2024.1.5))
+  =/  expected
+    (from-foo-where [%in foo [[%value-literals %da literals] ~ ~]])
+  %+  expect-eq
+    !>  ~[expected expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo WHERE foo IN (~2024.01.05, ~2024.02.06) SELECT *; ".
+            "FROM foo WHERE foo IN (~2024.1.5, ~2024.2.6) SELECT *"
+::
+::  fail on invalid month and day forms
+++  test-fail-predicate-da-00
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.00.5 SELECT *"
+::
+++  test-fail-predicate-da-01
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.1.00 SELECT *"
+::
+++  test-fail-predicate-da-02
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.13.5 SELECT *"
+::
+++  test-fail-predicate-da-03
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'db1')
+          "FROM foo WHERE foo = ~2024.012.5 SELECT *"
+::
+::  EXISTS <cte-column>
+++  cte-c1-col1
+  :*  %query
+      [~ [%from relation-id=[%qualified-table ~ 'db1' 'dbo' 'bar' ~] ~ ~]]
+      scalars=~
+      predicate=~
+      group-by=~
+      having=~
+      [%select top=~ columns=~[[%unqualified-column name='col1' alias=~]]]
+      order-by=~
+      ==
+++  test-predicate-73
+  =/  pred=(tree predicate-component:ast)
+    [%exists [[%cte-column 'c1' 'col1'] ~ ~] ~]
+  =/  query
+    :*  %query
+        from-foo
+        scalars=~
+        pred
+        group-by=~
+        having=~
+        select-all-columns
+        order-by=~
+        ==
+  %+  expect-eq
+    !>  :~  :+  %crud-txn
+                ctes=~[[%cte name='c1' body=[%query cte-c1-col1]]]
+                body=[%query query]
+            ==
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM bar SELECT col1) AS c1 ".
+            "FROM foo WHERE EXISTS c1.col1 SELECT *"
+::
+::  NOT EXISTS <cte-column>
+++  test-predicate-74
+  =/  pred=(tree predicate-component:ast)
+    [%not-exists [[%cte-column 'c1' 'col1'] ~ ~] ~]
+  =/  query
+    :*  %query
+        from-foo
+        scalars=~
+        pred
+        group-by=~
+        having=~
+        select-all-columns
+        order-by=~
+        ==
+  %+  expect-eq
+    !>  :~  :+  %crud-txn
+                ctes=~[[%cte name='c1' body=[%query cte-c1-col1]]]
+                body=[%query query]
+            ==
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM bar SELECT col1) AS c1 ".
+            "FROM foo WHERE NOT EXISTS c1.col1 SELECT *"
 --

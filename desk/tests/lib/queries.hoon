@@ -11272,4 +11272,3386 @@
               [%vector-count 2]
               ==
       ==
+::
+::  outer joins
+::
+::  oj-left and oj-right share primary key id; oj-wide is larger than
+::  oj-left; oj-many matches oj-left on non-key id; oj-part matches on the
+::  leading column of its primary key; oj-ref matches through left-id with
+::  ON; oj-cross shares no column; oj-empty has no rows.
+++  outer-join-setup
+  %-  zing
+  :~  "CREATE DATABASE db1;"
+      "CREATE TABLE oj-left (id @ud, l-val @t) PRIMARY KEY (id);"
+      "CREATE TABLE oj-right (id @ud, r-val @t) PRIMARY KEY (id);"
+      "CREATE TABLE oj-wide (id @ud, w-val @t) PRIMARY KEY (id);"
+      "CREATE TABLE oj-many (m-id @ud, id @ud, m-val @t) PRIMARY KEY (m-id);"
+      "CREATE TABLE oj-part (id @ud, seq @ud, p-val @t) PRIMARY KEY (id, seq);"
+      "CREATE TABLE oj-ref (ref-id @ud, left-id @ud, ref-val @t) "
+      "PRIMARY KEY (ref-id);"
+      "CREATE TABLE oj-cross (c-val @t) PRIMARY KEY (c-val);"
+      "CREATE TABLE oj-empty (id @ud, e-val @t) PRIMARY KEY (id);"
+      "INSERT INTO oj-left VALUES (1, 'L1') (2, 'L2') (3, 'L3') (4, 'L4');"
+      "INSERT INTO oj-right VALUES (3, 'R3') (4, 'R4') (5, 'R5') (6, 'R6');"
+      "INSERT INTO oj-wide VALUES (3, 'W3') (5, 'W5') (7, 'W7') (8, 'W8') "
+      "(9, 'W9') (10, 'W10');"
+      "INSERT INTO oj-many VALUES (10, 3, 'M3a') (11, 3, 'M3b') "
+      "(12, 5, 'M5') (13, 7, 'M7');"
+      "INSERT INTO oj-part VALUES (2, 1, 'P2a') (2, 2, 'P2b') (4, 1, 'P4') "
+      "(9, 1, 'P9');"
+      "INSERT INTO oj-ref VALUES (100, 1, 'X1a') (101, 1, 'X1b') "
+      "(102, 4, 'X4') (103, 8, 'X8');"
+      "INSERT INTO oj-cross VALUES ('C1') ('C2');"
+      ==
+::
+::  natural LEFT JOIN on the primary key
+++  test-outer-join-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, L.l-val, R.id AS r-id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%r-id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%r-id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural RIGHT JOIN on the primary key
+++  test-outer-join-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-right R ".
+          "SELECT L.id, L.l-val, R.id AS r-id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%r-id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%r-id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      :-  %vector
+                          :~  [%r-id [~.ud 5]]
+                              [%r-val [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%r-id [~.ud 6]]
+                              [%r-val [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural OUTER JOIN on the primary key
+++  test-outer-join-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-right R ".
+          "SELECT L.id, L.l-val, R.id AS r-id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%r-id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%r-id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      :-  %vector
+                          :~  [%r-id [~.ud 5]]
+                              [%r-val [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%r-id [~.ud 6]]
+                              [%r-val [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  natural LEFT JOIN on the primary key, right relation larger
+++  test-outer-join-03
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-wide W ".
+          "SELECT L.id, L.l-val, W.id AS w-id, W.w-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%w-id [~.ud 3]]
+                              [%w-val [~.t 'W3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-wide']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural RIGHT JOIN on the primary key, right relation larger
+++  test-outer-join-04
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-wide W ".
+          "SELECT L.id, L.l-val, W.id AS w-id, W.w-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%w-id [~.ud 3]]
+                              [%w-val [~.t 'W3']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 5]]
+                              [%w-val [~.t 'W5']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 7]]
+                              [%w-val [~.t 'W7']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 8]]
+                              [%w-val [~.t 'W8']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 9]]
+                              [%w-val [~.t 'W9']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 10]]
+                              [%w-val [~.t 'W10']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-wide']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  natural OUTER JOIN on the primary key, left relation larger
+++  test-outer-join-05
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-wide W ".
+          "OUTER JOIN oj-left L ".
+          "SELECT W.id AS w-id, W.w-val, L.id, L.l-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%w-id [~.ud 3]]
+                              [%w-val [~.t 'W3']]
+                              [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 5]]
+                              [%w-val [~.t 'W5']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 7]]
+                              [%w-val [~.t 'W7']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 8]]
+                              [%w-val [~.t 'W8']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 9]]
+                              [%w-val [~.t 'W9']]
+                              ==
+                      :-  %vector
+                          :~  [%w-id [~.ud 10]]
+                              [%w-val [~.t 'W10']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-wide']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 9]
+              ==
+      ==
+::
+::  natural LEFT JOIN on a non-key column, one-to-many
+++  test-outer-join-06
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-many M ".
+          "SELECT L.id, L.l-val, M.m-id, M.m-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 10]]
+                              [%m-val [~.t 'M3a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 11]]
+                              [%m-val [~.t 'M3b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-many']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  natural RIGHT JOIN on a non-key column, one-to-many
+++  test-outer-join-07
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-many M ".
+          "SELECT L.id, L.l-val, M.m-id, M.m-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 10]]
+                              [%m-val [~.t 'M3a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 11]]
+                              [%m-val [~.t 'M3b']]
+                              ==
+                      :-  %vector
+                          :~  [%m-id [~.ud 12]]
+                              [%m-val [~.t 'M5']]
+                              ==
+                      :-  %vector
+                          :~  [%m-id [~.ud 13]]
+                              [%m-val [~.t 'M7']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-many']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural OUTER JOIN on a non-key column, one-to-many
+++  test-outer-join-08
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-many M ".
+          "SELECT L.id, L.l-val, M.m-id, M.m-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 10]]
+                              [%m-val [~.t 'M3a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%m-id [~.ud 11]]
+                              [%m-val [~.t 'M3b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      :-  %vector
+                          :~  [%m-id [~.ud 12]]
+                              [%m-val [~.t 'M5']]
+                              ==
+                      :-  %vector
+                          :~  [%m-id [~.ud 13]]
+                              [%m-val [~.t 'M7']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-many']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 7]
+              ==
+      ==
+::
+::  natural LEFT JOIN on a partial primary key
+++  test-outer-join-09
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-part P ".
+          "SELECT L.id, L.l-val, P.id AS p-id, P.seq, P.p-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P2a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 2]]
+                              [%p-val [~.t 'P2b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%p-id [~.ud 4]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-part']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  natural RIGHT JOIN on a partial primary key
+++  test-outer-join-10
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-part P ".
+          "SELECT L.id, L.l-val, P.id AS p-id, P.seq, P.p-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P2a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 2]]
+                              [%p-val [~.t 'P2b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%p-id [~.ud 4]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P4']]
+                              ==
+                      :-  %vector
+                          :~  [%p-id [~.ud 9]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P9']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-part']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural OUTER JOIN on a partial primary key
+++  test-outer-join-11
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-part P ".
+          "SELECT L.id, L.l-val, P.id AS p-id, P.seq, P.p-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P2a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              [%p-id [~.ud 2]]
+                              [%seq [~.ud 2]]
+                              [%p-val [~.t 'P2b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%p-id [~.ud 4]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P4']]
+                              ==
+                      :-  %vector
+                          :~  [%p-id [~.ud 9]]
+                              [%seq [~.ud 1]]
+                              [%p-val [~.t 'P9']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-part']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  LEFT JOIN ON
+++  test-outer-join-12
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SELECT L.id, L.l-val, X.ref-id, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 100]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 101]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%ref-id [~.ud 102]]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  RIGHT JOIN ON
+++  test-outer-join-13
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SELECT L.id, L.l-val, X.ref-id, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 100]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 101]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%ref-id [~.ud 102]]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-id [~.ud 103]]
+                              [%ref-val [~.t 'X8']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  OUTER JOIN ON
+++  test-outer-join-14
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SELECT L.id, L.l-val, X.ref-id, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 100]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 101]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%ref-id [~.ud 102]]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-id [~.ud 103]]
+                              [%ref-val [~.t 'X8']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  RIGHT JOIN ON, ON operands reversed
+++  test-outer-join-15
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-ref X ".
+          "RIGHT JOIN oj-left L ".
+          "  ON X.left-id = L.id ".
+          "SELECT L.id, L.l-val, X.ref-id, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 100]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              [%ref-id [~.ud 101]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%ref-id [~.ud 102]]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  SELECT * omits the columns of an unmatched relation
+++  test-outer-join-16
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  SELECT <alias>.* of an unmatched relation is omitted
+++  test-outer-join-17
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, R.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  a row with no selected value is omitted
+++  test-outer-join-18
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  LEFT JOIN then LEFT JOIN ON
+++  test-outer-join-19
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SELECT L.id, R.r-val, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  a missing column does not match a later JOIN
+++  test-outer-join-20
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "JOIN oj-ref X ".
+          "  ON R.id = X.left-id ".
+          "SELECT L.id, R.r-val, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  JOIN then RIGHT JOIN ON
+++  test-outer-join-21
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "JOIN oj-right R ".
+          "RIGHT JOIN oj-ref X ".
+          "  ON R.id = X.left-id ".
+          "SELECT L.id, R.r-val, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-val [~.t 'X8']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  OUTER JOIN then OUTER JOIN ON
+++  test-outer-join-22
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-right R ".
+          "OUTER JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SELECT L.id, R.r-val, X.ref-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-val [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-val [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%ref-val [~.t 'X4']]
+                              ==
+                      :-  %vector
+                          :~  [%r-val [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%r-val [~.t 'R6']]
+                              ==
+                      :-  %vector
+                          :~  [%ref-val [~.t 'X8']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 8]
+              ==
+      ==
+::
+::  joins after a CROSS JOIN are performed in the order written
+++  test-outer-join-23
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-cross C ".
+          "CROSS JOIN oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "  ON L.id = R.id ".
+          "SELECT C.c-val, L.id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%c-val [~.t 'C1']]
+                              [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C1']]
+                              [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C1']]
+                              [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C1']]
+                              [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C2']]
+                              [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C2']]
+                              [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C2']]
+                              [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%c-val [~.t 'C2']]
+                              [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-cross']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 8]
+              ==
+      ==
+::
+::  CROSS JOIN after a LEFT JOIN
+++  test-outer-join-24
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "CROSS JOIN oj-cross C ".
+          "SELECT L.id, R.r-val, C.c-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%c-val [~.t 'C1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%c-val [~.t 'C2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%c-val [~.t 'C1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%c-val [~.t 'C2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              [%c-val [~.t 'C1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              [%c-val [~.t 'C2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%c-val [~.t 'C1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              [%c-val [~.t 'C2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-cross']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 8]
+              ==
+      ==
+::
+::  comparison with a missing column is false
+++  test-outer-join-25
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.r-val = 'R3' ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  <> with a missing column is false
+++  test-outer-join-26
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.r-val <> 'R3' ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  NOT negates a comparison with a missing column
+++  test-outer-join-27
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE NOT R.r-val = 'R3' ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  EXISTS <column>
+++  test-outer-join-28
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE EXISTS R.r-val ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  NOT EXISTS <column>
+++  test-outer-join-29
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE NOT EXISTS R.r-val ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  NOT inequality with a missing column
+++  test-outer-join-30
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE NOT R.id > 3 ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  BETWEEN with a missing column is false
+++  test-outer-join-31
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.id BETWEEN 3 AND 4 ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  NOT BETWEEN with a missing column is false
+++  test-outer-join-32
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.id NOT BETWEEN 4 AND 6 ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  IN with a missing column is false
+++  test-outer-join-33
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.r-val IN ('R3', 'R4') ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  NOT IN with a missing column is false
+++  test-outer-join-34
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.r-val NOT IN ('R3') ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  NOT EXISTS OR a comparison
+++  test-outer-join-35
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE NOT EXISTS R.id OR R.r-val = 'R4' ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  column comparison with a missing column is false
+++  test-outer-join-36
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE L.id = R.id ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  EQUIV with a literal
+++  test-outer-join-37
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.id EQUIV 3 ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  NOT EQUIV with a literal
+++  test-outer-join-38
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.id NOT EQUIV 3 ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  EQUIV of two columns, true when neither exists
+++  test-outer-join-39
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "WHERE R.id EQUIV X.left-id ".
+          "SELECT L.id, X.ref-id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%ref-id [~.ud 102]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  NOT EQUIV of two columns
+++  test-outer-join-40
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "WHERE R.id NOT EQUIV X.left-id ".
+          "SELECT L.id, X.ref-id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-id [~.ud 100]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%ref-id [~.ud 101]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  COALESCE returns its first existing argument
+++  test-outer-join-41
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE with a literal
+++  test-outer-join-42
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, 'none') ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE with no existing argument does not exist
+++  test-outer-join-43
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SCALARS v COALESCE(R.r-val, X.ref-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  a scalar function of a missing column does not exist
+++  test-outer-join-44
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v CONCAT(R.r-val, '!') ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3!']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4!']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  comparison with a scalar that does not exist is false
+++  test-outer-join-45
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v CONCAT(R.r-val, '!') ".
+          "WHERE NOT v = 'R3!' ".
+          "SELECT L.id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  arithmetic on a missing column does not exist
+++  test-outer-join-46
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS r-plus R.id + 10 END ".
+          "SELECT L.id, r-plus"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-plus [~.ud 13]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-plus [~.ud 14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  NOT EXISTS <cte-column> of an empty CTE
+++  test-outer-join-47
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-right WHERE id = 99 SELECT id) AS none ".
+          "FROM oj-left ".
+          "WHERE NOT EXISTS none.id ".
+          "SELECT id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  EXISTS <cte-column> of an empty CTE
+++  test-outer-join-48
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-right WHERE id = 99 SELECT id) AS none ".
+          "FROM oj-left ".
+          "WHERE EXISTS none.id ".
+          "SELECT id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  EXISTS <cte-column> of a CTE returning rows
+++  test-outer-join-49
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-right SELECT id) AS some ".
+          "FROM oj-left ".
+          "WHERE EXISTS some.id ".
+          "SELECT id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  CTE of a LEFT JOIN returns every row type
+++  test-outer-join-50
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM lr ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  NOT EXISTS on a CTE of a LEFT JOIN
+++  test-outer-join-51
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM lr ".
+          "WHERE NOT EXISTS r-val ".
+          "SELECT id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  comparison on a CTE of a LEFT JOIN
+++  test-outer-join-52
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM lr ".
+          "WHERE r-val = 'R4' ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  JOIN ON a CTE of a LEFT JOIN, missing column does not match
+++  test-outer-join-53
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM oj-right R2 ".
+          "JOIN lr C ".
+          "  ON R2.r-val = C.r-val ".
+          "SELECT R2.id, C.id AS lr-id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%lr-id [~.ud 3]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%lr-id [~.ud 4]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  set operation on a LEFT JOIN
+++  test-outer-join-54
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, R.r-val ".
+          "EXCEPT ".
+          "FROM oj-left ".
+          "SELECT id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  UNION of a RIGHT JOIN and a LEFT JOIN
+++  test-outer-join-55
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-right R ".
+          "SELECT L.id, R.r-val ".
+          "UNION ".
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%r-val [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%r-val [~.t 'R4']]
+                              ==
+                      :-  %vector
+                          :~  [%r-val [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%r-val [~.t 'R6']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  LEFT JOIN ON two equalities matching no row
+++  test-outer-join-56
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "  ON L.id = R.id ".
+          "  AND L.l-val = R.r-val ".
+          "SELECT L.id, L.l-val, R.id AS r-id, R.r-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  LEFT JOIN of an empty relation
+++  test-outer-join-57
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-empty E ".
+          "SELECT L.id, L.l-val, E.e-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-empty']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  RIGHT JOIN of an empty relation
+++  test-outer-join-58
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-empty E ".
+          "SELECT L.id, L.l-val, E.e-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-empty']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  OUTER JOIN of an empty relation
+++  test-outer-join-59
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-empty E ".
+          "SELECT L.id, L.l-val, E.e-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-empty']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  LEFT JOIN from an empty relation
+++  test-outer-join-60
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-empty E ".
+          "LEFT JOIN oj-left L ".
+          "SELECT L.id, L.l-val, E.e-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-empty']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  RIGHT JOIN from an empty relation
+++  test-outer-join-61
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-empty E ".
+          "RIGHT JOIN oj-left L ".
+          "SELECT L.id, L.l-val, E.e-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%l-val [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%l-val [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%l-val [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%l-val [~.t 'L4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-empty']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE scalar in WHERE
+++  test-outer-join-62
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, L.l-val) ".
+          "WHERE v = 'L2' OR v = 'R4' ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  nested COALESCE
+++  test-outer-join-63
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SCALARS v COALESCE(COALESCE(R.r-val, X.ref-val), L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  COALESCE of a scalar that does not exist
+++  test-outer-join-64
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.id = X.left-id ".
+          "SCALARS a COALESCE(R.r-val, X.ref-val) ".
+          "        v COALESCE(a, L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1a']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'X1b']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-ref']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  COALESCE in IF
+++  test-outer-join-65
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v IF L.id > 1 THEN COALESCE(R.r-val, 'none') ELSE L.l-val ENDIF ".
+          "SELECT L.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE in inline arithmetic
+++  test-outer-join-66
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SELECT L.id, COALESCE(R.id, 0) + 10"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%scalar-1 [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%scalar-1 [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%scalar-1 [~.ud 13]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%scalar-1 [~.ud 14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE on a RIGHT JOIN
+++  test-outer-join-67
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-right R ".
+          "SCALARS v COALESCE(L.l-val, R.r-val) ".
+          "SELECT R.id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'L4']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 5]]
+                              [%v [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 6]]
+                              [%v [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE on an OUTER JOIN
+++  test-outer-join-68
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-right R ".
+          "SCALARS v COALESCE(L.l-val, R.r-val) ".
+          "SELECT v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%v [~.t 'L1']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L2']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L3']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'L4']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'R5']]
+                              ==
+                      :-  %vector
+                          :~  [%v [~.t 'R6']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 6]
+              ==
+      ==
+::
+::  COALESCE on a CTE of a LEFT JOIN
+++  test-outer-join-69
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM oj-left L ".
+          "      LEFT JOIN oj-right R ".
+          "      SELECT L.id, R.r-val) AS lr ".
+          "FROM lr ".
+          "SCALARS v COALESCE(r-val, 'none') ".
+          "SELECT id, v"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%v [~.t 'none']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%v [~.t 'R3']]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%v [~.t 'R4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  COALESCE leading arithmetic in SCALARS, named end-*
+++  test-outer-join-70
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS end-r COALESCE(R.id, 0) + 10 END ".
+          "SELECT L.id, end-r"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%id [~.ud 1]]
+                              [%end-r [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 2]]
+                              [%end-r [~.ud 10]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 3]]
+                              [%end-r [~.ud 13]]
+                              ==
+                      :-  %vector
+                          :~  [%id [~.ud 4]]
+                              [%end-r [~.ud 14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.oj-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation-name 'db1.dbo.oj-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  natural LEFT JOIN with no shared column
+++  test-fail-outer-join-00
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-cross C ".
+          "SELECT *"
+      ::
+      'no natural join or foreign key join'
+      ==
+::
+::  natural RIGHT JOIN with no shared column
+++  test-fail-outer-join-01
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-cross C ".
+          "SELECT *"
+      ::
+      'no natural join or foreign key join'
+      ==
+::
+::  natural OUTER JOIN with no shared column
+++  test-fail-outer-join-02
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-cross C ".
+          "SELECT *"
+      ::
+      'no natural join or foreign key join'
+      ==
+::
+::  OUTER JOIN ON with an inequality
+++  test-fail-outer-join-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "OUTER JOIN oj-ref X ".
+          "  ON L.id > X.left-id ".
+          "SELECT *"
+      ::
+      'JOIN ON predicate only supports equality and AND conjunctions'
+      ==
+::
+::  LEFT JOIN ON columns of different auras
+++  test-fail-outer-join-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-ref X ".
+          "  ON L.l-val = X.left-id ".
+          "SELECT *"
+      ::
+      'type mismatch in ON predicate'
+      ==
+::
+::  RIGHT JOIN ON columns of one relation
+++  test-fail-outer-join-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "RIGHT JOIN oj-ref X ".
+          "  ON X.ref-id = X.left-id ".
+          "SELECT *"
+      ::
+      'ON predicate must reference columns from different relations'
+      ==
+::
+::  EXISTS of a column of no relation
+++  test-fail-outer-join-06
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE EXISTS R.nope ".
+          "SELECT L.id"
+      ::
+      'column %nope does not exist'
+      ==
+::
+::  EQUIV of columns of different auras
+++  test-fail-outer-join-07
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "WHERE R.r-val EQUIV L.id ".
+          "SELECT L.id"
+      ::
+      'comparing columns of different auras'
+      ==
+::
+::  COALESCE of arguments of different auras
+++  test-fail-outer-join-08
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.r-val, L.id) ".
+          "SELECT L.id, v"
+      ::
+      'inconsistent types'
+      ==
+::
+::  COALESCE of a column of no relation
+++  test-fail-outer-join-09
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 outer-join-setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM oj-left L ".
+          "LEFT JOIN oj-right R ".
+          "SCALARS v COALESCE(R.nope, L.l-val) ".
+          "SELECT L.id, v"
+      ::
+      'column %nope does not exist'
+      ==
 --

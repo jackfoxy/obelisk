@@ -1,4 +1,4 @@
-/-  ast=obelisk-ast, *obelisk, *server-state-1
+/-  ast=obelisk-ast, *obelisk, *server-state-2
 /+  mip
 |%
 ::
@@ -41,7 +41,9 @@
   (turn key |=(a=key-column:ast [aura.a ascending.a]))
 ::
 ++  idx-comp
-  ::  comparator for index mops
+  ::  comparator for index mops: each key column by its aura, ascending or
+  ::  descending; atoms of equal value (.0 and .-0, NaN) by atom order, so
+  ::  distinct keys always order
   |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
@@ -49,20 +51,10 @@
     =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  ?|  =(-<.k ~.t)
-            =(-<.k ~.ta)
-            =(-<.k ~.tas)
-            ==
-      ?:  ->.k  (alpha -.p -.q)
-      (alpha -.q -.p)
-    ?:  =(-<.k ~.rd)
-      ?:  ->.k  (lth:rd -.p -.q)
-      (gth:rd -.p -.q)
-    ?:  =(-<.k ~.sd)
-      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) -1)
-      =((cmp:si `@s`-.p `@s`-.q) --1)
-    ?:  ->.k  (lth -.p -.q)
-    (gth -.p -.q)
+    =/  [a=@ b=@]  ?:(->.k [-.p -.q] [-.q -.p])
+    ?:  (order-atom -<.k a b)  %.y
+    ?:  (order-atom -<.k b a)  %.n
+    (lth a b)
   --
 ::
 ++  pri-key
@@ -238,8 +230,6 @@
     selected-scalar:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-cte-column:ast
-      $(out [i.selected-columns out], selected-columns t.selected-columns)
-    selected-aggregate:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-value:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
@@ -535,6 +525,12 @@
                                    (limo ~[(need relation-id.source)])
   ==
 ::
+++  select-label
+  ::  the clause a selected column came from, for crash messages
+  |=  alias=(unit @t)
+  ^-  tape
+  ?:((is-order-by-alias alias) "ORDER BY" "SELECT")
+::
 ++  qualify-unqualified
   |=  [selected=(list selected-column:ast) =qualifier-lookup]
   =/  selected-out  *(list selected-column:ast)
@@ -545,10 +541,14 @@
       selected      t.selected
       selected-out  [i.selected selected-out]
     ==
-  =/  qualifiers   ~|  "SELECT: column {<name.i.selected>} not found"
+  =/  label=tape  (select-label alias.i.selected)
+  =/  qualifiers   ~|  "{label}: column {<name.i.selected>} not found"
                        (~(got by qualifier-lookup) name.i.selected)
   ?:  (gth (lent qualifiers) 1)
-    ~|("SELECT: column {<name.i.selected>} must be qualified" !!)
+    =/  names=(list @tas)  (turn qualifiers |=(q=qualified-table:ast name.q))
+    ~|  "{label}: column {<name.i.selected>} must be qualified, ".
+        "it is in {<names>}"
+        !!
   %=  $
     selected      t.selected
     selected-out  :-  ^-  selected-column:ast
@@ -655,113 +655,64 @@
   (~(put by state) %sys sys-db)
 ::
 ++  upd-view-caches
+  ::  New empty view cache entries at sys-time for the system views a
+  ::  command changes, and for the cacheable user-defined views that read,
+  ::  directly or through other views, those system views or a table whose
+  ::  data changed at sys-time.
+  ::
   ::  state needed for cross-db view changes
-  |=  $:  state=server      
+  |=  $:  state=server
           db=database
           sys-time=@da
           sys-vws=(unit (list [@tas @tas]))
           caller=db-cmd:ast
           ==
   ^-  view-cache
-  ?-  caller
-    %alter-database
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %databases]
-                                    [%sys %sys-log]
-                                    ==
-    %create-database
-      (next-view-cache-keys db sys-time ~[[%sys %databases]])
-    %drop-database
-      ~|("%drop-database should implement %create-database caller" !!)
-    %create-namespace
-      (next-view-cache-keys db sys-time ~[[%sys %namespaces]])
-    %alter-namespace
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %drop-namespace
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %namespaces]
-                                    [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %create-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %alter-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %drop-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %table-keys]
-                                    [%sys %foreign-keys]
-                                    [%sys %columns]
-                                    [%sys %sys-log]
-                                    [%sys %data-log]
-                                    ==
-    %truncate-table
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-    %insert
-      %^  next-view-cache-keys
-                            db
-                            sys-time
-                            %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %data-log]
-                                                    ==
-                                      (need sys-vws)
-    %upsert
-      %^  next-view-cache-keys
-                            db
-                            sys-time
-                            %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %data-log]
-                                                    ==
-                                      (need sys-vws)
-    %update
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-    %delete
-      %^  next-view-cache-keys  db
-                                sys-time
-                                :~  [%sys %tables]
-                                    [%sys %data-log]
-                                    ==
-  ==
+  =/  changed=(list [@tas @tas])
+    ?-  caller
+      %alter-database
+        ~[[%sys %databases] [%sys %sys-log]]
+      %create-database
+        ~[[%sys %databases]]
+      %drop-database
+        ~|("%drop-database should implement %create-database caller" !!)
+      %create-namespace
+        ~[[%sys %namespaces]]
+      ?(%alter-namespace %create-table %alter-table %drop-table)
+        :~  [%sys %tables]
+            [%sys %table-keys]
+            [%sys %foreign-keys]
+            [%sys %columns]
+            [%sys %sys-log]
+            [%sys %data-log]
+            ==
+      %drop-namespace
+        :~  [%sys %namespaces]
+            [%sys %tables]
+            [%sys %table-keys]
+            [%sys %foreign-keys]
+            [%sys %columns]
+            [%sys %sys-log]
+            [%sys %data-log]
+            ==
+      ?(%create-view %alter-view %drop-view)
+        :~  [%sys %columns]
+            [%sys %views]
+            [%sys %view-references]
+            [%sys %sys-log]
+            ==
+      ?(%truncate-table %update %delete)
+        ~[[%sys %tables] [%sys %data-log]]
+      ?(%insert %upsert)
+        =/  data-views=(list [@tas @tas])  ~[[%sys %tables] [%sys %data-log]]
+        (weld data-views (need sys-vws))
+    ==
+  =/  sys-changed=(list view-reference)
+    (turn changed |=([ns=@tas rel=@tas] [%view ns rel]))
+  =/  next=database  db(view-cache (next-view-cache-keys db sys-time changed))
+  %^  refresh-user-views  next
+                          sys-time
+                          (weld sys-changed (changed-tables next sys-time))
 ::
 ++  next-view-cache-keys
   |=  [db=database sys-time=@da sys-vws=(list [@tas @tas])]
@@ -771,6 +722,194 @@
         %+  turn
               sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] [%cache sys-time ~]])
+::
+++  changed-tables
+  ::  the tables whose data changed at time
+  |=  [db=database time=@da]
+  ^-  (list view-reference)
+  =/  snapshot=(unit data)  (get:data-key content.db time)
+  ?~  snapshot  ~
+  %+  murn  ~(tap by files.u.snapshot)
+  |=  [k=[@tas @tas] f=file]
+  ^-  (unit view-reference)
+  ?.  =(time tmsp.f)  ~
+  `[%table -.k +.k]
+::
+++  refresh-user-views
+  ::  An empty cache entry at time for each live cacheable user-defined view
+  ::  reading a changed relation, directly or through other views.  The
+  ::  content of the earlier entries of those views is evicted.
+  |=  [db=database time=@da changed=(list view-reference)]
+  ^-  view-cache
+  ?~  changed  view-cache.db
+  =/  latest=(unit [@da schema])  (pry:schema-key sys.db)
+  ?~  latest  view-cache.db
+  =/  stale=(set [@tas @tas])
+    %-  silt
+    %+  murn  (view-dependents views.+.u.latest changed)
+    |=  [k=ns-rel-key v=view]
+    ^-  (unit [@tas @tas])
+    ?.  cacheable.v  ~
+    `[ns.k rel.k]
+  (refresh-views view-cache.db time stale)
+::
+++  refresh-views
+  ::  An empty cache entry at time for each of keys, evicting the content
+  ::  of their earlier entries.
+  |=  [vc=view-cache time=@da keys=(set [@tas @tas])]
+  ^-  view-cache
+  ?:  =(~ keys)  vc
+  =/  entries=(list [ns-rel-key cache])  (tap:view-cache-key vc)
+  =/  evicted=(list [ns-rel-key cache])
+    %+  turn  entries
+    |=  [k=ns-rel-key c=cache]
+    ^-  [ns-rel-key cache]
+    ?.  &((~(has in keys) [ns.k rel.k]) (lth time.k time))  [k c]
+    [k c(content ~)]
+  =/  added=(list [ns-rel-key cache])
+    %+  turn  ~(tap in keys)
+    |=([ns=@tas rel=@tas] [[ns rel time] [%cache time ~]])
+  %+  gas:view-cache-key  *view-cache
+  (weld evicted added)
+::
+++  remove-user-views
+  ::  vws without the user-defined views of keys
+  |=  [vws=views keys=(set [@tas @tas])]
+  ^-  views
+  %+  gas:view-key  *views
+  %+  skip  (tap:view-key vws)
+  |=([k=ns-rel-key *] (~(has in keys) [ns.k rel.k]))
+::
+++  live-user-views
+  ::  the user-defined views of a schema, those not in namespace sys
+  |=  =views
+  ^-  (list [ns-rel-key view])
+  %+  skip  (tap:view-key views)
+  |=([k=ns-rel-key *] =(%sys ns.k))
+::
+++  view-dependents
+  ::  the live user-defined views reading any of refs, directly or through
+  ::  other views
+  |=  [=views refs=(list view-reference)]
+  ^-  (list [ns-rel-key view])
+  =/  live=(list [ns-rel-key view])  (live-user-views views)
+  =/  targets=(set view-reference)  (silt refs)
+  =/  found=(list [ns-rel-key view])  ~
+  |-
+  =/  more=(list [ns-rel-key view])
+    %+  skim  live
+    |=  [k=ns-rel-key v=view]
+    ?&  !(~(has in targets) [%view ns.k rel.k])
+        (lien references.v |=(r=view-reference (~(has in targets) r)))
+    ==
+  ?~  more  (flop found)
+  =/  more-targets=(list view-reference)
+    (turn more |=([k=ns-rel-key *] [%view ns.k rel.k]))
+  %=  $
+    targets  (~(gas in targets) more-targets)
+    found    (weld (flop more) found)
+  ==
+::
+++  rename-view-databases
+  ::  the schemas of sys, their user-defined view queries reading database
+  ::  new rather than old
+  |=  [sys=((mop @da schema) gth) old=@tas new=@tas]
+  ^-  ((mop @da schema) gth)
+  %+  gas:schema-key  *((mop @da schema) gth)
+  %+  turn  (tap:schema-key sys)
+  |=  [t=@da s=schema]
+  ^-  [@da schema]
+  [t s(views (rename-views-database views.s old new))]
+::
+++  rename-views-database
+  |=  [vws=views old=@tas new=@tas]
+  ^-  views
+  %+  gas:view-key  *views
+  %+  turn  (tap:view-key vws)
+  |=  [k=ns-rel-key v=view]
+  ^-  [ns-rel-key view]
+  ?:  =(%sys ns.k)  [k v]
+  =/  renamed  (rename-qualified-database crud-txn.v old new)
+  [k v(crud-txn ;;(crud-txn:ast renamed))]
+::
+++  rename-qualified-database
+  ::  n with each local qualified-table of database old in database new
+  |=  [n=* old=@tas new=@tas]
+  ^-  *
+  ?@  n  n
+  ?:  ?&(?=([%qualified-table ~ @ @ @ *] n) =(old +>-.n))
+    n(+>- new)
+  [$(n -.n) $(n +.n)]
+::
+++  schema-at-time
+  ::  the schema in effect at time
+  |=  [sys=((mop @da schema) gth) time=@da]
+  ^-  (unit schema)
+  =/  found=(unit [@da schema])
+    (pry:schema-key (lot:schema-key sys `(add time 1) ~))
+  ?~  found  ~
+  `+.u.found
+::
+++  crud-txn-queries
+  ::  every query of a crud-txn: its CTEs, its body, and an INSERT or UPSERT
+  ::  query source
+  |=  =crud-txn:ast
+  ^-  (list query:ast)
+  =/  cte-queries=(list (list query:ast))
+    %+  turn  ctes.crud-txn
+    |=  c=cte:ast
+    ^-  (list query:ast)
+    ?-  -.body.c
+      %query      ~[+.body.c]
+      %set-query  (set-query-queries +.body.c)
+    ==
+  =/  body-queries=(list query:ast)
+    ?+  -.body.crud-txn  ~
+      %query      ~[+.body.crud-txn]
+      %set-query  (set-query-queries +.body.crud-txn)
+      %insert     (insert-source-queries +.body.crud-txn)
+      %upsert     (insert-source-queries +.body.crud-txn)
+    ==
+  =/  all-cte-queries=(list query:ast)  (zing cte-queries)
+  (weld all-cte-queries body-queries)
+::
+++  set-query-queries
+  |=  sq=set-query:ast
+  ^-  (list query:ast)
+  :-  head.sq
+  (turn tail.sq |=(item=[op=set-op:ast =query:ast] query.item))
+::
+++  insert-source-queries
+  |=  ins=insert:ast
+  ^-  (list query:ast)
+  ?-  -.values.ins
+    %data       ~
+    %query      ~[+.values.ins]
+    %set-query  (set-query-queries +.values.ins)
+  ==
+::
+++  crud-txn-relations
+  ::  the tables and views a crud-txn reads, with their AS OF
+  |=  =crud-txn:ast
+  ^-  (list [qualified-table:ast (unit as-of:ast)])
+  =/  queries=(list query:ast)  (crud-txn-queries crud-txn)
+  =/  per-query=(list (list [qualified-table:ast (unit as-of:ast)]))
+    (turn queries query-relations)
+  (zing per-query)
+::
+++  query-relations
+  |=  q=query:ast
+  ^-  (list [qualified-table:ast (unit as-of:ast)])
+  ?~  from.q  ~
+  =/  f=from:ast  u.from.q
+  =/  joined=(list [qualified-table:ast (unit as-of:ast)])
+    %+  murn  joins.f
+    |=  j=joined-relation:ast
+    ^-  (unit [qualified-table:ast (unit as-of:ast)])
+    ?.  ?=(%qualified-table -.relation-id.j)  ~
+    `[relation-id.j as-of.j]
+  ?.  ?=(%qualified-table -.relation-id.f)  joined
+  [[relation-id.f as-of.f] joined]
 ::
 ++  common-txn
   ::  source-content-time is the data state time against which to apply the
@@ -1238,6 +1377,266 @@
   =/  b-cass  (cass b)
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
   (aor b a)
+::
+::  bit-width (sized) auras, e.g. @udF: an integer aura with a size letter
+::  A-J of 2^(letter - A) bits
+::
+++  size-letter
+  ::  %.y when aura a ends in a size letter
+  |=  a=@ta
+  ^-  ?
+  =/  n  (met 3 a)
+  ?:  (lth n 2)  %.n
+  =/  c  (cut 3 [(dec n) 1] a)
+  &((gte c 'A') (lte c 'J'))
+::
+++  base-aura
+  ::  aura a without its size letter, @udF -> @ud
+  |=  a=@ta
+  ^-  @ta
+  ?.  (size-letter a)  a
+  (end [3 (dec (met 3 a))] a)
+::
+++  signed-aura
+  |=  a=@ta
+  ^-  ?
+  ?=(signed-systems:ast (base-aura a))
+::
+++  fit-width
+  ::  val, crashing when it exceeds the bit width of aura a
+  |=  [a=@ta val=@]
+  ^-  @
+  ?.  (size-letter a)  val
+  ?:  (lte (met 0 val) (bex (sub (cut 3 [(dec (met 3 a)) 1] a) 'A')))  val
+  ~|  "{(scow `@tas`(base-aura a) val)} exceeds @{(trip a)}"  !!
+::
+++  fit-dime
+  ::  d as aura a, crashing when its value exceeds a's bit width
+  |=  [a=@ta d=dime]
+  ^-  dime
+  [a (fit-width a q.d)]
+::
+++  sized-match
+  ::  the common aura of a and b: equal, or one is the other's sized form
+  |=  [a=@ta b=@ta]
+  ^-  (unit @ta)
+  ?:  =(a b)  `a
+  ?.  =((base-aura a) (base-aura b))  ~
+  ?:  &((size-letter a) (size-letter b))  ~
+  ?:((size-letter a) `a `b)
+::
+++  number-aura
+  ::  %.y when aura a, sized or not, is a number system
+  |=  a=@ta
+  ^-  ?
+  ?=(number-systems:ast (base-aura a))
+::
+++  mixed-numbers
+  ::  %.y when a and b are auras of different number systems
+  |=  [a=@ta b=@ta]
+  ^-  ?
+  ?&  (number-aura a)
+      (number-aura b)
+      ?!(=((base-aura a) (base-aura b)))
+      ==
+::
+++  common-aura
+  ::  the aura of a result from operands of auras a and b; ~ when they
+  ::  differ and are not both number systems
+  ::
+  ::  a float over a signed over an unsigned integer; the wider float, an
+  ::  integer and a float at least @rd; integers keep a notation they
+  ::  share, else decimal, and the widest bit width of either
+  |=  [a=@ta b=@ta]
+  ^-  (unit @ta)
+  ?:  =(a b)  `a
+  =/  ba  (base-aura a)
+  =/  bb  (base-aura b)
+  ?.  &(?=(number-systems:ast ba) ?=(number-systems:ast bb))  ~
+  ?:  |(?=(float-systems:ast ba) ?=(float-systems:ast bb))
+    =/  floats  `(list @ta)`~[%rh %rs %rd %rq]
+    ::  an integer ranks as @rd
+    =/  rank  |=(c=@ta (fall (find ~[c] floats) 2))
+    `(snag (max (rank ba) (rank bb)) floats)
+  =/  sign  ?:(|((signed-aura a) (signed-aura b)) 's' 'u')
+  =/  notation  ?:(=((rsh 3 ba) (rsh 3 bb)) (rsh 3 ba) 'd')
+  =/  size  |=(c=@ta ?.((size-letter c) 0 (rsh [3 (dec (met 3 c))] c)))
+  `(rap 3 ~[sign notation (max (size a) (size b))])
+::
+++  to-fn
+  ::  number a of aura ta as an exact fn
+  |=  [ta=@ta a=@]
+  ^-  fn
+  =/  ns  (base-aura ta)
+  ?+  ns  [%f & --0 a]
+    signed-systems:ast  [%f (syn:si a) --0 (abs:si a)]
+    %rh                 (sea:rh a)
+    %rs                 (sea:rs a)
+    %rd                 (sea:rd a)
+    %rq                 (sea:rq a)
+  ==
+::
+++  num-cmp
+  ::  exact order of number a of aura ta to number b of aura tb, across
+  ::  number systems; %nan when either is a NaN
+  |=  [ta=@ta a=@ tb=@ta b=@]
+  ^-  ?(%lt %eq %gt %nan)
+  =/  x=fn  (to-fn ta a)
+  =/  y=fn  (to-fn tb b)
+  ::  0 negative, 1 zero, 2 positive
+  =/  rank
+    |=  z=fn
+    ^-  @
+    ?-  -.z
+      %n  1
+      %i  ?:(s.z 2 0)
+      %f  ?:(=(0 a.z) 1 ?:(s.z 2 0))
+    ==
+  ?:  |(?=(%n -.x) ?=(%n -.y))  %nan
+  =/  rx  (rank x)
+  =/  ry  (rank y)
+  ?.  =(rx ry)  ?:((lth rx ry) %lt %gt)
+  ?:  =(1 rx)  %eq
+  ::  order of the magnitudes
+  =/  mag=?(%lt %eq %gt)
+    ?:  &(?=(%i -.x) ?=(%i -.y))  %eq
+    ?:  ?=(%i -.x)  %gt
+    ?:  ?=(%i -.y)  %lt
+    =/  d  (dif:si e.x e.y)
+    =/  [p=@ q=@]
+      ?:  (syn:si d)  [(lsh [0 (abs:si d)] a.x) a.y]
+      [a.x (lsh [0 (abs:si d)] a.y)]
+    ?:  =(p q)  %eq
+    ?:((lth p q) %lt %gt)
+  ?:  =(2 rx)  mag
+  ?-(mag %lt %gt, %eq %eq, %gt %lt)
+::
+++  dime-equ
+  ::  %.y when dimes a and b hold equal values, numbers across systems
+  |=  [a=dime b=dime]
+  ^-  ?
+  ?.  &((number-aura p.a) (number-aura p.b))  =(a b)
+  =(%eq (num-cmp p.a q.a p.b q.b))
+::
+++  convert-number
+  ::  number a of aura from as aura to, of an equal or higher number
+  ::  system; crashes when the value exceeds to's bit width
+  |=  [from=@ta to=@ta a=@]
+  ^-  @
+  ?:  =(from to)  a
+  =/  t  (base-aura to)
+  ?+  t
+    ?.  &((signed-aura to) ?!((signed-aura from)))  (fit-width to a)
+    (fit-width to (sun:si a))
+    %rh  (bit:rh (to-fn from a))
+    %rs  (bit:rs (to-fn from a))
+    %rd  (bit:rd (to-fn from a))
+    %rq  (bit:rq (to-fn from a))
+  ==
+::
+++  number-key
+  ::  number a of aura ta as an atom equal for equal values across number
+  ::  systems: the jam of its reduced fn
+  |=  [ta=@ta a=@]
+  ^-  @
+  =/  x=fn  (to-fn ta a)
+  ?.  ?=(%f -.x)  (jam x)
+  ?:  =(0 a.x)  (jam [%f & --0 0])
+  =/  z  (ctz a.x)
+  (jam [%f s.x (sum:si e.x (sun:si z)) (rsh [0 z] a.x)])
+::
+++  order-atom
+  ::  %.y when a sorts before b in ascending order of aura; a and b unequal
+  |=  [aura=@ta a=@ b=@]
+  ^-  ?
+  ?:  ?|(=(aura ~.t) =(aura ~.ta) =(aura ~.tas))  (alpha a b)
+  ?:  =(aura ~.rd)  (lth:rd a b)
+  ?:  =(aura ~.rs)  (lth:rs a b)
+  ?:  =(aura ~.rh)  (lth:rh a b)
+  ?:  =(aura ~.rq)  (lth:rq a b)
+  ?:  =('s' (end 3 aura))  =(-1 (cmp:si `@s`a `@s`b))
+  (lth a b)
+::
+++  float-equ
+  ::  float equality of a and b in aura typ, .0 equals .-0
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (equ:rh a b)
+    %rs  (equ:rs a b)
+    %rd  (equ:rd a b)
+    %rq  (equ:rq a b)
+  ==
+::
+++  float-lth
+  ::  %.y when float a is less than float b in aura typ
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (lth:rh a b)
+    %rs  (lth:rs a b)
+    %rd  (lth:rd a b)
+    %rq  (lth:rq a b)
+  ==
+::
+++  float-lte
+  ::  %.y when float a is less than or equal to float b in aura typ
+  |=  [typ=float-systems:ast a=@ b=@]
+  ^-  ?
+  ?-  typ
+    %rh  (lte:rh a b)
+    %rs  (lte:rs a b)
+    %rd  (lte:rd a b)
+    %rq  (lte:rq a b)
+  ==
+::
+++  key-before
+  ::  %.y when sort key a precedes sort key b.  ascending holds the direction
+  ::  of each key column.  An absent value sorts after every value ascending
+  ::  and before every value descending, as NULL in PostgreSQL.
+  |=  $:  ascending=(list ?)
+          a=(list (unit [p=@ta q=@]))
+          b=(list (unit [p=@ta q=@]))
+          ==
+  ^-  ?
+  |-
+  ?~  ascending  %.n
+  ?~  a  %.n
+  ?~  b  %.n
+  ?:  =(i.a i.b)  $(ascending t.ascending, a t.a, b t.b)
+  ?~  i.a  !i.ascending
+  ?~  i.b  i.ascending
+  =/  before  (order-atom p.u.i.a q.u.i.a q.u.i.b)
+  ?:(i.ascending before !before)
+::
+++  order-by-alias
+  ::  alias of the hidden output column carrying ORDER BY column i; no urQL
+  ::  name contains _ so it cannot collide with a user column
+  |=  i=@ud
+  ^-  @t
+  (crip "_ob{(a-co:co i)}")
+::
+++  is-order-by-name
+  |=  name=@
+  ^-  ?
+  =('_ob' (end [3 3] name))
+::
+++  is-order-by-alias
+  |=  alias=(unit @t)
+  ^-  ?
+  ?~(alias %.n (is-order-by-name u.alias))
+::
+++  is-order-by-selected
+  ::  %.y for a hidden output column carrying an ORDER BY column
+  |=  s=selected-column:ast
+  ^-  ?
+  ?+  -.s  %.n
+    %qualified-column     (is-order-by-alias alias.s)
+    %unqualified-column   (is-order-by-alias alias.s)
+    %selected-scalar      (is-order-by-alias alias.s)
+    %selected-cte-column  (is-order-by-alias alias.s)
+    %selected-value       (is-order-by-alias alias.s)
+  ==
 ::
 ::  tree engine
 ::

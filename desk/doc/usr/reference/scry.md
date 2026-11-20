@@ -32,7 +32,7 @@ output mark, always `noun`:
 ```
 
 - `..` is shorthand for the default namespace `dbo`.
-- `<relation>` is a table or view.
+- `<relation>` is a table or a system view. User-defined views are not readable by scry, and do not shadow tables: a path naming a table shadowed by a view reads the table.
 - One or more trailing `<column>` segments select only those columns, in path
   order; otherwise all columns are selected (`SELECT *`).
 - An optional `<as-of>` segment directly after `/obelisk` queries the past server state:

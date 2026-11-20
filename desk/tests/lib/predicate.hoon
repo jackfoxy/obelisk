@@ -24,6 +24,15 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @rd, col3 @rd) ".
   "PRIMARY KEY (col1)"
+++  create-aura-table
+  |=  aura=tape
+  ^-  tape
+  "CREATE TABLE db1..my-table (col1 @t, col2 {aura}) PRIMARY KEY (col1)"
+++  create-aura-2col-table
+  |=  aura=tape
+  ^-  tape
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 {aura}, col3 {aura}) PRIMARY KEY (col1)"
 ++  create-sd-table
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @sd) ".
@@ -399,6 +408,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=116]]
@@ -431,6 +441,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=116]]
@@ -463,6 +474,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -470,6 +482,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -477,6 +490,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -484,6 +498,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -874,6 +889,7 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%relation-type q=[p=~.tas q=%table]]
                   [p=%col-ordinal q=[p=~.ud q=3]]
                   [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=116]]
@@ -1168,6 +1184,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1175,6 +1192,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1182,6 +1200,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1214,6 +1233,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1221,6 +1241,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1228,6 +1249,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1916,6 +1938,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1923,6 +1946,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1955,6 +1979,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -1962,6 +1987,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1969,6 +1995,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -1976,6 +2003,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -3771,6 +3799,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -3778,6 +3807,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5265,6 +5295,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -5272,6 +5303,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5279,6 +5311,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5311,6 +5344,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -5318,6 +5352,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5325,6 +5360,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -5332,6 +5368,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6855,6 +6892,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -6862,6 +6900,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6869,6 +6908,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6901,6 +6941,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -6908,6 +6949,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6915,6 +6957,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -6922,6 +6965,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9402,6 +9446,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=2]]
                               [p=%col-name q=[p=~.tas q=%col2]]
                               [p=%col-type q=[p=~.ta q=~.da]]
@@ -9409,6 +9454,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=3]]
                               [p=%col-name q=[p=~.tas q=%col3]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9965,6 +10011,7 @@
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=1]]
                               [p=%col-name q=[p=~.tas q=%col1]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -9972,6 +10019,7 @@
                       :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
                               [p=%name q=[p=~.tas q=%my-table]]
+                              [p=%relation-type q=[p=~.tas q=%table]]
                               [p=%col-ordinal q=[p=~.ud q=4]]
                               [p=%col-name q=[p=~.tas q=%col4]]
                               [p=%col-type q=[p=~.ta q=~.t]]
@@ -14366,4 +14414,552 @@
                                pred-scalar-resolved-scalars
                                ==
       !>((gate pred-scalar-row))
+::
+::  @rh, @rs and @rq comparisons
+::
+::  WHERE < and > on @rh, column and literal both sides
+++  test-float-lt-gt-rh
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~6.02)".
+          " ('row2', .~~3.14)".
+          " ('row3', .~~-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 > .~~-6 AND col2 < .~~3 ".
+          "AND .~~-6 < col2 AND .~~0 > col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rh .~~-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <= and >= on @rh, column and literal both sides
+++  test-float-lte-gte-rh
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~6.02)".
+          " ('row2', .~~3.14)".
+          " ('row3', .~~-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 >= .~~-3.14 AND col2 <= .~~-3.14 ".
+          "AND .~~-3.14 <= col2 AND .~~-3.14 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rh .~~-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <, >, <= and >= between @rh columns
+++  test-float-col-col-rh
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-2col-table "@rh")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~1.5, .~~-2.5)".
+          " ('row2', .~~-1.5, .~~2.5)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 < col3 AND col3 > col2 ".
+          "AND col2 <= col3 AND col3 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [~.rh .~~-1.5]]
+                              [%col3 [~.rh .~~2.5]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE =, <> and IN on @rh, +0 = -0
+++  test-float-eq-rh
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rh")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~-0)".
+          " ('row2', .~~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .~~0 AND col2 <> .~~3.14 ".
+          "AND col2 IN (.~~0, .~~7) SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rh .~~-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE < and > on @rs, column and literal both sides
+++  test-float-lt-gt-rs
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .6.02)".
+          " ('row2', .3.14)".
+          " ('row3', .-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 > .-6 AND col2 < .3 ".
+          "AND .-6 < col2 AND .0 > col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rs .-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <= and >= on @rs, column and literal both sides
+++  test-float-lte-gte-rs
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .6.02)".
+          " ('row2', .3.14)".
+          " ('row3', .-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 >= .-3.14 AND col2 <= .-3.14 ".
+          "AND .-3.14 <= col2 AND .-3.14 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rs .-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <, >, <= and >= between @rs columns
+++  test-float-col-col-rs
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-2col-table "@rs")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .1.5, .-2.5)".
+          " ('row2', .-1.5, .2.5)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 < col3 AND col3 > col2 ".
+          "AND col2 <= col3 AND col3 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [~.rs .-1.5]]
+                              [%col3 [~.rs .2.5]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE =, <> and IN on @rs, +0 = -0
+++  test-float-eq-rs
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rs")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .-0)".
+          " ('row2', .3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .0 AND col2 <> .3.14 ".
+          "AND col2 IN (.0, .7) SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rs .-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE < and > on @rq, column and literal both sides
+++  test-float-lt-gt-rq
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~~6.02)".
+          " ('row2', .~~~3.14)".
+          " ('row3', .~~~-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 > .~~~-6 AND col2 < .~~~3 ".
+          "AND .~~~-6 < col2 AND .~~~0 > col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rq .~~~-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <= and >= on @rq, column and literal both sides
+++  test-float-lte-gte-rq
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~~6.02)".
+          " ('row2', .~~~3.14)".
+          " ('row3', .~~~-3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 >= .~~~-3.14 AND col2 <= .~~~-3.14 ".
+          "AND .~~~-3.14 <= col2 AND .~~~-3.14 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [~.rq .~~~-3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <, >, <= and >= between @rq columns
+++  test-float-col-col-rq
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-2col-table "@rq")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~~1.5, .~~~-2.5)".
+          " ('row2', .~~~-1.5, .~~~2.5)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 < col3 AND col3 > col2 ".
+          "AND col2 <= col3 AND col3 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [~.rq .~~~-1.5]]
+                              [%col3 [~.rq .~~~2.5]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE =, <> and IN on @rq, +0 = -0
+++  test-float-eq-rq
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@rq")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~~~-0)".
+          " ('row2', .~~~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .~~~0 AND col2 <> .~~~3.14 ".
+          "AND col2 IN (.~~~0, .~~~7) SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rq .~~~-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  signed auras other than @sd: pfx is the literal base prefix, base the
+::  value of 10 in that base
+::
+::  WHERE <, >, <= and >= with column and literal both sides
+++  signed-col-lit
+  |=  [aura=@ta pfx=tape]
+  ^-  tang
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-table "@{(trip aura)}")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', --{pfx}10)".
+          " ('row2', --{pfx}1)".
+          " ('row3', -{pfx}1)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 > -{pfx}10 AND col2 < --{pfx}1 ".
+          "AND -{pfx}10 < col2 AND --{pfx}0 > col2 ".
+          "AND col2 >= -{pfx}1 AND col2 <= -{pfx}1 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row3']]
+                              [%col2 [aura `@`-1]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <, >, <= and >= between columns
+++  signed-col-col
+  |=  [aura=@ta pfx=tape base=@]
+  ^-  tang
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 (create-aura-2col-table "@{(trip aura)}")]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', --{pfx}1, -{pfx}10)".
+          " ('row2', -{pfx}1, --{pfx}10)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 < col3 AND col3 > col2 ".
+          "AND col2 <= col3 AND col3 >= col2 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [aura `@`-1]]
+                              [%col3 [aura (mul 2 base)]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation-name 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-signed-col-lit-sb  (signed-col-lit ~.sb "0b")
+++  test-signed-col-lit-sx  (signed-col-lit ~.sx "0x")
+++  test-signed-col-lit-sv  (signed-col-lit ~.sv "0v")
+++  test-signed-col-lit-sw  (signed-col-lit ~.sw "0w")
+++  test-signed-col-col-sb  (signed-col-col ~.sb "0b" 2)
+++  test-signed-col-col-sx  (signed-col-col ~.sx "0x" 16)
+++  test-signed-col-col-sv  (signed-col-col ~.sv "0v" 32)
+++  test-signed-col-col-sw  (signed-col-col ~.sw "0w" 64)
 --

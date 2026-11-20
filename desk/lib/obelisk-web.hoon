@@ -413,7 +413,7 @@
               "desk/doc/usr/reference/"
             =target  "_blank"
             =rel     "noopener noreferrer"
-            Reference
+            urQL Reference
           ==
           ;a
             =href
@@ -422,14 +422,6 @@
             =target  "_blank"
             =rel     "noopener noreferrer"
             Users Guide
-          ==
-          ;a
-            =href
-              "https://github.com/jackfoxy/obelisk/blob/master/".
-              "roadmap.md"
-            =target  "_blank"
-            =rel     "noopener noreferrer"
-            Roadmap
           ==
         ==
         ;section.help-section
@@ -446,11 +438,11 @@
             ==
             ;a
               =href
-                "https://github.com/jackfoxy/obelisk/tree/master/".
-                ".claude/skills/obelisk-urql"
+                "https://github.com/jackfoxy/foxy-skills/tree/master/".
+                "obelisk-urql"
               =target  "_blank"
               =rel     "noopener noreferrer"
-              urQL LLM
+              urQL LLM Skill
             ==
             ;a
               =href
@@ -479,12 +471,12 @@
         ==
         ;a.docs-llm-button
           =href
-            "https://github.com/jackfoxy/obelisk/tree/master/".
-            ".claude/skills/obelisk-urql"
+            "https://github.com/jackfoxy/foxy-skills/tree/master/".
+            "obelisk-urql"
           =target  "_blank"
           =rel     "noopener noreferrer"
           =role    "button"
-          urQL LLM
+          urQL LLM Skill
         ==
       ==
   ==
@@ -544,6 +536,12 @@
   ::  selector outranks this one.
   ^-  @t
   '''
+  /* Keep these pages indexed by %docs; link to them from About. */
+  #docs-help-nav [data-doc-path="release-notes"],
+  #docs-help-nav [data-doc-path="roadmap"] {
+    display: none;
+  }
+
   :root {
     --background: #f7f7f4;
     --surface-alt: #f0f0eb;
@@ -719,6 +717,9 @@
   /* the heading has no title, so its one action row spans it: the
      language left, urui's file actions and view toggle right */
   .editor-pane > .pane-header .pane-actions { flex: 1; }
+
+  /* the heading's text is muted; its enabled buttons are not */
+  .editor-pane > .pane-header button { color: var(--ink); }
 
   .pane-actions {
     align-items: center;

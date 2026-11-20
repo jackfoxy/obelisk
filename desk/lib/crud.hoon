@@ -1,6 +1,9 @@
-/-  ast=obelisk-ast, *obelisk, *server-state-1
-/+  *utils, *selections, *predicate, mip
-|_  [state=server =bowl:gall]
+/-  ast=obelisk-ast, *obelisk, *server-state-2
+/+  *utils, *selections, *predicate, *scalars, mip, fmt=format
+::
+::  hidden: user-defined views, as [database namespace name], read as absent,
+::  so that the query of a view reads the table it shadows
+|_  [state=server =bowl:gall hidden=(set [@tas @tas @tas])]
 ::
 ++  license
   ::  MIT+n license
@@ -171,6 +174,21 @@
       (~(put by state) name.db db)
 ::
 ++  do-crud-txn
+  ::  Materialize the user-defined views the crud-txn reads, run it, then
+  ::  drop the transient caches of the views that are not cacheable.
+  |=  $:  =crud-txn:ast
+          query-has-run=?
+          next-data=(map @tas @da)
+          next-schemas=(map @tas @da)
+      ==
+  ^-  [? [(map @tas @da) server (list result:ast)]]
+  =/  pre=[(list [@tas ns-rel-key]) server]  (materialize-views crud-txn)
+  =.  state  +.pre
+  =/  r=[? [(map @tas @da) server (list result:ast)]]
+    (run-crud-txn crud-txn query-has-run next-data next-schemas)
+  [-.r +<.r (drop-view-caches +>-.r -.pre) +>+.r]
+::
+++  run-crud-txn
   |=  $:  =crud-txn:ast
           query-has-run=?
           next-data=(map @tas @da)
@@ -188,35 +206,52 @@
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
-          ::::~&  "{<name.qualified-table.+.body.crud-txn>}"   :: table name
-          ::::~>  %bout.[0 %insert]
-          (do-insert +.body.crud-txn next-data next-schemas)
+          %:  do-insert-upsert  %insert
+                                +.body.crud-txn
+                                ctes.crud-txn
+                                named-ctes
+                                next-data
+                                next-schemas
+                                ==
     %upsert
       ?:  query-has-run  ~|("UPSERT: state change after query in script" !!)
       :-  %.n
-          (do-upsert +.body.crud-txn next-data next-schemas)
+          %:  do-insert-upsert  %upsert
+                                +.body.crud-txn
+                                ctes.crud-txn
+                                named-ctes
+                                next-data
+                                next-schemas
+                                ==
     %query
       =/  q=query:ast  +.body.crud-txn
+      =/  plan  (order-by-plan q)
       :-  %.y
           ::::~&  "{<relation:(need from.q)>}"   :: from objects
           ::::~>  %bout.[0 %select]
-          =/  jr  (do-query q named-ctes %.n)
-          =/  results  (select-results named-ctes jr)
+          =/  jr  (do-query -.plan named-ctes %.n)
+          =/  ordered
+            %^  order-select-results  +.plan
+                                      top.select.q
+                                      (select-results named-ctes jr)
           :+  next-data  server.jr
-          ?.  (crud-txn-has-rand scalars.q ctes.crud-txn)
-            results
-          [[%message 'warning: results are non-deterministic'] results]
+          %^  result-warnings  (crud-txn-has-rand scalars.q ctes.crud-txn)
+                               -.ordered
+                               +.ordered
     %set-query
       =/  sq=set-query:ast  +.body.crud-txn
       :-  %.y
           =/  jr  (do-set-query sq named-ctes)
-          =/  results  (select-results named-ctes jr)
+          =/  ordered
+            %^  order-select-results  (set-query-sort-specs sq)
+                                      ~
+                                      (select-results named-ctes jr)
           :+  next-data  server.jr
-          ?.  ?|  (set-query-has-rand sq)
-                  (ctes-have-rand ctes.crud-txn)
-              ==
-            results
-          [[%message 'warning: results are non-deterministic'] results]
+          %^  result-warnings  ?|  (set-query-has-rand sq)
+                                   (ctes-have-rand ctes.crud-txn)
+                               ==
+                               -.ordered
+                               +.ordered
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
@@ -229,6 +264,192 @@
       :-  %.n
           (do-update +.body.crud-txn named-ctes next-data next-schemas)
   ==
+::
+::
+::  +|  user-defined views
+::
+++  materialize-views
+  ::  Populate the cache of each user-defined view the crud-txn reads, at the
+  ::  time it is read.  A view that is not cacheable gets an entry at that
+  ::  time, listed for removal once the crud-txn completes.
+  |=  =crud-txn:ast
+  ^-  [(list [@tas ns-rel-key]) server]
+  =/  refs=(list [qualified-table:ast (unit as-of:ast)])
+    (crud-txn-relations crud-txn)
+  =/  transients=(list [@tas ns-rel-key])  ~
+  |-
+  ?~  refs  [transients state]
+  =/  r=[(list [@tas ns-rel-key]) server]
+    (materialize-view -.i.refs (set-tmsp +.i.refs now.bowl))
+  %=  $
+    refs        t.refs
+    transients  (weld -.r transients)
+    state       +.r
+  ==
+::
+++  materialize-view
+  |=  [qt=qualified-table:ast time=@da]
+  ^-  [(list [@tas ns-rel-key]) server]
+  ?^  ship.qt  [~ state]
+  ?:  =(%sys namespace.qt)  [~ state]
+  ?:  (~(has in hidden) [database.qt namespace.qt name.qt])  [~ state]
+  =/  db=(unit database)  (~(get by state) database.qt)
+  ?~  db  [~ state]
+  =/  schema=(unit schema)  (schema-at-time sys.u.db time)
+  ?~  schema  [~ state]
+  =/  vw=(unit view)
+    (get-view [namespace.qt name.qt time] views.u.schema)
+  ?~  vw  [~ state]
+  ?.  cacheable.u.vw
+    =/  key=ns-rel-key  [namespace.qt name.qt time]
+    =/  r=[server (list column:ast) (list (map @tas @))]
+      (view-result database.qt namespace.qt name.qt crud-txn.u.vw time)
+    :-  ~[[database.qt key]]
+    (put-view-content -.r database.qt key +>.r)
+  =/  entry=(unit [ns-rel-key cache])
+    =/  found
+      %^  tab:view-cache-key  view-cache.u.db
+                              `[namespace.qt name.qt (add time 1)]
+                              1
+    ?~  found  ~
+    =/  k=ns-rel-key  -.i.found
+    ?.  &(=(namespace.qt ns.k) =(name.qt rel.k))  ~
+    `i.found
+  ?~  entry
+    ~|  "view {<namespace.qt>}.{<name.qt>} has no cache at {<time>}"
+        !!
+  ?^  content.+.u.entry  [~ state]
+  =/  r=[server (list column:ast) (list (map @tas @))]
+    %:  view-result  database.qt
+                     namespace.qt
+                     name.qt
+                     crud-txn.u.vw
+                     time.-.u.entry
+                     ==
+  [~ (put-view-content -.r database.qt -.u.entry +>.r)]
+::
+++  put-view-content
+  |=  [srv=server db-name=@tas key=ns-rel-key rows=(list (map @tas @))]
+  ^-  server
+  =/  db=database  (~(got by srv) db-name)
+  =/  =cache  [%cache time.key `[(lent rows) rows]]
+  =.  view-cache.db  (put:view-cache-key view-cache.db key cache)
+  (~(put by srv) db-name db)
+::
+++  drop-view-caches
+  |=  [srv=server keys=(list [@tas ns-rel-key])]
+  ^-  server
+  |-
+  ?~  keys  srv
+  =/  db=(unit database)  (~(get by srv) -.i.keys)
+  ?~  db  $(keys t.keys)
+  =/  next=database
+    u.db(view-cache +:(del:view-cache-key view-cache.u.db +.i.keys))
+  $(keys t.keys, srv (~(put by srv) -.i.keys next))
+::
+++  view-result
+  ::  The columns and rows of the query of a view, evaluated at time with
+  ::  the view hidden from its own query.
+  |=  [db=@tas ns=@tas rel=@tas =crud-txn:ast time=@da]
+  ^-  [server (list column:ast) (list (map @tas @))]
+  =.  now.bowl  time
+  =.  hidden    (~(put in hidden) [db ns rel])
+  =/  pre=[(list [@tas ns-rel-key]) server]  (materialize-views crud-txn)
+  =.  state  +.pre
+  =/  named-ctes  (named-queries ctes.crud-txn *named-ctes)
+  =/  r=[server (list result:ast)]
+    ?+  -.body.crud-txn
+          ~|("view {<ns>}.{<rel>}: view query must be a query" !!)
+      %query
+        =/  q=query:ast  +.body.crud-txn
+        =/  plan  (order-by-plan q)
+        =/  jr  (do-query -.plan named-ctes %.n)
+        =/  ordered
+          %^  order-select-results  +.plan
+                                    top.select.q
+                                    (select-results named-ctes jr)
+        [server.jr +.ordered]
+      %set-query
+        =/  sq=set-query:ast  +.body.crud-txn
+        =/  jr  (do-set-query sq named-ctes)
+        =/  ordered
+          %^  order-select-results  (set-query-sort-specs sq)
+                                    ~
+                                    (select-results named-ctes jr)
+        [server.jr +.ordered]
+    ==
+  =/  results=(list result:ast)  +.r
+  =/  relations=(list relation:ast)
+    %-  zing
+    %+  turn  results
+    |=  res=result:ast
+    ^-  (list relation:ast)
+    ?.(?=(%relations -.res) ~ +.res)
+  =/  columns=(list column:ast)  (view-columns ns rel relations)
+  =/  vectors=(list vector:ast)
+    %-  zing
+    %+  turn  +:(format-vectors:fmt [%results results])
+    |=  res=result:ast
+    ^-  (list vector:ast)
+    ?.(?=(%result-set -.res) ~ +.res)
+  =/  rows=(list (map @tas @))
+    %+  turn  vectors
+    |=  v=vector:ast
+    ^-  (map @tas @)
+    =/  cells=(list vector-cell:ast)  +.v
+    (malt (turn cells |=(c=vector-cell:ast [p.c q.q.c])))
+  [(drop-view-caches -.r -.pre) columns rows]
+::
+++  view-columns
+  ::  The columns of the result relations of the query of a view, of all
+  ::  its row types, in order of first appearance.  Each row type has
+  ::  unique column names.
+  |=  [ns=@tas rel=@tas relations=(list relation:ast)]
+  ^-  (list column:ast)
+  =/  per-relation=(list (list (list format-column)))
+    %+  turn  relations
+    |=  r=relation:ast
+    ^-  (list (list format-column))
+    %+  turn  columns.r
+    |=(f=(lest format-column) `(list format-column)`f)
+  =/  formats=(list (list format-column))  (zing per-relation)
+  =/  out=(list column:ast)  ~
+  |-
+  ?~  formats  (addr-columns (flop out))
+  =/  names=(list @tas)
+    %+  turn  i.formats
+    |=(c=format-column ?-(-.c %column name.c, %qualified-column name.c))
+  ?.  =((lent names) ~(wyt in (silt names)))
+    ~|  "view {<ns>}.{<rel>}: duplicate column names {<names>}"
+        !!
+  =/  added=(list column:ast)
+    %+  murn  i.formats
+    |=  c=format-column
+    ^-  (unit column:ast)
+    ?:  ?=(%qualified-column -.c)
+      ~|  "view {<ns>}.{<rel>}: column {<name.c>} has no type"
+          !!
+    ?:  (lien out |=(o=column:ast =(name.o name.c)))  ~
+    `c
+  $(formats t.formats, out (weld (flop added) out))
+::
+++  crud-txn-has-scalar
+  ::  whether a scalar of a query of the crud-txn, or within one, is a
+  ::  function of tags
+  |=  [tags=(set @tas) =crud-txn:ast]
+  ^-  ?
+  %+  lien  (crud-txn-queries crud-txn)
+  |=  q=query:ast
+  %+  lien  scalars.q
+  |=  s=scalar:ast
+  (node-has-tag tags `scalar-node:ast`f.s)
+::
+++  node-has-tag
+  |=  [tags=(set @tas) sn=scalar-node:ast]
+  ^-  ?
+  ?:  (~(has in tags) -.sn)  %.y
+  %+  lien  (scalar-node-children sn)
+  |=(n=scalar-node:ast ^$(sn n))
 ::
 ++  simple-table-query
   ::  Recognize a direct projection of every column from one physical table.
@@ -265,6 +486,13 @@
     ~|  "SELECT: database {<database.qt>} doesn't exist at time {<sys-time>}"
         (get-schema [sys.u.db sys-time])
   =/  tbl-key  [namespace.qt name.qt]
+  ::  a user-defined view shadows the table
+  =/  vw=(unit view)  (get-view [namespace.qt name.qt sys-time] views.schema)
+  ?:  ?&  ?=(^ vw)
+          !=(%sys namespace.qt)
+          !(~(has in hidden) [database.qt namespace.qt name.qt])
+      ==
+    ~
   =/  tbl  (~(get by tables.schema) tbl-key)
   ?~  tbl  ~
   =/  fil  (get-content content.u.db sys-time tbl-key)
@@ -293,19 +521,13 @@
       [%vector-count (lent rows)]
       ==
 ::
-++  do-insert
-  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result:ast)]
-  (do-insert-upsert %insert ins next-data next-schemas)
-::
-++  do-upsert
-  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result:ast)]
-  (do-insert-upsert %upsert ins next-data next-schemas)
-::
 ++  do-insert-upsert
+  ::  INSERT or UPSERT rows of VALUES or of a query source.  Query rows match
+  ::  the target columns by position and aura.
   |=  $:  op=?(%insert %upsert)
           ins=insert:ast
+          ctes=(list cte:ast)
+          =named-ctes
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
@@ -344,11 +566,36 @@
             `(list @t)`(need columns.ins)
             |=(a=@t (to-column op a column-lookup.table.txn))
   ::
-  ?.  ?=([%data *] values.ins)
-    ?:  =(%insert op)
-      ~|("INSERT: from query not implemented: {<values.ins>}" !!)
-    ~|("UPSERT: from query not implemented: {<values.ins>}" !!)
-  =/  value-table  `(list (list value-or-default:ast))`+.values.ins
+  =/  source  values.ins
+  =/  random=?
+    ?-  -.source
+      %data       %.n
+      %query      (crud-txn-has-rand scalars.+.source ctes)
+      %set-query  ?|((set-query-has-rand +.source) (ctes-have-rand ctes))
+    ==
+  =/  value-table=(list (list value-or-default:ast))
+    ?:  ?=(%data -.source)  +.source
+    (query-source-rows verb cols source named-ctes)
+  ::  an empty query source changes nothing; =(~) keeps value-table wide
+  ?:  =(~ value-table)
+    :+  next-data
+        state
+    %^  result-warnings  random
+                         %.y
+    :~  :-  %action
+            %-  crip
+                %+  weld  (weld verb " INTO ")
+                          (trip (qualified-table-to-cord qualified-table.ins))
+        [%server-time now.bowl]
+        [%schema-time tmsp.table.txn]
+        [%data-time source-content-time.txn]
+        [%message message]
+        [%vector-count 0]
+        [%message 'table data:']
+        [%vector-count ~(wyt by pri-idx.file.txn)]
+        ==
+  =/  from-query=?  ?!(?=(%data -.source))
+  =/  source-keys  *(set (list @))
   ::
   ?.  =((lent cols) (lent -.value-table))
         ?:  =(%insert op)
@@ -398,28 +645,21 @@
                 ==
     =.  nxt-data.txn  -.constrained
     =.  file.txn      +.constrained
+    =.  content.db.txn
+      %^  put:data-key  content.db.txn
+                        now.bowl
+                        %:  update-file  file.txn
+                                         nxt-data.txn
+                                         tbl-key.txn
+                                         key.pri-indx.table.txn
+                                         result-rowcount
+                                         ==
+    =.  view-cache.db.txn
+      (upd-view-caches state db.txn now.bowl [~ ~] op)
     :+  (~(put by next-data) database.qualified-table.ins now.bowl)
-      :: %:  upd-indices-views to do: revisit when there are views & indices
-      %+  ~(put by state)  name.db.txn
-                           %=  db.txn
-                              content
-                                %^  put:data-key
-                                      content.db.txn
-                                      now.bowl
-                                      %:  update-file  file.txn
-                                                      nxt-data.txn
-                                                      tbl-key.txn
-                                                      key.pri-indx.table.txn
-                                                      result-rowcount
-                                                      ==
-                              view-cache  %:  upd-view-caches  state
-                                                                db.txn
-                                                                now.bowl
-                                            :: to do: get list of effected views
-                                                                [~ ~]
-                                                                op
-                                                                ==
-                            ==
+      (~(put by state) name.db.txn db.txn)
+      %^  result-warnings  random
+                           %.y
       :~  :-  %action
               %-  crip
                   %+  weld  (weld verb " INTO ")
@@ -438,6 +678,10 @@
   =/  got-fr  ~(got by file-row)
   =/  row-key=(list @)  (turn key-pick |=(a=[@tas @] (got-fr -.a)))
   =/  inserted-row=indexed-row  [%indexed-row row-key file-row]
+  ::  query rows are unordered, so an UPSERT of two rows of one key is
+  ::  not deterministic
+  ?:  &(from-query (~(has in source-keys) row-key))
+    ~|("{verb}: query rows have duplicate key: {<row-key>}" !!)
   =.  pri-idx.file.txn  ?:  =(%insert op)
                           ?:  (has:primary-key pri-idx.file.txn row-key)
                             ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
@@ -447,7 +691,52 @@
     i              +(i)
     value-table    `(list (list value-or-default:ast))`+.value-table
     inserted-rows  [inserted-row inserted-rows]
+    source-keys    ?.(from-query source-keys (~(put in source-keys) row-key))
   ==
+::
+++  query-source-rows
+  ::  The rows of an INSERT or UPSERT query source as VALUES rows, each of
+  ::  the target's column count.  The query ORDER BY serves only its TOP.
+  |=  $:  verb=tape
+          cols=(list column:ast)
+          source=cte-body:ast
+          =named-ctes
+          ==
+  ^-  (list (list value-or-default:ast))
+  =/  results=(list result:ast)
+    ?-  -.source
+      %set-query
+        (select-results named-ctes (do-set-query +.source named-ctes))
+      %query
+        =/  q=query:ast  +.source
+        ?~  top.select.q
+          (select-results named-ctes (do-query q named-ctes %.n))
+        =/  plan  (order-by-plan q)
+        =/  jr  (do-query -.plan named-ctes %.n)
+        =/  ordered
+          %^  order-select-results  +.plan
+                                    top.select.q
+                                    (select-results named-ctes jr)
+        +.ordered
+    ==
+  =/  vectors=(list vector:ast)
+    %-  zing
+    %+  turn  +:(format-vectors:fmt [%results results])
+    |=  r=result:ast
+    ^-  (list vector:ast)
+    ?.(?=(%result-set -.r) ~ +.r)
+  %+  turn  vectors
+  |=  v=vector:ast
+  ^-  (list value-or-default:ast)
+  =/  row=(list value-or-default:ast)
+    (turn `(list vector-cell:ast)`+.v tail)
+  ?:  =((lent row) (lent cols))  row
+  ?:  (lth (lent row) (lent cols))
+    ~|  "{verb}: query row lacks column {<name:(snag (lent row) cols)>}"
+        !!
+  ~|  "{verb}: query row has {<(lent row)>} columns, ".
+      "target has {<(lent cols)>}"
+      !!
 ::
 ++  do-delete
   |=  $:  d=delete:ast
@@ -888,6 +1177,7 @@
   ::  any other part of the state.
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  join-return
+  ?:  (grouped-query q)  (do-grouped-query q named-ctes)
   :: literal/scalar only
   ?~  from.q
     =/  resolved-scalars
@@ -899,8 +1189,12 @@
     (select-literals state columns.select.q is-cte resolved-scalars)
   :: no joins, it's a single relation
   =/  f  (normalize-from (need from.q))
+  ?:  (query-row-types f named-ctes)
+    (do-row-type-query q f named-ctes)
   ?~  joins.f
-    =/  jr  (select-relation(state state, bowl bowl) q is-cte named-ctes)
+    =/  jr
+      %.  [q is-cte named-ctes]
+      select-relation(state state, bowl bowl, hidden hidden)
     ?:  is-cte  jr
     =/  selected  (normalize-selected columns.select.q)
     ?.  (selected-needs-materialization selected)
@@ -914,7 +1208,8 @@
                                                              ==
     (mk-query-result selected named-ctes jr %.n resolved-scalars)
   ::
-  =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
+  =/  =join-return
+    (join-all(state state, bowl bowl, hidden hidden) q named-ctes)
   ?:  is-cte
     ?~  predicate.q  join-return
     =/  qualifier-lookup
@@ -941,85 +1236,1122 @@
       %+  skim  joined-rows.i.set-tables.join-return
                 |=(a=joined-row (filter a))
     join-return
+  (need (select-joined q named-ctes join-return ~))
+::
+::
+::  +|  grouping
+::
+::  A grouped query (GROUP BY, HAVING, or an aggregate function) runs in
+::  three steps.  The inner query, the FROM and WHERE of the query, selects
+::  every source column and, as hidden columns, the GROUP BY values
+::  (group.<k>) and the aggregate arguments (argument.<j>).  Its rows are
+::  grouped into the group relation, a row per group of its group values
+::  and aggregate results, each result named as its aggregate scalar
+::  (aggregate.<i>).  The outer query selects from the group relation as a
+::  CTE: the SELECT, HAVING as its WHERE, and the scalars they use, with a
+::  grouped column or scalar reading its group value and an aggregate
+::  scalar its result.  A value that does not exist is absent from its
+::  group row, which is then of another row type.
+::
++$  column-ref  $%(qualified-column:ast unqualified-column:ast)
++$  group-source  $%([%column column=column-ref] [%scalar name=@tas])
++$  aggregate-spec
+  $:  name=@tas
+      function=aggregate-function:ast
+      distinct=?
+      argument=(unit @tas)
+  ==
++$  group-row  [types=(map @tas @ta) data=(map @tas @)]
+::
+++  group-relation-name  `@tas`'group.relation'
+::
+++  grouped-query
+  ::  %.y when q groups its rows: GROUP BY, HAVING, or an aggregate
+  |=  q=query:ast
+  ^-  ?
+  ?|  ?=(^ group-by.q)
+      ?=(^ having.q)
+      (lien scalars.q |=(s=scalar:ast ?=(%aggregate -.f.s)))
+  ==
+::
+++  do-grouped-query
+  |=  [q=query:ast =named-ctes]
+  ^-  join-return
+  ?~  from.q
+    ~|("GROUP BY, HAVING, and aggregate functions require FROM" !!)
+  =/  selected=(list selected-column:ast)  columns.select.q
+  =/  scalar-pairs=(list [@tas scalar-function:ast])
+    (turn scalars.q |=(s=scalar:ast `[@tas scalar-function:ast]`[name.s f.s]))
+  =/  scalar-defs=(map @tas scalar-function:ast)  (malt scalar-pairs)
+  =/  dependent=(set @tas)  (aggregate-dependent scalars.q)
+  ?.  =(~ (~(int in (scalar-refs predicate.q)) dependent))
+    ~|("aggregate functions are not allowed in WHERE" !!)
+  =/  groups=(list group-source)
+    %+  turn  group-by.q
+    |=  g=grouping-column:ast
+    (resolve-group-source g selected scalar-defs dependent)
+  =/  group-names=(list @tas)
+    =<  p
+    (spin groups 0 |=([* k=@ud] [(indexed-name "group" k) +(k)]))
+  =/  group-items=(list selected-column:ast)
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list selected-column:ast)
+    ?~  rest  ~
+    ?~  names  ~
+    :_  $(rest t.rest, names t.names)
+    ?-  -.i.rest
+      %column  (alias-column column.i.rest i.names)
+      %scalar  [%selected-scalar name.i.rest `i.names]
+    ==
+  =/  aggregates=(list scalar:ast)
+    (skim scalars.q |=(s=scalar:ast ?=(%aggregate -.f.s)))
+  =/  arguments
+    =/  rest  aggregates
+    =/  j  0
+    =|  specs=(list aggregate-spec)
+    =|  items=(list selected-column:ast)
+    =|  argument-scalars=(list scalar:ast)
+    |-  ^-  $:  (list aggregate-spec)
+                (list selected-column:ast)
+                (list scalar:ast)
+            ==
+    ?~  rest  [(flop specs) (flop items) (flop argument-scalars)]
+    ?>  ?=(%aggregate -.f.i.rest)
+    =/  agg=aggregate:ast  f.i.rest
+    =/  arg=@tas  (indexed-name "argument" j)
+    =/  selection  (argument-selection arg argument.agg)
+    %=  $
+      rest   t.rest
+      j      +(j)
+      specs
+        :_  specs
+        :^  name.i.rest
+            function.agg
+            distinct.agg
+            ?~(argument.agg ~ `arg)
+      items  ?~(-.selection items [u.-.selection items])
+      argument-scalars
+        ?~(+.selection argument-scalars [u.+.selection argument-scalars])
+    ==
+  ::  the inner query: the rows to group
+  =/  inner-scalars=(list scalar:ast)
+    %+  weld
+      (skip scalars.q |=(s=scalar:ast (~(has in dependent) name.s)))
+    +>.arguments
+  =/  all-columns=(list selected-column:ast)  ~[[%all %all]]
+  =/  argument-items=(list selected-column:ast)  +<.arguments
+  =/  inner-selected=(list selected-column:ast)
+    (weld all-columns (weld group-items argument-items))
+  =/  qi=query:ast
+    %=  q
+      scalars         inner-scalars
+      group-by        ~
+      having          ~
+      order-by        ~
+      top.select      ~
+      columns.select  inner-selected
+    ==
+  =/  jr-i=join-return  (do-query qi named-ctes %.n)
+  =.  state  server.jr-i
+  =/  ctes=^named-ctes
+    %+  ~(put by named-ctes)  group-relation-name
+    %+  set-query-cte-relation  group-relation-name
+    (group-rows jr-i group-names -.arguments)
+  ::  the outer query: the groups
+  =/  column-groups=(list [@tas column-ref])
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list [@tas column-ref])
+    ?~  rest  ~
+    ?~  names  ~
+    =/  tail  $(rest t.rest, names t.names)
+    ?.  ?=(%column -.i.rest)  tail
+    [[i.names column.i.rest] tail]
+  =/  scalar-groups=(list [@tas @tas])
+    =/  rest  groups
+    =/  names  group-names
+    |-  ^-  (list [@tas @tas])
+    ?~  rest  ~
+    ?~  names  ~
+    =/  tail  $(rest t.rest, names t.names)
+    ?.  ?=(%scalar -.i.rest)  tail
+    [[name.i.rest i.names] tail]
+  =/  group-value
+    |=  [name=@tas column=@tas]
+    ^-  scalar:ast
+    [%scalar name [%coalesce ~[[%unqualified-column column ~]]]]
+  ::  the aggregates and grouped scalars read the group relation
+  =/  aggregate-names=(list @tas)
+    (turn aggregates |=(s=scalar:ast `@tas`name.s))
+  =/  scalar-group-names=(list @tas)
+    (turn scalar-groups |=([name=@tas @tas] `@tas`name))
+  =/  stop=(set @tas)  (silt (weld aggregate-names scalar-group-names))
+  =/  selected-scalars=(list @tas)
+    %+  murn  selected
+    |=  s=selected-column:ast
+    ^-  (unit @tas)
+    ?.(?=(%selected-scalar -.s) ~ `name.s)
+  =/  roots=(set @tas)
+    (~(uni in (scalar-refs having.q)) (silt selected-scalars))
+  =/  needed=(set @tas)  (needed-scalars scalars.q roots stop)
+  =/  aggregate-values=(list scalar:ast)
+    (turn aggregates |=(s=scalar:ast (group-value name.s name.s)))
+  =/  scalar-group-values=(list scalar:ast)
+    (turn scalar-groups group-value)
+  =/  needed-outer=(list scalar:ast)
+    %+  murn  scalars.q
+    |=  s=scalar:ast
+    ^-  (unit scalar:ast)
+    ?.  (~(has in needed) name.s)  ~
+    ?:  (~(has in stop) name.s)  ~
+    =/  f=scalar-function:ast
+      ;;(scalar-function:ast (rewrite-group-columns f.s column-groups))
+    `s(f f)
+  =/  outer-scalars=(list scalar:ast)
+    (weld aggregate-values (weld scalar-group-values needed-outer))
+  =/  outer-selected=(list selected-column:ast)
+    %+  turn  selected
+    |=  s=selected-column:ast
+    ^-  selected-column:ast
+    ?+  -.s  s
+      %all
+        ~|("SELECT * is not allowed with GROUP BY or aggregates" !!)
+      %all-object
+        ~|("SELECT <alias>.* is not allowed with GROUP BY or aggregates" !!)
+      %qualified-column
+        =/  c  ;;(qualified-column:ast s)
+        :+  %unqualified-column
+            (group-column c column-groups)
+            `(fall alias.c name.c)
+      %unqualified-column
+        =/  c  ;;(unqualified-column:ast s)
+        :+  %unqualified-column
+            (group-column c column-groups)
+            `(fall alias.c name.c)
+    ==
+  =/  qo=query:ast
+    %=  q
+      from            `[%from [%cte-name group-relation-name ~] ~ ~]
+      scalars         outer-scalars
+      predicate
+        ;;(predicate:ast (rewrite-group-columns having.q column-groups))
+      group-by        ~
+      having          ~
+      order-by        ~
+      columns.select  outer-selected
+    ==
+  =/  jr-o=join-return  (do-query qo ctes %.n)
+  ::  the source relations of the result are those of the inner query
+  %=  jr-o
+    set-tables
+      %+  weld  (leading-result-tables set-tables.jr-o)
+      (source-set-tables set-tables.jr-i)
+  ==
+::
+++  resolve-group-source
+  ::  what a GROUP BY column groups by: a SELECT output column (an output
+  ::  name first, as for ORDER BY, or an ordinal), a scalar, or a source
+  ::  column
+  |=  $:  g=grouping-column:ast
+          selected=(list selected-column:ast)
+          scalar-defs=(map @tas scalar-function:ast)
+          dependent=(set @tas)
+          ==
+  ^-  group-source
+  =/  item=(unit selected-column:ast)
+    ?@  g
+      ?:  (gth g (lent selected))
+        ~|  "GROUP BY: column ordinal {<g>} exceeds the selected columns"
+            !!
+      `(snag (dec g) selected)
+    ?:  ?=(qualified-column:ast g)  ~
+    =/  named=(list selected-column:ast)
+      %+  skim  selected
+      |=(s=selected-column:ast =(`name.g (selected-output-name s)))
+    ?~  named  ~
+    ?^  t.named  ~|("GROUP BY: column {<name.g>} is ambiguous in SELECT" !!)
+    `i.named
+  =/  source=group-source
+    ?~  item
+      ?>  ?=(^ g)
+      ?:  ?&  ?=(unqualified-column:ast g)
+              (~(has by scalar-defs) name.g)
+          ==
+        [%scalar name.g]
+      [%column g]
+    ?+  -.u.item  ~|("GROUP BY: cannot group by {<u.item>}" !!)
+      %qualified-column    [%column ;;(qualified-column:ast u.item)]
+      %unqualified-column  [%column ;;(unqualified-column:ast u.item)]
+      %selected-scalar     [%scalar name:;;(selected-scalar:ast u.item)]
+    ==
+  ?.  ?=(%scalar -.source)  source
+  ?.  (~(has in dependent) name.source)  source
+  ~|("GROUP BY: cannot group by an aggregate function" !!)
+::
+++  selected-output-name
+  ::  the lower case output name of a SELECT column, if it has one
+  |=  s=selected-column:ast
+  ^-  (unit @t)
+  =/  out=(unit @t)
+    ?+  -.s  ~
+      %qualified-column     `(fall alias.s name.s)
+      %unqualified-column   `(fall alias.s name.s)
+      %selected-value       alias.s
+      %selected-scalar      `(fall alias.s name.s)
+      %selected-cte-column  `(fall alias.s name.s)
+    ==
+  ?~  out  ~
+  `(crip (cass (trip u.out)))
+::
+++  alias-column
+  |=  [c=column-ref alias=@tas]
+  ^-  selected-column:ast
+  ?:  ?=(qualified-column:ast c)  c(alias `alias)
+  c(alias `alias)
+::
+++  argument-selection
+  ::  the inner query column, aliased name, of an aggregate argument, and
+  ::  the scalar computing it when it is a scalar function
+  |=  [name=@tas argument=(unit scalar-node:ast)]
+  ^-  [(unit selected-column:ast) (unit scalar:ast)]
+  ?~  argument  [~ ~]
+  ::  tested by tag as an untyped noun, as +evaluate-datum tests: ?= of the
+  ::  recursive scalar-function type does not compile in reasonable time
+  =/  raw=*  u.argument
+  ?:  ?=([%qualified-column *] raw)
+    [`(alias-column ;;(qualified-column:ast raw) name) ~]
+  ?:  ?=([%unqualified-column *] raw)
+    [`(alias-column ;;(unqualified-column:ast raw) name) ~]
+  ?:  ?=([%scalar-name @] raw)
+    [`[%selected-scalar ;;(@tas +.raw) `name] ~]
+  ?:  ?=([%cte-column @ @] raw)
+    [`[%selected-cte-column ;;(@tas +<.raw) ;;(@tas +>.raw) `name] ~]
+  ::  a dime, but not a function of no arguments
+  ?:  ?&  ?=([@ @] raw)
+          ?!(?=([?(%e %getutcdate %phi %pi %tau %version) ~] raw))
+      ==
+    [`[%selected-value ;;(dime raw) `name] ~]
+  :-  `[%selected-scalar name `name]
+  `[%scalar name ;;(scalar-function:ast raw)]
+::
+++  indexed-name
+  |=  [prefix=tape i=@ud]
+  ^-  @tas
+  (crip "{prefix}.{<i>}")
+::
+++  scalar-refs
+  ::  the scalar names a scalar function, predicate, or other noun uses
+  |=  n=*
+  ^-  (set @tas)
+  ?@  n  ~
+  ?:  ?=([%scalar-name @] n)  (silt ~[`@tas`+.n])
+  ::  bound before the wet +uni, which loops on a self-reference
+  =/  head=(set @tas)  $(n -.n)
+  =/  tail=(set @tas)  $(n +.n)
+  (~(uni in head) tail)
+::
+++  aggregate-dependent
+  ::  the aggregate scalars and the scalars using them
+  |=  scalars=(list scalar:ast)
+  ^-  (set @tas)
+  =/  dependent  *(set @tas)
+  |-  ^-  (set @tas)
+  ?~  scalars  dependent
+  =?  dependent  ?|  ?=(%aggregate -.f.i.scalars)
+                     ?!(=(~ (~(int in (scalar-refs f.i.scalars)) dependent)))
+                 ==
+    (~(put in dependent) name.i.scalars)
+  $(scalars t.scalars)
+::
+++  needed-scalars
+  ::  the scalars of roots and the scalars they use, short of the scalars
+  ::  of stop, which read the group relation
+  |=  [scalars=(list scalar:ast) roots=(set @tas) stop=(set @tas)]
+  ^-  (set @tas)
+  =/  rest  (flop scalars)
+  =/  needed  roots
+  |-  ^-  (set @tas)
+  ?~  rest  needed
+  ?.  ?&  (~(has in needed) name.i.rest)
+          ?!((~(has in stop) name.i.rest))
+      ==
+    $(rest t.rest)
+  $(rest t.rest, needed (~(uni in needed) (scalar-refs f.i.rest)))
+::
+++  group-column
+  ::  the group relation column of a grouped column reference
+  |=  $:  ref=column-ref
+          groups=(list [@tas column-ref])
+          ==
+  ^-  @tas
+  =/  ref-name=@tas  (column-name ref)
+  =/  hits=(list @tas)
+    %+  murn  groups
+    |=  [name=@tas column=column-ref]
+    ^-  (unit @tas)
+    ?.  =((column-name column) ref-name)  ~
+    ?.  ?=(qualified-column:ast column)  `name
+    ?.  ?=(qualified-column:ast ref)  `name
+    ?.  .=  (normalize-qt-alias qualifier.column)
+            (normalize-qt-alias qualifier.ref)
+      ~
+    `name
+  ?~  hits
+    ~|  "column {<ref-name>} must be in GROUP BY or in an aggregate function"
+        !!
+  ?^  t.hits  ~|("column {<ref-name>} is ambiguous in GROUP BY" !!)
+  i.hits
+::
+++  column-name
+  ::  the name of a column reference
+  |=  c=column-ref
+  ^-  @tas
+  ?:(?=(qualified-column:ast c) name.c name.c)
+::
+++  rewrite-group-columns
+  ::  n with each column reference reading its group relation column
+  |=  $:  n=*
+          groups=(list [@tas column-ref])
+          ==
+  ^-  *
+  ?@  n  n
+  ?:  ?=([%qualified-column [%qualified-table *] @ *] n)
+    [%unqualified-column (group-column ;;(qualified-column:ast n) groups) ~]
+  ?:  ?=([%unqualified-column @ *] n)
+    [%unqualified-column (group-column ;;(unqualified-column:ast n) groups) ~]
+  [$(n -.n) $(n +.n)]
+::
+++  leading-result-tables
+  ::  the result set-tables leading the source set-tables
+  |=  set-tables=(list set-table)
+  ^-  (list set-table)
+  ?~  set-tables  ~
+  ?^  relation-id.i.set-tables  ~
+  [i.set-tables $(set-tables t.set-tables)]
+::
+++  group-rows
+  ::  the group relation of the inner query rows: a row per group of rows of
+  ::  equal group values, of the group values and the aggregate results.
+  ::  Without GROUP BY all rows, even none, are one group.
+  |=  $:  jr=join-return
+          group-names=(list @tas)
+          specs=(list aggregate-spec)
+          ==
+  ^-  join-return
+  =/  tables=(list set-table)  (leading-result-tables set-tables.jr)
+  =/  base=(unit set-table)  ?~(tables ~ `i.tables)
+  ::  each wet product typed before the next wet gate sees it
+  =/  per-table=(list (list group-row))
+    %+  turn  tables
+    |=  st=set-table
+    ^-  (list group-row)
+    =/  pairs=(list [@tas @ta])
+      (turn columns.st |=(c=column:ast [name.c type.c]))
+    =/  types=(map @tas @ta)  (malt pairs)
+    (turn indexed-rows.st |=(r=indexed-row `group-row`[types data.r]))
+  =/  rows=(list group-row)  (zing per-table)
+  =/  groups=(map (list (unit @)) [(list (unit dime)) (list group-row)])
+    %+  roll  rows
+    |=  $:  r=group-row
+            acc=(map (list (unit @)) [(list (unit dime)) (list group-row)])
+            ==
+    ^-  (map (list (unit @)) [(list (unit dime)) (list group-row)])
+    =/  values=(list (unit dime))  (turn group-names (cury row-value r))
+    =/  key=(list (unit @))
+      (turn values |=(v=(unit dime) (bind v value-key)))
+    =/  prior  (~(get by acc) key)
+    %+  ~(put by acc)  key
+    ?~(prior [values ~[r]] [-.u.prior [r +.u.prior]])
+  =?  groups  &(=(~ group-names) =(~ groups))
+    (~(put by groups) ~ [~ ~])
+  =/  out-rows=(list (list [@tas dime]))
+    %+  turn  ~(val by groups)
+    |=  [values=(list (unit dime)) members=(list group-row)]
+    ^-  (list [@tas dime])
+    =/  results=(list [@tas dime])
+      %+  murn  specs
+      |=  a=aggregate-spec
+      ^-  (unit [@tas dime])
+      =/  result  (aggregate-result a members)
+      ?~(result ~ `[name.a u.result])
+    (weld (name-values group-names values) results)
+  =/  by-type=(map (list column:ast) (list indexed-row))
+    %+  roll  out-rows
+    |=  $:  cells=(list [@tas dime])
+            acc=(map (list column:ast) (list indexed-row))
+            ==
+    ^-  (map (list column:ast) (list indexed-row))
+    =/  plain=(list column:ast)
+      (turn cells |=([n=@tas d=dime] `column:ast`[%column n p.d 0]))
+    =/  cols=(list column:ast)  (addr-columns plain)
+    =/  pairs=(list [@tas @])  (turn cells |=([n=@tas d=dime] [n q.d]))
+    =/  data=(map @tas @)  (malt pairs)
+    (~(put by acc) cols [[%indexed-row ~ data] (~(gut by acc) cols ~)])
+  =/  populated=(list set-table)
+    %+  turn  ~(tap by by-type)
+    |=  [cols=(list column:ast) r=(list indexed-row)]
+    (group-set-table base cols r)
+  =/  full=(list column:ast)
+    (addr-columns (full-group-columns tables group-names specs))
+  ::  a row type lacking a column is one of several: the full columns lead
+  =/  group-tables=(list set-table)
+    ?:  (levy populated |=(st=set-table =(columns.st full)))
+      ?^(populated populated ~[(group-set-table base full ~)])
+    [(group-set-table base full ~) populated]
+  :*  %join-return
+      server.jr
+      (weld group-tables (source-set-tables set-tables.jr))
+      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup full)]
+      ~
+  ==
+::
+++  group-set-table
+  ::  a group relation set-table, of the times of base, a source of its rows,
+  ::  as a CTE's tables carry them
+  |=  [base=(unit set-table) cols=(list column:ast) rows=(list indexed-row)]
+  ^-  set-table
+  %*  .  *set-table
+    schema-tmsp   ?~(base ~ schema-tmsp.u.base)
+    data-tmsp     ?~(base ~ data-tmsp.u.base)
+    columns       cols
+    rowcount      (lent rows)
+    map-meta      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup cols)]
+    indexed-rows  rows
+  ==
+::
+++  full-group-columns
+  ::  every group relation column, typed by the inner query column of its
+  ::  group value or aggregate argument
+  |=  $:  tables=(list set-table)
+          group-names=(list @tas)
+          specs=(list aggregate-spec)
+          ==
+  ^-  (list column:ast)
+  ::  each wet product typed before the next wet gate sees it
+  =/  per-table=(list (list column:ast))
+    (turn tables |=(st=set-table `(list column:ast)`columns.st))
+  =/  all-columns=(list column:ast)  (zing per-table)
+  =/  types=(map @tas @ta)
+    %+  roll  all-columns
+    |=  [c=column:ast acc=(map @tas @ta)]
+    ^-  (map @tas @ta)
+    ?:((~(has by acc) name.c) acc (~(put by acc) name.c type.c))
+  %+  weld
+    %+  turn  group-names
+    |=(n=@tas `column:ast`[%column n (~(gut by types) n ~.ud) 0])
+  %+  turn  specs
+  |=  a=aggregate-spec
+  ^-  column:ast
+  =/  arg=@ta  ?~(argument.a ~.ud (~(gut by types) u.argument.a ~.ud))
+  [%column name.a (aggregate-aura function.a arg) 0]
+::
+++  row-value
+  |=  [r=group-row name=@tas]
+  ^-  (unit dime)
+  =/  v  (~(get by data.r) name)
+  ?~  v  ~
+  `[(~(got by types.r) name) u.v]
+::
+++  value-key
+  ::  an atom equal for equal values: numbers across number systems
+  |=  d=dime
+  ^-  @
+  ?.  (number-aura p.d)  q.d
+  (number-key p.d q.d)
+::
+++  name-values
+  ::  the present values of names
+  |=  [names=(list @tas) values=(list (unit dime))]
+  ^-  (list [@tas dime])
+  ?~  names  ~
+  ?~  values  ~
+  =/  rest  $(names t.names, values t.values)
+  ?~(i.values rest [[i.names u.i.values] rest])
+::
+++  distinct-values
+  ::  values without repeats, the first of equal values kept
+  |=  values=(list dime)
+  ^-  (list dime)
+  =/  seen  *(set @)
+  |-  ^-  (list dime)
+  ?~  values  ~
+  =/  key  (value-key i.values)
+  ?:  (~(has in seen) key)  $(values t.values)
+  [i.values $(values t.values, seen (~(put in seen) key))]
+::
+++  aggregate-aura
+  ::  the aura of aggregate function fn of values of aura arg
+  |=  [fn=aggregate-function:ast arg=@ta]
+  ^-  @ta
+  ?-  fn
+    %count                             ~.ud
+    ?(%bool-and %bool-or)              ~.f
+    ?(%max %min)                       arg
+    %sum                               (base-aura arg)
+    ?(%avg %stdev %stdevp %var %varp)  (fall (common-aura arg ~.rd) ~.rd)
+  ==
+::
+++  aggregate-result
+  ::  aggregate a over the rows of a group; ~ when it does not exist
+  |=  [a=aggregate-spec rows=(list group-row)]
+  ^-  (unit dime)
+  =/  values=(list dime)
+    ?~  argument.a  ~
+    (murn rows (curr row-value u.argument.a))
+  =?  values  distinct.a  (distinct-values values)
+  ?:  ?=(%count function.a)
+    `[~.ud ?~(argument.a (lent rows) (lent values))]
+  ?~  values  ~
+  =/  label=tape  (cuss (trip function.a))
+  ::  the common aura of the values
+  =/  typ=@ta
+    =/  rest=(list dime)  t.values
+    =/  acc=@ta  p.i.values
+    |-  ^-  @ta
+    ?~  rest  acc
+    =/  common  (common-aura acc p.i.rest)
+    ?~  common
+      ~|("{label}: values of @{(trip acc)} and @{(trip p.i.rest)}" !!)
+    $(rest t.rest, acc u.common)
+  ?:  ?=(?(%bool-and %bool-or) function.a)
+    ?.  =(~.f typ)
+      ~|("{label}: requires a loobean argument, not @{(trip typ)}" !!)
+    =/  yes  |=(d=dime =(%.y q.d))
+    :+  ~  ~.f
+    ::  widen: values is narrowed non-empty, which the wet gates recurse on
+    ?:  ?=(%bool-and function.a)  (levy `(list dime)`values yes)
+    (lien `(list dime)`values yes)
+  ?:  ?=(?(%max %min) function.a)
+    =/  rest=(list @)
+      (turn `(list dime)`values |=(d=dime (convert-number p.d typ q.d)))
+    =/  best=(unit @)  ~
+    |-  ^-  (unit dime)
+    ?~  rest  ?~(best ~ `[typ u.best])
+    ?~  best  $(rest t.rest, best `i.rest)
+    =/  before=?
+      ?:  ?=(%min function.a)  (order-atom typ i.rest u.best)
+      (order-atom typ u.best i.rest)
+    $(rest t.rest, best ?:(before `i.rest best))
+  ?.  (number-aura typ)
+    ~|("{label}: requires a numeric argument, not @{(trip typ)}" !!)
+  ?:  ?=(%sum function.a)
+    =/  res=@ta  (base-aura typ)
+    =/  plus  (arithmetic-gate %lus res res res)
+    =/  xs=(list @)
+      (turn `(list dime)`values |=(d=dime (convert-number p.d res q.d)))
+    `[res (roll xs |=([v=@ acc=@] ^-(@ (plus acc v))))]
+  ::  AVG, STDEV, STDEVP, VAR, VARP compute in a float of at least @rd
+  =/  float=@ta  (fall (common-aura typ ~.rd) ~.rd)
+  ?>  ?=(float-systems:ast float)
+  =/  fo  (get-float-ops float)
+  =/  xs=(list @)
+    (turn `(list dime)`values |=(d=dime (convert-number p.d float q.d)))
+  =/  n=@ud  (lent xs)
+  =/  mean=@  (div.fo (roll xs |=([v=@ acc=@] (add.fo acc v))) (sun.fo n))
+  ?:  ?=(%avg function.a)  `[float mean]
+  =/  sample=?  ?=(?(%stdev %var) function.a)
+  ?:  &(sample (lth n 2))  ~
+  =/  squares=@
+    %+  roll  xs
+    |=  [v=@ acc=@]
+    =/  d  (sub.fo v mean)
+    (add.fo acc (mul.fo d d))
+  =/  variance=@  (div.fo squares (sun.fo ?:(sample (dec n) n)))
+  ?:  ?=(?(%var %varp) function.a)  `[float variance]
+  `[float (sqt.fo variance)]
+::
+++  select-joined
+  ::  Filter and project joined rows into a result set-table.
   ::
-  =/  selected          (normalize-selected columns.select.q)
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return)
+  ::  prune is given for the rows of one row type of several: the presence
+  ::  of values, by the scalars absent, and the relations present (~ for a
+  ::  single source).  Values absent from the row type are pruned from the
+  ::  query first.  Produces ~ when no selected value is present.
+  |=  $:  q=query:ast
+          =named-ctes
+          jr=join-return
+          prune=(unit row-type-prune)
+          ==
+  ^-  (unit join-return)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
+  =/  selected
+    %+  qualify-unqualified  (normalize-selected columns.select.q)
+                             qualifier-lookup
+  =/  predicate=predicate:ast
+    ?~  predicate.q  ~
+    (normalize-predicate predicate.q qualifier-lookup)
+  =/  pruned=[(list scalar:ast) predicate:ast (list selected-column:ast)]
+    ?~  prune  [scalars.q predicate selected]
+    (prune-query u.prune scalars.q predicate selected)
+  ::  a row type holding only hidden ORDER BY values has no selected value
+  ?:  (levy +>.pruned is-order-by-selected)  ~
   =/  resolved-scalars
-        %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+        %:  resolve-query-scalars(state state, bowl bowl)  -.pruned
                                                            named-ctes
                                                            qualifier-lookup
-                                                           map-meta.join-return
+                                                           map-meta.jr
                                                            ==
-  =.  selected          (qualify-unqualified selected qualifier-lookup)
-  ::
-  =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
-                                    :-  ~
-                                        %:  prepare-predicate
-                                              %+  normalize-predicate
-                                                  predicate.q
-                                                  qualifier-lookup
-                                              map-meta.join-return
-                                              qualifier-lookup
-                                              named-ctes
-                                              resolved-scalars
-                                              ==
-  ?~  set-tables.join-return  join-return
-  =.  joined-rows.i.set-tables.join-return
-    %+  skim  joined-rows.i.set-tables.join-return
+  =/  filter=(unit $-(data-row ?))
+    ?~  +<.pruned  ~
+    :-  ~
+    %:  prepare-predicate  +<.pruned
+                           map-meta.jr
+                           qualifier-lookup
+                           named-ctes
+                           resolved-scalars
+                           ==
+  ?~  set-tables.jr  `jr
+  =.  joined-rows.i.set-tables.jr
+    %+  skim  joined-rows.i.set-tables.jr
               |=(a=joined-row ?~(filter %.y ((need filter) a)))
-  (mk-query-result selected named-ctes join-return %.y resolved-scalars)
+  `(mk-query-result +>.pruned named-ctes jr %.y resolved-scalars)
+::
+::  +|  row types
+::
+::  A query's rows are of several row types when it has an outer join (a row
+::  that matched nothing lacks the relations it did not match) or a source
+::  is a CTE of several row types.  Each row type runs the query against
+::  its own rows, with the values absent from it pruned from the query:
+::  every other part of the engine then sees one row type with a fixed
+::  shape, addressed as before.  The result holds one result set-table per
+::  row type.
+::
+++  query-row-types
+  ::  %.y when a query's rows may be of several row types
+  |=  [f=from:ast =named-ctes]
+  ^-  ?
+  ?|  %+  lien  joins.f
+      |=  j=joined-relation:ast
+      ?=(?(%left-join %right-join %outer-join) join-type.j)
+    ::
+      (cte-row-types relation-id.f named-ctes)
+    ::
+      %+  lien  joins.f
+      |=(j=joined-relation:ast (cte-row-types relation-id.j named-ctes))
+  ==
+::
+++  cte-row-types
+  ::  %.y when a relation is a CTE of several row types
+  |=  [rel=relation-id:ast =named-ctes]
+  ^-  ?
+  =/  tables  (cte-result-tables rel named-ctes)
+  ?~  tables  %.n
+  (lien t.tables |=(st=set-table !=(columns.st columns.i.tables)))
+::
+++  cte-result-tables
+  ::  the result set-tables of a CTE, which precede its source set-tables;
+  ::  ~ when rel is not a CTE
+  |=  [rel=relation-id:ast =named-ctes]
+  ^-  (list set-table)
+  ?.  ?=(%cte-name -.rel)  ~
+  =/  cte-fr  (~(get by named-ctes) name.rel)
+  ?~  cte-fr  ~
+  =/  tables  set-tables.u.cte-fr
+  |-  ^-  (list set-table)
+  ?~  tables  ~
+  ?^  relation-id.i.tables  ~
+  [i.tables $(tables t.tables)]
+::
+++  do-row-type-query
+  |=  [q=query:ast f=from:ast =named-ctes]
+  ^-  join-return
+  ?~  joins.f  (cte-row-type-query q f named-ctes)
+  =/  jr=join-return
+    (join-all(state state, bowl bowl, hidden hidden) q named-ctes)
+  =.  state  server.jr
+  ?~  set-tables.jr  ~|("do-row-type-query can't get here" !!)
+  =/  joined=set-table  i.set-tables.jr
+  =/  all-pairs=(list [qualified-table:ast @tas])
+    %+  turn  column-metas.jr
+    |=  cm=column-meta
+    ^-  [qualified-table:ast @tas]
+    :-  (normalize-qt-alias qualifier.qualified-column.cm)
+        name.qualified-column.cm
+  =/  all=(set [qualified-table:ast @tas])  (silt all-pairs)
+  =/  lookup=qualifier-lookup  (mk-qualifier-lookup set-tables.jr)
+  =/  types=(jar (set [qualified-table:ast @tas]) joined-row)
+    %+  roll  joined-rows.joined
+    |=  $:  r=joined-row
+            acc=(jar (set [qualified-table:ast @tas]) joined-row)
+            ==
+    (~(add ja acc) (joined-row-shape r) r)
+  =/  results=(list join-return)
+    %+  murn  ~(tap by types)
+    |=  [here=(set [qualified-table:ast @tas]) rows=(list joined-row)]
+    ^-  (unit join-return)
+    =/  here-list=(list [qualified-table:ast @tas])  ~(tap in here)
+    =/  qts=(list qualified-table:ast)
+      (turn here-list |=([qt=qualified-table:ast @tas] qt))
+    =/  tables=(set qualified-table:ast)  (silt qts)
+    %:  select-joined  q
+                       named-ctes
+                       (row-type-join-return jr here (flop rows))
+                       `[%.n [all here lookup] `tables]
+                       ==
+  ?~  results
+    ::  no row has a selected value present: an empty result
+    =.  set-tables.jr  [joined(joined-rows ~, rowcount 0) t.set-tables.jr]
+    (need (select-joined q named-ctes jr ~))
+  (row-type-results results)
+::
+++  cte-row-type-query
+  ::  a query of a CTE of several row types, without joins: each row type
+  ::  runs the query against a CTE of its own rows
+  |=  [q=query:ast f=from:ast =named-ctes]
+  ^-  join-return
+  =/  rel  relation-id.f
+  ?>  ?=(%cte-name -.rel)
+  =/  cte-fr  (~(got by named-ctes) name.rel)
+  =/  tables  (cte-result-tables rel named-ctes)
+  ?~  tables  ~|("cte-row-type-query can't get here" !!)
+  =/  sources=(list set-table)  (source-set-tables set-tables.cte-fr)
+  =/  types=(map (list column:ast) (list indexed-row))
+    %+  roll  `(list set-table)`tables
+    |=  [st=set-table acc=(map (list column:ast) (list indexed-row))]
+    %+  ~(put by acc)  columns.st
+    (weld (~(gut by acc) columns.st ~) indexed-rows.st)
+  =/  type-cols=(list (list column:ast))  ~(tap in ~(key by types))
+  =/  all-cols=(list column:ast)  (zing type-cols)
+  =/  all-pairs=(list [qualified-table:ast @tas])
+    (turn all-cols |=(c=column:ast [*qualified-table:ast name.c]))
+  =/  all=(set [qualified-table:ast @tas])  (silt all-pairs)
+  =/  results=(list join-return)
+    %+  murn  ~(tap by types)
+    |=  [cols=(list column:ast) rows=(list indexed-row)]
+    ^-  (unit join-return)
+    =/  here-pairs=(list [qualified-table:ast @tas])
+      (turn cols |=(c=column:ast [*qualified-table:ast name.c]))
+    =/  here=(set [qualified-table:ast @tas])  (silt here-pairs)
+    =/  pruned
+      %:  prune-query  [%.y [all here *qualifier-lookup] ~]
+                       scalars.q
+                       predicate.q
+                       columns.select.q
+                       ==
+    ?:  (levy +>.pruned is-order-by-selected)  ~
+    =/  st=set-table
+      %=  i.tables
+        columns       cols
+        indexed-rows  rows
+        rowcount      (lent rows)
+      ==
+    =/  type-cte=full-relation
+      %+  set-query-cte-relation  name.rel
+      [%join-return state [st sources] *map-meta ~]
+    =/  type-q=query:ast
+      q(scalars -.pruned, predicate +<.pruned, columns.select +>.pruned)
+    `(do-query type-q (~(put by named-ctes) name.rel type-cte) %.n)
+  ?^  results  (row-type-results results)
+  ::  no row has a selected value present: an empty result
+  =/  empty=set-table  i.tables(indexed-rows ~, rowcount 0)
+  [%join-return state [empty sources] map-meta.cte-fr column-metas.cte-fr]
+::
+++  row-type-results
+  ::  one join-return of the results of several row types
+  |=  results=(list join-return)
+  ^-  join-return
+  ?~  results  ~|("row-type-results can't get here" !!)
+  =/  heads=(list set-table)
+    %+  murn  `(list join-return)`results
+    |=(r=join-return ?~(set-tables.r ~ `i.set-tables.r))
+  i.results(set-tables (weld heads (source-set-tables set-tables.i.results)))
+::
+++  joined-row-shape
+  ::  the row type of a joined row: the columns of its relations
+  |=  row=joined-row
+  ^-  (set [qualified-table:ast @tas])
+  %+  roll  ~(tap by data.row)
+  |=  $:  [qt=qualified-table:ast cols=(map @tas @)]
+          shape=(set [qualified-table:ast @tas])
+          ==
+  ^-  (set [qualified-table:ast @tas])
+  =/  nqt  (normalize-qt-alias qt)
+  =/  names=(list @tas)  ~(tap in ~(key by cols))
+  =/  pairs=(list [qualified-table:ast @tas])
+    (turn names |=(c=@tas [nqt c]))
+  (~(gas in shape) pairs)
+::
+++  row-type-join-return
+  ::  the join-return of the joined rows of one row type, addressed by it
+  |=  $:  jr=join-return
+          here=(set [qualified-table:ast @tas])
+          rows=(list joined-row)
+          ==
+  ^-  join-return
+  ?~  set-tables.jr  ~|("row-type-join-return can't get here" !!)
+  ?~  rows  ~|("row-type-join-return can't get here" !!)
+  =/  metas=(list column-meta)
+    %+  murn  column-metas.jr
+    |=  cm=column-meta
+    ^-  (unit column-meta)
+    =/  qt    qualifier.qualified-column.cm
+    =/  name  name.qualified-column.cm
+    ?.  (~(has in here) [(normalize-qt-alias qt) name])  ~
+    `cm(addr (calc-joined-addr data.i.rows qt name))
+  =/  =map-meta
+    :-  %qualified-map-meta
+    %+  roll  metas
+    |=  [cm=column-meta mm=(mip:mip qualifier @tas typ-addr)]
+    %^  ~(put bi:mip mm)  qualifier.qualified-column.cm
+                          name.qualified-column.cm
+                          [type.cm addr.cm]
+  =/  joined=set-table  i.set-tables.jr
+  :*  %join-return
+      server.jr
+      [joined(joined-rows rows, rowcount (lent rows)) t.set-tables.jr]
+      map-meta
+      metas
+      ==
+::
+++  row-presence
+  ::  The presence in a row type of a datum: [~ %.y] present, [~ %.n] a
+  ::  value of the query absent from the row type, ~ not a column or scalar.
+  ::  Crashes on a column of no relation of the query.  by-name matches
+  ::  columns by name alone, for a single source.
+  |=  $:  by-name=?
+          all=(set [qualified-table:ast @tas])
+          here=(set [qualified-table:ast @tas])
+          lookup=qualifier-lookup
+          absent-scalars=(set @tas)
+          ==
+  |=  d=*
+  ^-  (unit ?)
+  ?:  ?=(scalar-name:ast d)  `!(~(has in absent-scalars) name.d)
+  =/  key=(unit [qualified-table:ast @tas])
+    ?:  ?=(qualified-column:ast d)
+      ?:  by-name  `[*qualified-table:ast name.d]
+      `[(normalize-qt-alias qualifier.d) name.d]
+    ?.  ?=(unqualified-column:ast d)  ~
+    ?:  by-name  `[*qualified-table:ast name.d]
+    =/  qts  (~(gut by lookup) name.d ~)
+    ?~  qts  ~|("column {<name.d>} does not exist" !!)
+    `[(normalize-qt-alias i.qts) name.d]
+  ?~  key  ~
+  ?:  (~(has in here) u.key)  `%.y
+  ?:  (~(has in all) u.key)  `%.n
+  ~|("column {<+.u.key>} does not exist" !!)
+::
+++  prune-query
+  ::  Remove from a query's scalars, predicate, and selected columns the
+  ::  values absent from a row type.
+  |=  $:  prune=row-type-prune
+          scalars=(list scalar:ast)
+          =predicate:ast
+          selected=(list selected-column:ast)
+          ==
+  ^-  [(list scalar:ast) predicate:ast (list selected-column:ast)]
+  =/  presence
+    |=  absent=(set @tas)
+    %:  row-presence  by-name.prune
+                      all.shape.prune
+                      here.shape.prune
+                      lookup.shape.prune
+                      absent
+                      ==
+  =/  kept=[(list scalar:ast) (set @tas)]  (prune-scalars scalars presence)
+  =/  present=$-(* (unit ?))  (presence +.kept)
+  :+  -.kept
+      (prune-predicate predicate present)
+      (prune-selected selected present tables.prune)
+::
+++  true-predicate   `predicate:ast`[%eq [[%ud 1] ~ ~] [[%ud 1] ~ ~]]
+++  false-predicate  `predicate:ast`[%eq [[%ud 0] ~ ~] [[%ud 1] ~ ~]]
+::
+++  prune-predicate
+  ::  Settle each predicate leaf over a value absent from a row type: a
+  ::  comparison with an absent operand is false, EXISTS is constant, and
+  ::  EQUIV of two absent operands is true.  EQUIV of present operands is =.
+  |=  [p=predicate:ast present=$-(* (unit ?))]
+  ^-  predicate:ast
+  ?~  p  ~
+  =/  operand
+    |=  t=predicate:ast
+    ^-  (unit ?)
+    ?~  t  ~
+    (present n.t)
+  ?+  n.p  p
+    ?(%and %or)  [n.p $(p l.p) $(p r.p)]
+    %not         [%not $(p l.p) ~]
+  ::
+    ?(%exists %not-exists)
+      =/  d  (operand l.p)
+      ?~  d  p
+      ?:  =(u.d =(%exists n.p))  true-predicate
+      false-predicate
+  ::
+    ?(%equiv %not-equiv)
+      =/  l  (operand l.p)
+      =/  r  (operand r.p)
+      ?:  &(!=([~ %.n] l) !=([~ %.n] r))
+        ?:  =(%equiv n.p)  [%eq l.p r.p]
+        [%not [%eq l.p r.p] ~]
+      =/  equiv=?  &(=([~ %.n] l) =([~ %.n] r))
+      ?:  =(equiv =(%equiv n.p))  true-predicate
+      false-predicate
+  ::
+    ?(%between %not-between %eq %neq %gt %gte %lt %lte %in %not-in)
+      ?:  (predicate-absent p present)  false-predicate
+      p
+  ==
+::
+++  predicate-absent
+  ::  %.y when any datum of a predicate is absent
+  |=  [p=predicate:ast present=$-(* (unit ?))]
+  ^-  ?
+  ?~  p  %.n
+  ?|  =([~ %.n] (present n.p))
+      $(p l.p)
+      $(p r.p)
+  ==
+::
+++  prune-scalars
+  ::  Drop the scalars absent from a row type, in order, so a scalar of an
+  ::  absent scalar is absent; produce the names of those dropped.
+  |=  $:  scalars=(list scalar:ast)
+          presence=$-((set @tas) $-(* (unit ?)))
+          ==
+  ^-  [(list scalar:ast) (set @tas)]
+  =/  absent  *(set @tas)
+  =/  out  *(list scalar:ast)
+  |-
+  ?~  scalars  [(flop out) absent]
+  =/  f  (prune-scalar-node f.i.scalars (presence absent))
+  ?~  f
+    $(scalars t.scalars, absent (~(put in absent) name.i.scalars))
+  %=  $
+    scalars  t.scalars
+    out      [i.scalars(f ;;(scalar-function:ast u.f)) out]
+  ==
+::
+++  prune-scalar-node
+  ::  A scalar node is absent when any value it uses is absent, except that
+  ::  COALESCE keeps its present arguments and is absent only when all are.
+  ::  IF and CASE conditions are pruned as predicates.
+  |=  [n=* present=$-(* (unit ?))]
+  ^-  (unit *)
+  ?@  n  `n
+  =/  d  (present n)
+  ?^  d  ?:(u.d `n ~)
+  ::  test the tag alone: the node types are recursive
+  ?:  ?=([%coalesce *] n)
+    =/  c  ;;(coalesce:ast n)
+    =/  kept=(list *)
+      (murn `(list *)`data.c |=(a=* (prune-scalar-node a present)))
+    ?~  kept  ~
+    `[%coalesce kept]
+  ?:  ?=([%if-then-else *] n)
+    =/  c  ;;(if-then-else:ast n)
+    =/  then  $(n then.c)
+    ?~  then  ~
+    =/  else  $(n else.c)
+    ?~  else  ~
+    `[%if-then-else (prune-predicate if.c present) u.then u.else]
+  ?:  ?=([%case *] n)
+    =/  c  ;;(case:ast n)
+    =/  target=(unit (unit *))
+      ?~  target.c  `~
+      =/  t  $(n u.target.c)
+      ?~  t  ~
+      ``u.t
+    ?~  target  ~
+    =/  else=(unit (unit *))
+      ?~  else.c  `~
+      =/  e  $(n u.else.c)
+      ?~  e  ~
+      ``u.e
+    ?~  else  ~
+    =/  cases=(unit (list *))
+      =/  rest=(list case-when-then:ast)  cases.c
+      =|  out=(list *)
+      |-  ^-  (unit (list *))
+      ?~  rest  `(flop out)
+      =/  then  (prune-scalar-node then.i.rest present)
+      ?~  then  ~
+      =/  when=(unit *)
+        ?~  target.c
+          `(prune-predicate ;;(predicate:ast when.i.rest) present)
+        (prune-scalar-node when.i.rest present)
+      ?~  when  ~
+      $(rest t.rest, out [[%case-when-then u.when u.then] out])
+    ?~  cases  ~
+    `[%case u.target u.cases u.else]
+  =/  h  $(n -.n)
+  ?~  h  ~
+  =/  t  $(n +.n)
+  ?~  t  ~
+  `[u.h u.t]
+::
+++  prune-selected
+  ::  drop the selected columns and scalars absent from a row type, and the
+  ::  <alias>.* of relations absent from it
+  |=  $:  selected=(list selected-column:ast)
+          present=$-(* (unit ?))
+          tables=(unit (set qualified-table:ast))
+          ==
+  ^-  (list selected-column:ast)
+  %+  skim  selected
+  |=  s=selected-column:ast
+  ?:  ?=(selected-scalar:ast s)
+    !=([~ %.n] (present [%scalar-name name.s]))
+  ?:  ?=(selected-all-table:ast s)
+    ?~  tables  %.y
+    (~(has in u.tables) (normalize-qt-alias qualified-table.s))
+  !=([~ %.n] (present s))
 ::
 ++  do-set-query
+  ::  Apply set operations left to right.  The running rows carry their row
+  ::  type; out-cols is the running output row type, which division changes.
   |=  [sq=set-query:ast =named-ctes]
   ^-  join-return
-  =/  head-jr
-    %-  project-set-query-operand
-    [head.sq named-ctes (do-query head.sq named-ctes %.n)]
+  =/  last=query:ast  (last-set-query sq)
+  ?^  top.select.last
+    ~|("TOP is not allowed on the last query of a set operation" !!)
+  =/  head-jr  (set-query-operand head.sq named-ctes)
   ?~  set-tables.head-jr          ~|("do-set-query can't get here" !!)
   =.  state                       server.head-jr
   =/  result-st=set-table         i.set-tables.head-jr
   =/  out-cols=(list column:ast)  columns.result-st
   =/  has-union                   (set-query-has-union sq)
   =.  out-cols                    ?:  has-union
-                                    (check-union-output-names out-cols)
+                                    (check-output-names "UNION" out-cols)
                                   out-cols
-  =/  out-metas  %+  turn  out-cols
-                           |=  c=column:ast
-                           :+  [%qualified-column *qualified-table:ast name.c ~]
-                               type.c
-                               addr.c
-  =/  rows=(set [(list column:ast) indexed-row])
-    (indexed-rows-to-set-op-rows out-cols indexed-rows.result-st)
+  =/  rows=(set set-op-row)
+    (set-op-operand-rows set-tables.head-jr)
   =/  sources=(list set-table)  (source-set-tables set-tables.head-jr)
   =/  rest                      tail.sq
   |-
   ?~  rest
     =/  result-tables
       (set-op-result-tables result-st out-cols ~(tap in rows))
+    =/  out-metas
+      %+  turn  out-cols
+      |=  c=column:ast
+      [[%qualified-column *qualified-table:ast name.c ~] type.c addr.c]
     :*  %join-return
         state
         (weld result-tables sources)
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
         out-metas
         ==
-  =/  next-jr
-    %-  project-set-query-operand
-    [query.i.rest named-ctes (do-query query.i.rest named-ctes %.n)]
+  =/  next-jr  (set-query-operand query.i.rest named-ctes)
   ?~  set-tables.next-jr          ~|("do-set-query can't get here" !!)
-  =/  next-st=set-table           i.set-tables.next-jr
   =.  state                       server.next-jr
-  =/  next-cols=(list column:ast)  columns.next-st
-  =.  next-cols  ?:  has-union  (check-union-output-names next-cols)
+  =/  next-cols=(list column:ast)  columns.i.set-tables.next-jr
+  =.  next-cols  ?:  has-union  (check-output-names "UNION" next-cols)
                  next-cols
+  =/  applied
+    %:  apply-row-set-op  op.i.rest
+                          out-cols
+                          rows
+                          next-cols
+                          (set-op-operand-rows set-tables.next-jr)
+                          ==
   %=  $
-    rows
-      %-  apply-row-set-op
-          :*  op.i.rest
-              rows
-              (indexed-rows-to-set-op-rows next-cols indexed-rows.next-st)
-              ==
-    sources  (weld sources (source-set-tables set-tables.next-jr))
-    rest     t.rest
+    out-cols  -.applied
+    rows      +.applied
+    sources   (weld sources (source-set-tables set-tables.next-jr))
+    rest      t.rest
   ==
 ::
 ++  source-set-tables
@@ -1042,7 +2374,12 @@
   ^-  join-return
   ?~  from.q
     jr
+  ::  a grouped query is projected by +do-grouped-query
+  ?:  (grouped-query q)  jr
   =/  f  (normalize-from u.from.q)
+  ::  rows of several row types are projected per row type by +do-query
+  ?:  (query-row-types f named-ctes)
+    jr
   ?^  joins.f
     jr
   =/  selected  (normalize-selected columns.select.q)
@@ -1070,15 +2407,17 @@
     $(selected t.selected)
   %.n
 ::
-++  check-union-output-names
-  |=  columns=(list column:ast)
+++  check-output-names
+  ::  Crash on a duplicate output column name.  label names the set
+  ::  operation requiring unique names.
+  |=  [label=tape columns=(list column:ast)]
   ^-  (list column:ast)
   =/  seen  *(map @tas ~)
   =/  all-columns  columns
   |-
   ?~  columns  all-columns
   ?:  (~(has by seen) name.i.columns)
-    ~|  "SET-QUERY UNION: duplicate output column ".
+    ~|  "SET-QUERY {label}: duplicate output column ".
         "{<name.i.columns>} in SELECT"
         !!
   %=  $
@@ -1086,37 +2425,249 @@
     seen     (~(put by seen) name.i.columns ~)
   ==
 ::
-++  indexed-rows-to-set-op-rows
-  |=  [columns=(list column:ast) rows=(list indexed-row)]
-  ^-  (set [(list column:ast) indexed-row])
-  %-  ~(gas in *(set [(list column:ast) indexed-row]))
-  %+  turn  rows
-  |=  row=indexed-row
-  [columns row]
+++  set-op-operand-rows
+  ::  Rows of a set operation operand, identified by row type and data.
+  ::
+  ::  The operand's result set-tables precede its source set-tables.
+  ::  Primary keys are dropped, and data is reduced to the row type's columns
+  ::  (a CTE row keeps its source columns): equal column values from
+  ::  different source rows are one row.
+  |=  set-tables=(list set-table)
+  ^-  (set set-op-row)
+  =/  rows  *(set set-op-row)
+  |-
+  ?~  set-tables  rows
+  ?^  relation-id.i.set-tables  rows
+  =/  cols=(list column:ast)  columns.i.set-tables
+  ::  data keys of cols; a repeated name is keyed as in +materialize-cte-row
+  =/  keys=(list @tas)
+    =/  counts  *(map @tas @ud)
+    =/  remaining  cols
+    |-  ^-  (list @tas)
+    ?~  remaining  ~
+    =/  count  (~(gut by counts) name.i.remaining 0)
+    :-  (output-cell-key name.i.remaining count)
+    %=  $
+      remaining  t.remaining
+      counts     (~(put by counts) name.i.remaining +(count))
+    ==
+  =/  width  (lent keys)
+  %=  $
+    set-tables  t.set-tables
+    rows
+      %-  ~(gas in rows)
+      %+  turn  indexed-rows.i.set-tables
+      |=  row=indexed-row
+      ^-  set-op-row
+      ?:  =(width ~(wyt by data.row))
+        [cols row(key ~)]
+      =/  data=(map @tas @)
+        %-  malt
+        %+  murn  keys
+        |=  key=@tas
+        ^-  (unit [@tas @])
+        =/  value  (~(get by data.row) key)
+        ?~  value  ~
+        `[key u.value]
+      [cols [%indexed-row ~ data]]
+  ==
 ::
 ++  apply-row-set-op
+  ::  Apply one set operation to the running left rows and the right operand
+  ::  rows, producing the output row type and rows.  Only division changes
+  ::  the output row type.
   |=  $:  op=set-op:ast
-          left=(set [(list column:ast) indexed-row])
-          right=(set [(list column:ast) indexed-row])
+          left-cols=(list column:ast)
+          left=(set set-op-row)
+          right-cols=(list column:ast)
+          right=(set set-op-row)
           ==
-  ^-  (set [(list column:ast) indexed-row])
+  ^-  [(list column:ast) (set set-op-row)]
   ?-  op
-    %union
-      (~(uni in left) right)
-    %except
-      (~(dif in left) right)
-    %intersect
-      (~(int in left) right)
-    %divided-by
-      ~|("SET-QUERY DIVIDED BY execution not yet implemented" !!)
-    %divide-with-remainder
-      ~|("SET-QUERY DIVIDE WITH REMAINDER execution not yet implemented" !!)
+    %union                  [left-cols (~(uni in left) right)]
+    %except                 [left-cols (~(dif in left) right)]
+    %intersect              [left-cols (~(int in left) right)]
+    %divided-by             (divide-rows %.n left-cols left right-cols right)
+    %divide-with-remainder  (divide-rows %.y left-cols left right-cols right)
   ==
+::
+++  divide-rows
+  ::  Relational division of dividend rows by divisor rows.
+  ::
+  ::  Each dividend row type is divided by each divisor row type whose column
+  ::  names it contains, columns matched by name and aura.  The quotient
+  ::  columns are the remaining dividend columns, in dividend order.  An
+  ::  empty operand has one row type, its SELECT output.
+  ::
+  ::  remainder=%.n is exact division, DIVIDED BY: a quotient row is paired
+  ::  with every divisor row and nothing else.  remainder=%.y is DIVIDED BY
+  ::  WITH REMAINDER: other pairings are allowed.
+  ::
+  ::  Returns the output row type, which is the quotient of the left row type
+  ::  when the dividend has one, and the quotient rows.
+  |=  $:  remainder=?
+          dividend-cols=(list column:ast)
+          dividend=(set set-op-row)
+          divisor-cols=(list column:ast)
+          divisor=(set set-op-row)
+          ==
+  ^-  [(list column:ast) (set set-op-row)]
+  =/  label=tape  ?:(remainder "DIVIDED BY WITH REMAINDER" "DIVIDED BY")
+  =/  dividend-types  (row-types label dividend-cols dividend)
+  =/  divisor-types   (row-types label divisor-cols divisor)
+  =/  dividend-heads=(list (list column:ast))
+    ~(tap in ~(key by dividend-types))
+  =/  divisor-heads=(list (list column:ast))
+    ~(tap in ~(key by divisor-types))
+  =/  lost=(list (list column:ast))
+    %+  skip  divisor-heads
+    |=(s=(list column:ast) (lien dividend-heads (cury names-within s)))
+  ?^  lost
+    ~|  "SET-QUERY {label}: divisor columns {<(column-names i.lost)>} ".
+        "not in dividend"
+        !!
+  =/  pairs=(list [t=(list column:ast) s=(list column:ast)])
+    %-  zing
+    %+  turn  dividend-heads
+    |=  t=(list column:ast)
+    ^-  (list [t=(list column:ast) s=(list column:ast)])
+    =/  divisors=(list (list column:ast))
+      (skim divisor-heads (curr names-within t))
+    ?~  divisors
+      ~|  "SET-QUERY {label}: no divisor for dividend columns ".
+          "{<(column-names t)>}"
+          !!
+    =/  t-pairs=(list [t=(list column:ast) s=(list column:ast)])
+      (turn `(list (list column:ast))`divisors (lead t))
+    t-pairs
+  %+  roll  pairs
+  |=  $:  pair=[t=(list column:ast) s=(list column:ast)]
+          out=[cols=(list column:ast) rows=(set set-op-row)]
+          ==
+  ^-  [cols=(list column:ast) rows=(set set-op-row)]
+  =/  quotient
+    %:  divide-row-type  label
+                         remainder
+                         t.pair
+                         (~(get ja dividend-types) t.pair)
+                         s.pair
+                         (~(get ja divisor-types) s.pair)
+                         ==
+  :-  ?:(|(=(~ cols.out) =(t.pair dividend-cols)) -.quotient cols.out)
+      (~(uni in rows.out) +.quotient)
+::
+++  divide-row-type
+  ::  Divide the rows of dividend row type t by the rows of divisor row type
+  ::  s, whose column names are all in t.
+  ::
+  ::  One pass over the dividend counts, per quotient row, the divisor rows it
+  ::  is paired with and whether it is paired with anything else.  Dividend
+  ::  rows are distinct and t is the quotient columns plus s, so a pairing is
+  ::  counted once.  An empty divisor needs no special case: under exact
+  ::  division every quotient row has an extra pairing; with remainder every
+  ::  quotient row is paired with all zero divisor rows.
+  ::
+  ::  O(n log n) in dividend and divisor rows; no cross product.
+  |=  $:  label=tape
+          remainder=?
+          t=(list column:ast)
+          dividend=(list (map @tas @))
+          s=(list column:ast)
+          divisor=(list (map @tas @))
+          ==
+  ^-  [(list column:ast) (set set-op-row)]
+  =/  mismatched=(list column:ast)
+    %+  skip  s
+    |=  c=column:ast
+    (lien t |=(d=column:ast &(=(name.c name.d) =(type.c type.d))))
+  ?^  mismatched
+    =/  found=(list column:ast)
+      (skim t |=(d=column:ast =(name.i.mismatched name.d)))
+    ?>  ?=(^ found)
+    ~|  "SET-QUERY {label}: column {<name.i.mismatched>} is ".
+        "@{(trip type.i.mismatched)} in divisor, ".
+        "@{(trip type.i.found)} in dividend"
+        !!
+  =/  quotient-cols=(list column:ast)
+    (skip t |=(c=column:ast (lien s |=(d=column:ast =(name.c name.d)))))
+  ?~  quotient-cols
+    ~|  "SET-QUERY {label}: divisor columns {<(column-names s)>} ".
+        "leave no quotient columns"
+        !!
+  =/  divisor-keys=(set (list @))  (silt (turn divisor (cury row-values s)))
+  =/  needed=@ud  ~(wyt in divisor-keys)
+  =/  counts=(map (list @) [data=(map @tas @) hits=@ud extra=?])
+    %+  roll  dividend
+    |=  $:  data=(map @tas @)
+            acc=(map (list @) [data=(map @tas @) hits=@ud extra=?])
+            ==
+    =/  quotient-key=(list @)  (row-values quotient-cols data)
+    =/  hit=?  (~(has in divisor-keys) (row-values s data))
+    =/  prior  (~(get by acc) quotient-key)
+    %+  ~(put by acc)  quotient-key
+    ?~  prior
+      =/  quotient-data=(map @tas @)
+        %-  malt
+        %+  turn  `(list column:ast)`quotient-cols
+        |=(c=column:ast [name.c (~(got by data) name.c)])
+      [quotient-data ?:(hit 1 0) !hit]
+    :+  data.u.prior
+        ?:(hit +(hits.u.prior) hits.u.prior)
+        |(extra.u.prior !hit)
+  =/  out-cols=(list column:ast)  (addr-columns quotient-cols)
+  :-  out-cols
+  %-  silt
+  %+  murn  ~(val by counts)
+  |=  [data=(map @tas @) hits=@ud extra=?]
+  ^-  (unit set-op-row)
+  ?.  =(needed hits)  ~
+  ?:  &(extra !remainder)  ~
+  `[out-cols [%indexed-row ~ data]]
+::
+++  row-types
+  ::  Group set operation rows by row type, rejecting duplicate output column
+  ::  names.  An empty operand has one row type, cols, its SELECT output.
+  |=  $:  label=tape
+          cols=(list column:ast)
+          rows=(set set-op-row)
+          ==
+  ^-  (jar (list column:ast) (map @tas @))
+  =/  types=(jar (list column:ast) (map @tas @))
+    ?~  rows  (malt ~[[cols ~]])
+    %-  ~(rep in `(set set-op-row)`rows)
+    |=  [row=set-op-row acc=(jar (list column:ast) (map @tas @))]
+    (~(add ja acc) columns.row data.indexed-row.row)
+  ::  crashes on a duplicate output column name
+  =/  checked=(list (list column:ast))
+    (turn ~(tap in ~(key by types)) (cury check-output-names label))
+  types
+::
+++  row-values
+  ::  Values of the cols columns of a row, in cols order: a hash key for
+  ::  matching rows on those columns.
+  |=  [cols=(list column:ast) data=(map @tas @)]
+  ^-  (list @)
+  %+  turn  cols
+  |=  c=column:ast
+  ~|  "row-values: column {<name.c>} not in row"
+      (~(got by data) name.c)
+::
+++  names-within
+  ::  %.y when every column name of inner is a column name of outer
+  |=  [inner=(list column:ast) outer=(list column:ast)]
+  ^-  ?
+  %+  levy  inner
+  |=(c=column:ast (lien outer |=(d=column:ast =(name.c name.d))))
+::
+++  column-names
+  |=  cols=(list column:ast)
+  ^-  (list @tas)
+  (turn cols |=(c=column:ast name.c))
 ::
 ++  set-op-result-tables
   |=  $:  base=set-table
           out-cols=(list column:ast)
-          rows=(list [(list column:ast) indexed-row])
+          rows=(list set-op-row)
           ==
   ^-  (list set-table)
   ?~  rows
@@ -1132,7 +2683,7 @@
     =.  pri-indx.base      ~
     =.  indexed-rows.base
       %+  turn  rows
-      |=  row=[(list column:ast) indexed-row]
+      |=  row=set-op-row
       +.row
     =.  rowcount.base      (lent indexed-rows.base)
     =.  pri-indexed.base   *(tree [(list @) (map @tas @)])
@@ -1140,7 +2691,7 @@
   (set-op-result-tables-loop base rows ~)
 ::
 ++  same-set-op-columns
-  |=  [cols=(list column:ast) rows=(list [(list column:ast) indexed-row])]
+  |=  [cols=(list column:ast) rows=(list set-op-row)]
   ^-  ?
   |-
   ?~  rows  %.y
@@ -1150,7 +2701,7 @@
 ::
 ++  set-op-result-tables-loop
   |=  $:  base=set-table
-          rows=(list [(list column:ast) indexed-row])
+          rows=(list set-op-row)
           out=(list set-table)
           ==
   ^-  (list set-table)
@@ -1271,6 +2822,370 @@
   ?~  formats  ~
   ?:  =(format i.formats)  `index
   $(formats t.formats, index +(index))
+::
+::  +|  order by
+::
+++  order-by-plan
+  ::  Append to the SELECT of q a hidden output column for each ORDER BY
+  ::  column, so every query path carries the sort values through its
+  ::  projection, and produce the sort specs of the result.
+  ::
+  ::  An ORDER BY column names a SELECT output (an alias first), a SCALARS
+  ::  scalar, or a source column, selected or not.  An ordinal at or past *
+  ::  or t.* is resolved against the shown result columns instead.
+  |=  q=query:ast
+  ^-  [query:ast (list sort-spec)]
+  ?~  order-by.q  [q ~]
+  =/  selected=(list selected-column:ast)  columns.select.q
+  =/  scalar-names=(set @tas)
+    (silt (turn scalars.q |=(s=scalar:ast name.s)))
+  =/  planned=(list [(unit selected-column:ast) sort-spec])
+    %+  spun  `(list ordering-column:ast)`order-by.q
+    |=  [oc=ordering-column:ast i=@ud]
+    ^-  [[(unit selected-column:ast) sort-spec] @ud]
+    =/  alias=@t  (order-by-alias i)
+    =/  hidden=(unit selected-column:ast)
+      %:  order-by-selected  column.oc
+                             selected
+                             scalar-names
+                             alias
+                             ==
+    =/  key=sort-key
+      ?~  hidden
+        ?>  ?=(@ column.oc)
+        [%ordinal column.oc]
+      [%name alias]
+    [[hidden [key ascending.oc]] +(i)]
+  =/  hidden=(list selected-column:ast)
+    (murn planned |=([s=(unit selected-column:ast) *] s))
+  :_  (turn planned |=([* s=sort-spec] s))
+  q(columns.select (weld selected hidden))
+::
+++  order-by-selected
+  ::  The hidden output column, aliased alias, carrying an ORDER BY column;
+  ::  ~ for an ordinal at or past * or t.*
+  |=  $:  column=grouping-column:ast
+          selected=(list selected-column:ast)
+          scalar-names=(set @tas)
+          alias=@t
+          ==
+  ^-  (unit selected-column:ast)
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    =/  n  1
+    |-  ^-  (unit selected-column:ast)
+    ?~  selected
+      ~|  "ORDER BY: column ordinal {<column>} exceeds the selected columns"
+          !!
+    ?:  ?=(?(%all %all-object) -.i.selected)  ~
+    ?:  =(n column)  `(hide-selected i.selected alias)
+    $(selected t.selected, n +(n))
+  ?:  ?=(qualified-column:ast column)  `column(alias `alias)
+  ?^  alias.column
+    ~|  "ORDER BY: unresolved column {<(need alias.column)>}.{<name.column>}"
+        !!
+  =/  named=(list selected-column:ast)
+    %+  skim  selected
+    |=  s=selected-column:ast
+    ^-  ?
+    =/  out=(unit @t)
+      ?+  -.s  ~
+        %qualified-column     alias.s
+        %unqualified-column   alias.s
+        %selected-value       alias.s
+        %selected-scalar      `(fall alias.s name.s)
+        %selected-cte-column  `(fall alias.s name.s)
+      ==
+    ?~  out  %.n
+    =(name.column (crip (cass (trip u.out))))
+  ?^  named
+    ?^  t.named
+      ~|("ORDER BY: column {<name.column>} is ambiguous in SELECT" !!)
+    `(hide-selected i.named alias)
+  ?:  (~(has in scalar-names) name.column)
+    `[%selected-scalar name.column `alias]
+  `column(alias `alias)
+::
+++  hide-selected
+  ::  a SELECT column as the hidden output column alias
+  |=  [s=selected-column:ast alias=@t]
+  ^-  selected-column:ast
+  ?+  -.s  ~|("ORDER BY: cannot order by {<s>}" !!)
+    %qualified-column     s(alias `alias)
+    %unqualified-column   s(alias `alias)
+    %selected-scalar      s(alias `alias)
+    %selected-cte-column  s(alias `alias)
+    %selected-value       s(alias `alias)
+  ==
+::
+++  last-set-query
+  |=  sq=set-query:ast
+  ^-  query:ast
+  ?~(tail.sq head.sq query:(rear tail.sq))
+::
+++  set-query-sort-specs
+  ::  The sort specs of a set query, from the ORDER BY of its last query,
+  ::  over the output columns of the combined result
+  |=  sq=set-query:ast
+  ^-  (list sort-spec)
+  %+  turn  order-by:(last-set-query sq)
+  |=  oc=ordering-column:ast
+  ^-  sort-spec
+  :_  ascending.oc
+  =/  column  column.oc
+  ?@  column
+    ?:  =(0 column)  ~|("ORDER BY: column ordinal must be 1 or greater" !!)
+    [%ordinal column]
+  ?:  ?=(qualified-column:ast column)
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  ?^  alias.column
+    ~|  "ORDER BY of a set operation must name an output column or ordinal"
+        !!
+  [%name name.column]
+::
+++  set-query-operand
+  ::  Execute and project a set operation operand.  An operand with TOP
+  ::  keeps its top rows by its ORDER BY; otherwise its ORDER BY is ignored.
+  |=  [q=query:ast =named-ctes]
+  ^-  join-return
+  ?~  top.select.q
+    (project-set-query-operand q named-ctes (do-query q named-ctes %.n))
+  =/  plan  (order-by-plan q)
+  %^  top-join-return  +.plan
+                       u.top.select.q
+  (project-set-query-operand -.plan named-ctes (do-query -.plan named-ctes %.n))
+::
+++  result-warnings
+  ::  prefix results with the warnings of a non-deterministic result
+  |=  [random=? total=? results=(list result:ast)]
+  ^-  (list result:ast)
+  =?  results  !total
+    :_  results
+    [%message 'warning: result set order is partial and non-deterministic']
+  ?.  random  results
+  [[%message 'warning: results are non-deterministic'] results]
+::
+++  order-select-results
+  ::  Order the result relation of a SELECT by specs and keep its top rows.
+  ::  Produces %.n when the order is not total over the result.
+  |=  [specs=(list sort-spec) top=(unit @ud) results=(list result:ast)]
+  ^-  [? (list result:ast)]
+  ?~  specs
+    ?^  top  ~|("TOP requires ORDER BY" !!)
+    [%.y results]
+  =/  total=?  %.y
+  =/  count=@ud  0
+  =/  out  *(list result:ast)
+  |-
+  ?~  results  [total (flop out)]
+  ?:  ?=(%relations -.i.results)
+    =/  ordered=(list [? relation:ast])
+      %+  turn  `(list relation:ast)`+.i.results
+      |=(r=relation:ast (order-relation specs top r))
+    =/  relations=(list relation:ast)
+      (turn ordered |=([? r=relation:ast] r))
+    %=  $
+      results  t.results
+      total    &(total (levy ordered |=([t=? *] t)))
+      count    (roll (turn relations |=(r=relation:ast (lent data-rows.r))) add)
+      out      [[%relations relations] out]
+    ==
+  ?:  ?=(%vector-count -.i.results)
+    $(results t.results, out [[%vector-count count] out])
+  $(results t.results, out [i.results out])
+::
+++  order-relation
+  ::  Sort the rows of a result relation by specs, keep the first of rows
+  ::  shown alike, remove the hidden ORDER BY columns, then keep the top
+  ::  rows.  Produces %.n when two shown rows have equal sort keys; TOP
+  ::  crashes on such an order, which is not total.
+  |=  [specs=(list sort-spec) top=(unit @ud) rel=relation:ast]
+  ^-  [? relation:ast]
+  =/  formats=(list relation-format)  columns.rel
+  ::  shown columns, readdressed when hidden columns are removed
+  =/  shown=(list (list format-column))
+    %+  turn  formats
+    |=  f=relation-format
+    ^-  (list format-column)
+    =/  cols=(list format-column)
+      %+  skip  `(list format-column)`f
+      |=(c=format-column (is-order-by-name (format-column-name c)))
+    ?:  =((lent cols) (lent f))  f
+    %-  addr-columns
+    %+  turn  cols
+    |=  c=format-column
+    ^-  column:ast
+    ?>  ?=(%column -.c)
+    c
+  =/  out-formats=(list relation-format)
+    %+  roll  shown
+    |=  $:  f=(list format-column)
+            acc=(list relation-format)
+            ==
+    ^-  (list relation-format)
+    ?~  f  acc
+    ?^  (find ~[f] acc)  acc
+    (snoc acc [i.f t.f])
+  ?:  ?&  (gth (lent out-formats) 1)
+          (lien specs |=(s=sort-spec ?=(%ordinal -.key.s)))
+      ==
+    ~|  "ORDER BY: a column ordinal cannot order rows of several row ".
+        "types, order by column name"
+        !!
+  =/  rows=(list sort-row)
+    %+  murn  data-rows.rel
+    |=  [ci=@ud row=data-row:ast]
+    ^-  (unit sort-row)
+    =/  full  (format-values (snag ci formats) row)
+    =/  vis=(list format-value)
+      %+  skip  full
+      |=([c=format-column *] (is-order-by-name (format-column-name c)))
+    =/  oi  (find ~[(snag ci shown)] out-formats)
+    ?~  oi  ~
+    =/  key=(list (unit [p=@ta q=@]))
+      %+  turn  specs
+      |=  s=sort-spec
+      ^-  (unit [p=@ta q=@])
+      ?-  -.key.s
+        %name
+          =/  at=(list format-value)
+            %+  skim  full
+            |=([c=format-column *] =(name.key.s (format-column-name c)))
+          ?~  at  ~
+          ?^  t.at
+            ~|("ORDER BY: column {<name.key.s>} is ambiguous" !!)
+          value.i.at
+        %ordinal
+          ?:  (gth ordinal.key.s (lent vis))
+            ~|  "ORDER BY: column ordinal {<ordinal.key.s>} exceeds the ".
+                "selected columns"
+                !!
+          value:(snag (dec ordinal.key.s) vis)
+      ==
+    :-  ~
+    :+  key
+        [u.oi (turn vis |=([* v=(unit [p=@ta q=@])] v))]
+    ?.  ?=(%indexed-row -.row)  row
+    %=  row
+      data  %-  malt
+            %+  skip  ~(tap by data.row)
+            |=([k=@tas *] (is-order-by-name k))
+    ==
+  =/  ascending=(list ?)  (turn specs |=(s=sort-spec ascending.s))
+  =/  sorted=(list sort-row)
+    (sort rows |=([a=sort-row b=sort-row] (key-before ascending key.a key.b)))
+  ::  keep the first of rows shown alike
+  =/  distinct=(list sort-row)
+    =/  seen  *(set [@ud (list (unit [p=@ta q=@]))])
+    =/  out  *(list sort-row)
+    |-
+    ?~  sorted  (flop out)
+    ?:  (~(has in seen) ident.i.sorted)  $(sorted t.sorted)
+    %=  $
+      sorted  t.sorted
+      out     [i.sorted out]
+      seen    (~(put in seen) ident.i.sorted)
+    ==
+  ::  sorted, so rows of equal keys are adjacent
+  =/  total=?
+    =/  remaining  distinct
+    |-
+    ?~  remaining  %.y
+    ?~  t.remaining  %.y
+    ?:  =(key.i.remaining key.i.t.remaining)  %.n
+    $(remaining t.remaining)
+  =/  kept=(list sort-row)
+    ?~  top  distinct
+    ?.  total
+      ~|  "TOP {<u.top>}: ORDER BY is not a total ordering of the result"
+          !!
+    (scag u.top distinct)
+  ?~  out-formats  [total rel(data-rows ~, ordered %.y)]
+  :-  total
+  %=  rel
+    columns      [i.out-formats t.out-formats]
+    ordered      %.y
+    pri-indexed  ~
+    data-rows    (turn kept |=(r=sort-row [format.ident.r data-row.r]))
+  ==
+::
+++  format-values
+  ::  Each column of a result format with its value in row, ~ when absent.
+  ::  A repeated column name is keyed as in +materialize-cte-row.
+  |=  [format=(list format-column) row=data-row:ast]
+  ^-  (list format-value)
+  =/  counts  *(map @tas @ud)
+  |-  ^-  (list format-value)
+  ?~  format  ~
+  =/  col  i.format
+  =/  name  (format-column-name col)
+  =/  count  (~(gut by counts) name 0)
+  =/  type=@ta  ?:(?=(%column -.col) type.col ~.ud)
+  =/  value=(unit [p=@ta q=@])
+    ?-  -.row
+      %indexed-row
+        =/  keyed  (~(get by data.row) (output-cell-key name count))
+        ?^  keyed  `[type u.keyed]
+        =/  named  (~(get by data.row) name)
+        ?^  named  `[type u.named]
+        ?.  ?=(%column -.col)  ~
+        ?:  =(0 addr.col)  ~
+        =/  x  .*(data.row [%0 addr.col])
+        `[type ?@(x x ;;(@ +.x))]
+      %joined-row
+        ?.  ?=(%qualified-column -.col)  ~
+        =/  vals  (~(get by data.row) qualifier.col)
+        ?~  vals  ~
+        (bind (~(get by u.vals) name) (lead type))
+    ==
+  :-  [col value]
+  $(format t.format, counts (~(put by counts) name +(count)))
+::
+++  format-column-name
+  |=  c=format-column
+  ^-  @tas
+  ?-(-.c %column name.c, %qualified-column name.c)
+::
+++  top-join-return
+  ::  Keep the top rows by specs of the result set-tables of jr, for a CTE or
+  ::  a set operation operand with TOP.  The kept rows have no order.
+  |=  [specs=(list sort-spec) top=@ud jr=join-return]
+  ^-  join-return
+  =/  results=(list set-table)
+    (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+  ?~  results  jr
+  =/  rel=relation:ast
+    +:(order-relation specs `top (set-tables-relation [i.results t.results]))
+  =/  tables=(list set-table)
+    %+  spun  `(list relation-format)`columns.rel
+    |=  [f=relation-format i=@ud]
+    ^-  [set-table @ud]
+    =/  cols=(list column:ast)
+      %+  turn  `(list format-column)`f
+      |=  c=format-column
+      ^-  column:ast
+      ?>  ?=(%column -.c)
+      c
+    =/  rows=(list indexed-row)
+      %+  murn  data-rows.rel
+      |=  [ci=@ud row=data-row:ast]
+      ^-  (unit indexed-row)
+      ?.  =(ci i)  ~
+      ?>  ?=(%indexed-row -.row)
+      `row
+    :_  +(i)
+    %=  i.results
+      columns       cols
+      map-meta      :-  %unqualified-map-meta
+                        (mk-unqualified-typ-addr-lookup cols)
+      indexed-rows  rows
+      joined-rows   ~
+      rowcount      (lent rows)
+      ordered       %.n
+      pri-indexed   (materialize-cte-pri-index pri-indx.i.results rows)
+    ==
+  jr(set-tables (weld tables (source-set-tables set-tables.jr)))
 ::
 ++  order-results
   ::  sort comparator for select-results table metadata output.
@@ -1395,11 +3310,7 @@
               =/  col=column:ast  (~(got by col-map) col-name)
               ?:  (value-type-compatible type.col -.d)
                 :-  col-name
-                ?:  ?|  =(%ta type.col)
-                        =(%tas type.col)
-                        ==
-                  (validate-aura-value %update col-name type.col +.d)
-                +.d
+                (validate-aura-value %update col-name type.col +.d)
               ~|("value type: {<-.d>} does not match column: {<col-name>}" !!)
   =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
@@ -1449,7 +3360,9 @@
         ==
   ?:  =(%tas col-type)
     =(%tas val-type)
-  =(col-type val-type)
+  ::  an aura and its sized form are compatible; +validate-aura-value
+  ::  checks the width
+  ?=(^ (sized-match col-type val-type))
 ::
 ++  aura-value-valid
   |=  [col-type=@ta val=@]
@@ -1461,6 +3374,9 @@
 ++  validate-aura-value
   |=  [op=?(%insert %upsert %update) name=@tas col-type=@ta val=@]
   ^-  @
+  =/  verb  ?-(op %insert "INSERT", %upsert "UPSERT", %update "UPDATE")
+  =.  val  ~|  "{verb}: value of column {<name>} does not fit"
+               (fit-width col-type val)
   ?:  (aura-value-valid col-type val)
     val
   ?:  =(%insert op)
@@ -1509,15 +3425,11 @@
               -:(~(got by +.map-meta) name.i.columns)
         ?:  (value-type-compatible col-type p.i.values)
           :-  :-  name.i.columns
-                  ?:  ?|  =(%ta col-type)
-                          =(%tas col-type)
-                          ==
-                    %:  validate-aura-value  %update
-                                             name.i.columns
-                                             col-type
-                                             +.i.values
-                                             ==
-                  +.i.values
+                  %:  validate-aura-value  %update
+                                           name.i.columns
+                                           col-type
+                                           +.i.values
+                                           ==
               updates
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
@@ -1543,6 +3455,37 @@
       ctes   +.ctes
     ==
   =/  cte-q=query:ast   +.body.i.ctes
+  ?^  top.select.cte-q
+    ::  a CTE with TOP keeps its top rows by its ORDER BY, as a set query
+    =/  plan  (order-by-plan cte-q)
+    =/  jr  (do-query -.plan nctes %.n)
+    =.  state  server.jr
+    =.  jr  (top-join-return +.plan u.top.select.cte-q jr)
+    =/  checked=(list (list column:ast))
+      %+  turn  (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+      |=(st=set-table (cte-col-dups name.i.ctes columns.st))
+    %=  $
+      nctes  %+  ~(put by nctes)  name.i.ctes
+             (set-query-cte-relation name.i.ctes jr)
+      ctes   +.ctes
+    ==
+  ?:  ?|  (grouped-query cte-q)
+          ?&  ?=(^ from.cte-q)
+              (query-row-types (normalize-from u.from.cte-q) nctes)
+          ==
+      ==
+    ::  rows of several row types, or of groups: one result set-table per
+    ::  row type, as for a set query
+    =/  jr  (do-query cte-q nctes %.n)
+    =.  state  server.jr
+    =/  checked=(list (list column:ast))
+      %+  turn  (skim set-tables.jr |=(st=set-table ?=(~ relation-id.st)))
+      |=(st=set-table (cte-col-dups name.i.ctes columns.st))
+    %=  $
+      nctes  %+  ~(put by nctes)  name.i.ctes
+             (set-query-cte-relation name.i.ctes jr)
+      ctes   +.ctes
+    ==
   =/  =join-return    (do-query cte-q nctes %.y)
   =.  state             server.join-return
   =/  selected          (normalize-selected columns.select.cte-q)
@@ -1687,8 +3630,6 @@
     ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
     unqualified-column
       ~|("can't be unqualified in join" !!)
-    selected-aggregate
-      ~|("selected-aggregate not implemented" !!)
     selected-scalar
       =/  rs=resolved-scalar
         ~|  "selected scalar {<name.a>} not in resolved-scalars"
@@ -1793,8 +3734,6 @@
                           type.cte-ta
                           addr.out-ta
                       ==
-                selected-aggregate:ast
-                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
                   =/  out-name  (heading c (crip "literal"))
                   =/  out-ta  (~(got by unq-lookup) out-name)
@@ -1933,14 +3872,24 @@
     %+  turn
         column-metas.jr
     |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
+  ::  the template reads only a row's kind, so with no rows a bare row of
+  ::  the kind the rows would have still gives the selected columns
+  =/  templ-row=data-row
+    ?^  rows  i.rows
+    ?:  use-joined  [%joined-row ~ ~]
+    [%indexed-row ~ ~]
   =/  out-cols
-    ?~  rows
-      (materialized-columns name check-dups columns.st)
     %-  templ-cells-columns
     :*  name
         check-dups
         %-  mk-rel-row-templ
-        [column-metas.jr selected -.rows src-map-meta resolved-scalars named-ctes]
+        :*  column-metas.jr
+            selected
+            templ-row
+            src-map-meta
+            resolved-scalars
+            named-ctes
+            ==
         ==
   =.  columns.st       out-cols
   =.  relation-id.st   ~
@@ -3512,11 +5461,7 @@
   ?:  ?=(dime p)
     ?:  (value-type-compatible type.q p.p)
       :-  name.q
-      ?:  ?|  =(%ta type.q)
-              =(%tas type.q)
-              ==
-        (validate-aura-value op name.q type.q q.p)
-      q.p
+      (validate-aura-value op name.q type.q q.p)
     ?:  =(%insert op)
       ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
           "does not match input value type {<p.p>}"

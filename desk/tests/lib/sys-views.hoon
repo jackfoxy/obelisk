@@ -1622,6 +1622,7 @@
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1629,6 +1630,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1636,6 +1638,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1643,6 +1646,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1650,6 +1654,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1657,6 +1662,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1664,6 +1670,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1671,6 +1678,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1678,6 +1686,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.t]]
@@ -1685,6 +1694,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1703,6 +1713,7 @@
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1710,6 +1721,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1717,6 +1729,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1724,6 +1737,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1731,6 +1745,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1738,6 +1753,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.t]]
@@ -1745,6 +1761,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1805,6 +1822,7 @@
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1812,6 +1830,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1819,6 +1838,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1826,6 +1846,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1833,6 +1854,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1840,6 +1862,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1847,6 +1870,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1854,6 +1878,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1872,6 +1897,7 @@
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1879,6 +1905,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-2]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1886,6 +1913,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1893,6 +1921,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1900,6 +1929,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1907,6 +1937,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.p]]
@@ -1914,6 +1945,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1921,6 +1953,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 3]]
                               [%col-name [~.tas %col3]]
                               [%col-type [~.ta ~.ud]]
@@ -1928,6 +1961,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
                               [%col-type [~.ta ~.t]]
@@ -1935,6 +1969,7 @@
                       :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
+                              [%relation-type [~.tas %table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]

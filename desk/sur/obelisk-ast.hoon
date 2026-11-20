@@ -59,6 +59,7 @@
     alter-index
     alter-namespace
     alter-table
+    alter-view
     create-database
     create-index
     create-namespace
@@ -164,7 +165,6 @@
     ops-and-conjs
     datum
     value-literals
-    aggregate
     ==
 +$  predicate     (tree predicate-component)
 +$  datum 
@@ -287,7 +287,6 @@
     unqualified-column
     selected-scalar
     selected-cte-column
-    selected-aggregate
     selected-value
     selected-all
     selected-all-table
@@ -313,25 +312,12 @@
   $:  %all-object
     =qualified-table
     ==
-+$  selected-aggregate
-  $+  selected-aggregate
-  $:  %selected-aggregate
-    =aggregate
-    alias=(unit @t)
-    ==
 +$  selected-value
   $+  selected-value
   $:  %selected-value
     value=dime
     alias=(unit @t)
     ==
-+$  aggregate
-  $+  aggregate
-  $:  %aggregate
-    function=@t
-    source=aggregate-source
-    ==
-+$  aggregate-source     $%(qualified-column unqualified-column)
 +$  grouping-column      ?(qualified-column unqualified-column @ud)
 +$  ordering-column
   $+  ordering-column
@@ -421,7 +407,12 @@
     ==
 ::
 ::
-+$  insert-values      $%([%data (list (list value-or-default))] [%query query])
+::  $insert-values: VALUES rows, or the rows of a query source
++$  insert-values
+  $%  [%data (list (list value-or-default))]
+      [%query query]
+      [%set-query set-query]
+      ==
 ::
 ::  $insert:
 +$  insert
@@ -520,12 +511,15 @@
     as-of=(unit as-of)
     ==
 ::
-::  $create-view: persist a crud-txn as a view
+::  $create-view: persist a query crud-txn as a view; text is the source
+::  of the query following AS
 +$  create-view
   $+  create-view
   $:  %create-view
     view=qualified-table
-    crud-txn
+    text=@t
+    =crud-txn
+    as-of=(unit as-of)
     ==
 ::
 ::  drop ASTs
@@ -572,6 +566,7 @@
   $:  %drop-view
     view=qualified-table
     force=?
+    as-of=(unit as-of)
     ==
 ::
 ::  ALTER SCHEMA
@@ -613,12 +608,15 @@
     as-of=(unit as-of)
     ==
 ::
-::  $alter-view: view=qualified-table crud-txn
+::  $alter-view: replace the query of a view; text is the source of the
+::  query following AS
 +$  alter-view
   $+  alter-view
   $:  %alter-view
     view=qualified-table
+    text=@t
     =crud-txn
+    as-of=(unit as-of)
     ==
 ::
 ::  $alter-index: change an index
@@ -700,7 +698,26 @@
     substring
     trim
     upper
+    ::  system functions
+    version
+    ::  aggregate functions, only in SELECT and HAVING
+    aggregate
     ==
+::
+::
+::  $aggregate: an aggregate function of a group's rows; argument is ~ for
+::  COUNT(*)
++$  aggregate
+  $+  aggregate
+  $:  %aggregate
+    function=aggregate-function
+    distinct=?
+    argument=(unit scalar-node)
+    ==
++$  aggregate-function
+  $?  %avg  %bool-and  %bool-or  %count  %max  %min  %stdev  %stdevp  %sum
+      %var  %varp
+  ==
 ::
 +$  scalar-name
   $+  scalar-name
@@ -725,7 +742,10 @@
 ::
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
-+$  number-systems    ?(%rd %sd %ud)
++$  float-systems     ?(%rh %rs %rd %rq)
++$  signed-systems    ?(%sb %sd %sv %sw %sx)
++$  unsigned-systems  ?(%ub %ud %uv %uw %ux)
++$  number-systems    ?(float-systems signed-systems unsigned-systems)
 +$  time-element      ?(%da %dr)
 ::
 +$  if-then-else
@@ -953,6 +973,14 @@
     ~
   ==
 ::
+::  system functions
+::
++$  version
+  $+  version
+  $:  %version
+    ~
+  ==
+::
 ::  string functions
 ::
 +$  concat
@@ -1120,6 +1148,9 @@
     %create-table
     %alter-table
     %drop-table
+    %create-view
+    %alter-view
+    %drop-view
     %truncate-table
     %insert
     %upsert

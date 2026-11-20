@@ -1,6 +1,7 @@
-/-  *server-state-1, *obelisk-ast
+/-  *server-state-2, *obelisk-ast
 /+  *sys-views, *utils
 /=  oldstate  /sur/server-state-0
+/=  state-1   /sur/server-state-1
 |%
 ++  old-schema-key  ((on @da schema:oldstate) gth)
 ++  old-data-key    ((on @da data:oldstate) gth)
@@ -25,6 +26,73 @@
         (weld (database-create-events old-server) event-log.sys-db)
   ~&  "migration complete"
   (~(put by new-server) %sys sys-db)
+::
+++  upgrade-server-1
+  ::  A server of state 1 or 2 as the current server type.  Views gain the
+  ::  user-defined view fields: no references, cacheable, and no text.
+  ::
+  |=  old-server=server:state-1
+  ^-  server
+  %-  ~(run by old-server)
+  |=  old-db=database:state-1
+  ^-  database
+  =/  old-schemas=(list [@da schema:state-1])
+    (tap:((on @da schema:state-1) gth) sys.old-db)
+  =/  schemas=(list [@da schema])
+    %+  turn  old-schemas
+    |=  [time=@da old=schema:state-1]
+    ^-  [@da schema]
+    :-  time
+    :*  %schema
+        provenance.old
+        tmsp.old
+        namespaces.old
+        tables.old
+        (upgrade-views name.old-db views.old)
+        ==
+  :*  %database
+      name.old-db
+      created-provenance.old-db
+      created-tmsp.old-db
+      (gas:schema-key *((mop @da schema) gth) schemas)
+      content.old-db
+      view-cache.old-db
+      event-log.old-db
+      ==
+::
+++  upgrade-views
+  ::  Views of database db rebuilt as current system views.  Before 1.0
+  ::  every view was a system view, and its crud-txn is of the frozen
+  ::  obelisk-ast-1, so each is built anew rather than converted.
+  ::
+  |=  [db=@tas old=views:state-1]
+  ^-  views
+  =/  old-views=(list [ns-rel-key:state-1 view:state-1])
+    (tap:((on ns-rel-key:state-1 view:state-1) ns-rel-comp:state-1) old)
+  %+  gas:view-key  *views
+  %+  turn  old-views
+  |=  [k=ns-rel-key:state-1 v=view:state-1]
+  ^-  [ns-rel-key view]
+  [k (rebuild-sys-view db k provenance.v tmsp.v)]
+::
+++  rebuild-sys-view
+  ::  the current system view k of database db
+  |=  [db=@tas k=ns-rel-key provenance=path tmsp=@da]
+  ^-  view
+  ~|  "migration: unknown view {<ns.k>}.{<rel.k>} in {<db>}"
+  ?>  =(%sys ns.k)
+  ?+  rel.k  !!
+    %databases        (sys-sys-dbs-view provenance tmsp)
+    %namespaces       (sys-namespaces-view db provenance tmsp)
+    %tables           (sys-tables-view db provenance tmsp)
+    %table-keys       (sys-table-keys-view db provenance tmsp)
+    %foreign-keys     (sys-foreign-keys-view db provenance tmsp)
+    %columns          (sys-columns-view db provenance tmsp)
+    %views            (sys-views-view db provenance tmsp)
+    %view-references  (sys-view-references-view db provenance tmsp)
+    %sys-log          (sys-sys-log-view db provenance tmsp)
+    %data-log         (sys-data-log-view db provenance tmsp)
+  ==
 ::
 ++  migrate-server-1-to-2
   ::  Add sys.foreign-keys to schema histories that predate the view.
@@ -73,7 +141,6 @@
   ?:  (has-foreign-keys-view input)
     input
   =/  view=view
-    %-  apply-ordering
     (sys-foreign-keys-view database provenance.input tmsp.input)
   =/  next-views=views
     (gas:view-key views.input ~[[[%sys %foreign-keys tmsp.input] view]])
@@ -82,7 +149,8 @@
 ++  migrate-database-0-to-1
   |=  old-db=database:oldstate
   ^-  database
-  =/  sys-1=((mop @da schema) gth)  (migrate-sys-0-to-1 sys.old-db)
+  =/  sys-1=((mop @da schema) gth)
+    (migrate-sys-0-to-1 name.old-db sys.old-db)
   :*  %database
       name.old-db
       created-provenance.old-db
@@ -94,12 +162,12 @@
       ==
 ::
 ++  migrate-sys-0-to-1
-  |=  old-sys=((mop @da schema:oldstate) gth)
+  |=  [db=@tas old-sys=((mop @da schema:oldstate) gth)]
   ^-  ((mop @da schema) gth)
   %+  gas:schema-key  *((mop @da schema) gth)
                       %+  turn  (tap:old-schema-key old-sys)
                                 |=  [kv=[@da schema:oldstate]]
-                                [-.kv (migrate-schema-0-to-1 +.kv)]
+                                [-.kv (migrate-schema-0-to-1 db +.kv)]
 ::
 ++  migrate-content-0-to-1
   |=  [sys-1=((mop @da schema) gth) old-content=((mop @da data:oldstate) gth)]
@@ -110,7 +178,7 @@
                               [-.kv (migrate-data-0-to-1 (schema-at sys-1 -.kv) +.kv)]
 ::
 ++  migrate-schema-0-to-1
-  |=  old-schema=schema:oldstate
+  |=  [db=@tas old-schema=schema:oldstate]
   ^-  schema
   :*  %schema
       provenance.old-schema
@@ -119,8 +187,8 @@
       %-  malt  %+  turn  ~(tap by tables.old-schema)
                           |=  [kv=[[ns=@tas name=@tas] table:oldstate]]
                           [-.kv (migrate-table-0-to-1 +.kv)]
-                          views.old-schema
-                          ==
+      (upgrade-views db views.old-schema)
+      ==
 ::
 ++  migrate-data-0-to-1
   |=  [schema-at-data=(unit schema) old-data=data:oldstate]
@@ -174,17 +242,19 @@
     %+  turn  indexed-rows.old-file
               |=  row=indexed-row:oldstate
               [%indexed-row key.row data.row]
-  =/  primary-key  (pri-key key.pri-indx.u.mtbl)
-  =/  comparator
-        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.u.mtbl))
-  =/  rebuilt-pri=(tree [(list @) (map @tas @)])
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             (turn rows |=(row=indexed-row [key.row data.row]))
-  =/  rebuilt-rows=(list indexed-row)
-        %+  turn  (tap:primary-key rebuilt-pri)
-                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  =/  rebuilt=file
+    %+  resort-file  key.pri-indx.u.mtbl
+    :*  %file
+        ship.old-file
+        provenance.old-file
+        tmsp.old-file
+        rowcount.old-file
+        ~
+        rows
+        ~
+        ==
   =/  source-count=@ud   (lent rows)
-  =/  rebuilt-count=@ud  (lent rebuilt-rows)
+  =/  rebuilt-count=@ud  (lent indexed-rows.rebuilt)
   =/  dummy
     ?:  =(source-count rebuilt-count)  ~
     ~&  "MIGRATION WARNING: primary-index rebuild for file ".
@@ -196,15 +266,130 @@
     ~&  "MIGRATION WARNING: rowcount for file {<-.tbl-key>}.{<+.tbl-key>} ".
         "changed from {<rowcount.old-file>} to {<rebuilt-count>}"
     ~
-  :*  %file
-      ship.old-file
-      provenance.old-file
-      tmsp.old-file
-      rebuilt-count
-      rebuilt-pri
-      rebuilt-rows
-      ~
-      ==
+  rebuilt(rowcount rebuilt-count)
+::
+++  resort-file
+  ::  f with its primary index and rows rebuilt in the order of key
+  |=  [key=(list key-column) f=file]
+  ^-  file
+  =/  primary-key  (pri-key key)
+  =/  comparator  ~(order idx-comp `(list [@ta ?])`(reduce-key key))
+  =/  rebuilt-pri=(tree [(list @) (map @tas @)])
+    %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+    (turn indexed-rows.f |=(row=indexed-row [key.row data.row]))
+  =/  rebuilt-rows=(list indexed-row)
+    %+  turn  (tap:primary-key rebuilt-pri)
+    |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  f(pri-idx rebuilt-pri, indexed-rows rebuilt-rows)
+::
+++  migrate-server-2-to-3
+  ::  Re-sort primary indexes keyed on a float or a signed aura other than
+  ::  @sd, which were ordered by atom value, so negative values sorted
+  ::  wrong.
+  ::
+  ::  Add the user-defined view system views sys.views and
+  ::  sys.view-references, and the relation-type column of sys.columns.
+  ::
+  |=  old-server=server
+  ^-  server
+  ~&  "migrating numeric key ordering"
+  =/  new-server=server
+    %-  malt
+    %+  turn  ~(tap by old-server)
+    |=  [name=@tas db=database]
+    :-  name
+    ?:(=(%sys name) db (migrate-database-2-to-3 db))
+  ~&  "numeric key ordering migration complete"
+  new-server
+::
+++  migrate-database-2-to-3
+  ::  every data snapshot, its files keyed as the schema of its time
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da data])
+    %+  turn  (tap:data-key content.db)
+    |=  [time=@da d=data]
+    ^-  [@da data]
+    =/  snapshot-schema=(unit schema)  (schema-at sys.db time)
+    ?~  snapshot-schema  [time d]
+    :-  time
+    %=  d
+        files
+      %-  ~(urn by files.d)
+      |=  [key=[@tas @tas] f=file]
+      ^-  file
+      =/  tbl=(unit table)  (~(get by tables.u.snapshot-schema) key)
+      ?~  tbl  f
+      ?.  (lien key.pri-indx.u.tbl reordered-key-column)  f
+      (resort-file key.pri-indx.u.tbl f)
+    ==
+  =.  db  db(content (gas:data-key *((mop @da data) gth) snapshots))
+  (add-user-view-sys-views db)
+::
+++  add-user-view-sys-views
+  ::  every schema snapshot with sys.views, sys.view-references, and the
+  ::  current sys.columns
+  |=  db=database
+  ^-  database
+  =/  snapshots=(list [@da schema])  (tap:schema-key sys.db)
+  =/  missing=(list @da)
+    %+  murn  snapshots
+    |=  snapshot=[@da schema]
+    ?^  (get-view [%sys %views tmsp.+.snapshot] views.+.snapshot)  ~
+    `-.snapshot
+  =/  migrated-sys=((mop @da schema) gth)
+    %+  gas:schema-key  *((mop @da schema) gth)
+    %+  turn  snapshots
+    |=  snapshot=[@da schema]
+    ^-  [@da schema]
+    [-.snapshot (upgrade-sys-views name.db +.snapshot)]
+  =/  added=(list [ns-rel-key cache])
+    %-  zing
+    %+  turn  missing
+    |=  time=@da
+    ^-  (list [ns-rel-key cache])
+    :~  [[%sys %views time] [%cache time ~]]
+        [[%sys %view-references time] [%cache time ~]]
+        ==
+  ::  sys.columns caches hold rows without relation-type
+  =/  columns-cleared=view-cache
+    %+  gas:view-cache-key  *view-cache
+    %+  turn  (tap:view-cache-key view-cache.db)
+    |=  [k=ns-rel-key c=cache]
+    ^-  [ns-rel-key cache]
+    ?.  &(=(%sys ns.k) =(%columns rel.k))  [k c]
+    [k c(content ~)]
+  db(sys migrated-sys, view-cache (gas:view-cache-key columns-cleared added))
+::
+++  upgrade-sys-views
+  |=  [database=@tas input=schema]
+  ^-  schema
+  =/  current=(list [ns-rel-key view])  (tap:view-key views.input)
+  =/  upgraded=(list [ns-rel-key view])
+    %+  turn  current
+    |=  [k=ns-rel-key v=view]
+    ^-  [ns-rel-key view]
+    ?.  &(=(%sys ns.k) =(%columns rel.k))  [k v]
+    ?:  (~(has by column-lookup.v) %relation-type)  [k v]
+    [k (sys-columns-view database provenance.v tmsp.v)]
+  =/  next-views=views  (gas:view-key *views upgraded)
+  ?^  (get-view [%sys %views tmsp.input] next-views)
+    input(views next-views)
+  =/  added=(list [ns-rel-key view])
+    :~  :-  [%sys %views tmsp.input]
+            (sys-views-view database provenance.input tmsp.input)
+        :-  [%sys %view-references tmsp.input]
+            (sys-view-references-view database provenance.input tmsp.input)
+        ==
+  input(views (gas:view-key next-views added))
+::
+++  reordered-key-column
+  ::  %.y when key column k orders differently since state 3: a float, or
+  ::  a signed aura other than @sd
+  |=  k=key-column
+  ^-  ?
+  ?:  =(~.sd aura.k)  %.n
+  |(?=(float-systems (base-aura aura.k)) (signed-aura aura.k))
 ::
 ::  Effective migrated schema for a historical data snapshot.
 ++  schema-at

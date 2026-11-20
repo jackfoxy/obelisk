@@ -1,7 +1,18 @@
 :: this file  will contain code that handles scalars in the engine
 /-  ast=obelisk-ast, *obelisk
 /+  *predicate, *utils, mip, math
+/*  desk-docket  %docket-0  /desk/docket-0
 |%
+::
+++  obelisk-version
+  ::  version from desk.docket-0, fixed when this desk is built
+  ::
+  ::  coerce to the leading fields of $docket:docket through version, so
+  ::  this core needs no sur import
+  ^-  @t
+  =/  d  ;;([@ @t @t @ux * * v=[major=@ud minor=@ud patch=@ud] *] desk-docket)
+  %-  crip
+  "{(a-co:co major.v.d)}.{(a-co:co minor.v.d)}.{(a-co:co patch.v.d)}"
 :: inventory:
 :: - we know the qualified table (or tables in case of a join) we're acting on;
 ::   they are the keys in map-meta
@@ -23,6 +34,108 @@
       =(~.ta typ)
       =(~.tas typ)
       ==
+::
+++  number-systems-msg
+  ^-  tape
+  "need ?(~.rh ~.rs ~.rd ~.rq ~.sb ~.sd ~.sv ~.sw ~.sx ".
+  "~.ub ~.ud ~.uv ~.uw ~.ux)"
+::
++$  float-ops
+  ::  gates over raw atoms of one float aura, see +get-float-ops
+  $:  aura=float-systems
+      add=$-([@ @] @)
+      sub=$-([@ @] @)
+      mul=$-([@ @] @)
+      div=$-([@ @] @)
+      sqt=$-(@ @)
+      equ=$-([@ @] ?)
+      lth=$-([@ @] ?)
+      gte=$-([@ @] ?)
+      sig=$-(@ ?)
+      sun=$-(@u @)
+      san=$-(@s @)
+      toi=$-(@ (unit @s))
+      sea=$-(@ fn)
+      bit=$-(fn @)
+      abs=$-(@ @)
+      log=$-(@ @)
+      pow=$-([@ @] @)
+      pow-n=$-([@ @] @)
+      sin=$-(@ @)
+      cos=$-(@ @)
+      tan=$-(@ @)
+      asin=$-(@ @)
+      acos=$-(@ @)
+      atan=$-(@ @)
+      atan2=$-([@ @] @)
+      tau=@
+      ==
+::
+++  get-float-ops
+  ::  float gates for number system ns; integers compute in @rd
+  ::
+  ::  rtol, the tolerance of the iterative functions, is about 5 ulp of 1.0
+  |=  ns=number-systems
+  ^-  float-ops
+  ?-  ns
+      %rh
+    =/  m  ~(. rh:math [%z .~~5e-3])
+    :*  %rh     add:rh  sub:rh  mul:rh   div:rh   sqt:rh  equ:rh  lth:rh
+        gte:rh  sig:rh  sun:rh  san:rh   toi:rh   sea:rh  bit:rh  abs:m
+        log:m   pow:m   pow-n:m  sin:m   cos:m    tan:m   asin:m  acos:m
+        atan:m  atan2:m  tau:m
+        ==
+  ::
+      %rs
+    =/  m  ~(. rs:math [%z .5e-7])
+    :*  %rs     add:rs  sub:rs  mul:rs   div:rs   sqt:rs  equ:rs  lth:rs
+        gte:rs  sig:rs  sun:rs  san:rs   toi:rs   sea:rs  bit:rs  abs:m
+        log:m   pow:m   pow-n:m  sin:m   cos:m    tan:m   asin:m  acos:m
+        atan:m  atan2:m  tau:m
+        ==
+  ::
+      ?(%rd signed-systems unsigned-systems)
+    =/  m  ~(. rd:math [%z .~1e-15])
+    :*  %rd     add:rd  sub:rd  mul:rd   div:rd   sqt:rd  equ:rd  lth:rd
+        gte:rd  sig:rd  sun:rd  san:rd   toi:rd   sea:rd  bit:rd  abs:m
+        log:m   pow:m   pow-n:m  sin:m   cos:m    tan:m   asin:m  acos:m
+        atan:m  atan2:m  tau:m
+        ==
+  ::
+      %rq
+    =/  m  ~(. rq:math [%z .~~~1e-33])
+    :*  %rq     add:rq  sub:rq  mul:rq   div:rq   sqt:rq  equ:rq  lth:rq
+        gte:rq  sig:rq  sun:rq  san:rq   toi:rq   sea:rq  bit:rq  abs:m
+        log:m   pow:m   pow-n:m  sin:m   cos:m    tan:m   asin:m  acos:m
+        atan:m  atan2:m  tau:m
+        ==
+  ==
+::
+++  to-float
+  ::  atom a of number system ns as a float of fo's aura
+  |=  [fo=float-ops ns=number-systems a=@]
+  ^-  @
+  ?:  =(ns aura.fo)  a
+  ?-  ns
+      unsigned-systems    (sun.fo a)
+      signed-systems      (san.fo a)
+      ?(%rh %rs %rd %rq)  (bit.fo (sea:(get-float-ops ns) a))
+      ==
+::
+++  floor-float
+  |=  [fo=float-ops x=@]
+  ^-  @
+  =/  int  (san.fo (need (toi.fo x)))
+  ?:  |(=(0 (sub.fo x int)) (sig.fo x))  int
+  (sub.fo int (sun.fo 1))
+::
+++  ceiling-float
+  |=  [fo=float-ops x=@]
+  ^-  @
+  =/  int  (san.fo (need (toi.fo x)))
+  ?:  |(=(0 (sub.fo x int)) !(sig.fo x))  int
+  (add.fo int (sun.fo 1))
+::
 ++  prepare-scalar
   |=  $:  scalar=scalar-function:ast
           =named-ctes
@@ -36,34 +149,22 @@
   =/  simple-rounding-ops
     |=  $:  op-name=@tas
             expr=resolved-scalar
-            rd-adjust=$-([@rd @rd] @rd)
+            adjust=$-([float-ops @] @)
             ==
     ^-  resolved-scalar
-    =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+    =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
     ?.  ?=(number-systems number-system)
       ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
-          "need ?(~.rd ~.sd ~.ud)"
+          "{number-systems-msg}"
           !!
-    ?:  ?=(dime expr)
-      ?-  number-system
-          %rd
-            =/  int  (san:rd (need (toi:rd +.expr)))
-            [number-system (rd-adjust int +.expr)]
-          %sd  expr
-          %ud  expr
-          ==
+    ?.  ?=(float-systems number-system)  expr
+    =/  fo  (get-float-ops number-system)
+    ?:  ?=(dime expr)  [number-system (adjust fo +.expr)]
     :+  %fn
         type.expr
         |=  =data-row
         ^-  dime
-        =/  datum  +:(f.expr data-row)
-        ?-  number-system
-            %rd
-              =/  int  (san:rd (need (toi:rd datum)))
-              [number-system (rd-adjust int datum)]
-            %sd  (f.expr data-row)
-            %ud  (f.expr data-row)
-            ==
+        [number-system (adjust fo +:(f.expr data-row))]
   =/  prepare-time-arith-op
         |=  $:  op-name=@tas
                 expr=resolved-scalar
@@ -90,34 +191,38 @@
             =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
             =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
             [expr-aura (op-fn e d)]
-=/  prepare-rd-trig-op
+=/  prepare-trig-op
+      ::  float input keeps its aura, integers compute in @rd
       |=  $:  op-name=@tas
               expr=resolved-scalar
-              rd-fn=$-(@rd @rd)
+              get-op=$-(float-ops $-(@ @))
               ==
       ^-  resolved-scalar
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
+      =/  fo  (get-float-ops number-system)
+      =/  op  (get-op fo)
       =/  do-op
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (rd-fn rd-val)]
+        |=  val=@
+        ^-  dime
+        [aura.fo (op (to-float fo number-system val))]
       ?:  ?=(dime expr)
-        (do-op number-system +.expr)
+        (do-op +.expr)
       :+  %fn
-          ~.rd
+          aura.fo
           |=  =data-row
           ^-  dime
-          (do-op number-system +:(f.expr data-row))
+          (do-op +:(f.expr data-row))
   ?-  -.scalar
+  ::
+    %aggregate
+      ::  a grouped query replaces its aggregates with group columns
+      ~|  "aggregate function {<function:;;(aggregate:ast scalar)>} ".
+          "is only allowed in SELECT and HAVING"
+          !!
   ::
     %arithmetic
       %:  prepare-arithmetic  scalar
@@ -164,6 +269,11 @@
   ::
     %getutcdate
       [seed [~.da now.bowl]]
+  ::
+  ::  system functions
+  ::
+    %version
+      [seed [~.t obelisk-version]]
   ::
     %year
       =/  ps  %:  evaluate-datum  date:;;(year:ast scalar)
@@ -367,36 +477,31 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %abs, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
+      =/  fo  (get-float-ops number-system)
+      =/  do-abs
+        |=  val=@
+        ^-  dime
+        %+  fit-dime  sized
+        :-  number-system
+        ?-  number-system
+            ?(%rh %rs %rd %rq)  (abs.fo val)
+            signed-systems      (sun:si (abs:si val))
+            unsigned-systems    val
+            ==
       ?:  ?=(dime expr)
-        :-  -.ps
-            ?-  number-system
-                ::
-                %rd  :-  number-system
-                        (~(abs rd:math [%z .~1e-15]) +.expr)
-                ::
-                %sd  [number-system (sun:si (abs:si +.expr))]
-                ::
-                %ud  expr
-                ==
+        [-.ps (do-abs +.expr)]
       :-  -.ps
           :+  %fn
-            type.expr
-            |=  =data-row
-            ^-  dime
-            ?-  number-system
-                ::
-                %rd  :-  number-system
-                        (~(abs rd:math [%z .~1e-15]) +:(f.expr data-row))
-                ::
-                %sd  [number-system (sun:si (abs:si +:(f.expr data-row)))]
-                ::
-                %ud  (f.expr data-row)
-                ==
+              type.expr
+              |=  =data-row
+              ^-  dime
+              (do-abs +:(f.expr data-row))
   ::
     %log
       =/  ps  %:  evaluate-datum  float-expression:;;(log:ast scalar)
@@ -408,38 +513,32 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura ?:(?=(dime expr) -.expr type.expr))
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %log, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
-      =/  do-log  |=  [ns=number-systems val=@]  ^-  dime
-                  ?-  ns
-                      %rd
-                        ?:  =(0 val)
-                          ~|  "log(0) is not a number"  !!
-                        ?.  (sig:rd `@rd`val)
-                          ~|  "log({<`@rd`val>}) is not a number"  !!
-                        [~.rd (~(log rd:math [%z .~1e-15]) `@rd`val)]
-                      %sd
-                        ?:  =(0 val)
-                          ~|  "log(0) is not a number"  !!
-                        ?.  (syn:si `@s`val)
-                          ~|  "log({<`@s`val>}) is not a number"  !!
-                        [~.rd (~(log rd:math [%z .~1e-15]) (san:rd `@s`val))]
-                      %ud
-                        ?:  =(0 val)
-                          ~|  "log(0) is not a number"  !!
-                        [~.rd (~(log rd:math [%z .~1e-15]) (sun:rd val))]
-                      ==
+      =/  fo  (get-float-ops number-system)
+      =/  do-log
+        |=  val=@
+        ^-  dime
+        ?:  =(0 val)
+          ~|  "log(0) is not a number"  !!
+        ?.  ?-  number-system
+                ?(%rh %rs %rd %rq)  (sig.fo val)
+                signed-systems      (syn:si val)
+                unsigned-systems    %.y
+                ==
+          ~|  "log({(trip (scot number-system val))}) is not a number"  !!
+        [aura.fo (log.fo (to-float fo number-system val))]
       ?:  ?=(dime expr)
-        [-.ps (do-log number-system +.expr)]
+        [-.ps (do-log +.expr)]
       :-  -.ps
           :+  %fn
-              ~.rd
+              aura.fo
               |=  =data-row
               ^-  dime
-            (do-log number-system +:(f.expr data-row))
+              (do-log +:(f.expr data-row))
   ::
     %e
       [seed [~.rd .~2.718281828459045]]
@@ -465,28 +564,33 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      ?.  =(ns1 ns2)
+      =/  sized  (common-aura ns1 ns2)
+      ?~  sized
         ~|  "max: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  expr1  (cast-scalar u.sized expr1)
+      =.  expr2  (cast-scalar u.sized expr2)
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %max, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
+      =/  fo  (get-float-ops ns1)
       =/  max-val  |=  [a=@ b=@]  ^-  @
                    ?-  ns1
-                       %rd  ?:  (sig:rd (sub:rd `@rd`a `@rd`b))  a  b
-                       %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  a  b
-                       %ud  ?:  (gte a b)  a  b
+                       float-systems     ?:((gte.fo a b) a b)
+                       signed-systems    ?:((syn:si (dif:si `@s`a `@s`b)) a b)
+                       unsigned-systems  ?:((gte a b) a b)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [-.ps [ns1 (max-val +.expr1 +.expr2)]]
+        [-.ps [u.sized (max-val +.expr1 +.expr2)]]
       :-  -.ps
           :+  %fn
-              ns1
+              u.sized
               |=  =data-row
               ^-  dime
               =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
               =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
-              [ns1 (max-val v1 v2)]
+              [u.sized (max-val v1 v2)]
   ::
     %min
       =/  ps  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
@@ -509,28 +613,33 @@
       =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
-      ?.  =(ns1 ns2)
+      =/  sized  (common-aura ns1 ns2)
+      ?~  sized
         ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  expr1  (cast-scalar u.sized expr1)
+      =.  expr2  (cast-scalar u.sized expr2)
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %min, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
+      =/  fo  (get-float-ops ns1)
       =/  min-val  |=  [a=@ b=@]  ^-  @
                    ?-  ns1
-                       %rd  ?:  (sig:rd (sub:rd `@rd`a `@rd`b))  b  a
-                       %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  b  a
-                       %ud  ?:  (gte a b)  b  a
+                       float-systems     ?:((gte.fo a b) b a)
+                       signed-systems    ?:((syn:si (dif:si `@s`a `@s`b)) b a)
+                       unsigned-systems  ?:((gte a b) b a)
                        ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [-.ps [ns1 (min-val +.expr1 +.expr2)]]
+        [-.ps [u.sized (min-val +.expr1 +.expr2)]]
       :-  -.ps
           :+  %fn
-              ns1
+              u.sized
               |=  =data-row
               ^-  dime
               =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
               =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
-              [ns1 (min-val v1 v2)]
+              [u.sized (min-val v1 v2)]
   ::
     %phi
       [seed [~.rd .~1.618033988749895]]
@@ -559,30 +668,27 @@
       =/  high=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime low) -.low type.low)
       =/  ns2  ?:(?=(dime high) -.high type.high)
-      ?.  =(ns1 ns2)
-        ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =/  sized  (common-aura ns1 ns2)
+      ?~  sized
+        ~|  "rand: type conflict: {<ns1>} vs {<ns2>}"  !!
+      =.  low  (cast-scalar u.sized low)
+      =.  high  (cast-scalar u.sized high)
+      =.  ns1  (base-aura u.sized)
       ?.  ?=(number-systems ns1)
-        ~|  "{<ns1>} not a supported number system for %min, ".
-            "need ?(~.rd ~.sd ~.ud)"
+        ~|  "{<ns1>} not a supported number system for %rand, ".
+            "{number-systems-msg}"
             !!
-      =.  high  ?.  ?=(%rd ns1)  high
-              ?:  ?=(dime high)
-                =/  int  (san:rd (need (toi:rd +.high)))
-                =/  dcm  (sub:rd +.high int)
-      high(+ ?:(=(0 dcm) `@`int ?:((sig:rd +.high) `@`(add:rd int .~1) `@`int)))
-              high
-      =.  low  ?.  ?=(%rd ns1)  low
-             ?:  ?=(dime low)
-               =/  dat  `@rd`+.low
-               =/  int  (san:rd (need (toi:rd dat)))
-               =/  dcm  (sub:rd dat int)
-          low(+ ?:(=(0 dcm) `@`int ?:((sig:rd dat) `@`int `@`(sub:rd int .~1))))
-             low
+      =/  fo  (get-float-ops ns1)
+      ::  float literal bounds widen to whole numbers
+      =.  high  ?.  &(?=(float-systems ns1) ?=(dime high))  high
+                high(+ (ceiling-float fo +.high))
+      =.  low  ?.  &(?=(float-systems ns1) ?=(dime low))  low
+               low(+ (floor-float fo +.low))
       =/  rng       ~(. og seed)
       =/  new-seed  +>-:(rads:rng 100)
       :-  -.ps
             :+  %fn
-                ns1
+                u.sized
                 |=  =data-row
                 ^-  dime
                 =/  the-seed  (mix new-seed (sham data.data-row))
@@ -594,17 +700,17 @@
                         +:(f.high data-row)
                 ::
                 =/  diff=@ud  ?-  ns1
-                      %rd
-                        =/  d  (sub:rd `@rd`hi `@rd`lo)
-                        ?:  (lth:rd d .~1)
+                      ?(%rh %rs %rd %rq)
+                        =/  d  (sub.fo hi lo)
+                        ?:  (lth.fo d (sun.fo 1))
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
-                        (abs:si `@s`(need (toi:rd d)))
-                      %sd
+                        (abs:si (need (toi.fo d)))
+                      signed-systems
                         ?.  =((cmp:si `@sd`hi `@sd`lo) --1)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         =/  d  (dif:si `@sd`hi `@sd`lo)
                         (abs:si d)
-                      %ud
+                      unsigned-systems
                         ?:  (gte `@ud`lo `@ud`hi)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         (sub `@ud`hi `@ud`lo)
@@ -613,12 +719,12 @@
                 =/  r         -:(rads:rng (add diff 1))
                 ::
                 ?-  ns1
-                  %rd
-                    [ns1 (add:rd `@rd`lo (sun:rd r))]
-                  %sd
-                    [ns1 (sum:si `@sd`lo (sun:si r))]
-                  %ud
-                    [ns1 (add `@ud`lo r)]
+                  ?(%rh %rs %rd %rq)
+                    [u.sized (add.fo lo (sun.fo r))]
+                  signed-systems
+                    [u.sized (sum:si `@sd`lo (sun:si r))]
+                  unsigned-systems
+                    [u.sized (add `@ud`lo r)]
                   ==
   ::
     %tau
@@ -634,38 +740,37 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %degrees, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
-      =/  factor  (div:rd .~360 .~6.283185307179586)
+      =/  fo  (get-float-ops number-system)
+      ::  360/tau from @rd, except @rq; the +rh door's tau is too coarse
+      =/  factor  ?:  =(%rq aura.fo)  (div.fo (sun.fo 360) tau.fo)
+                  (to-float fo %rd (div:rd .~360 .~6.283185307179586))
+      ::  integers compute in @rd and round half away from zero
       =/  do-degrees
-            |=  [ns=number-systems val=@]  ^-  dime
-            =/  rd-val
-              ?-  ns
-                  %rd  `@rd`val
-                  %sd  (san:rd `@s`val)
-                  %ud  (sun:rd val)
-                  ==
-            =/  res-rd  (mul:rd rd-val factor)
-            ?-  ns
-                %rd  [ns res-rd]
-                %sd  :-  ns
-                        %-  need  %-  toi:rd  %+  add:rd  res-rd
-                                                          ?:  (sig:rd res-rd)
-                                                            .~0.5
-                                                          .~-0.5
-                %ud  [ns (abs:si `@s`(need (toi:rd (add:rd res-rd .~0.5))))]
-                ==
+        |=  val=@
+        ^-  dime
+        =/  res  (mul.fo (to-float fo number-system val) factor)
+        %+  fit-dime  sized
+        :-  number-system
+        ?-  number-system
+            float-systems     res
+            unsigned-systems  (abs:si (need (toi.fo (add.fo res .~0.5))))
+            signed-systems
+              (need (toi.fo (add.fo res ?:((sig.fo res) .~0.5 .~-0.5))))
+            ==
       ?:  ?=(dime expr)
-        [-.ps (do-degrees number-system +.expr)]
+        [-.ps (do-degrees +.expr)]
       :-  -.ps
           :+  %fn
-              number-system
+              sized
               |=  =data-row
               ^-  dime
-              (do-degrees number-system +:(f.expr data-row))
+              (do-degrees +:(f.expr data-row))
   ::
     %sin
       =/  ps  %:  evaluate-datum  numeric-expression:;;(sin:ast scalar)
@@ -676,7 +781,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %sin +.ps ~(sin rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %sin +.ps |=(fo=float-ops sin.fo))]
   ::
     %cos
       =/  ps  %:  evaluate-datum  numeric-expression:;;(cos:ast scalar)
@@ -687,7 +792,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %cos +.ps ~(cos rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %cos +.ps |=(fo=float-ops cos.fo))]
   ::
     %tan
       =/  ps  %:  evaluate-datum  numeric-expression:;;(tan:ast scalar)
@@ -698,7 +803,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %tan +.ps ~(tan rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %tan +.ps |=(fo=float-ops tan.fo))]
   ::
     %asin
       =/  ps  %:  evaluate-datum  numeric-expression:;;(asin:ast scalar)
@@ -709,7 +814,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %asin +.ps ~(asin rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %asin +.ps |=(fo=float-ops asin.fo))]
   ::
     %acos
       =/  ps  %:  evaluate-datum  numeric-expression:;;(acos:ast scalar)
@@ -720,7 +825,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %acos +.ps ~(acos rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %acos +.ps |=(fo=float-ops acos.fo))]
   ::
     %atan
       =/  ps  %:  evaluate-datum  numeric-expression:;;(atan:ast scalar)
@@ -731,7 +836,7 @@
                                   bowl
                                   seed
                                   ==
-      [-.ps (prepare-rd-trig-op %atan +.ps ~(atan rd:math [%z .~1e-15]))]
+      [-.ps (prepare-trig-op %atan +.ps |=(fo=float-ops atan.fo))]
   ::
     %atan2
       =/  ps  %:  evaluate-datum  numeric-expression-1:;;(atan2:ast scalar)
@@ -752,31 +857,28 @@
                                   -.ps
                                   ==
       =/  expr2=resolved-scalar  +.ps
-      =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
-      =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
+      =/  ns1  (base-aura ?:(?=(dime expr1) -.expr1 type.expr1))
+      =/  ns2  (base-aura ?:(?=(dime expr2) -.expr2 type.expr2))
       ?.  ?=(number-systems ns1)
         ~|  "{<ns1>} not a supported number system for %atan2, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       ?.  ?=(number-systems ns2)
         ~|  "{<ns2>} not a supported number system for %atan2, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
-      =/  to-rd
-        |=  [ns=number-systems val=@]  ^-  @rd
-        ?-  ns
-            %rd  `@rd`val
-            %sd  (san:rd `@s`val)
-            %ud  (sun:rd val)
-            ==
+      ::  the arguments' common aura when a float, else @rd
+      =/  common  (need (common-aura ns1 ns2))
+      =/  fo  (get-float-ops ?:(?=(float-systems common) common %rd))
       =/  do-atan2
-        |=  [y=@ x=@]  ^-  dime
-        [~.rd (~(atan2 rd:math [%z .~1e-15]) (to-rd ns1 y) (to-rd ns2 x))]
+        |=  [y=@ x=@]
+        ^-  dime
+        [aura.fo (atan2.fo (to-float fo ns1 y) (to-float fo ns2 x))]
       ?:  &(?=(dime expr1) ?=(dime expr2))
         [-.ps (do-atan2 +.expr1 +.expr2)]
       :-  -.ps
       :+  %fn
-          ~.rd
+          aura.fo
           |=  =data-row
           ^-  dime
           =/  y  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
@@ -793,13 +895,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  floor-adjust  |=  [int=@rd datum=@rd]
-                        ^-  @rd
-                        =/  dcm  (sub:rd datum int)
-                        ?:  =(0 dcm)  int
-                        ?:  (sig:rd datum)  int
-                        (sub:rd int .~1)
-      [-.ps (simple-rounding-ops %floor expr floor-adjust)]
+      [-.ps (simple-rounding-ops %floor expr floor-float)]
   ::
     %ceiling
       =/  ps  %:  evaluate-datum  numeric-expression:;;(ceiling:ast scalar)
@@ -811,13 +907,7 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  ceiling-adjust  |=  [int=@rd datum=@rd]
-                          ^-  @rd
-                          =/  dcm  (sub:rd datum int)
-                          ?:  =(0 dcm)  int
-                          ?:  (sig:rd datum)  (add:rd int .~1)
-                          int
-      [-.ps (simple-rounding-ops %ceiling expr ceiling-adjust)]
+      [-.ps (simple-rounding-ops %ceiling expr ceiling-float)]
   ::
     %round
       =/  ps  %:  evaluate-datum  numeric-expression:;;(round:ast scalar)
@@ -829,10 +919,11 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %round, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
       =/  ps  %:  evaluate-datum  length:;;(round:ast scalar)
                                   named-ctes
@@ -843,39 +934,33 @@
                                   -.ps
                                   ==
       =/  len-expr=resolved-scalar  +.ps
-      =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
-      ?.  |(=(~.ud len-type) =(~.sd len-type))
-        ~|  "round: length must be @ud or @sd, got {<len-type>}"  !!
+      =/  len-type  (base-aura ?:(?=(dime len-expr) -.len-expr type.len-expr))
+      ?.  ?=(?(signed-systems unsigned-systems) len-type)
+        ~|  "round: length must be a signed or unsigned integer, ".
+            "got {<len-type>}"
+            !!
       ::  extract [is-positive magnitude] from a raw length atom
       =/  extract-len-info  |=  lval=@
                             ^-  [? @ud]
-                            ?:  =(~.ud len-type)  [%.y lval]
+                            ?:  ?=(unsigned-systems len-type)  [%.y lval]
                             ?:  (syn:si `@s`lval)  [%.y (abs:si `@s`lval)]
                             [%.n (abs:si `@s`lval)]
-      ::  floor for @rd, returns raw @rd atom
-      =/  floor-rd  |=  x=@
-                    ^-  @
-                    =/  dat  `@rd`x
-                    =/  int  (san:rd (need (toi:rd dat)))
-                    =/  dcm  (sub:rd dat int)
-                    ?:  =(0 dcm)  `@`int
-                    ?:  (sig:rd dat)  `@`int
-                    `@`(sub:rd int .~1)
-      ::  round @rd using round-half-up at decimal position by [is-pos mag]
+      ::  round a float using round-half-up at decimal position by
+      ::  [is-pos mag]
       ::  positive mag: round to mag decimal places (e.g. mag=2: 1.456 -> 1.46)
       ::  negative mag (is-pos=%.n): round before decimal
       ::    (e.g. mag=1: 123.4 -> 120.0)
-      =/  round-rd  |=  [datum=@ is-pos=? mag=@ud]
-                    ^-  @
-                    =/  dat    `@rd`datum
-                    =/  scale  (~(pow rd:math [%z .~1e-15]) .~10 (sun:rd mag))
-                    =/  scaled  ?:  is-pos
-                                  (mul:rd dat scale)
-                                (div:rd dat scale)
-                    =/  floored  `@rd`(floor-rd `@`(add:rd scaled .~0.5))
-                    ?:  is-pos
-                      `@`(div:rd floored scale)
-                    `@`(mul:rd floored scale)
+      =/  round-float  |=  [fo=float-ops datum=@ is-pos=? mag=@ud]
+                       ^-  @
+                       =/  scale  (pow.fo (sun.fo 10) (sun.fo mag))
+                       =/  scaled  ?:  is-pos
+                                     (mul.fo datum scale)
+                                   (div.fo datum scale)
+                       =/  half  (div.fo (sun.fo 1) (sun.fo 2))
+                       =/  floored  (floor-float fo (add.fo scaled half))
+                       ?:  is-pos
+                         (div.fo floored scale)
+                       (mul.fo floored scale)
       ::  round @s (signed integer) using round-half-up toward +infinity
       ::  positive mag: no-op (integers have no fractional part)
       ::  negative mag: round to nearest 10^mag using floor-division
@@ -899,56 +984,28 @@
                     =/  scale  (pow 10 mag)
                     =/  half   (div scale 2)
                     (mul (div (add `@ud`datum half) scale) scale)
-      ?:  ?=(dime expr)
-        :-  -.ps
-            ?-  number-system
-                ::
-                %rd
-                  ?.  ?=(dime len-expr)
-                    :+  %fn  number-system
-                    |=  =data-row
-                    ^-  dime
-                    =/  [is-pos=? mag=@ud]
-                          (extract-len-info +:(f.len-expr data-row))
-                    [number-system (round-rd +.expr is-pos mag)]
-                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-                  [number-system (round-rd +.expr is-pos mag)]
-                ::
-                %sd
-                  ?.  ?=(dime len-expr)
-                    :+  %fn  number-system
-                    |=  =data-row
-                    ^-  dime
-                    =/  [is-pos=? mag=@ud]
-                          (extract-len-info +:(f.len-expr data-row))
-                    [number-system (round-sd +.expr is-pos mag)]
-                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-                  [number-system (round-sd +.expr is-pos mag)]
-                ::
-                %ud
-                  ?.  ?=(dime len-expr)
-                    :+  %fn  number-system
-                    |=  =data-row
-                    ^-  dime
-                    =/  [is-pos=? mag=@ud]
-                          (extract-len-info +:(f.len-expr data-row))
-                    [number-system (round-ud +.expr is-pos mag)]
-                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-                  [number-system (round-ud +.expr is-pos mag)]
-                ==
+      =/  fo  (get-float-ops number-system)
+      =/  do-round
+        |=  [datum=@ len=@]
+        ^-  dime
+        =/  [is-pos=? mag=@ud]  (extract-len-info len)
+        %+  fit-dime  sized
+        :-  number-system
+        ?-  number-system
+            ?(%rh %rs %rd %rq)  (round-float fo datum is-pos mag)
+            signed-systems      (round-sd datum is-pos mag)
+            unsigned-systems    (round-ud datum is-pos mag)
+            ==
+      ?:  &(?=(dime expr) ?=(dime len-expr))
+        [-.ps (do-round +.expr +.len-expr)]
       :-  -.ps
       :+  %fn
-          type.expr
+          sized
           |=  =data-row
           ^-  dime
-          =/  datum  +:(f.expr data-row)
+          =/  datum  ?:(?=(dime expr) +.expr +:(f.expr data-row))
           =/  len    ?:(?=(dime len-expr) +.len-expr +:(f.len-expr data-row))
-          =/  [is-pos=? mag=@ud]  (extract-len-info len)
-          ?-  number-system
-              %rd  [number-system (round-rd datum is-pos mag)]
-              %sd  [number-system (round-sd datum is-pos mag)]
-              %ud  [number-system (round-ud datum is-pos mag)]
-              ==
+          (do-round datum len)
   ::
     %sign
       =/  ps  %:  evaluate-datum  numeric-expression:;;(sign:ast scalar)
@@ -960,62 +1017,31 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sign, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
-      ?:  ?=(dime expr)
-        :-  seed
+      =/  fo  (get-float-ops number-system)
+      =/  do-sign
+        |=  val=@
+        ^-  dime
+        :-  sized
+        ?:  =(0 val)  0
         ?-  number-system
-            ::
-            %rd
-              ?:  =(0 +.expr)
-                   [number-system 0]
-              ?:  (sig:rd +.expr)
-                 [number-system .~1]
-              [number-system .~-1]
-            ::
-            %sd
-              ?:  =(0 +.expr)
-                   [number-system 0]
-              ?:  (syn:si +.expr)
-                 [number-system --1]
-              [number-system -1]
-            ::
-            %ud
-              ?:  =(0 +.expr)
-                [number-system 0]
-              [number-system 1]
+            ?(%rh %rs %rd %rq)  ?:((sig.fo val) (sun.fo 1) (san.fo -1))
+            signed-systems      ?:((syn:si val) --1 -1)
+            unsigned-systems    1
             ==
+      ?:  ?=(dime expr)
+        [-.ps (do-sign +.expr)]
       :-  -.ps
           :+  %fn
               type.expr
               |=  =data-row
               ^-  dime
-              ?-  number-system
-                  ::
-                  %rd
-                    =/  datum  +:(f.expr data-row)
-                    ?:  =(0 datum)
-                        [number-system 0]
-                    ?:  (sig:rd datum)
-                      [number-system .~1]
-                    [number-system .~-1]
-                  ::
-                  %sd
-                    =/  datum  +:(f.expr data-row)
-                    ?:  =(0 datum)
-                        [number-system 0]
-                    ?:  (syn:si datum)
-                      [number-system --1]
-                    [number-system -1]
-                  ::
-                  %ud
-                    ?:  =(0 +:(f.expr data-row))
-                      [number-system 0]
-                    [number-system 1]
-                  ==
+              (do-sign +:(f.expr data-row))
   ::
     %sqrt
       =/  ps  %:  evaluate-datum  float-expression:;;(sqrt:ast scalar)
@@ -1027,69 +1053,36 @@
                                   seed
                                   ==
       =/  expr=resolved-scalar  +.ps
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      =/  sized  ?:(?=(dime expr) -.expr type.expr)
+      =/  number-system  (base-aura sized)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sqrt, ".
-            "need ?(~.rd ~.sd ~.ud)"
+            "{number-systems-msg}"
             !!
-      ?:  ?=(dime expr)
-        :-  seed
+      =/  fo  (get-float-ops number-system)
+      ::  integers compute in @rd and truncate
+      =/  do-sqrt
+        |=  val=@
+        ^-  dime
+        :-  sized
+        ?:  =(0 val)  0
+        =/  res  (sqt.fo (to-float fo number-system val))
+        =/  int  (toi.fo res)
+        ?~  int
+          ~|  "sqrt({(trip (scot number-system val))}) is not a number"  !!
         ?-  number-system
-            ::
-            %rd
-              ?:  =(0 +.expr)    [number-system 0]
-              ?:  =(.~1 +.expr)  [number-system .~1]
-              =/  result  (sqt:rd +.expr)
-              ?~  (toi:rd result)
-                ~|  "sqrt({<`@rd`+.expr>}) is not a number"  !!
-              [number-system result]
-            ::
-            %sd
-              ?:  =(0 +.expr)  [number-system 0]
-              ?:  =(2 +.expr)  [number-system 2]  ::  @sd --1, sqrt(--1) = --1
-              =/  toi-result  (toi:rd (sqt:rd (san:rd +.expr)))
-              ?~  toi-result  ~|  "sqrt({<`@sd`+.expr>}) is not a number"  !!
-              [number-system u.toi-result]
-            ::
-            %ud
-              ?:  =(0 +.expr)  [number-system 0]
-              ?:  =(1 +.expr)  [number-system 1]
-              =/  toi-result  (toi:rd (sqt:rd (sun:rd +.expr)))
-              ?~  toi-result  ~|  "sqrt({<+.expr>}) is not a number"  !!
-              [number-system (abs:si u.toi-result)]
+            ?(%rh %rs %rd %rq)  res
+            signed-systems      u.int
+            unsigned-systems    (abs:si u.int)
             ==
+      ?:  ?=(dime expr)
+        [-.ps (do-sqrt +.expr)]
       :-  -.ps
         :+  %fn
             type.expr
             |=  =data-row
             ^-  dime
-            ?-  number-system
-                ::
-                %rd
-                  =/  datum  +:(f.expr data-row)
-                  ?:  =(0 datum)    [number-system 0]
-                  ?:  =(.~1 datum)  [number-system .~1]
-                  =/  result  (sqt:rd datum)
-                  ?~  (toi:rd result)
-                    ~|  "sqrt({<`@rd`datum>}) is not a number"  !!
-                  [number-system result]
-                ::
-                %sd
-                  =/  datum  +:(f.expr data-row)
-                  ?:  =(0 datum)  [number-system 0]
-                  ?:  =(2 datum)  [number-system 2]  :: @sd --1, sqrt(--1) = --1
-                  =/  toi-result  (toi:rd (sqt:rd (san:rd datum)))
-                  ?~  toi-result  ~|  "sqrt({<`@sd`datum>}) is not a number"  !!
-                  [number-system u.toi-result]
-                ::
-                %ud
-                  =/  datum  +:(f.expr data-row)
-                  ?:  =(0 datum)  [number-system 0]
-                  ?:  =(1 datum)  [number-system 1]
-                  =/  toi-result  (toi:rd (sqt:rd (sun:rd datum)))
-                  ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
-                  [number-system (abs:si u.toi-result)]
-                ==
+            (do-sqrt +:(f.expr data-row))
   ::
   ::  string functions
   ::
@@ -2078,6 +2071,7 @@
           typ
           |=  =data-row
           ^-  dime
+          %+  cast-dime  typ
           =/  resolved  ?:((pred-result data-row) then else)
           ?:  ?=(dime resolved)  resolved
           ?:  =(%fn -.resolved)
@@ -2182,7 +2176,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (apply-scalar data-row +.fn-datum)
+            (cast-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  prepare-case-simple
@@ -2292,7 +2286,7 @@
           ?~  fns-to-apply  ~|("no case matched" !!)
           =/  fn-datum  -.fns-to-apply
           ?:  (-.fn-datum data-row)
-            (apply-scalar data-row +.fn-datum)
+            (cast-dime typ (apply-scalar data-row +.fn-datum))
           $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
@@ -2384,7 +2378,7 @@
                                                seed
                                                ==
                =/  when-val  %+  apply-scalar  data-row  +.when-ps
-               =(target-val when-val)
+               (dime-equ target-val when-val)
   =/  loop-ps
     =|  acc=(list [$-(data-row ?) resolved-scalar])
     =/  items  cases.scalar
@@ -2473,8 +2467,8 @@
   ::  otherwise build a %fn that walks validated at runtime per data-row,
   ::  returning the first non-null value; the list-walk is captured in the gate
   =/  fn  |=  [datums=(list resolved-scalar) =data-row]
-          :: to do: once outer joins implemented must test columns for existence
-          ::        in data-row
+          ::  arguments absent from a row type were pruned before preparation
+          ::  (+prune-scalar-node in lib/crud): the first is present
           ^-  dime
           |-
           ?~  datums  ~|("coalesce: no non-null value found in row" !!)
@@ -2513,312 +2507,136 @@
                               ==
   =.  seed  -.ps
   =/  r=resolved-scalar  +.ps
-  =/  l-number-system  ?:  ?=(dime l)  -.l
-                       type.l
-  =/  r-number-system  ?:  ?=(dime r)  -.r
-                       type.r
-  ?.  ?|  =(l-number-system r-number-system)
-          &(=(%ket operator.scalar) ?=(number-systems r-number-system))
-          ==
+  =/  l-aura  ?:(?=(dime l) -.l type.l)
+  =/  r-aura  ?:(?=(dime r) -.r type.r)
+  =/  l-number-system  (base-aura l-aura)
+  =/  r-number-system  (base-aura r-aura)
+  ::  the result aura: the operands' common aura; for ^ the base's aura,
+  ::  but the common aura of a float exponent, @rd for an integer base
+  ::  with a signed exponent negative or not a literal, signed for an
+  ::  unsigned base with a signed exponent
+  =/  res=(unit @ta)
+    ?.  =(%ket operator.scalar)  (common-aura l-aura r-aura)
+    ?.  &((number-aura l-aura) (number-aura r-aura))  ~
+    ?:  ?=(float-systems r-number-system)  (common-aura l-aura r-aura)
+    ?:  ?=(float-systems l-number-system)  `l-aura
+    ?.  (signed-aura r-aura)  `l-aura
+    ?.  &(?=(dime r) (syn:si +.r))  `~.rd
+    ?:  (signed-aura l-aura)  `l-aura
+    `(cat 3 's' (rsh 3 l-aura))
+  ?~  res
     ~|  "number system conflict: ".
-        "{<l-number-system>} {<operator.scalar>} {<r-number-system>}"
+        "{<l-aura>} {<operator.scalar>} {<r-aura>}"
         !!
   ?.  ?=(number-systems l-number-system)
-    ~|  "{<l-number-system>} {<operator.scalar>} {<r-number-system>} : ".
-        "{<l-number-system>} not a supported number system, ".
-        "need ?(~.rd ~.sd ~.ud)"
+    ~|  "{<l-aura>} {<operator.scalar>} {<r-aura>} : ".
+        "{<l-aura>} not a supported number system, ".
+        "{number-systems-msg}"
         !!
-  =/  check-sub-underflow  |=  [left=@ud right=@ud]
-                           ^-  ?
-                           (gth right left)
-  =/  guard-div-zero-rd  |=  val=@rd
-                         ^-  @rd
-                         ?:  =(val .~0)
-                           ~|("division by zero" !!)
-                         val
-  =/  guard-div-zero-sd  |=  val=@sd
-                         ^-  @sd
-                         ?:  =(val --0)
-                           ~|("division by zero" !!)
-                         val
-  =/  guard-div-zero-ud  |=  val=@ud
-                         ^-  @ud
-                         ?:  =(val 0)
-                           ~|("division by zero" !!)
-                         val
-  =/  guard-sub-underflow-ud  |=  [left=@ud right=@ud]
-                              ^-  [@ud @ud]
-                              ?:  (check-sub-underflow left right)
-                                ~|("subtraction underflow" !!)
-                              [left right]
+  =/  op  (arithmetic-gate operator.scalar u.res l-aura r-aura)
   :-  seed
-  ?-  operator.scalar
-      ::
-      %lus
-        ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  [-.l (add:rd +.l +.r)]
-            ::
-            %sd  [-.l (sum:si +.l +.r)]
-            ::
-            %ud  [-.l (add +.l +.r)]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
-            ?-  l-number-system
-              ::
-              %rd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (add:rd +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (add:rd +:(f.l data-row) +.r)]
-                [l-number-system (add:rd +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %sd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (sum:si +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (sum:si +:(f.l data-row) +.r)]
-                [l-number-system (sum:si +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (add +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (add +:(f.l data-row) +.r)]
-                [l-number-system (add +:(f.l data-row) +:(f.r data-row))]
-              ==
-      ::
-      %hep
-          ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  [-.l (sub:rd +.l +.r)]
-            ::
-            %sd  [-.l (dif:si +.l +.r)]
-            ::
-            %ud
-              =/  args  (guard-sub-underflow-ud +.l +.r)
-              [-.l (sub -.args +.args)]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
-            ?-  l-number-system
-              ::
-              %rd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (sub:rd +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (sub:rd +:(f.l data-row) +.r)]
-                [l-number-system (sub:rd +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %sd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (dif:si +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (dif:si +:(f.l data-row) +.r)]
-                [l-number-system (dif:si +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  =/  args  (guard-sub-underflow-ud +.l +:(f.r data-row))
-                  [l-number-system (sub -.args +.args)]
-                ?:  ?=(dime r)
-                  =/  args  (guard-sub-underflow-ud +:(f.l data-row) +.r)
-                  [l-number-system (sub -.args +.args)]
-                =/  args
-                      (guard-sub-underflow-ud +:(f.l data-row) +:(f.r data-row))
-                [l-number-system (sub -.args +.args)]
-              ==
-      ::
-      %tar
-         ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  [-.l (mul:rd +.l +.r)]
-            ::
-            %sd  [-.l (pro:si +.l +.r)]
-            ::
-            %ud  [-.l (mul +.l +.r)]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
-            ?-  l-number-system
-              ::
-              %rd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (mul:rd +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (mul:rd +:(f.l data-row) +.r)]
-                [l-number-system (mul:rd +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %sd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (pro:si +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (pro:si +:(f.l data-row) +.r)]
-                [l-number-system (pro:si +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (mul +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (mul +:(f.l data-row) +.r)]
-                [l-number-system (mul +:(f.l data-row) +:(f.r data-row))]
-              ==
-      ::
-      %fas
-          ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  [-.l (div:rd +.l (guard-div-zero-rd +.r))]
-            ::
-            %sd  [-.l (fra:si +.l (guard-div-zero-sd +.r))]
-            ::
-            %ud  [-.l (div +.l (guard-div-zero-ud +.r))]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
-            ?-  l-number-system
-              ::
-              %rd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  :-  l-number-system
-                      (div:rd +.l (guard-div-zero-rd +:(f.r data-row)))
-                ?:  ?=(dime r)
-                  :-  l-number-system
-                      (div:rd +:(f.l data-row) (guard-div-zero-rd +.r))
-                :-  l-number-system
-                    %+  div:rd  +:(f.l data-row)
-                                (guard-div-zero-rd +:(f.r data-row))
-              ::
-              %sd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  :-  l-number-system
-                      (fra:si +.l (guard-div-zero-sd +:(f.r data-row)))
-                ?:  ?=(dime r)
-                  :-  l-number-system
-                      (fra:si +:(f.l data-row) (guard-div-zero-sd +.r))
-                :-  l-number-system
-                    %+  fra:si  +:(f.l data-row)
-                                (guard-div-zero-sd +:(f.r data-row))
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  :-  l-number-system
-                      (div +.l (guard-div-zero-ud +:(f.r data-row)))
-                ?:  ?=(dime r)
-                  :-  l-number-system
-                      (div +:(f.l data-row) (guard-div-zero-ud +.r))
-                :-  l-number-system
-                    (div +:(f.l data-row) (guard-div-zero-ud +:(f.r data-row)))
-              ==
-      ::
-      %ket
-          ?:  &(?=(dime l) ?=(dime r))
-          =/  l-rd  ?-  l-number-system
-                      %rd  +.l
-                      %ud  (sun:rd +.l)
-                      %sd  (san:rd `@s`+.l)
-                      ==
-          =/  r-rd  ?:  =(r-number-system %rd)  +.r
-                    ?:  =(r-number-system %ud)  (sun:rd +.r)
-                    (san:rd `@s`+.r)
-          ?:  (lth:rd r-rd .~0)
-            ~|("negative exponent {<r>} not supported" !!)
-          =/  res-rd  ?:  =(r-number-system %rd)
-                        (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
-                      (~(pow-n rd:math [%z .~1e-15]) l-rd r-rd)
-          ?-  l-number-system
-            %rd  [l-number-system res-rd]
-            %ud  [l-number-system (abs:si `@s`(need (toi:rd res-rd)))]
-            %sd  [l-number-system (need (toi:rd res-rd))]
+  ?:  &(?=(dime l) ?=(dime r))
+    [u.res (fit-width u.res (op +.l +.r))]
+  :+  %fn
+      u.res
+      |=  =data-row
+      ^-  dime
+      =/  a  ?:(?=(dime l) +.l +:(f.l data-row))
+      =/  b  ?:(?=(dime r) +.r +:(f.r data-row))
+      [u.res (fit-width u.res (op a b))]
+::
+++  arithmetic-gate
+  ::  gate applying operator op to raw atoms of auras l and r, giving aura
+  ::  res; both operands convert to res first, but the exponent of ^ keeps
+  ::  its number system
+  |=  [op=arithmetic-op:ast res=@ta l=@ta r=@ta]
+  ^-  $-([@ @] @)
+  =/  ns  (base-aura res)
+  =/  l-ns  (base-aura l)
+  =/  r-ns  (base-aura r)
+  ?>  ?&  ?=(number-systems ns)
+          ?=(number-systems l-ns)
+          ?=(number-systems r-ns)
           ==
-      :+  %fn
-          l-number-system
-          |=  =data-row
-          ^-  dime
-          =/  l-raw  ?:(?=(dime l) +.l +:(f.l data-row))
-          =/  r-raw  ?:(?=(dime r) +.r +:(f.r data-row))
-          =/  l-rd
-            ?-  l-number-system
-              %rd  l-raw
-              %ud  (sun:rd l-raw)
-              %sd  (san:rd `@s`l-raw)
-            ==
-          =/  r-rd
-            ?:  =(r-number-system %rd)  r-raw
-            ?:  =(r-number-system %ud)  (sun:rd r-raw)
-            (san:rd `@s`r-raw)
-          ?:  (lth:rd r-rd .~0)
-            ~|("negative exponent {<r>} not supported" !!)
-          =/  res-rd
-            ?:  =(r-number-system %rd)
-              (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
-            (~(pow-n rd:math [%z .~1e-15]) l-rd r-rd)
-          ?-  l-number-system
-            %rd  [l-number-system res-rd]
-            %ud  [l-number-system (abs:si `@s`(need (toi:rd res-rd)))]
-            %sd  [l-number-system (need (toi:rd res-rd))]
+  =/  fo  (get-float-ops ns)
+  ?:  ?=(%ket op)
+    ::  integers compute in @rd and truncate; x ^ -y is 1 / x ^ y
+    |=  [a=@ b=@]
+    ^-  @
+    =/  ex  (to-float fo r-ns b)
+    =/  neg  (lth.fo ex (sun.fo 0))
+    =?  ex  neg  (sub.fo (sun.fo 0) ex)
+    =/  base  (to-float fo l-ns a)
+    =/  pw  ?:  ?=(float-systems r-ns)  (pow.fo base ex)
+            (pow-n.fo base ex)
+    =?  pw  neg
+      ?:  (equ.fo pw (sun.fo 0))  ~|("division by zero" !!)
+      (div.fo (sun.fo 1) pw)
+    ?-  ns
+        float-systems     pw
+        signed-systems    (need (toi.fo pw))
+        unsigned-systems  (abs:si (need (toi.fo pw)))
+        ==
+  =/  gate=$-([@ @] @)
+    ?-  ns
+        float-systems
+      ?-  op
+          %lus  add.fo
+          %hep  sub.fo
+          %tar  mul.fo
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  (equ.fo b (sun.fo 0))  ~|("division by zero" !!)
+                (div.fo a b)
+          %cen  |=  [a=@ b=@]
+                ^-  @
+                ~|("remainder not implemented for @{(trip ns)}" !!)
           ==
-      ::
-      %cen
-          ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  ~|("remainder not implemented for @rd" !!)
-            ::
-            %sd  [-.l (rem:si +.l +.r)]
-            ::
-            %ud  [-.l (mod +.l +.r)]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
-            ?-  l-number-system
-              ::
-              %rd
-                ~|("remainder not implemented for @rd" !!)
-              ::
-              %sd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (rem:si +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (rem:si +:(f.l data-row) +.r)]
-                [l-number-system (rem:si +:(f.l data-row) +:(f.r data-row))]
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (mod +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (mod +:(f.l data-row) +.r)]
-                [l-number-system (mod +:(f.l data-row) +:(f.r data-row))]
-              ==
-    ==
+    ::
+        signed-systems
+      ?-  op
+          %lus  sum:si
+          %hep  dif:si
+          %tar  pro:si
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  =(--0 b)  ~|("division by zero" !!)
+                (fra:si a b)
+          %cen  rem:si
+          ==
+    ::
+        unsigned-systems
+      ?-  op
+          %lus  add
+          %hep  |=  [a=@ b=@]
+                ^-  @
+                ?:  (gth b a)  ~|("subtraction underflow" !!)
+                (sub a b)
+          %tar  mul
+          %fas  |=  [a=@ b=@]
+                ^-  @
+                ?:  =(0 b)  ~|("division by zero" !!)
+                (div a b)
+          %cen  mod
+          ==
+      ==
+  |=  [a=@ b=@]
+  ^-  @
+  (gate (convert-number l res a) (convert-number r res b))
+::
+++  cast-dime
+  ::  d converted to aura a, an equal or higher number system
+  |=  [a=@ta d=dime]
+  ^-  dime
+  [a (convert-number p.d a q.d)]
+::
+++  cast-scalar
+  ::  rs converted to aura a, an equal or higher number system
+  |=  [a=@ta rs=resolved-scalar]
+  ^-  resolved-scalar
+  ?:  ?=(dime rs)  (cast-dime a rs)
+  ?:  =(a type.rs)  rs
+  [%fn a |=(=data-row (cast-dime a (f.rs data-row)))]
 ::
 ++  check-consistent-types
   ::  validate that all datum items share a common aura type,
@@ -2847,6 +2665,7 @@
   ?~  items
     ?~  expected
       ~|("check-consistent-types: empty argument list" !!)
+    =.  out  (turn out (cury cast-scalar u.expected))
     ?~  allowed
       [u.expected (flop out)]  ::  no type constraint
     ~|  %+  weld  "check-consistent-types: type {<u.expected>} "
@@ -2861,10 +2680,11 @@
   =/  [t=@ta sub=resolved-scalar]  (resolve-item i.items)
   ?~  expected
     $(expected `t, out [sub out], items t.items)
+  =/  common  (common-aura u.expected t)
   ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
       "but got {<t>} at {<i.items>}"
-  ?>  =(u.expected t)
-  $(out [sub out], items t.items)
+  ?>  ?=(^ common)
+  $(expected common, out [sub out], items t.items)
 ::
 ++  got-qualified-col-type
   |=  [=map-meta col=qualified-column:ast]
@@ -2910,10 +2730,20 @@
     :-  seed
     ~|  "scalar {<name.datum>} not found"
         (~(got by resolved-scalars) name.datum)
+  ::  a column named e, phi, pi, or tau takes precedence over the constant
+  ?:  ?&  ?|  ?=([%e ~] datum)
+              ?=([%phi ~] datum)
+              ?=([%pi ~] datum)
+              ?=([%tau ~] datum)
+              ==
+          (~(has by qualifier-lookup) ;;(@tas -.datum))
+          ==
+    $(datum [%unqualified-column ;;(@tas -.datum) ~])
   ?:  ?|  ?=([%e ~] datum)
           ?=([%phi ~] datum)
           ?=([%pi ~] datum)
           ?=([%tau ~] datum)
+          ?=([%version ~] datum)
           ==
     %:  prepare-scalar  ;;(scalar-function:ast datum)
                         named-ctes
