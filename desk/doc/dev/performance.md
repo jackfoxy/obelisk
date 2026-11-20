@@ -18,7 +18,7 @@ column.
 
 ## Parse, INSERT, and SELECT performance on sample database
 
-Unscientific performance measurements of parsing, inserting, and querying sample data using the `animal-shelter` sample database in v0.7-beta.
+Unscientific performance measurements of parsing, inserting, and querying sample data using the `animal-shelter` sample database in v1.0.
 
 Timings use the `%bout` hint and are typical of many observed iterations.
 
@@ -34,27 +34,27 @@ Other than rows and columns the major variable is the table column types; and be
 
 | TABLE | Rows | Columns | Cells | Parse (ms) | Insert (ms) | Parse/Row (ms) | Parse/Cell (ms) | Insert/Row (ms) | Insert/Cell (ms) |
 |-------|------|---------|-------|------------|-------------|----------------|-----------------|-----------------|------------------|
-| adoptions | 70 | 5 | 350 | 44.560 | 9.875 | 0.637 | 0.127 | 0.141 | 0.028 |
+| adoptions | 70 | 5 | 350 | 44.457 | 15.630 | 0.635 | 0.127 | 0.223 | 0.045 |
 |    @t,@t,@t,@da,@ud |
-| vaccinations | 95 | 7 | 665 | 82.597 | 12.117 | 0.869 | 0.124 | 0.128 | 0.018 |
+| vaccinations | 95 | 7 | 665 | 73.775 | 20.837 | 0.777 | 0.111 | 0.219 | 0.031 |
 | @t,@t,@da,@t,@t,@t,@t |
-| animals | 100 | 8 | 800 | 83.516 | 15.536 | 0.835 | 0.104 | 0.155 | 0.019 |
+| animals | 100 | 8 | 800 | 79.765 | 31.259 | 0.798 | 0.100 | 0.313 | 0.039 |
 | @t,@t,@t,@t,@t,@da,@t,@da |
-| common-person-names | 100 | 4 | 400 | 37.000 | 8.242 | 0.370 | 0.093 | 0.082 | 0.021 |
+| common-person-names | 100 | 4 | 400 | 41.723 | 15.787 | 0.417 | 0.104 | 0.158 | 0.039 |
 | @ud,@t,@t,@t |
-| persons | 120 | 8 | 960 | 107.879 | 29.721 | 0.899 | 0.112 | 0.248 | 0.031 |
+| persons | 120 | 8 | 960 | 99.643 | 49.617 | 0.830 | 0.104 | 0.413 | 0.052 |
 | @t,@t,@t,@da,@t,@t,@t,@t |
-| common-animal-names | 300 | 4 | 1,200 | 104.573 | 28.557 | 0.349 | 0.087 | 0.095 | 0.024 |
+| common-animal-names | 300 | 4 | 1,200 | 110.855 | 50.140 | 0.370 | 0.092 | 0.167 | 0.042 |
 | @t,@ud,@t,@t |
-| breeds | 469 | 3 | 1,407 | 260.003 | 123.296 | 0.554 | 0.185 | 0.263 | 0.088 |
+| breeds | 469 | 3 | 1,407 | 245.917 | 197.447 | 0.524 | 0.175 | 0.421 | 0.140 |
 | @t,@t,@t |
-| calendar-us-fed-holiday | 601 | 2 | 1,202 | 179.495 | 47.804 | 0.299 | 0.149 | 0.080 | 0.040 |
+| calendar-us-fed-holiday | 601 | 2 | 1,202 | 167.527 | 94.042 | 0.279 | 0.139 | 0.156 | 0.078 |
 | @da,@t |
-| cities | 4,065 | 4 | 16,260 | 1,975.128 | 803.725 | 0.486 | 0.122 | 0.198 | 0.049 |
+| cities | 4,065 | 4 | 16,260 | 1,939.668 | 1,354.788 | 0.477 | 0.119 | 0.333 | 0.083 |
 | @t,@t,@t,@ud |
-| city-zip-codes | 15,503 | 3 | 46,509 | 3,798.088 | 3,126.709 | 0.245 | 0.082 | 0.202 | 0.067 |
+| city-zip-codes | 15,503 | 3 | 46,509 | 3,814.728 | 5,064.579 | 0.246 | 0.082 | 0.327 | 0.109 |
 | @t,@t,@t  |
-| calendar | 21,916 | 9 | 197,244 | 25,635.685 | 3,123.573 | 1.170 | 0.130 | 0.142 | 0.016 |
+| calendar | 21,916 | 9 | 197,244 | 29,457.225 | 6,923.412 | 1.344 | 0.149 | 0.316 | 0.035 |
 | @da,@ud,@ud,@t,@ud,@t,@ud,@ud,@ud |
 
 #### Conclusions
@@ -71,8 +71,9 @@ FROM reference.calendar
 SELECT *
 ```
 
-parse: ms/6.093
-query: s/2.834
+parse: ms/7.784
+
+query: ms/792.371
 
 ```
 %obelisk-result:
@@ -102,11 +103,13 @@ query: s/2.834
 
 ```
 FROM reference.calendar
+
 SELECT day-name
 ```
 
-parse: ms/4.822
-query: s/1.876
+parse: ms/7.112
+
+query: ms/795.471
 
 ```
 %obelisk-result:
@@ -136,8 +139,9 @@ SCALARS rando RAND(.~0, .~1000) * .~0.001 END
 SELECT rando, *
 ```
 
-parse: ms/12.547
-query: s/7.252
+parse: ms/21.258
+
+query: s/10.256.989
 
 ```
 %obelisk-result:
@@ -171,8 +175,9 @@ FROM animal-shelter.sys.tables
 SELECT namespace, name, agent, tmsp, row-count
 ```
 
-parse: ms/17.520
-query: ms/6.229
+parse: ms/17.257
+
+query: ms/4.442
 
 ```
 %obelisk-result:
@@ -209,8 +214,9 @@ WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
 SELECT T1.date, day-name, us-federal-holiday
 ```
 
-parse: ms/12.915
-query: ms/142.850
+parse: ms/23.088
+
+query: ms/188.428
 
 ```
 %obelisk-result:
@@ -248,8 +254,9 @@ JOIN reference.federal-holidays-fixed
 SELECT date, month-name, day-name, holiday, day-of-month
 ```
 
-parse: ms/11.037
-query: ms/433.152
+parse: ms/19.358
+
+query: ms/594.313
 
 ```
 %obelisk-result:
@@ -291,8 +298,9 @@ WHERE T1.population > 100000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
 
-parse: ms/26.533
-query: ms/625.443
+parse: ms/33.959
+
+query: ms/881.604
 
 ```
 %obelisk-result:
@@ -333,8 +341,9 @@ WHERE T1.day >= T2.date-min AND T1.day <= T2.date-max
 SELECT T1.date, T1.year, T1.month-name, T1.day, T1.day-name, T2.holiday
 ```
 
-parse: ms/15.577
-query: ms/260.837
+parse: ms/69.142
+
+query: ms/270.488
 
 ```
 %obelisk-result:
@@ -375,8 +384,9 @@ WHERE T1.population > 500000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
 
-parse: ms/12.018
-query: ms/568.113
+parse: ms/29.872
+
+query: ms/794.301
 
 ```
 %obelisk-result:
