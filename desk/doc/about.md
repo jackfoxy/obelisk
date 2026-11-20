@@ -1,4 +1,4 @@
-Obelisk v0.9.4
+Obelisk v1.0.0
 
 [Release Notes](/docs/d/obelisk/release-notes)
 
