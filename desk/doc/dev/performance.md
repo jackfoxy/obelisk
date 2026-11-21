@@ -22,7 +22,7 @@ Unscientific performance measurements of parsing, inserting, and querying sample
 
 Timings use the `%bout` hint and are typical of many observed iterations.
 
-The measurements were taken on a comet 2GB loom, 409k, vere 4.3, executing a single urQL script running under Mint Linux on a 3rd generation Intel Core i7 with 32GB of RAM. The script included CREATE TABLE before each INSERT. Only the INSERT was timed.
+The measurements were taken on a comet 2GB loom, 408k, vere 4.6, executing a single urQL script running under Mint Linux on a 3rd generation Intel Core i7 with 32GB of RAM. The script included CREATE TABLE before each INSERT. Only the INSERT was timed.
 
 Parsing is the step of applying the %obelisk parser to an urQL INSERT script command, producing an AST object.
 
